@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+from config_data import GetVar
+from options import Options
+from runTest1 import RunTest1
+from runTest2 import RunTest2
+
+
+
+__init__ = 'main'
+get_options = Options()
+data=get_options.arg_parse()
+config = GetVar(getattr(data,"tenant"))
+cells_available = ['melbourne','melbourne-np','melbourne-qh2','qld','monash']
+if getattr(data,"cell")!=None:
+    if getattr(data,"cell") in cells_available:
+        config.cell = getattr(data,"cell")
+    else:
+        print "Error, only the following cells are available %r" % cells_available
+        raise SystemExit
+
+
+
+if getattr(data,'all')==True and getattr(data,'instances')==False:
+    RunTest1().runTest1(config)
+
+
+elif getattr(data,'all')==False and getattr(data,'instances')==True:
+    RunTest2().runTest2(config)
+    
+else:
+    print "Invalid Selection,exit test"
+    raise SystemExit
+
+
+
+
+
+
+
+
