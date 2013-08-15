@@ -1,0 +1,23 @@
+Dear {{ user.name }},
+
+We hope that you have found the NeCTAR Research Cloud (NRC) helpful in your research. Your current allocation request number {{ allocation.number }} will expire on {{ allocation.expirydate }}. We are contacting you to outline the options for either extending your use of the Research Cloud or releasing the allocated resources for other researchers to use. As a limited resource, we want to ensure that researchers like you have as much access as possible to the Research Cloud. 
+
+You have the following options:
+
+  Option 1 - Notify RC-Support that you wish to continue with your allocation and you will submit an allocation request. An allocation request must be received within 4 weeks of receiving this notice. During this process no action will be taken against your current allocation.
+
+  Option 2 - Notify RC-Support that you no longer require the allocation and will need until <x/xx/xx> to finalise processing and remove any required data. After the stipulated date NRC will terminate the VM’s and the allocation.
+
+  Option 3 – Notify RC-Support that you no longer require the allocation and it can be terminated immediately.
+
+  Option 4 – Do nothing and:
+    a) You have until the later of the expiry date or 4 weeks from issuing the termination notice before any further action is taken on your allocation by NRC 
+    b) After the later of the 4 weeks period has elapsed or the expiry date reached; NRC will snapshot the VM’s and store a backup on the Swift storage. The VM’s will then be suspended and swift data will be made read-only.
+    c) After a further month, the VMs will be terminated by NRC and no longer be accessible.
+    d) After a further 2 months has elapsed NRC will delete the VM backups and associated data in swift storage.
+
+Please contact the help desk on support@nectar.org.au to inform them of your choice.
+
+Thanks,
+
+Research Cloud Team
