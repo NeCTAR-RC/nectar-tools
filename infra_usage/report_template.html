@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <title>{{ title }}</title>
+  <meta name="description" content="{{ description }}" />
+  <style type="text/css">
+
+body {
+	font: normal 11px auto "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+	color: #1F1F1F;
+	background: #fff;
+}
+</style>
+</head>
+
+<body>
+{%if cell.get('node_name') == "np"%}
+<strong>NeCTAR Research Cloud, Melbourne Node, Noble Park Cell</strong>
+{%elif cell.get('node_name') == "qh2"%}
+<strong>NeCTAR Research Cloud, Melbourne Node, Parkvile Cell</strong>
+{%elif cell.get('node_name') == "monash-01"%}
+<strong>NeCTAR Research Cloud, Monash Node, Monash-01 Cell</strong>
+{%elif cell.get('node_name') == "qld"%}
+<strong>NeCTAR Research Cloud, Queensland, Queensland Cell</strong>
+{%endif%}
+	
+<br>
+<strong>Resource Usage update as at:</strong> {{ date }}
+<br>
+<strong>Total available nodes, cores and memory:</strong> {{ cell.get('node_count') }}, {{ cell.get('nac') }}, {{ cell.get('nam') }} GB
+<br>
+<strong>Used cores and memory:</strong> {{ cell.get('nuc') }}, {{ cell.get('num') }} GB
+<br> 
+<strong>Free cores and memory:</strong> {{ cell.get('nfc') }}, {{ cell.get('nfm') }} GB
+<br> 
+<strong>VM sizes in use (s, m, l, xl, xxl, others):</strong> {{ cell.get('t_s') }},{{ cell.get('t_m') }}
+								    {{ cell.get('t_l') }},{{ cell.get('t_xl') }} 
+								    {{ cell.get('t_xxl') }},{{ cell.get('oth')}}
+<br>
+<br>
+</body>
+</html>
