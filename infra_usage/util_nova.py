@@ -1,7 +1,7 @@
 import re
 import collections
 import time
-from util_report import process_config
+from util_report import processConfig
 from novaclient.v1_1 import client
 from novaclient.exceptions import ClientException
 
@@ -47,7 +47,7 @@ def returnNodes(client, zone, search_):
     return host_count
 
 
-def stats_count(_data):
+def statsCount(_data):
     fc = _data.get('avail_cpu')
     fm = (_data.get('avail_mem') / 1024)
     uc = _data.get('used_cpu')
@@ -59,13 +59,13 @@ def stats_count(_data):
     return resources
 
 
-def get_Resources(cell, client):
+def getResources(cell, client):
 
     res_l = []
     total_avail = total_used = total_avail_mem = total_used_mem = 0
 
     for i in cell:
-        out_ = RequestRetries('gr', client, i)
+        out_ = requestRetries('gr', client, i)
         if out_:
             res_l.append(out_)
 
@@ -119,9 +119,9 @@ def getAvailFlav(client):
     return data_flav
 
 
-def RequestRetries(meth, client, var_=None):
+def requestRetries(meth, client, var_=None):
 
-    attempt = process_config('config', 'retries')
+    attempt = processConfig('config', 'retries')
 
     for x in xrange(int(attempt)):
         try:

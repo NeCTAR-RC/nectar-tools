@@ -2,7 +2,7 @@
 import argparse
 
 
-def get_args():
+def getArgs():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('-a', nargs='?', dest='t', action='store',
                         required=True,

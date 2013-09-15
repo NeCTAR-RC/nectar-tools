@@ -8,74 +8,64 @@
   <style type="text/css">
 
 body {
-	font: normal 11px auto "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
-	color: #1F1F1F;
-	background: #fff;
+font: normal 11px auto "Trebuchet MS", Verdana, Arial, Helvetica, sans-serif;
+color: #1F1F1F;
+background: #fff;
 }
 </style>
 </head>
 
 <body>
-
-	
-	  <strong>---NeCTAR Research Cloud Usage Report---</strong> 
-     
-
+<strong>---NeCTAR Research Cloud Usage Report---</strong> 
 <br>
 <br>
 
-{% for item in cell %}
-
-	  
-	    
-	{%if item.get('node_name') == "np"%}
-		<strong>NeCTAR Research Cloud, Melbourne Node, Noble Park Cell</strong>
-	{%elif item.get('node_name') == "qh2"%}
-		<strong>NeCTAR Research Cloud, Melbourne Node, Parkvile Cell</strong>
-	{%elif item.get('node_name') == "monash-01"%}
-		<strong>NeCTAR Research Cloud, Monash Node, Monash-01 Cell</strong>
-	{%elif item.get('node_name') == "qld"%}
-		<strong>NeCTAR Research Cloud, Queensland, Queensland Cell</strong>
-		
-	{%endif%}
+{% for item in cell %}    
+{%if item.get('node_name') == "np"%}
+<strong>NeCTAR Research Cloud, Melbourne Node, Noble Park Cell</strong>
+{%elif item.get('node_name') == "qh2"%}
+<strong>NeCTAR Research Cloud, Melbourne Node, Parkvile Cell</strong>
+{%elif item.get('node_name') == "monash-01"%}
+<strong>NeCTAR Research Cloud, Monash Node, Monash-01 Cell</strong>
+{%elif item.get('node_name') == "qld"%}
+<strong>NeCTAR Research Cloud, Queensland, Queensland Cell</strong>
+{%endif%}
 	
 <br>
 <strong>Resource Usage update as at:</strong> {{ date }}
 
-	    <br>
-		<strong>Total available nodes, cores and memory:</strong> {{ item.get('node_count') }}, {{ item.get('nac') }}, {{ item.get('nam') }} GB
-		<br>
-		<strong>Used cores and memory:</strong> {{ item.get('nuc') }}, {{ item.get('num') }} GB
-		<br> 
-		<strong>Free cores and memory:</strong> {{ item.get('nfc') }}, {{ item.get('nfm') }} GB
-		<br>
- 
-		<strong>VM sizes in use (s, m, l, xl, xxl, others):</strong> {{ item.get('t_s') }},{{ item.get('t_m') }}
+<br>
+<strong>Total available nodes, cores and memory:</strong> {{ item.get('node_count') }}, {{ item.get('nac') }}, {{ item.get('nam') }} GB
+<br>
+<strong>Used cores and memory:</strong> {{ item.get('nuc') }}, {{ item.get('num') }} GB
+<br> 
+<strong>Free cores and memory:</strong> {{ item.get('nfc') }}, {{ item.get('nfm') }} GB
+<br>
+<strong>VM sizes in use (s, m, l, xl, xxl, others):</strong> {{ item.get('t_s') }},{{ item.get('t_m') }}
 								    {{ item.get('t_l') }},{{ item.get('t_xl') }} 
 								    {{ item.get('t_xxl') }},{{ item.get('oth')}}
-		<br><br>
-	
- {% endfor %}
+<br>
+<br>
+{% endfor %}
  
 <br>
 <br>
 
-
-		<strong>NeCTAR Research Cloud Total Usage </strong>
-		<br>
-		<br>
-		<strong>Resource Usage update as at:</strong> {{ date }}
-		<br>
-		<strong>Total available nodes, cores and memory:</strong> {{ rc.get('total_nodes')}}, {{ rc.get('total_cores')}}, {{ rc.get('total_mem')}} GB
-		<br> 
-		<strong>Used cores and memory:</strong> {{ rc.get('used_cores')}}, {{ rc.get('used_mem')}} GB
-		<br> 
-  		<strong>Free cores and memory:</strong> {{ rc.get('free_cores')}}, {{ rc.get('free_mem')}} GB
-  		<br>
- 		<strong>VM sizes in use (s, m, l, xl, xxl, others):</strong> {{ rc.get('total_small')}}, {{ rc.get('total_medium')}},
+<strong>NeCTAR Research Cloud Total Usage </strong>
+<br>
+<br>
+<strong>Resource Usage update as at:</strong> {{ date }}
+<br>
+<strong>Total available nodes, cores and memory:</strong> {{ rc.get('total_nodes')}}, {{ rc.get('total_cores')}}, {{ rc.get('total_mem')}} GB
+<br> 
+<strong>Used cores and memory:</strong> {{ rc.get('used_cores')}}, {{ rc.get('used_mem')}} GB
+<br> 
+<strong>Free cores and memory:</strong> {{ rc.get('free_cores')}}, {{ rc.get('free_mem')}} GB
+<br>
+<strong>VM sizes in use (s, m, l, xl, xxl, others):</strong> {{ rc.get('total_small')}}, {{ rc.get('total_medium')}},
                                                                {{ rc.get('total_large')}}, {{ rc.get('total_xl')}},
  							       							   {{ rc.get('total_xxl')}},{{ rc.get('oth')}}
- 		<br>
+ <br>
 
 </body>
 </html>

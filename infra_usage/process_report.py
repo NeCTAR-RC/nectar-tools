@@ -1,7 +1,7 @@
-from util_nova import returnNodes, stats_count, totalVMType
-from util_nova import returnServers, get_Resources
+from util_nova import returnNodes, statsCount, totalVMType
+from util_nova import returnServers, getResources
 from util_nova import getAvailFlav, filterAz
-from util_report import printPretty2, printPretty3, process_config
+from util_report import printPretty2, printPretty3, processConfig
 from multiprocessing import Process, Queue
 import time
 
@@ -15,7 +15,7 @@ def computeStats(node_name, _az2, dic, zone, i, client, r_outs=None, opt=None):
     node_info = returnNodes(client, zone, i)
     nodes_count = len(node_info)
 
-    nodes_rc = stats_count(get_Resources(node_info,
+    nodes_rc = statsCount(getResources(node_info,
                                           client))
     type_ = totalVMType(dic, returnServers(client, _az2))
     if 'others' in list(type_.elements()):
@@ -40,7 +40,7 @@ def computeStats(node_name, _az2, dic, zone, i, client, r_outs=None, opt=None):
         return stats_q
 
 
-def CombineResource(data_array):
+def combineResource(data_array):
     t_nodes = t_cores = t_mem = 0
     u_cores = u_mem = f_cores = f_mem = 0
     t_s = t_m = t_l = t_xl = t_xxl = oth = 0
@@ -72,10 +72,10 @@ def CombineResource(data_array):
     return data_dict
 
 
-def RunCollect(client, zone, opt=None):
+def runCollect(client, zone, opt=None):
     flav = getAvailFlav(client)
     cell = filterAz(client, zone)
-    timeout = process_config('config', 'timeout')
+    timeout = processConfig('config', 'timeout')
     if opt == True:
         jobs = []
         r_outs = [Queue() for q in range(len(cell) + 1)]
