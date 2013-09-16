@@ -3,6 +3,7 @@
 import sys
 import os
 import argparse
+from operator import attrgetter
 
 from keystoneclient.v2_0 import client as ks_client
 from keystoneclient.exceptions import AuthorizationFailure
@@ -31,6 +32,9 @@ def collect_args():
     parser.add_argument('-2', '--stage2', action='store_true',
                         required=False,
                         help='Stage 2 Termination')
+    parser.add_argument('-3', '--stage3', action='store_true',
+                        required=False,
+                        help='Stage 3 Archive')
 
     return parser
 
@@ -137,9 +141,25 @@ def stage2_swift(auth_url, token, swift_url, dry_run=True):
     #TODO Option to delete all data
 
 
-def process_keystone():
-    #TODO Remove all users from the tenant
-    return 0
+def stage3_keystone(client, tenant_id, dry_run=True):
+    print "===================================="
+    print "===== Keystone Data (tenant) ======="
+    print "===================================="
+    users = client.tenants.list_users(tenant_id)
+    print "Users: %s" % " ".join(map(attrgetter("id"), users))
+    if not dry_run:
+        print "Deleting tenant %s" % tenant_id
+        client.tenant.delete(tenant_id)
+
+
+def stage3_keystone_user(client, user_id, dry_run=True):
+    print "===================================="
+    print "====== Keystone Data (user) ========"
+    print "===================================="
+    print "Deleting user %s" % user_id
+    if not dry_run:
+        print "Deleting user %s" % user_id
+        client.user.delete(user_id)
 
 
 def render_email():
