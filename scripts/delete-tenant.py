@@ -18,14 +18,14 @@ def collect_args():
 
     parser = argparse.ArgumentParser(description='Deletes a Tenant')
     parser.add_argument('-u', '--user', metavar='user', type=str,
-        required=False,
-        help='user to delete')
+                        required=False,
+                        help='user to delete')
     parser.add_argument('-t', '--tenant', metavar='tenant', type=str,
-        required=True,
-        help='tenant to delete')
+                        required=True,
+                        help='tenant to delete')
     parser.add_argument('-y', '--no-dry-run', action='store_true',
-        required=False,
-        help='Perform the actual actions, default is to only show what would happen')
+                        required=False,
+                        help='Perform the actual actions, default is to only show what would happen')
     parser.add_argument('-1', '--stage1', action='store_true',
                         required=False,
                         help='Stage 1 Nag')
@@ -37,6 +37,7 @@ def collect_args():
                         help='Stage 3 Archive')
 
     return parser
+
 
 def get_keystone_client():
 
@@ -80,14 +81,17 @@ def stage2_images(client, nova_client, tenant_id):
     images = []
     if raw_images:
         for i in raw_images:
-            #Seems like the glance client returns all images user can see so this is needed
+            # Seems like the glance client returns all images user can
+            # see so this is needed
             if i.owner == tenant_id:
                 images.append(i)
                 instances = nova_client.servers.list(search_opts={'image': i.id, 'all_tenants': 1})
                 print "%s public: %s, instances: %s" % (i.id, i.is_public, len(instances))
     else:
         print "No images"
-    #TODO Option to delete all images that have no running instances. What if instances are in same tenant and will be deleted though?
+    # TODO Option to delete all images that have no running
+    # instances. What if instances are in same tenant and will be
+    # deleted though?
 
 
 def instance_suspend(instance, dry_run=True):
@@ -113,7 +117,8 @@ def stage2_instances(client, tenant_id, dry_run=True):
     print "===================================="
     print "=========  Nova Data  =============="
     print "===================================="
-    instances = client.servers.list(search_opts={'tenant_id': tenant_id, 'all_tenants': 1})
+    instances = client.servers.list(search_opts={'tenant_id': tenant_id,
+                                                 'all_tenants': 1})
     if instances:
         for i in instances:
             instance_suspend(instance=i, dry_run=dry_run)
@@ -124,8 +129,8 @@ def stage2_instances(client, tenant_id, dry_run=True):
 
     print "%d instances processed" % len(instances)
 
-    #TODO Option to Archive all data
-    #TODO Option to delete all data
+    # TODO Option to Archive all data
+    # TODO Option to delete all data
 
 
 def stage2_swift(auth_url, token, swift_url, dry_run=True):
@@ -137,8 +142,8 @@ def stage2_swift(auth_url, token, swift_url, dry_run=True):
     print "Containers: %s" % account_details['x-account-container-count']
     print "Objects   : %s" % account_details['x-account-object-count']
 
-    #TODO Option to Archive all data
-    #TODO Option to delete all data
+    # TODO Option to Archive all data
+    # TODO Option to delete all data
 
 
 def stage3_keystone(client, tenant_id, dry_run=True):
