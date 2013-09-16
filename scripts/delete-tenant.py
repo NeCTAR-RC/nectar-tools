@@ -3,6 +3,7 @@
 import sys
 import os
 import argparse
+from operator import attrgetter
 
 from keystoneclient.v2_0 import client as ks_client
 from keystoneclient.exceptions import AuthorizationFailure
@@ -11,6 +12,7 @@ from novaclient.v1_1 import client as nova_client
 import swiftclient
 
 from jinja2 import Environment, FileSystemLoader
+
 
 def collect_args():
 
@@ -25,11 +27,11 @@ def collect_args():
         required=False,
         help='Perform the actual actions, default is to only show what would happen')
     parser.add_argument('-1', '--stage1', action='store_true',
-        required=False,
-        help='Stage 1 termination')
+                        required=False,
+                        help='Stage 1 Nag')
     parser.add_argument('-2', '--stage2', action='store_true',
-        required=False,
-        help='Stage 2 termination')
+                        required=False,
+                        help='Stage 2 Termination')
 
     return parser
 
