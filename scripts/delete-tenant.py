@@ -182,13 +182,20 @@ if __name__ == '__main__':
     kc = get_keystone_client()
     token = kc.auth_token
     auth_url = kc.auth_url
+    catalog = kc.service_catalog
 
-    image_endpoint = kc.service_catalog.url_for(service_type='image')
+    image_endpoint = catalog.url_for(service_type='image')
     gc = glance_client.Client('1', image_endpoint, token=token)
 
     nc = get_nova_client()
 
-    swift_url = kc.service_catalog.url_for(service_type='object-store', endpoint_type='adminURL') + 'AUTH_' + tenant_id
+    swift_auth = 'AUTH_' + tenant_id
+    if catalog.get_endpoints(service_type='object-store',
+                             endpoint_type='adminURL'):
+        swift_url = catalog.url_for(service_type='object-store',
+                                    endpoint_type='adminURL')
+    else:
+        swift_url = None
 
     if args.stage1:
         print "Would send email"
@@ -197,7 +204,8 @@ if __name__ == '__main__':
     if args.stage2:
         stage2_images(gc, nc, tenant_id)
         stage2_instances(nc, tenant_id, dry_run)
-        stage2_swift(auth_url, token, swift_url + swift_auth, dry_run)
+        if swift_url:
+            stage2_swift(auth_url, token, swift_url + swift_auth, dry_run)
     if args.stage3:
         if tenant_id:
             stage3_keystone(kc, tenant_id)
