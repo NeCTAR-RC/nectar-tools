@@ -69,7 +69,7 @@ def get_nova_client():
     return nc
 
 
-def process_images(client, nova_client, tenant_id):
+def stage2_images(client, nova_client, tenant_id):
     print "===================================="
     print "=========  Glance Data  ============"
     print "===================================="
@@ -106,7 +106,7 @@ def instance_lock(instance, dry_run=True):
         instance.lock()
 
 
-def process_instances(client, tenant_id, dry_run):
+def stage2_instances(client, tenant_id, dry_run=True):
     print "===================================="
     print "=========  Nova Data  =============="
     print "===================================="
@@ -125,7 +125,7 @@ def process_instances(client, tenant_id, dry_run):
     #TODO Option to delete all data
 
 
-def process_swift(auth_url, token, swift_url, dry_run):
+def stage2_swift(auth_url, token, swift_url, dry_run=True):
     print "===================================="
     print "=========  Swift Data  ============="
     print "===================================="
@@ -176,6 +176,6 @@ if __name__ == '__main__':
         #render_email()
         #exit
     if args.stage2:
-        #process_images(gc, nc, tenant_id)
-        process_instances(nc, tenant_id, dry_run)
-        process_swift(auth_url, token, swift_url, dry_run)
+        stage2_images(gc, nc, tenant_id)
+        stage2_instances(nc, tenant_id, dry_run)
+        stage2_swift(auth_url, token, swift_url + swift_auth, dry_run)
