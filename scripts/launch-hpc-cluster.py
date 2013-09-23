@@ -4,6 +4,7 @@ import sys
 import os
 import time
 import datetime
+import argparse
 import threading
 import traceback
 import paramiko
@@ -15,23 +16,30 @@ import glanceclient as glance_client
 
 class launch_hpcnode(threading.Thread):
 
-    def __init__(self, node_id, total, nc, key_name, sg, ipaddrs, event):
+    def __init__(self, node_id, total, nc, key_name, sg, ipaddrs, event, image, flavor, username, name, extra_cmds):
         threading.Thread.__init__(self)
         self.node_id = node_id
-        if node_id == 0:
-            self.name = "Head Node"
+        if self.node_id == 0:
+            self.name = '%s head node' % name
         else:
-            self.name = "Node %s" % node_id
+            self.name = '%s node %s' % (name, node_id)
         self.total = total
         self.sg = sg
         self.ipaddrs = ipaddrs
         self.event = event
+        self.image = image
+        self.flavor = flavor
         self.server = nc.servers.create(name="%s" % self.name,
-                                        image="0824aac4-91a9-4e1d-ad86-02ce6443d4b1",
-                                        flavor="0",
+                                        image=self.image,
+                                        flavor=self.flavor,
                                         key_name=key_name,
                                         security_groups=[sg.name, ])
-        self.username = 'ubuntu'
+        self.username = username
+        if username == 'root':
+            self.sudo = False
+        else:
+            self.sudo = True
+        self.extra_cmds = extra_cmds
 
     def run(self):
 
@@ -40,13 +48,13 @@ class launch_hpcnode(threading.Thread):
 
         try:
             self.ssh_connect()
-            init_cmds = ['apt-get update', 'aptitude -y full-upgrade',
-                         'apt-get -y install openmpi1.5-bin libopenmpi1.5-dev gcc make']
-            for cmd in init_cmds:
-                self.ssh_cmd(cmd, sudo=True)
+            #init_cmds = ['apt-get update', 'aptitude -y full-upgrade',
+            #             'apt-get -y install openmpi1.5-bin libopenmpi1.5-dev gcc make']
+            #for cmd in init_cmds:
+            #    self.ssh_cmd(cmd)
             self.client.close()
             self.server.reboot()
-            time.sleep(10)
+            time.sleep(15)
             self.wait_for_boot()
             while len(self.ipaddrs) != self.total:
                 self.event.wait()
@@ -61,6 +69,8 @@ class launch_hpcnode(threading.Thread):
                                 "ssh-keyscan %s >> .ssh/known_hosts" % ipaddr]
                     for cmd in mpi_cmds:
                         self.ssh_cmd(cmd)
+                    for cmd in self.extra_cmds:
+                        self.ssh_cmd(cmd)
 
         except Exception, e:
             print '*** Caught exception: ' + str(e.__class__) + ': ' + str(e)
@@ -72,7 +82,7 @@ class launch_hpcnode(threading.Thread):
 
     def check_boot(self):
         try:
-            boot_finished = self.server.get_console_output().find("cloudinit boot finished")
+            boot_finished = self.server.get_console_output().find("cloud-init boot finished")
             if boot_finished > 0:
                 return True
         except Exception:
@@ -80,7 +90,7 @@ class launch_hpcnode(threading.Thread):
 
     def wait_for_boot(self):
         boot_finished = self.check_boot()
-        print "%s: Waiting for VM to boot, please be patient." % self.name
+        print "%s: Waiting for VM to boot..." % self.name
         while boot_finished is not True:
             try:
                 boot_finished = self.check_boot()
@@ -90,7 +100,7 @@ class launch_hpcnode(threading.Thread):
         print "%s: Boot finished." % self.name
 
     def wait_for_ipaddress(self):
-        print "%s: Waiting for IP address, please be patient." % self.name
+        print "%s: Waiting for IP address..." % self.name
         self.ipaddress = 0
         while self.ipaddress == 0:
             try:
@@ -102,8 +112,8 @@ class launch_hpcnode(threading.Thread):
         self.event.set()
         print "%s IP address: %s" % (self.name, self.ipaddress)
 
-    def ssh_cmd(self, cmd, sudo=False):
-        if sudo:
+    def ssh_cmd(self, cmd):
+        if self.sudo:
             full_cmd = "sudo %s" % cmd
         else:
             full_cmd = cmd
@@ -139,7 +149,34 @@ class launch_hpcnode(threading.Thread):
     def stop(self):
         self.cleanup()
 
+
+def collect_args():
+
+    parser = argparse.ArgumentParser(description='Launch a HPC cluster running OpenMPI')
+    parser.add_argument('-n', '--nodes', type=int,
+                        required=False, default=3,
+                        help='Number of nodes to launch')
+    parser.add_argument('-i', '--image-id', type=str,
+                        required=False, default='374bfaec-70ad-4d84-9c08-c03938b2de41',
+                        help='ID of the image to use for all nodes')
+    parser.add_argument('-f', '--flavor', type=str,
+                        required=False, default=0,
+                        help='Instance flavor to use for all nodes')
+    parser.add_argument('-c', '--commands-file', type=str,
+                        required=False,
+                        help='External file containing a list of commands to run on the head node')
+    parser.add_argument('-u', '--username', type=str,
+                        required=False, default='ubuntu',
+                        help='Username to login to the nodes')
+    parser.add_argument('-j', '--job-name', type=str,
+                        required=False, default='HPC',
+                        help='Optional job name to identify nodes')
+    return parser
+
+
 if __name__ == '__main__':
+
+    args = collect_args().parse_args()
 
     auth_username = os.environ.get('OS_USERNAME')
     auth_password = os.environ.get('OS_PASSWORD')
@@ -147,7 +184,7 @@ if __name__ == '__main__':
     auth_url = os.environ.get('OS_AUTH_URL')
 
     if not auth_username or not auth_password or not auth_tenant or not auth_url:
-        print '*** The following opentstack environment variables were not found:'
+        print '*** The following openstack environment variables were not found:'
         print 'OS_USERNAME'
         print 'OS_PASSwORD'
         print 'OS_TENANT_NAME'
@@ -208,23 +245,37 @@ if __name__ == '__main__':
         print 'Please add your key using ssh-add and then upload it to nova'
         sys.exit(1)
 
-    total_nodes = 3
     ipaddrs = []
     threads = []
     event = threading.Event()
-    sg_name = 'SG-' + str(datetime.datetime.now()).replace(' ', '-').replace(':', '-').replace('.', '-')
+    sg_name = args.job_name + '-SG-' + str(datetime.datetime.now()).replace(' ', '-').replace(':', '-').replace('.', '-')
     sg = nc.security_groups.create(sg_name, sg_name)
     sg_rules_ssh = nc.security_group_rules.create(sg.id, 'tcp', '22', '22', '0.0.0.0/0')
 
+    extra_cmds = []
+    if args.commands_file:
+        try:
+            f = open(args.commands_file, 'r')
+            for line in f:
+                extra_cmds.append(line)
+            f.close()
+        except Exception as e:
+            print "*** Error opening file %s: %s" % (args.commands_file, e)
+
     try:
-        for n in range(0, total_nodes):
+        for n in range(0, args.nodes):
             thread = launch_hpcnode(node_id=n,
-                                    total=total_nodes,
+                                    total=args.nodes,
                                     nc=nc,
                                     key_name=nova_key.name,
                                     sg=sg,
                                     ipaddrs=ipaddrs,
-                                    event=event)
+                                    event=event,
+                                    image=args.image_id,
+                                    flavor=args.flavor,
+                                    username=args.username,
+                                    name=args.job_name,
+                                    extra_cmds=extra_cmds)
             thread.start()
             threads.append(thread)
     except Exception as e:
