@@ -2,6 +2,7 @@
 
 import sys
 import os
+import re
 import time
 import datetime
 import argparse
@@ -10,79 +11,130 @@ import traceback
 import paramiko
 
 from keystoneclient.v2_0 import client as ks_client
+from keystoneclient.exceptions import AuthorizationFailure
 from novaclient.v1_1 import client as nova_client
-import glanceclient as glance_client
 
 
-class launch_hpcnode(threading.Thread):
+def cprint(str1='', color=None, str2='', sep=': '):
 
-    def __init__(self, node_id, total, nc, key_name, sg, ipaddrs, event, image, flavor, username, name, extra_cmds):
+    if color == 'red':
+        C = '\033[91m'
+    elif color == 'green':
+        C = '\033[92m'
+    elif color == 'yellow':
+        C = '\033[93m'
+    elif color == 'blue':
+        C = '\033[94m'
+
+    ENDC = '\033[0m'
+
+    if color is None:
+        if str2 == '':
+            print str1
+        else:
+            print str1 + sep + str2
+    else:
+        print C + str1 + sep + ENDC + str2
+
+
+class hpcnode(threading.Thread):
+
+    def __init__(self, node_id, total_nodes, nc, key_name, sg,
+                 ipaddrs, event, image, flavor, username, name,
+                 extra_cmds, packages, files, key):
+
         threading.Thread.__init__(self)
+
         self.node_id = node_id
         if self.node_id == 0:
             self.name = '%s head node' % name
         else:
             self.name = '%s node %s' % (name, node_id)
-        self.total = total
+        self.total_nodes = total_nodes
         self.sg = sg
-        self.ipaddrs = ipaddrs
         self.event = event
         self.image = image
         self.flavor = flavor
-        self.server = nc.servers.create(name=self.name,
-                                        image=self.image,
-                                        flavor=self.flavor,
-                                        key_name=key_name,
-                                        security_groups=[sg.name, ])
         self.username = username
         if username == 'root':
             self.sudo = False
         else:
             self.sudo = True
+        self.server = nc.servers.create(name=self.name,
+                                        image=self.image,
+                                        flavor=self.flavor,
+                                        key_name=key_name,
+                                        security_groups=[sg.name, ])
         self.extra_cmds = extra_cmds
+        init_cmds = []
+        init_cmds.append('apt-get update')
+        init_cmds.append('aptitude -y full-upgrade')
+        init_cmds.append('apt-get -y install %s' % ' '.join(packages))
+        self.init_cmds = init_cmds
+        self.files = files
+        self.ipaddrs = ipaddrs
+        self.key = key
 
     def run(self):
-
         self.wait_for_boot()
         self.wait_for_ipaddress()
 
         try:
+
             self.ssh_connect()
-            init_cmds = ['apt-get update', 'aptitude -y full-upgrade',
-                         'apt-get -y install openmpi1.5-bin libopenmpi1.5-dev gcc make']
-            for cmd in init_cmds:
+
+            for cmd in self.init_cmds:
                 self.ssh_cmd(cmd)
-            self.client.close()
-            self.server.reboot()
-            time.sleep(15)
+
+            self.ssh_disconnect()
+
+            self.reboot()
             self.wait_for_boot()
-            while len(self.ipaddrs) != self.total:
+
+            self.sftp_transfer()
+
+            while len(self.ipaddrs) != self.total_nodes:
                 self.event.wait()
+
             if self.node_id == 0:
-                self.ssh_connect()
-                for ipaddr in self.ipaddrs:
-                    self.sg_rules_udp = nc.security_group_rules.create(self.sg.id,
-                                                                       'udp', '1', '65535', "%s/32" % ipaddr)
-                    self.sg_rules_tcp = nc.security_group_rules.create(self.sg.id,
-                                                                       'tcp', '1', '65535', "%s/32" % ipaddr)
-                    mpi_cmds = ["echo %s >> mpi_hosts" % ipaddr,
-                                "ssh-keyscan %s >> .ssh/known_hosts" % ipaddr]
-                for cmd in mpi_cmds:
-                    self.ssh_cmd(cmd)
-                for cmd in self.extra_cmds:
-                    self.ssh_cmd(cmd)
+                self.head_node_setup()
 
         except Exception, e:
-            print '*** Caught exception: ' + str(e.__class__) + ': ' + str(e)
+            exc = str(e.__class__) + ': ' + str(e)
+            cprint('Caught exception: ' + exc, 'red')
             traceback.print_exc()
             try:
                 self.cleanup()
             except:
                 pass
 
+    def head_node_setup(self):
+        self.ssh_connect()
+
+        for ipaddr in self.ipaddrs:
+            nc.security_group_rules.create(self.sg.id, 'udp', '1', '65535',
+                                           '%s/32' % ipaddr)
+            nc.security_group_rules.create(self.sg.id, 'tcp', '1', '65535',
+                                           '%s/32' % ipaddr)
+            mpi_cmds = ['echo %s >> mpi_hosts' % ipaddr,
+                        'ssh-keyscan %s >> .ssh/known_hosts' % ipaddr]
+            for cmd in mpi_cmds:
+                self.ssh_cmd(cmd)
+
+        for cmd in self.extra_cmds:
+            self.ssh_cmd(cmd)
+
+        print 'Once the other nodes have finished booting you can ssh to'
+        print '"%s" and run mpi commands. e.g.' % self.name
+        print '# ssh %s@%s' % (self.username, self.ipaddress)
+        print '$ mpirun -v -np %s --hostfile mpi_hosts hostname' % self.total_nodes
+
+        self.ssh_disconnect()
+
     def check_boot(self):
         try:
-            boot_finished = self.server.get_console_output().find("cloud-init boot finished")
+            output = self.server.get_console_output()
+            boot_finished = output.find('cloud-init boot finished')
             if boot_finished > 0:
                 return True
         except Exception:
@@ -90,17 +142,22 @@ class launch_hpcnode(threading.Thread):
 
     def wait_for_boot(self):
         boot_finished = self.check_boot()
-        print "%s: Waiting for VM to boot..." % self.name
+        cprint(self.name, 'blue', 'Waiting for VM to boot...')
         while boot_finished is not True:
             try:
                 boot_finished = self.check_boot()
             except Exception:
                 pass
             time.sleep(5)
-        print "%s: Boot finished." % self.name
+        cprint(self.name, 'blue', 'Boot finished.')
+
+    def reboot(self):
+        cprint(self.name, 'blue', 'Rebooting...')
+        self.server.reboot()
+        time.sleep(15)
 
     def wait_for_ipaddress(self):
-        print "%s: Waiting for IP address..." % self.name
+        cprint(self.name, 'blue', 'Waiting for IP address...')
         self.ipaddress = 0
         while self.ipaddress == 0:
             try:
@@ -110,21 +167,22 @@ class launch_hpcnode(threading.Thread):
             time.sleep(5)
         self.ipaddrs.append(self.ipaddress)
         self.event.set()
-        print "%s IP address: %s" % (self.name, self.ipaddress)
+        cprint(self.name, 'blue', 'IP address: %s' % self.ipaddress)
 
     def ssh_cmd(self, cmd):
         if self.sudo and cmd[0:3] != 'cd ':
-            full_cmd = "sudo %s" % cmd
+            full_cmd = 'sudo %s' % cmd
         else:
             full_cmd = cmd
         stdin, stdout, stderr = self.client.exec_command(full_cmd)
-        print "%s@%s $ %s" % (self.username, self.ipaddress, full_cmd)
+        prompt = '%s@%s' % (self.username, self.ipaddress)
+        cprint(prompt, 'yellow', full_cmd, '$ ')
         channel = stdout.channel
         status = channel.recv_exit_status()
         for line in stdout:
-            print line.strip('\n')
+            cprint(line.strip('\n'), 'green', sep='')
         if status != 0:
-            print '*** An error occured running remote commands:'
+            cprint('An error occured running remote commands:', 'red')
             for line in stderr:
                 print line.strip('\n')
             raise
@@ -133,15 +191,31 @@ class launch_hpcnode(threading.Thread):
         try:
             self.client = paramiko.SSHClient()
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            self.client.connect(hostname=self.ipaddress, username=self.username)
+            self.client.connect(hostname=self.ipaddress,
+                                username=self.username)
         except:
             raise
 
-    def cleanup(self):
+    def ssh_disconnect(self):
         try:
             self.client.close()
         except:
             pass
+
+    def sftp_transfer(self):
+        if len(self.files) > 0:
+            transport = paramiko.Transport((self.ipaddress, 22))
+            transport.start_client()
+            transport.auth_publickey(self.username, self.key)
+            sftp = paramiko.SFTPClient.from_transport(transport)
+            for f in self.files:
+                sftp.put(f, os.path.basename(f))
+            sftp.close()
+            transport.close()
+
+    def cleanup(self):
+        self.ssh_disconnect()
+        cprint(self.name, 'blue', 'Terminating instance.')
         self.server.delete()
         if self.node_id == 0:
             self.sg.delete()
@@ -152,18 +226,19 @@ class launch_hpcnode(threading.Thread):
 
 def collect_args():
 
-    parser = argparse.ArgumentParser(description='Launch a HPC cluster running OpenMPI')
+    parser = argparse.ArgumentParser(description='Launch a HPC cluster')
     parser.add_argument('-n', '--nodes', type=int,
                         required=False, default=3,
                         help='Number of nodes to launch')
     parser.add_argument('-i', '--image-id', type=str,
-                        required=False, default='374bfaec-70ad-4d84-9c08-c03938b2de41',
+                        required=False,
+                        default='374bfaec-70ad-4d84-9c08-c03938b2de41',
                         help='ID of the image to use for all nodes')
     parser.add_argument('-f', '--flavor', type=str,
                         required=False, default=0,
                         help='Instance flavor to use for all nodes')
     parser.add_argument('-c', '--commands-file', type=str,
-                        required=False,
+                        required=False, default=None,
                         help='External file containing a list of commands to run on the head node')
     parser.add_argument('-u', '--username', type=str,
                         required=False, default='ubuntu',
@@ -171,61 +246,96 @@ def collect_args():
     parser.add_argument('-j', '--job-name', type=str,
                         required=False, default='HPC',
                         help='Optional job name to identify nodes')
+    parser.add_argument('-p', '--packages', type=str,
+                        required=False, nargs='+',
+                        default=['openmpi1.5-bin', 'libopenmpi1.5-dev', 'gcc', 'make'],
+                        help='Additional packages to install')
+    parser.add_argument('-F', '--files', type=str, default=[],
+                        required=False, nargs='+',
+                        help='Files to upload to each node')
     return parser
 
 
-if __name__ == '__main__':
+def get_extra_commands(commands_file):
 
-    args = collect_args().parse_args()
+    extra_cmds = []
+
+    if commands_file is not None:
+        try:
+            f = open(commands_file, 'r')
+            for line in f:
+                extra_cmds.append(line)
+            f.close()
+        except Exception as e:
+            cprint('Error opening file %s: %s' % (commands_file, e), 'red')
+
+    return extra_cmds
+
+
+def create_security_group(jobname, nc):
+
+    sg_name = args.job_name + ' SG ' + str(datetime.datetime.now())
+    sg_name = re.sub('[ :.]', '-', sg_name)
+    sg = nc.security_groups.create(sg_name, sg_name)
+    nc.security_group_rules.create(sg.id, 'tcp', '22', '22', '0.0.0.0/0')
+
+    return sg
+
+
+def get_keystone_client():
 
     auth_username = os.environ.get('OS_USERNAME')
     auth_password = os.environ.get('OS_PASSWORD')
     auth_tenant = os.environ.get('OS_TENANT_NAME')
     auth_url = os.environ.get('OS_AUTH_URL')
 
-    if not auth_username or not auth_password or not auth_tenant or not auth_url:
-        print '*** The following openstack environment variables were not found:'
-        print 'OS_USERNAME'
-        print 'OS_PASSwORD'
-        print 'OS_TENANT_NAME'
-        print 'OS_AUTH_URL'
-        print
-        print 'Have you run "source openrc.sh"?'
+    try:
+        kc = ks_client.Client(username=auth_username,
+                              password=auth_password,
+                              tenant_name=auth_tenant,
+                              auth_url=auth_url)
+    except AuthorizationFailure as e:
+        print e
+        print 'Authorization failed, have you sourced your openrc?'
         sys.exit(1)
 
-    kc = ks_client.Client(username=auth_username,
-                          password=auth_password,
-                          tenant_name=auth_tenant,
-                          auth_url=auth_url)
+    return kc
 
-    token = kc.auth_token
-    image_endpoint = kc.service_catalog.url_for(service_type='image')
 
-    gc = glance_client.Client('1', image_endpoint, token=token)
+def get_nova_client():
+
+    auth_username = os.environ.get('OS_USERNAME')
+    auth_password = os.environ.get('OS_PASSWORD')
+    auth_tenant = os.environ.get('OS_TENANT_NAME')
+    auth_url = os.environ.get('OS_AUTH_URL')
+
     nc = nova_client.Client(auth_username,
                             auth_password,
                             auth_tenant,
                             auth_url,
-                            service_type="compute")
+                            service_type='compute')
+    return nc
+
+
+def get_nova_key(nova_keys):
 
     ssh_agent = paramiko.Agent()
     agent_keys = ssh_agent.get_keys()
-    if agent_keys == ():
-        print '*** No ssh-agent keys found.'
+    if len(agent_keys) == 0:
+        cprint('No ssh-agent keys found.', 'red')
         print 'Start an agent using the following command:'
         print '# eval `ssh-agent`'
         print 'and add a key:'
         print '# ssh-add'
         print
-        print 'If no keys are found, you can create one using the following command:'
+        print 'If you don\'t have a keypair, you can create one as follows:'
         print '# ssh-keygen'
-        sys.exit(1)
+        return False
 
-    nova_keys = nc.keypairs.list()
     if len(nova_keys) == 0:
-        print '*** No nova keys found.'
+        cprint('No nova keys found.', 'red')
         print 'Please upload your ssh key using nova or the dashboard'
-        sys.exit(1)
+        return False
 
     matching_key = False
     for agent_key in agent_keys:
@@ -234,52 +344,65 @@ if __name__ == '__main__':
             key2 = nova_key.public_key[0:len(key1)]
             if key1 == key2:
                 matching_key = True
+                key_contents = key1
                 break
 
     if matching_key:
-        print 'Found matching nova ssh key in your agent: %s' % nova_key.name
-        print key1
+        key = nova_key.name
+        cprint('Found a matching nova ssh key in your agent => %s' % key, 'green')
+        cprint(key_contents, 'yellow')
         print 'Using this key to ssh to the cluster.'
+        return key, agent_key
     else:
-        print '*** No matching ssh keys found in your agent or in nova.'
+        cprint('No matching ssh keys found in your agent or in nova.', 'red')
         print 'Please add your key using ssh-add and then upload it to nova'
-        sys.exit(1)
+        return False
 
-    ipaddrs = []
+
+def launch_cluster(nc, nova_key, local_key, args):
+
+    extra_cmds = get_extra_commands(args.commands_file)
+    sg = create_security_group(args.job_name, nc)
+
     threads = []
+    ipaddrs = []
     event = threading.Event()
-    sg_name = args.job_name + '-SG-' + str(datetime.datetime.now()).replace(' ', '-').replace(':', '-').replace('.', '-')
-    sg = nc.security_groups.create(sg_name, sg_name)
-    sg_rules_ssh = nc.security_group_rules.create(sg.id, 'tcp', '22', '22', '0.0.0.0/0')
-
-    extra_cmds = []
-    if args.commands_file:
-        try:
-            f = open(args.commands_file, 'r')
-            for line in f:
-                extra_cmds.append(line)
-            f.close()
-        except Exception as e:
-            print "*** Error opening file %s: %s" % (args.commands_file, e)
 
     try:
         for n in range(0, args.nodes):
-            thread = launch_hpcnode(node_id=n,
-                                    total=args.nodes,
-                                    nc=nc,
-                                    key_name=nova_key.name,
-                                    sg=sg,
-                                    ipaddrs=ipaddrs,
-                                    event=event,
-                                    image=args.image_id,
-                                    flavor=args.flavor,
-                                    username=args.username,
-                                    name=args.job_name,
-                                    extra_cmds=extra_cmds)
+            thread = hpcnode(node_id=n,
+                             total_nodes=args.nodes,
+                             nc=nc,
+                             key_name=nova_key,
+                             sg=sg,
+                             ipaddrs=ipaddrs,
+                             event=event,
+                             image=args.image_id,
+                             flavor=args.flavor,
+                             username=args.username,
+                             name=args.job_name,
+                             extra_cmds=extra_cmds,
+                             packages=args.packages,
+                             files=args.files,
+                             key=local_key)
             thread.start()
             threads.append(thread)
     except Exception as e:
-        print "*** Unable to start thread: %s" % e
+        cprint('Unable to start thread: %s' % e, 'red')
 
     for thread in threads:
         thread.join()
+
+
+if __name__ == '__main__':
+
+    args = collect_args().parse_args()
+
+    kc = get_keystone_client()
+    nc = get_nova_client()
+
+    nova_key, local_key = get_nova_key(nc.keypairs.list())
+    if not nova_key or not local_key:
+        sys.exit(1)
+
+    launch_cluster(nc, nova_key, local_key, args)
