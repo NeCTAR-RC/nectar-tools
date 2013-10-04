@@ -50,6 +50,7 @@ class hpcnode(threading.Thread):
             self.name = '%s head node' % name
         else:
             self.name = '%s node %s' % (name, node_id)
+        self.hostname = self.name.replace(' ', '-').lower()
         self.total_nodes = total_nodes
         self.sg = sg
         self.event = event
@@ -166,6 +167,8 @@ class hpcnode(threading.Thread):
                 pass
             time.sleep(5)
         self.ipaddrs.append(self.ipaddress)
+        self.init_cmds.insert(0, 'sh -c "echo %s %s >> /etc/hosts"'
+                              % (self.ipaddress, self.hostname))
         self.event.set()
         cprint(self.name, 'blue', 'IP address: %s' % self.ipaddress)
 
