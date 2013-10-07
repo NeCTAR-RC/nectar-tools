@@ -12,7 +12,7 @@ from ConfigParser import SafeConfigParser
 
 try:
     working_path = os.getcwd()
-    config_file = working_path + "/" + "report.ini"
+    config_file = os.path.join(working_path, "report.ini")
     with open(config_file):
         parser = SafeConfigParser()
         parser.read(config_file)
