@@ -31,24 +31,23 @@ def createNovaConnection(username, key, tenant_id, auth_url):
 
 
 def filterAz(client, zone):
+    cells = []
+    fq_cells = []  # the fully qualified cell names
+    hosts = []
+    for host in client.hosts.list_all(zone):
+        cell_name, host_name = host.host_name.split('@')
+        fq_cells.append(cell_name)
+        hosts.append(re.split(r'\d', host_name.split('-')[0])[0])
 
-    fil_az, fil_name, fil_cell, fil_pcell, fil_host = ([] for i in range(5))
-    for i in client.hosts.list_all(zone):
-        fil_pcell.append(i.host_name.split('@')[0])
-        fil_host.append(re.split(r'\d',
-                                 i.host_name.split('@')[1].split('-')[0])[0])
-
-    fil_name = sorted(list(set(fil_pcell)))
-    for i in fil_name:
-        fil_az.append(i.split('!'))
-
-    for i in fil_az:
-        if len(i) > 2:
-            fil_cell.append(i[2])
+    fq_cells = sorted(list(set(fq_cells)))
+    for cell_name in fq_cells:
+        cell_name = cell_name.split('!')
+        if len(cell_name) > 2:
+            cells.append(cell_name[2])
         else:
-            fil_cell.append(i[1])
+            cells.append(cell_name[1])
 
-    return fil_name, fil_cell, list(set(fil_host))
+    return fq_cells, cells, list(set(hosts))
 
 
 def returnNodes(client, zone, search_):
