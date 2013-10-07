@@ -47,15 +47,19 @@ def returnNodes(client, zone, search_):
     return host_count
 
 
-def statsCount(_data):
-    fc = _data.get('avail_cpu')
-    fm = (_data.get('avail_mem') / 1024)
-    uc = _data.get('used_cpu')
-    um = (_data.get('used_mem') / 1024)
-    ac = fc - uc
-    am = fm - um
-    resources = {'nac': fc, 'nam': fm, 'nuc': uc, 'num': um,
-                'nfc': ac, 'nfm': am}
+def statsCount(data):
+    total_cores = data.get('avail_cpu')
+    total_memory = data.get('avail_mem') / 1024
+    used_cores = data.get('used_cpu')
+    used_memory = data.get('used_mem') / 1024
+    free_cores = total_cores - used_cores
+    free_memory = total_memory - used_memory
+    resources = {'total_cores': total_cores,
+                 'total_memory': total_memory,
+                 'used_cores': used_cores,
+                 'used_memory': used_memory,
+                 'free_cores': free_cores,
+                 'free_memory': free_memory}
     return resources
 
 

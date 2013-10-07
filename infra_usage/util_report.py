@@ -103,14 +103,16 @@ def createCSVFileNode(data_w):
                             'ts', 'tm', 'tl', 'txl', 'txxl', 'others'])
 
             writer.writerow([date_write, data_w.get('node_name'),
-                            data_w.get('node_count'), data_w.get('nac'),
-                            data_w.get('nam'), data_w.get('nuc'),
-                            data_w.get('num'), data_w.get('nfc'),
-                            data_w.get('nfm'), data_w.get('t_s'),
-                            data_w.get('t_m'), data_w.get('t_l'),
-                            data_w.get('t_xl'), data_w.get('t_xxl'),
-                            data_w.get('oth')]
-                                        )
+                             data_w.get('node_count'),
+                             data_w.get('total_cores'),
+                             data_w.get('total_memory'),
+                             data_w.get('used_cores'),
+                             data_w.get('used_memory'),
+                             data_w.get('free_cores'),
+                             data_w.get('free_memory'),
+                             data_w.get('t_s'), data_w.get('t_m'),
+                             data_w.get('t_l'), data_w.get('t_xl'),
+                             data_w.get('t_xxl'), data_w.get('oth')])
         except IOError, e:
             print "File Error" % e
             raise SystemExit
@@ -120,13 +122,16 @@ def createCSVFileNode(data_w):
                                     quoting=csv.QUOTE_ALL)
 
             writer.writerow([date_write, data_w.get('node_name'),
-                            data_w.get('node_count'), data_w.get('nac'),
-                            data_w.get('nam'), data_w.get('nuc'),
-                            data_w.get('num'), data_w.get('nfc'),
-                            data_w.get('nfm'), data_w.get('t_s'),
-                            data_w.get('t_m'), data_w.get('t_l'),
-                            data_w.get('t_xl'), data_w.get('t_xxl'),
-                            data_w.get('oth')])
+                             data_w.get('node_count'),
+                             data_w.get('total_cores'),
+                             data_w.get('total_memory'),
+                             data_w.get('used_cores'),
+                             data_w.get('used_memory'),
+                             data_w.get('free_cores'),
+                             data_w.get('free_memory'),
+                             data_w.get('t_s'), data_w.get('t_m'),
+                             data_w.get('t_l'), data_w.get('t_xl'),
+                             data_w.get('t_xxl'), data_w.get('oth')])
 
 
 def multiCSVNode(data_w):
@@ -253,12 +258,12 @@ def printPretty2(data, wrap=0):
     pt.max_width['Value'] = 40
     pt.add_row(['Node Name:', data.get('node_name')])
     pt.add_row(['Total Nodes:', data.get('node_count')])
-    pt.add_row(['Total Cores:', data.get('nac')])
-    pt.add_row(['Total Memory:', data.get('nam')])
-    pt.add_row(['Used Cores:', data.get('nuc')])
-    pt.add_row(['Used Memory:', data.get('num')])
-    pt.add_row(['Free Cores:', data.get('nfc')])
-    pt.add_row(['Free Memory:', data.get('nfm')])
+    pt.add_row(['Total Cores:', data.get('total_cores')])
+    pt.add_row(['Total Memory:', data.get('total_memory')])
+    pt.add_row(['Used Cores:', data.get('used_cores')])
+    pt.add_row(['Used Memory:', data.get('used_memory')])
+    pt.add_row(['Free Cores:', data.get('free_cores')])
+    pt.add_row(['Free Memory:', data.get('free_memory')])
     text_print = 'VM size used: (s,m,l,xl,xxl,others)'
 
     text_print = textwrap.fill(text_print, wrap)

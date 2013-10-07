@@ -25,16 +25,23 @@ def computeStats(node_name, _az2, dic, zone, i, client, r_outs=None, opt=None):
 
     print "%s done , took %0.2f secs" % (node_name, (time.time() - startTime))
 
-    stats_q = {'node_name': node_name, 'node_count': nodes_count,
-                'nac': nodes_rc.get('nac'), 'nam': nodes_rc.get('nam'),
-                'nuc': nodes_rc.get('nuc'), 'num': nodes_rc.get('num'),
-                'nfc': nodes_rc.get('nfc'), 'nfm': nodes_rc.get('nfm'),
-                't_s': type_['m1.small'], 't_m': type_['m1.medium'],
-                't_l': type_['m1.large'], 't_xl': type_['m1.xlarge'],
-                't_xxl': type_['m1.xxlarge'], 'oth': others
-                }
+    stats_q = {'node_name': node_name,
+               'node_count': nodes_count,
+               'total_cores': nodes_rc.get('total_cores'),
+               'total_memory': nodes_rc.get('total_memory'),
+               'used_cores': nodes_rc.get('used_cores'),
+               'used_memory': nodes_rc.get('used_memory'),
+               'free_cores': nodes_rc.get('free_cores'),
+               'free_memory': nodes_rc.get('free_memory'),
+               't_s': type_['m1.small'],
+               't_m': type_['m1.medium'],
+               't_l': type_['m1.large'],
+               't_xl': type_['m1.xlarge'],
+               't_xxl': type_['m1.xxlarge'],
+               'oth': others
+    }
 
-    if opt == True:
+    if opt is True:
         r_outs.put(stats_q)
     else:
         return stats_q
@@ -47,12 +54,12 @@ def combineResource(data_array):
 
     for i in data_array:
         t_nodes += i.get('node_count')
-        t_cores += i.get('nac')
-        t_mem += i.get('nam')
-        u_cores += i.get('nuc')
-        u_mem += i.get('num')
-        f_cores += i.get('nfc')
-        f_mem += i.get('nfm')
+        t_cores += i.get('total_cores')
+        t_mem += i.get('total_memory')
+        u_cores += i.get('used_cores')
+        u_mem += i.get('used_memory')
+        f_cores += i.get('free_cores')
+        f_mem += i.get('free_memory')
         t_s += i.get('t_s')
         t_m += i.get('t_m')
         t_l += i.get('t_l')
