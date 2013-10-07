@@ -47,7 +47,10 @@ def filterAz(client, zone):
         else:
             cells.append(cell_name[1])
 
-    return fq_cells, cells, list(set(hosts))
+    return [dict([("fq_cell", fq_cell), ("cell", cell),
+                  ("host_name", host_name)])
+            for fq_cell, cell, host_name
+            in zip(fq_cells, cells, list(set(hosts)))]
 
 
 def returnNodes(client, zone, search_):
