@@ -91,7 +91,7 @@ def returnServers(client, cell):
     args_a = {'all_tenants': 1, 'host': cell}
     instances = client.servers.list(search_opts=args_a)
     for i in instances:
-        if isinstance(i.__dict__.get('OS-EXT-SRV-ATTR:host'), unicode):
+        if getattr(i, 'OS-EXT-SRV-ATTR:host') is not None:
             count_all.append(i.flavor.get('id'))
 
     return count_all
