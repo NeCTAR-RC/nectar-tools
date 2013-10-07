@@ -1,9 +1,11 @@
+from collections import defaultdict
+import time
+
 from util_nova import returnNodes, statsCount, totalVMType
 from util_nova import returnServers, getResources
 from util_nova import getAvailFlav, filterAz
 from util_report import printPretty2, printPretty3, processConfig
 from multiprocessing import Process, Queue
-import time
 
 
 def compute_stats(node_name, zone, cell_name, client):
@@ -55,40 +57,14 @@ def computeStats(node_name, _az2, dic, zone, i, client, queue=None):
 
 
 def combineResource(data_array):
-    total_nodes = total_cores = total_mem = 0
-    used_cores = used_mem = free_cores = free_mem = 0
-    total_s = total_m = total_l = total_xl = total_xxl = oth = 0
+    result = defaultdict(int)
 
-    for i in data_array:
-        total_nodes += i.get('node_count')
-        total_cores += i.get('total_cores')
-        total_mem += i.get('total_memory')
-        used_cores += i.get('used_cores')
-        used_mem += i.get('used_memory')
-        free_cores += i.get('free_cores')
-        free_mem += i.get('free_memory')
-        total_s += i.get('total_s')
-        total_m += i.get('total_m')
-        total_l += i.get('total_l')
-        total_xl += i.get('total_xl')
-        total_xxl += i.get('total_xxl')
-        oth += i.get('oth')
+    for cell_data in data_array:
+        for metric, value in cell_data.items():
+            if metric != "node_name":
+                result[metric] += value
 
-    data_dict = {'total_nodes': total_nodes,
-                 'total_cores': total_cores,
-                 'total_mem': total_mem,
-                 'used_cores': used_cores,
-                 'used_mem': used_mem,
-                 'free_cores': free_cores,
-                 'free_mem': free_mem,
-                 'total_small': total_s,
-                 'total_medium': total_m,
-                 'total_large': total_l,
-                 'total_xl': total_xl,
-                 'total_xxl': total_xxl,
-                 'oth': oth}
-
-    return data_dict
+    return result
 
 
 def runCollect(client, zone, opt=None):
