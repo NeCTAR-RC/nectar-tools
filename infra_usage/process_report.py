@@ -15,8 +15,7 @@ def computeStats(node_name, _az2, dic, zone, i, client, r_outs=None, opt=None):
     node_info = returnNodes(client, zone, i)
     nodes_count = len(node_info)
 
-    nodes_rc = statsCount(getResources(node_info,
-                                          client))
+    nodes_rc = statsCount(getResources(node_info, client))
     type_ = totalVMType(dic, returnServers(client, _az2))
     if 'others' in list(type_.elements()):
         others = type_['others']
@@ -25,56 +24,60 @@ def computeStats(node_name, _az2, dic, zone, i, client, r_outs=None, opt=None):
 
     print "%s done , took %0.2f secs" % (node_name, (time.time() - startTime))
 
-    stats_q = {'node_name': node_name,
-               'node_count': nodes_count,
-               'total_cores': nodes_rc.get('total_cores'),
-               'total_memory': nodes_rc.get('total_memory'),
-               'used_cores': nodes_rc.get('used_cores'),
-               'used_memory': nodes_rc.get('used_memory'),
-               'free_cores': nodes_rc.get('free_cores'),
-               'free_memory': nodes_rc.get('free_memory'),
-               't_s': type_['m1.small'],
-               't_m': type_['m1.medium'],
-               't_l': type_['m1.large'],
-               't_xl': type_['m1.xlarge'],
-               't_xxl': type_['m1.xxlarge'],
-               'oth': others
-    }
+    stats = {'node_name': node_name,
+             'node_count': nodes_count,
+             'total_cores': nodes_rc.get('total_cores'),
+             'total_memory': nodes_rc.get('total_memory'),
+             'used_cores': nodes_rc.get('used_cores'),
+             'used_memory': nodes_rc.get('used_memory'),
+             'free_cores': nodes_rc.get('free_cores'),
+             'free_memory': nodes_rc.get('free_memory'),
+             'total_s': type_['m1.small'],
+             'total_m': type_['m1.medium'],
+             'total_l': type_['m1.large'],
+             'total_xl': type_['m1.xlarge'],
+             'total_xxl': type_['m1.xxlarge'],
+             'oth': others}
 
     if opt is True:
-        r_outs.put(stats_q)
+        r_outs.put(stats)
     else:
-        return stats_q
+        return stats
 
 
 def combineResource(data_array):
-    t_nodes = t_cores = t_mem = 0
-    u_cores = u_mem = f_cores = f_mem = 0
-    t_s = t_m = t_l = t_xl = t_xxl = oth = 0
+    total_nodes = total_cores = total_mem = 0
+    used_cores = used_mem = free_cores = free_mem = 0
+    total_s = total_m = total_l = total_xl = total_xxl = oth = 0
 
     for i in data_array:
-        t_nodes += i.get('node_count')
-        t_cores += i.get('total_cores')
-        t_mem += i.get('total_memory')
-        u_cores += i.get('used_cores')
-        u_mem += i.get('used_memory')
-        f_cores += i.get('free_cores')
-        f_mem += i.get('free_memory')
-        t_s += i.get('t_s')
-        t_m += i.get('t_m')
-        t_l += i.get('t_l')
-        t_xl += i.get('t_xl')
-        t_xxl += i.get('t_xxl')
+        total_nodes += i.get('node_count')
+        total_cores += i.get('total_cores')
+        total_mem += i.get('total_memory')
+        used_cores += i.get('used_cores')
+        used_mem += i.get('used_memory')
+        free_cores += i.get('free_cores')
+        free_mem += i.get('free_memory')
+        total_s += i.get('total_s')
+        total_m += i.get('total_m')
+        total_l += i.get('total_l')
+        total_xl += i.get('total_xl')
+        total_xxl += i.get('total_xxl')
         oth += i.get('oth')
 
-    data_dict = {'total_nodes': t_nodes, 'total_cores': t_cores,
-              'total_mem': t_mem, 'used_cores': u_cores,
-              'used_mem': u_mem, 'free_cores': f_cores,
-              'free_mem': f_mem, 'total_small': t_s,
-              'total_medium': t_m, 'total_large': t_l,
-              'total_xl': t_xl, 'total_xxl': t_xxl,
-              'oth': oth
-              }
+    data_dict = {'total_nodes': total_nodes,
+                 'total_cores': total_cores,
+                 'total_mem': total_mem,
+                 'used_cores': used_cores,
+                 'used_mem': used_mem,
+                 'free_cores': free_cores,
+                 'free_mem': free_mem,
+                 'total_small': total_s,
+                 'total_medium': total_m,
+                 'total_large': total_l,
+                 'total_xl': total_xl,
+                 'total_xxl': total_xxl,
+                 'oth': oth}
 
     return data_dict
 

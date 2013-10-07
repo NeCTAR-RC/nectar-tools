@@ -62,7 +62,7 @@ def templateLoader(data_1, data_2=None, cell=None, opt=None):
     templateEnv = jinja2.Environment(loader=templateLoader)
 
     file_dir = processConfig('dir', 'output_dir')
-    if cell == None:
+    if cell is None:
         file_name = file_dir + 'rcuall' + getDate('std') + ".html"
         TEMPLATE_FILE = "report_all_template.html"
         template = templateEnv.get_template(TEMPLATE_FILE)
@@ -75,8 +75,8 @@ def templateLoader(data_1, data_2=None, cell=None, opt=None):
         TEMPLATE_FILE = "report_template.html"
         template = templateEnv.get_template(TEMPLATE_FILE)
         templateVars = {'title': 'NeCTAR RC Cell Usage',
-                    "description": "Report Gen", 'date': report_date,
-                    'cell': data_1}
+                        "description": "Report Gen", 'date': report_date,
+                        'cell': data_1}
 
     outputText = template.render(templateVars)
     with open(file_name, "wb") as fh:
@@ -102,7 +102,8 @@ def createCSVFileNode(data_w):
                             'used_mem', 'free_cores', 'free_mem',
                             'ts', 'tm', 'tl', 'txl', 'txxl', 'others'])
 
-            writer.writerow([date_write, data_w.get('node_name'),
+            writer.writerow([date_write,
+                             data_w.get('node_name'),
                              data_w.get('node_count'),
                              data_w.get('total_cores'),
                              data_w.get('total_memory'),
@@ -110,9 +111,12 @@ def createCSVFileNode(data_w):
                              data_w.get('used_memory'),
                              data_w.get('free_cores'),
                              data_w.get('free_memory'),
-                             data_w.get('t_s'), data_w.get('t_m'),
-                             data_w.get('t_l'), data_w.get('t_xl'),
-                             data_w.get('t_xxl'), data_w.get('oth')])
+                             data_w.get('total_s'),
+                             data_w.get('total_m'),
+                             data_w.get('total_l'),
+                             data_w.get('total_xl'),
+                             data_w.get('total_xxl'),
+                             data_w.get('oth')])
         except IOError, e:
             print "File Error" % e
             raise SystemExit
@@ -121,7 +125,8 @@ def createCSVFileNode(data_w):
             writer = csv.writer(w, delimiter=',',
                                     quoting=csv.QUOTE_ALL)
 
-            writer.writerow([date_write, data_w.get('node_name'),
+            writer.writerow([date_write,
+                             data_w.get('node_name'),
                              data_w.get('node_count'),
                              data_w.get('total_cores'),
                              data_w.get('total_memory'),
@@ -129,14 +134,18 @@ def createCSVFileNode(data_w):
                              data_w.get('used_memory'),
                              data_w.get('free_cores'),
                              data_w.get('free_memory'),
-                             data_w.get('t_s'), data_w.get('t_m'),
-                             data_w.get('t_l'), data_w.get('t_xl'),
-                             data_w.get('t_xxl'), data_w.get('oth')])
+                             data_w.get('total_s'),
+                             data_w.get('total_m'),
+                             data_w.get('total_l'),
+                             data_w.get('total_xl'),
+                             data_w.get('total_xxl'),
+                             data_w.get('oth')])
 
 
 def multiCSVNode(data_w):
     for i in data_w:
         createCSVFileNode(i)
+
 
 def createCSVFileCloud(data_w,):
     now = datetime.datetime.now()
@@ -155,39 +164,42 @@ def createCSVFileCloud(data_w,):
                                  'free_cores', 'free_mem', 'ts', 'tm',
                                  'tl', 'txl', 'txxl', 'others'])
 
-                writer.writerow([date_write, data_w.get('total_nodes'),
-                                     data_w.get('total_cores'),
-                                     data_w.get('total_mem'),
-                                     data_w.get('used_cores'),
-                                     data_w.get('used_mem'),
-                                     data_w.get('free_cores'),
-                                     data_w.get('free_mem'),
-                                     data_w.get('total_small'),
-                                     data_w.get('total_medium'),
-                                     data_w.get('total_large'),
-                                     data_w.get('total_xl'),
-                                     data_w.get('total_xxl'),
-                                     data_w.get('oth')]
-                                        )
+                writer.writerow([date_write,
+                                 data_w.get('total_nodes'),
+                                 data_w.get('total_cores'),
+                                 data_w.get('total_mem'),
+                                 data_w.get('used_cores'),
+                                 data_w.get('used_mem'),
+                                 data_w.get('free_cores'),
+                                 data_w.get('free_mem'),
+                                 data_w.get('total_small'),
+                                 data_w.get('total_medium'),
+                                 data_w.get('total_large'),
+                                 data_w.get('total_xl'),
+                                 data_w.get('total_xxl'),
+                                 data_w.get('oth')])
             except IOError, e:
                 print "File Error" % e
                 raise SystemExit
     else:
         with open(filename_all, 'a') as w:
             writer = csv.writer(w, delimiter=',',
-                                    quoting=csv.QUOTE_ALL)
+                                quoting=csv.QUOTE_ALL)
 
-            writer.writerow([date_write, data_w.get('total_nodes'),
-                            data_w.get('total_cores'), data_w.get('total_mem'),
-                            data_w.get('used_cores'), data_w.get('used_mem'),
-                            data_w.get('free_cores'),
-                            data_w.get('free_mem'),
-                            data_w.get('total_small'),
-                            data_w.get('total_medium'),
-                            data_w.get('total_large'),
-                            data_w.get('total_xl'),
-                            data_w.get('total_xxl'),
-                            data_w.get('oth')])
+            writer.writerow([date_write,
+                             data_w.get('total_nodes'),
+                             data_w.get('total_cores'),
+                             data_w.get('total_mem'),
+                             data_w.get('used_cores'),
+                             data_w.get('used_mem'),
+                             data_w.get('free_cores'),
+                             data_w.get('free_mem'),
+                             data_w.get('total_small'),
+                             data_w.get('total_medium'),
+                             data_w.get('total_large'),
+                             data_w.get('total_xl'),
+                             data_w.get('total_xxl'),
+                             data_w.get('oth')])
 
 
 def emailUser(email_file):
@@ -268,8 +280,12 @@ def printPretty2(data, wrap=0):
 
     text_print = textwrap.fill(text_print, wrap)
     pt.add_row([text_print,
-               [data.get('t_s'), data.get('t_m'), data.get('t_l'),
-                data.get('t_xl'), data.get('t_xxl'), data.get('oth')]
+                [data.get('total_s'),
+                 data.get('total_m'),
+                 data.get('total_l'),
+                 data.get('total_xl'),
+                 data.get('total_xxl'),
+                 data.get('oth')]
                 ])
     print pt.get_string()
 
@@ -285,8 +301,11 @@ def printPretty3(data, wrap=0):
     text_print = 'VM size used: (s,m,l,xl,xxl,others)'
     text_print = textwrap.fill(text_print, wrap)
     pt.add_row([text_print,
-                [data.get('total_small'), data.get('total_medium'),
-                 data.get('total_large'), data.get('total_xl'),
-                 data.get('total_xxl'), data.get('oth')]
+                [data.get('total_small'),
+                 data.get('total_medium'),
+                 data.get('total_large'),
+                 data.get('total_xl'),
+                 data.get('total_xxl'),
+                 data.get('oth')]
                 ])
     print pt.get_string()
