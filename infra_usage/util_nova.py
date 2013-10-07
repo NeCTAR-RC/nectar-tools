@@ -1,9 +1,24 @@
 import re
 import collections
 import time
+from functools import wraps
 from util_report import processConfig
 from novaclient.v1_1 import client
 from novaclient.exceptions import ClientException
+
+
+def retries(func):
+    attempt = processConfig('config', 'retries')
+
+    @wraps(func)
+    def _decorator(*args, **kwargs):
+        for x in xrange(int(attempt)):
+            try:
+                return func(*args, **kwargs)
+            except ClientException:
+                time.sleep(5)
+        return func(*args, **kwargs)
+    return _decorator
 
 
 def createNovaConnection(username, key, tenant_id, auth_url):
@@ -65,15 +80,15 @@ def statsCount(data):
 
 def getResources(cell, client):
 
-    res_l = []
+    resources = []
     total_avail = total_used = total_avail_mem = total_used_mem = 0
 
     for i in cell:
-        out_ = requestRetries('gr', client, i)
-        if out_:
-            res_l.append(out_)
+        out = hosts(client, i)
+        if out:
+            resources.append(out)
 
-    for r in res_l:
+    for r in resources:
         total_avail += int(r[0]._info['resource'].
                            get('cpu'))
         total_used += int(r[1]._info['resource'].
@@ -84,9 +99,14 @@ def getResources(cell, client):
                               .get('memory_mb'))
 
     resources = {'avail_cpu': total_avail, 'avail_mem': total_avail_mem,
-                    'used_cpu': total_used, 'used_mem': total_used_mem}
+                 'used_cpu': total_used, 'used_mem': total_used_mem}
 
     return resources
+
+
+@retries
+def hosts(client, cell):
+    return client.hosts.get(cell)
 
 
 def returnServers(client, cell):
@@ -121,17 +141,3 @@ def getAvailFlav(client):
         data_flav[i.name] = i.id
 
     return data_flav
-
-
-def requestRetries(meth, client, var_=None):
-
-    attempt = processConfig('config', 'retries')
-
-    for x in xrange(int(attempt)):
-        try:
-            if meth == 'gr':
-                return client.hosts.get(var_)
-                break
-        except ClientException:
-            time.sleep(5)
-    return False
