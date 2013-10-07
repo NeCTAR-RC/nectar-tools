@@ -6,10 +6,10 @@ from novaclient.v1_1 import client
 from novaclient.exceptions import ClientException
 
 
-def createNovaConnection(username, key, tenant_id, a_url):
+def createNovaConnection(username, key, tenant_id, auth_url):
     try:
         conn = client.Client(username=username, api_key=key,
-                             project_id=tenant_id, auth_url=a_url)
+                             project_id=tenant_id, auth_url=auth_url)
         return conn
     except ClientException:
         return False
