@@ -13,13 +13,9 @@ def compute_stats(node_name, zone, cell_name, client):
     nodes_count = len(node_info)
     nodes_rc = statsCount(getResources(node_info, client))
     stats = {'node_name': node_name,
-             'node_count': nodes_count,
-             'total_cores': nodes_rc.get('total_cores'),
-             'total_memory': nodes_rc.get('total_memory'),
-             'used_cores': nodes_rc.get('used_cores'),
-             'used_memory': nodes_rc.get('used_memory'),
-             'free_cores': nodes_rc.get('free_cores'),
-             'free_memory': nodes_rc.get('free_memory')}
+             'node_count': nodes_count}
+    for metric, value in nodes_rc.items():
+        stats[metric] = value
     return stats
 
 
@@ -40,13 +36,13 @@ def flavor_stats(node_name, _az2, dic, client):
     return stats
 
 
-def computeStats(node_name, _az2, dic, zone, i, client, queue=None):
+def gather_all_stats(node_name, _az2, dic, zone, cell_name, client, queue=None):
 
     startTime = time.time()
 
     print "Getting data from zone %s" % node_name
-    stats = {}
-    stats.update(compute_stats(node_name, zone, i, client))
+    stats = {"cell_name": cell_name}
+    stats.update(compute_stats(node_name, zone, cell_name, client))
     stats.update(flavor_stats(node_name, _az2, dic, client))
     print "%s done , took %0.2f secs" % (node_name, (time.time() - startTime))
 
@@ -56,18 +52,38 @@ def computeStats(node_name, _az2, dic, zone, i, client, queue=None):
         return stats
 
 
-def combineResource(data_array):
+def gather_compute_stats(node_name, zone, cell_name, client, queue=None):
+
+    startTime = time.time()
+
+    print "Getting data from zone %s" % node_name
+    stats = {"cell_name": cell_name}
+    stats.update(compute_stats(node_name, zone, cell_name, client))
+    print "%s done , took %0.2f secs" % (node_name, (time.time() - startTime))
+
+    if queue:
+        queue.put(stats)
+    else:
+        return stats
+
+
+def combineResource(cells_data):
     result = defaultdict(int)
 
-    for cell_data in data_array:
+    for cell_data in cells_data:
         for metric, value in cell_data.items():
-            if metric != "node_name":
-                result[metric] += value
+            if metric in ["node_name", "cell_name"]:
+                continue
+            result[metric] += value
 
+    result["percent_cores_utilised"] = (float(result["used_cores"])
+                                        / result["total_cores"]) * 100
+    result["percent_memory_utilised"] = (float(result["used_memory"])
+                                         / result["total_memory"]) * 100
     return result
 
 
-def runCollect(client, zone, opt=None):
+def collect_all(client, zone, opt=None):
     flav = getAvailFlav(client)
     cells = filterAz(client, zone)
     timeout = processConfig('config', 'timeout')
@@ -76,7 +92,7 @@ def runCollect(client, zone, opt=None):
         for i, cell in enumerate(cells):
             cell["queue"] = Queue()
 
-            p = Process(name=i, target=computeStats,
+            p = Process(name=i, target=gather_all_stats,
                         args=(cell["cell"], cell["host_name"], flav,
                               zone, cell["fq_cell"], client, cell["queue"]))
             jobs.append(p)
@@ -99,7 +115,44 @@ def runCollect(client, zone, opt=None):
         a_name = cell['fq_cell'][index_id]
         c_name = cell['host_name'][index_id]
 
-        return computeStats(opt, c_name, flav, zone, a_name, client)
+        return gather_all_stats(opt, c_name, flav, zone, a_name, client)
+
+
+def collect_compute(client, zone, target_cell=None):
+    cells = filterAz(client, zone)
+    timeout = processConfig('config', 'timeout')
+    if target_cell is None:
+        jobs = []
+        for i, cell in enumerate(cells):
+            cell["queue"] = Queue()
+
+            p = Process(name=i, target=gather_compute_stats,
+                        args=(cell["cell"], zone,
+                              cell["fq_cell"], client,
+                              cell["queue"]))
+            jobs.append(p)
+            p.start()
+
+        for p in jobs:
+            p.join(int(timeout))
+            if p.is_alive():
+                p.terminate()
+                return False
+
+        html_array = []
+        for cell in cells:
+            html_array.append(cell["queue"].get())
+
+        return html_array
+    else:
+        for cell in cells:
+            if cell["cell"] == target_cell:
+                a_name = cell['fq_cell']
+                break
+        else:
+            raise Exception("Can't find cell.")
+
+        return [gather_compute_stats(target_cell, zone, a_name, client)]
 
 
 def printOptions(data1, data_2=None, options=None):
