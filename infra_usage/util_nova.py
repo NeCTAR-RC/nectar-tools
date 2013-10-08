@@ -76,32 +76,39 @@ def statsCount(data):
                  'used_cores': used_cores,
                  'used_memory': used_memory,
                  'free_cores': free_cores,
-                 'free_memory': free_memory}
+                 'free_memory': free_memory,
+                 'instance_count': data.get("instances")}
+    resources["percent_cores_utilised"] = (float(resources["used_cores"])
+                                           / resources["total_cores"]) * 100
+    resources["percent_memory_utilised"] = (float(resources["used_memory"])
+                                            / resources["total_memory"]) * 100
     return resources
 
 
 def getResources(cell, client):
 
-    resources = []
-    total_avail = total_used = total_avail_mem = total_used_mem = 0
+    host_list = []
+    total_avail = instance_count = total_used = 0
+    total_avail_mem = total_used_mem = 0
 
     for i in cell:
         out = hosts(client, i)
         if out:
-            resources.append(out)
+            host_list.append(out)
 
-    for r in resources:
-        total_avail += int(r[0]._info['resource'].
-                           get('cpu'))
-        total_used += int(r[1]._info['resource'].
-                          get('cpu'))
-        total_avail_mem += int(r[0]._info['resource'].
-                               get('memory_mb'))
-        total_used_mem += int(r[1]._info['resource']
-                              .get('memory_mb'))
+    for host in host_list:
+        # The first 3 elements of a host are (total) (used) and (max)
+        total = host[0]
+        used = host[1]
+        total_avail += int(total.cpu)
+        total_used += int(used.cpu)
+        total_avail_mem += int(total.memory_mb)
+        total_used_mem += int(used.memory_mb)
+        instance_count += len(host[3:])
 
     resources = {'avail_cpu': total_avail, 'avail_mem': total_avail_mem,
-                 'used_cpu': total_used, 'used_mem': total_used_mem}
+                 'used_cpu': total_used, 'used_mem': total_used_mem,
+                 'instances': instance_count}
 
     return resources
 
