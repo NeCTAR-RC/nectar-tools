@@ -111,6 +111,7 @@ class hpcnode(threading.Thread):
 
     def head_node_setup(self):
         self.ssh_connect()
+        self.sudo = False
 
         for ipaddr in self.ipaddrs:
             nc.security_group_rules.create(self.sg.id, 'udp', '1', '65535',
@@ -118,7 +119,7 @@ class hpcnode(threading.Thread):
             nc.security_group_rules.create(self.sg.id, 'tcp', '1', '65535',
                                            '%s/32' % ipaddr)
             mpi_cmds = ['echo %s >> mpi_hosts' % ipaddr,
-                        'ssh-keyscan %s >> .ssh/known_hosts' % ipaddr]
+                        'ssh-keyscan -v -T 10 %s >> .ssh/known_hosts' % ipaddr]
             for cmd in mpi_cmds:
                 self.ssh_cmd(cmd)
 
