@@ -57,10 +57,6 @@ class hpcnode(threading.Thread):
         self.image = image
         self.flavor = flavor
         self.username = username
-        if username == 'root':
-            self.sudo = False
-        else:
-            self.sudo = True
         self.server = nc.servers.create(name=self.name,
                                         image=self.image,
                                         flavor=self.flavor,
@@ -111,7 +107,6 @@ class hpcnode(threading.Thread):
 
     def head_node_setup(self):
         self.ssh_connect()
-        self.sudo = False
 
         for ipaddr in self.ipaddrs:
             nc.security_group_rules.create(self.sg.id, 'udp', '1', '65535',
@@ -121,10 +116,10 @@ class hpcnode(threading.Thread):
             mpi_cmds = ['echo %s >> mpi_hosts' % ipaddr,
                         'ssh-keyscan -v -T 10 %s >> .ssh/known_hosts' % ipaddr]
             for cmd in mpi_cmds:
-                self.ssh_cmd(cmd)
+                self.ssh_cmd(cmd=cmd, sudo=False)
 
         for cmd in self.extra_cmds:
-            self.ssh_cmd(cmd)
+            self.ssh_cmd(cmd, sudo=False)
 
         print 'Once the other nodes have finished booting you can ssh to'
         print '"%s" and run mpi commands. e.g.' % self.name
@@ -173,11 +168,11 @@ class hpcnode(threading.Thread):
         self.event.set()
         cprint(self.name, 'blue', 'IP address: %s' % self.ipaddress)
 
-    def ssh_cmd(self, cmd):
-        if self.sudo and cmd[0:3] != 'cd ':
-            full_cmd = 'sudo %s' % cmd
-        else:
+    def ssh_cmd(self, cmd, sudo=True):
+        if self.username == 'root' or sudo == False or cmd[0:3] == 'cd ':
             full_cmd = cmd
+        else:
+            full_cmd = 'sudo %s' % cmd
         stdin, stdout, stderr = self.client.exec_command(full_cmd)
         prompt = '%s@%s' % (self.username, self.ipaddress)
         cprint(prompt, 'yellow', full_cmd, '$ ')
