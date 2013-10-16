@@ -55,14 +55,14 @@ def getDate(type_):
         return now.strftime("%d_%m_%Y_%H_%M")
 
 
-def templateLoader(data_1, data_2=None, cell=None, opt=None):
+def templateLoader(data_1, data_2=None, cell=True, opt=None):
     report_date = getDate('ordinal_date')
     working_path = os.getcwd()
     templateLoader = jinja2.FileSystemLoader(searchpath=working_path)
     templateEnv = jinja2.Environment(loader=templateLoader)
 
     file_dir = processConfig('dir', 'output_dir')
-    if cell is None:
+    if cell is True:
         file_name = file_dir + 'rcuall' + getDate('std') + ".html"
         TEMPLATE_FILE = "report_all_template.html"
         template = templateEnv.get_template(TEMPLATE_FILE)
