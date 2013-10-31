@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAATn//+i8\u003d",
+        "filename": "scripts/backup_vm.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2013-10-31T05:52:06Z",
+      "side": 1,
+      "message": "Don\u0027t think this is the ec2 id? I think it\u0027s the libvirt name which depends on how nova is set up",
+      "revId": "4761d382e9ad8a42b0faec2f10fbfc296aa59b02",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
