@@ -10,14 +10,15 @@ from email.MIMEText import MIMEText
 from ConfigParser import SafeConfigParser
 
 
+working_path = os.getcwd()
+config_file = os.path.join(working_path, "report.ini")
+
 try:
-    working_path = os.getcwd()
-    config_file = os.path.join(working_path, "report.ini")
     with open(config_file):
         parser = SafeConfigParser()
         parser.read(config_file)
 except IOError:
-    print "Error!, Config File Not Found"
+    print "Error!, Config File '%s' Not Found " % config_file
     raise SystemExit
 
 
