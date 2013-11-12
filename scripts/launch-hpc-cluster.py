@@ -2,6 +2,7 @@
 
 import sys
 import os
+import errno
 import re
 import time
 import datetime
@@ -39,9 +40,9 @@ def cprint(str1='', color=None, str2='', sep=': '):
 
 class hpcnode(threading.Thread):
 
-    def __init__(self, node_id, total_nodes, nc, key_name, sg,
-                 ipaddrs, event, image, flavor, username, name,
-                 extra_cmds, packages, files, key):
+    def __init__(self, node_id, total_nodes, nc, key_name, sg, ipaddrs, event,
+                 image, flavor, username, name, extra_cmds, packages, files,
+                 key, shared_fs, head_node):
 
         threading.Thread.__init__(self)
 
@@ -67,10 +68,17 @@ class hpcnode(threading.Thread):
         init_cmds.append('apt-get update')
         init_cmds.append('aptitude -y full-upgrade')
         init_cmds.append('apt-get -y install %s' % ' '.join(packages))
+        self.shared_fs = shared_fs
+        if self.shared_fs:
+            init_cmds.append('apt-get -y install nfs-common')
+            if self.node_id == 0:
+                init_cmds.append('apt-get -y install nfs-kernel-server')
         self.init_cmds = init_cmds
         self.files = files
         self.ipaddrs = ipaddrs
         self.key = key
+        self.ipaddress = 0
+        self.head_node = head_node
 
     def run(self):
         self.wait_for_boot()
@@ -96,6 +104,9 @@ class hpcnode(threading.Thread):
             if self.node_id == 0:
                 self.head_node_setup()
 
+            if self.shared_fs:
+                self.shared_fs_setup()
+
         except Exception, e:
             exc = str(e.__class__) + ': ' + str(e)
             cprint('Caught exception: ' + exc, 'red')
@@ -105,6 +116,29 @@ class hpcnode(threading.Thread):
             except:
                 pass
 
+    def shared_fs_setup(self):
+        self.ssh_connect()
+        path = '/mnt/nfs'
+
+        if self.node_id == 0:
+            nfs_cmds = ['chmod 777 /mnt',
+                        'exportfs -o rw,insecure,no_subtree_check *:/mnt',
+                        'touch %s' % path]
+            for cmd in nfs_cmds:
+                self.ssh_cmd(cmd=cmd)
+            self.event.set()
+        else:
+            self.event.wait()
+            shared_fs_mounted = False
+            while not shared_fs_mounted:
+                try:
+                    self.ssh_cmd(cmd='mount -o rw -t nfs %s:/mnt /mnt' % self.head_node[0])
+                    shared_fs_mounted = self.sftp_check_exists(path)
+                except IOError, e:
+                    if e.errno == errno.ENOENT:
+                        cprint('Waiting for NFS filesystem...')
+        self.ssh_disconnect()
+
     def head_node_setup(self):
         self.ssh_connect()
 
@@ -112,6 +146,10 @@ class hpcnode(threading.Thread):
             nc.security_group_rules.create(self.sg.id, 'udp', '1', '65535',
                                            '%s/32' % ipaddr)
             nc.security_group_rules.create(self.sg.id, 'tcp', '1', '65535',
+                                           '%s/32' % ipaddr)
+            nc.security_group_rules.create(self.sg.id, 'icmp', '0', '0',
+                                           '%s/32' % ipaddr)
+            nc.security_group_rules.create(self.sg.id, 'icmp', '8', '0',
                                            '%s/32' % ipaddr)
             mpi_cmds = ['echo %s >> mpi_hosts' % ipaddr,
                         'ssh-keyscan -v -T 10 %s >> .ssh/known_hosts' % ipaddr]
@@ -155,7 +193,6 @@ class hpcnode(threading.Thread):
 
     def wait_for_ipaddress(self):
         cprint(self.name, 'blue', 'Waiting for IP address...')
-        self.ipaddress = 0
         while self.ipaddress == 0:
             try:
                 self.ipaddress = self.server.networks.values()[0][0]
@@ -165,6 +202,8 @@ class hpcnode(threading.Thread):
         self.ipaddrs.append(self.ipaddress)
         self.init_cmds.insert(0, 'sh -c "echo %s %s >> /etc/hosts"'
                               % (self.ipaddress, self.hostname))
+        if self.node_id == 0:
+            self.head_node.append(self.ipaddress)
         self.event.set()
         cprint(self.name, 'blue', 'IP address: %s' % self.ipaddress)
 
@@ -181,10 +220,9 @@ class hpcnode(threading.Thread):
         for line in stdout:
             cprint(line.strip('\n'), 'green', sep='')
         if status != 0:
-            cprint('An error occured running remote commands:', 'red')
+            cprint('An error occured running remote commands', 'red')
             for line in stderr:
                 print line.strip('\n')
-            raise
 
     def ssh_connect(self):
         try:
@@ -211,6 +249,15 @@ class hpcnode(threading.Thread):
                 sftp.put(f, os.path.basename(f))
             sftp.close()
             transport.close()
+
+    def sftp_check_exists(self, path):
+        transport = paramiko.Transport((self.ipaddress, 22))
+        transport.start_client()
+        transport.auth_publickey(self.username, self.key)
+        sftp = paramiko.SFTPClient.from_transport(transport)
+        sftp.close()
+        transport.close()
+        return True
 
     def cleanup(self):
         self.ssh_disconnect()
@@ -252,6 +299,9 @@ def collect_args():
     parser.add_argument('-F', '--files', type=str, default=[],
                         required=False, nargs='+',
                         help='Files to upload to each node')
+    parser.add_argument('-s', '--shared-filesystem', default=False,
+                        required=False, action='store_true',
+                        help='Set up a shared filesystem (currently NFS)')
     return parser
 
 
@@ -373,6 +423,7 @@ def launch_cluster(nc, nova_key, local_key, args):
 
     threads = []
     ipaddrs = []
+    head_node = []
     event = threading.Event()
 
     try:
@@ -391,7 +442,9 @@ def launch_cluster(nc, nova_key, local_key, args):
                              extra_cmds=extra_cmds,
                              packages=args.packages,
                              files=args.files,
-                             key=local_key)
+                             key=local_key,
+                             shared_fs=args.shared_filesystem,
+                             head_node=head_node)
             thread.start()
             threads.append(thread)
     except Exception as e:
