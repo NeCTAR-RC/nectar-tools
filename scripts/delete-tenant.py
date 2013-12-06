@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 
 import sys
-import os
 import argparse
 from operator import attrgetter
 
-from keystoneclient.v2_0 import client as ks_client
-from keystoneclient.exceptions import AuthorizationFailure
 import glanceclient as glance_client
-from novaclient.v1_1 import client as nova_client
 import swiftclient
+import auth
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -37,40 +34,6 @@ def collect_args():
                         help='Stage 3 Archive')
 
     return parser
-
-
-def get_keystone_client():
-
-    auth_username = os.environ.get('OS_USERNAME')
-    auth_password = os.environ.get('OS_PASSWORD')
-    auth_tenant = os.environ.get('OS_TENANT_NAME')
-    auth_url = os.environ.get('OS_AUTH_URL')
-
-    try:
-        kc = ks_client.Client(username=auth_username,
-                              password=auth_password,
-                              tenant_name=auth_tenant,
-                              auth_url=auth_url)
-    except AuthorizationFailure as e:
-        print e
-        print 'Authorization failed, have you sourced your openrc?'
-        sys.exit(1)
-    return kc
-
-
-def get_nova_client():
-
-    auth_username = os.environ.get('OS_USERNAME')
-    auth_password = os.environ.get('OS_PASSWORD')
-    auth_tenant = os.environ.get('OS_TENANT_NAME')
-    auth_url = os.environ.get('OS_AUTH_URL')
-
-    nc = nova_client.Client(auth_username,
-                            auth_password,
-                            auth_tenant,
-                            auth_url,
-                            service_type="compute")
-    return nc
 
 
 def stage2_images(client, nova_client, tenant_id):
@@ -118,19 +81,19 @@ def stage2_instances(client, tenant_id, dry_run=True):
     print "=========  Nova Data  =============="
     print "===================================="
     instances = client.servers.list(search_opts={'tenant_id': tenant_id,
-                                                 'all_tenants': 1})
+                                                     'all_tenants': 1})
     if instances:
         for i in instances:
             instance_suspend(instance=i, dry_run=dry_run)
             instance_lock(instance=i, dry_run=dry_run)
 
+    # TODO Option to Archive all data
+    # TODO Option to delete all data
+
     # archive? (copy to swift?) (2
     # terminate (2
 
     print "%d instances processed" % len(instances)
-
-    # TODO Option to Archive all data
-    # TODO Option to delete all data
 
 
 def stage2_swift(auth_url, token, swift_url, dry_run=True):
@@ -184,17 +147,17 @@ if __name__ == '__main__':
     else:
         dry_run = True
 
-    kc = get_keystone_client()
+    kc = auth.get_keystone_client()
     token = kc.auth_token
     auth_url = kc.auth_url
     catalog = kc.service_catalog
 
-    image_endpoint = catalog.url_for(service_type='image')
-    gc = glance_client.Client('1', image_endpoint, token=token)
+    glance_url = catalog.url_for(service_type='image')
+    gc = glance_client.Client('1', glance_url, token=token)
 
-    nc = get_nova_client()
+    nc = auth.get_nova_client()
 
-    swift_auth = 'AUTH_' + tenant_id
+    swift_auth = '/v1/AUTH_' + tenant_id
     if catalog.get_endpoints(service_type='object-store',
                              endpoint_type='adminURL'):
         swift_url = catalog.url_for(service_type='object-store',
@@ -207,10 +170,10 @@ if __name__ == '__main__':
         #render_email()
         #exit
     if args.stage2:
-        stage2_images(gc, nc, tenant_id)
         stage2_instances(nc, tenant_id, dry_run)
+        stage2_images(gc, nc, tenant_id)
         if swift_url:
-            stage2_swift(auth_url, token, swift_url + swift_auth, dry_run)
+            stage2_swift(auth_url, token, swift_url+swift_auth, dry_run)
     if args.stage3:
         if tenant_id:
             stage3_keystone(kc, tenant_id)

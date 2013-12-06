@@ -10,10 +10,7 @@ import argparse
 import threading
 import traceback
 import paramiko
-
-from keystoneclient.v2_0 import client as ks_client
-from keystoneclient.exceptions import AuthorizationFailure
-from novaclient.v1_1 import client as nova_client
+import auth
 
 
 def cprint(str1='', color=None, str2='', sep=': '):
@@ -331,41 +328,6 @@ def create_security_group(jobname, nc):
     return sg
 
 
-def get_keystone_client():
-
-    auth_username = os.environ.get('OS_USERNAME')
-    auth_password = os.environ.get('OS_PASSWORD')
-    auth_tenant = os.environ.get('OS_TENANT_NAME')
-    auth_url = os.environ.get('OS_AUTH_URL')
-
-    try:
-        kc = ks_client.Client(username=auth_username,
-                              password=auth_password,
-                              tenant_name=auth_tenant,
-                              auth_url=auth_url)
-    except AuthorizationFailure as e:
-        print e
-        print 'Authorization failed, have you sourced your openrc?'
-        sys.exit(1)
-
-    return kc
-
-
-def get_nova_client():
-
-    auth_username = os.environ.get('OS_USERNAME')
-    auth_password = os.environ.get('OS_PASSWORD')
-    auth_tenant = os.environ.get('OS_TENANT_NAME')
-    auth_url = os.environ.get('OS_AUTH_URL')
-
-    nc = nova_client.Client(auth_username,
-                            auth_password,
-                            auth_tenant,
-                            auth_url,
-                            service_type='compute')
-    return nc
-
-
 def get_keys(nova_keys):
 
     ssh_agent = paramiko.Agent()
@@ -458,8 +420,8 @@ if __name__ == '__main__':
 
     args = collect_args().parse_args()
 
-    kc = get_keystone_client()
-    nc = get_nova_client()
+    kc = auth.get_keystone_client()
+    nc = auth.get_nova_client()
 
     nova_key, local_key = get_keys(nc.keypairs.list())
     if not nova_key or not local_key:
