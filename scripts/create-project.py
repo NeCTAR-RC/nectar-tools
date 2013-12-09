@@ -5,7 +5,7 @@ import sys
 import argparse
 from keystoneclient.v2_0 import client as keystone_client
 from novaclient.v1_1 import client as nova_client
-from cinderclient.v2 import client as cinder_client
+from cinderclient.v1 import client as cinder_client
 
 
 # Get authentication details from environment
