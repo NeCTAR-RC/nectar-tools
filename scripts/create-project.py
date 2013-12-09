@@ -16,7 +16,7 @@ AUTH_URL = os.environ.get('OS_AUTH_URL', None)
 CACERT = os.environ.get('OS_CACERT', None)
 
 
-def add_tenant(name, description, manager_email):
+def add_tenant(name, description, manager_email, allocation_id):
 
     # Create keystone client
     ksclient = keystone_client.Client(username=AUTH_USER,
@@ -40,6 +40,10 @@ def add_tenant(name, description, manager_email):
 
     # Create tenant
     tenant = ksclient.tenants.create(name, description)
+
+    # Link tenant to allocation
+    kwargs = {'allocation_id': allocation_id}
+    ksclient.tenants.update(tenant.id, **kwargs)
 
     # Add roles to tenant manager
     ksclient.tenants.add_user(tenant, tenant_manager, tenant_manager_role)
@@ -94,7 +98,8 @@ def main():
     if 'g' in args:
         gigabytes = args.g
 
-    tenant_id = add_tenant(name, description, manager_email)
+    allocation_id = args.allocation_id
+    tenant_id = add_tenant(name, description, manager_email, allocation_id)
     add_nova_quota(tenant_id, cores, instances, ram)
     if gigabytes and volumes:
         add_cinder_quota(tenant_id, gigabytes, volumes)
@@ -109,6 +114,9 @@ def get_args():
                         required=True, help='Tenant description')
     parser.add_argument('-e', '-manager_email', action='store',
                         required=True, help='Manager email')
+    parser.add_argument('-a', '--allocation-id', action='store',
+                        required=True, type=int,
+                        help='NeCTAR allocation request ID')
     parser.add_argument('-c', '-cores', action="store", type=int,
                         required=True, help='Number or cores')
     parser.add_argument('-i', '-instances', action='store',
