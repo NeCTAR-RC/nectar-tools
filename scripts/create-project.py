@@ -13,6 +13,7 @@ AUTH_USER = os.environ.get('OS_USERNAME', None)
 AUTH_PASSWORD = os.environ.get('OS_PASSWORD', None)
 AUTH_TENANT_NAME = os.environ.get('OS_TENANT_NAME', None)
 AUTH_URL = os.environ.get('OS_AUTH_URL', None)
+CACERT = os.environ.get('OS_CACERT', None)
 
 
 def add_tenant(name, description, manager_email):
@@ -21,7 +22,8 @@ def add_tenant(name, description, manager_email):
     ksclient = keystone_client.Client(username=AUTH_USER,
                                       password=AUTH_PASSWORD,
                                       tenant_name=AUTH_TENANT_NAME,
-                                      auth_url=AUTH_URL)
+                                      auth_url=AUTH_URL,
+                                      cacert=CACERT)
 
     try:
         tenant_manager = ksclient.users.find(name=manager_email)
@@ -50,7 +52,8 @@ def add_cinder_quota(tenant_id, gigabytes, volumes):
     cclient = cinder_client.Client(username=AUTH_USER,
                                    api_key=AUTH_PASSWORD,
                                    project_id=AUTH_TENANT_NAME,
-                                   auth_url=AUTH_URL)
+                                   auth_url=AUTH_URL,
+                                   cacert=CACERT)
     # volumes and snapshots the same as we don't care
     cclient.quotas.update(tenant_id=tenant_id,
                           gigabytes=gigabytes,
@@ -62,7 +65,8 @@ def add_nova_quota(tenant_id, cores, instances, ram):
     nclient = nova_client.Client(username=AUTH_USER,
                                  api_key=AUTH_PASSWORD,
                                  project_id=AUTH_TENANT_NAME,
-                                 auth_url=AUTH_URL)
+                                 auth_url=AUTH_URL,
+                                 cacert=CACERT)
 
     nclient.quotas.update(tenant_id=tenant_id,
                           ram=ram,
