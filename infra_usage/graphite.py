@@ -6,6 +6,7 @@ from collections import defaultdict
 
 from util_report import processConfig
 from util_nova import createNovaConnection
+from util_keystone import createConnection as createKeystoneConnection
 
 DEBUG = False
 
@@ -26,6 +27,10 @@ def send_graphite_nectar(sock, metric, value, time):
 
 def send_graphite_cell(sock, cell, metric, value, time):
     return send_metric(sock, "%s.%s" % (cell, metric),
+                       value, time)
+
+def send_graphite_domain(sock, cell, domain, metric, value, time):
+    return send_metric(sock, "%s.domains.%s.%s" % (cell, domain, metric),
                        value, time)
 
 flavor = {}
@@ -77,12 +82,27 @@ def main(host, port, cell):
     url = processConfig('production', 'url')
     zone = processConfig('config', 'zone')
     client = createNovaConnection(username, key, tenant_name, url)
+    kclient = createKeystoneConnection(username, key, tenant_name, url)
+    users = {}
+    for user in kclient.users.list():
+        if not user.email:
+            continue
+        email = user.email.split('@')[-1]
+        if email.endswith('.edu.au'):
+            email = '_'.join(email.split('.')[-3:])
+        else:
+            email = email.replace('.', '_')
+        users[user.id] = email
+
     servers = all_servers(client)
     flavors = all_flavors(client, servers)
     servers_by_cell = defaultdict(list)
+    servers_by_cell_by_domain = defaultdict(lambda: defaultdict(list))
+
     for server in servers:
         cell = getattr(server, 'OS-EXT-AZ:availability_zone')
         servers_by_cell[cell].append(server)
+        servers_by_cell_by_domain[cell][users[server.user_id]].append(server)
 
     if DEBUG:
         sock = None
@@ -94,9 +114,20 @@ def main(host, port, cell):
         send_graphite_nectar(sock, metric, value, now)
 
     for zone, servers in servers_by_cell.items():
+        sock = socket.socket()
+        sock.connect((host, port))
         for metric, value in server_metrics(servers, flavors).items():
             send_graphite_cell(sock, zone, metric, value, now)
-
+        sock.close()
+    for zone, items in servers_by_cell_by_domain.items():
+        sock = socket.socket()
+        sock.connect((host, port))
+        for domain, servers in items.items():
+            for metric, value in server_metrics(servers, flavors).items():
+                if metric not in ['used_vcpus']:
+                    continue
+                send_graphite_domain(sock, zone, domain, metric, value, now)
+        sock.close()
 
 if __name__ == '__main__':
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
