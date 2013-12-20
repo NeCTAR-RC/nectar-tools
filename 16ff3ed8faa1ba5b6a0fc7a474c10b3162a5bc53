@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "AAAATn//9vk\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9v8\u003d",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAATn//9ww\u003d",
         "filename": "suspend_restore_vm/suspend_restore.py",
         "patchSetId": 5
@@ -64,6 +82,24 @@
       "writtenOn": "2013-12-20T02:46:41Z",
       "side": 1,
       "message": "Try to avoid returning different types from a function depending on its arguments. This function should be returning a list of servers. I\u0027d move the code that makes the full server list into this function.",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAATn//9vg\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9ww\u003d",
       "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -87,6 +123,24 @@
     },
     {
       "key": {
+        "uuid": "AAAATn//9vc\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9wQ\u003d",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAATn//9wM\u003d",
         "filename": "suspend_restore_vm/suspend_restore.py",
         "patchSetId": 5
@@ -104,6 +158,24 @@
     },
     {
       "key": {
+        "uuid": "AAAATn//9uo\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9wM\u003d",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAATn//9wI\u003d",
         "filename": "suspend_restore_vm/suspend_restore.py",
         "patchSetId": 5
@@ -115,6 +187,24 @@
       "writtenOn": "2013-12-20T02:46:41Z",
       "side": 1,
       "message": "No more i!\n\n    for server in servers:",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAATn//9uk\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9wI\u003d",
       "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -155,6 +245,24 @@
     },
     {
       "key": {
+        "uuid": "AAAATn//9uc\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9wA\u003d",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAATn//9wo\u003d",
         "filename": "suspend_restore_vm/suspend_restore.py",
         "patchSetId": 5
@@ -166,6 +274,24 @@
       "writtenOn": "2013-12-20T02:46:41Z",
       "side": 1,
       "message": "Probably want exception handling here and below in case this fails for some reason?",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAATn//9uY\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9wo\u003d",
       "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -206,6 +332,24 @@
     },
     {
       "key": {
+        "uuid": "AAAATn//9uU\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9ws\u003d",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAATn//9wg\u003d",
         "filename": "suspend_restore_vm/suspend_restore.py",
         "patchSetId": 5
@@ -217,6 +361,24 @@
       "writtenOn": "2013-12-20T02:46:41Z",
       "side": 1,
       "message": "split these up into separate functions. You\u0027re already checking the method in your main().",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAATn//9uQ\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9wg\u003d",
       "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -251,6 +413,24 @@
       "writtenOn": "2013-12-20T02:46:41Z",
       "side": 1,
       "message": "All the code below here is in the other branch as well. You can move this out of the branch and reduce the repetition.",
+      "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAATn//9uM\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2013-12-20T10:50:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAATn//9wc\u003d",
       "revId": "16ff3ed8faa1ba5b6a0fc7a474c10b3162a5bc53",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
