@@ -6,8 +6,6 @@ import swiftclient
 import auth
 import csv
 from operator import attrgetter
-from jinja2 import Environment, FileSystemLoader
-from cinderclient import utils
 from keystoneclient.apiclient.exceptions import NotFound
 
 
@@ -47,15 +45,19 @@ def stage2_instances(client, dry_run=True, *tenants):
     for tenant in tenants:
         instances = client.servers.list(search_opts={'tenant_id': tenant, 
                                                     'all_tenants': 1})
+        tenant_obj = kc.tenants.get(tenant)
 
-        print "%d instance%s found for tenantID %s" % (len(instances),
-                "s"[len(instances)==1:], tenant)
+        print "%d instance%s found for %s - %s" % (len(instances),
+                "s"[len(instances)==1:], tenant, tenant_obj.name)
         if instances:
             for instance in instances:
                 print "Instance ID", instance.id
                 #instance_backup(instance, dry_run)
                 instance_suspend(instance, dry_run)
-                #instance_lock(instance, dry_run)
+                instance_lock(instance, dry_run)
+        if not instances:
+            kc.tenants.update(tenant, status='suspended')
+            #stage3_keystone(kc, tenant, dry_run)
 
         # TODO Backup filesystem, compress and store somewhere
         # for potential access otherwise delete instance
@@ -75,11 +77,11 @@ def stage2_volumes(client, dry_run=True, *tenants):
             if vol_tenant == tenant:
                 volumes.append(volume)
 
-    print "\n%d volume%s found for tenantID %s" % (len(volumes),
-            "s"[len(volumes)==1:], tenant)
-    for volume in volumes:
-            print "%s attachments: %s, bootable: %s, size: %sGB" % (volume.id,
-                    volume.attachments, volume.bootable, volume.size)
+        print "\n%d volume%s found for tenantID %s" % (len(volumes),
+                "s"[len(volumes)==1:], tenant)
+        for volume in volumes:
+                print "%s attachments: %s, bootable: %s, size: %sGB" % (volume.id,
+                        volume.attachments, volume.bootable, volume.size)
 
 
 def stage2_images(glance_client, nova_client, *tenants):
@@ -115,7 +117,7 @@ def stage2_objects(auth_url, token, swift_url, dry_run=True, *tenants):
     """
 
     for tenant in tenants:
-        swift_auth = '/v1/AUTH_' + tenant
+        swift_auth = 'AUTH_' + tenant
         swift_url = swift_url + swift_auth
         account_details = swiftclient.head_account(swift_url, token)
         containers = int(account_details['x-account-container-count'])
@@ -177,11 +179,13 @@ def stage3_keystone(client, tenant_id, dry_run=True):
     """
 
     try:
-        users = client.tenants.list_users(tenant_id)
-        print "Users: %s" % " ".join(map(attrgetter("id"), users))
-        print "Deleting tenant %s" % tenant_id
+        user = client.tenants.list_users(tenant_id)
+        user_id= " ".join(map(attrgetter("id"), user))
+        print "Deleting tenant", tenant_id
+        print "userID:", user_id
         if not dry_run:
             client.tenants.delete(tenant_id)
+            stage3_keystone_user(kc, user_id, dry_run)
     except NotFound as e:
         print e, '\n'
 
@@ -193,7 +197,7 @@ def stage3_keystone_user(client, user_id, dry_run=True):
 
     print "Deleting user %s" % user_id
     if not dry_run:
-        client.user.delete(user_id)
+        client.users.delete(user_id)
 
 
 def instance_suspend(instance, dry_run=True):
@@ -202,6 +206,8 @@ def instance_suspend(instance, dry_run=True):
     if not dry_run:
         if instance.status == 'SUSPENDED':
             print "Instance is already suspended."
+        elif instance.status == 'SHUTOFF':
+            print "Instance is off"
         else:
             instance.suspend()
 
@@ -237,7 +243,6 @@ def volume_delete(volume, dry_run=True):
 if __name__ == '__main__':
 
     args = collect_args().parse_args()
-    #user_id = args.user
 
     if args.no_dry_run:
         dry_run = False
@@ -248,7 +253,6 @@ if __name__ == '__main__':
     token = kc.auth_token
     auth_url = kc.auth_url
     catalog = kc.service_catalog
-
     glance_url = catalog.url_for(service_type='image')
     gc = auth.get_glance_client(glance_url, token)
     nc = auth.get_nova_client()
@@ -259,7 +263,6 @@ if __name__ == '__main__':
         tenants.append(args.tenant)
     if args.filename:
         reader = csv.reader(args.filename) 
-        #tenants = filter(None, tenants)
         for row in reader:
             tenants.append(row[0])
 
@@ -276,13 +279,13 @@ if __name__ == '__main__':
         #exit
     if args.stage2:
         stage2_instances(nc, dry_run, *tenants)
-        stage2_volumes(cc, dry_run, *tenants)
-        stage2_images(gc, nc, *tenants)
+        #stage2_volumes(cc, dry_run, *tenants)
+        #stage2_images(gc, nc, *tenants)
         if swift_url:
             stage2_objects(auth_url, token, swift_url, dry_run, *tenants)
     if args.stage3:
         stage3_instances(nc, dry_run, *tenants)
         stage3_volumes(cc, dry_run, *tenants)
-        stage3_keystone(kc, tenant_id)
+        stage3_keystone(kc, *tenants)
         #if user_id:
         #    stage3_keystone_user(kc, tenant_id)
