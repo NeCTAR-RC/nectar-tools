@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import argparse
 import swiftclient
 import auth
@@ -56,8 +55,9 @@ def stage2_instances(client, dry_run=True, *tenants):
                 instance_suspend(instance, dry_run)
                 instance_lock(instance, dry_run)
         if not instances:
-            kc.tenants.update(tenant, status='suspended')
-            #stage3_keystone(kc, tenant, dry_run)
+            print "Disabling tenant"
+            if not dry_run:
+                kc.tenants.update(tenant, enabled=False)
 
         # TODO Backup filesystem, compress and store somewhere
         # for potential access otherwise delete instance
@@ -69,15 +69,15 @@ def stage2_volumes(client, dry_run=True, *tenants):
     """
 
     volumes = []
+    all_volumes = client.volumes.list(search_opts={'all_tenants': 1})
     for tenant in tenants:
-        all_volumes = client.volumes.list(search_opts={'all_tenants': 1})
         for volume in all_volumes:
             vol_tenant = getattr(volume, "os-vol-tenant-attr:tenant_id", None)
             # There could be a better way than checking each tenant ID
             if vol_tenant == tenant:
                 volumes.append(volume)
 
-        print "\n%d volume%s found for tenantID %s" % (len(volumes),
+        print "\n%d volume%s found for tenant ID %s" % (len(volumes),
                 "s"[len(volumes)==1:], tenant)
         for volume in volumes:
                 print "%s attachments: %s, bootable: %s, size: %sGB" % (volume.id,
@@ -98,7 +98,7 @@ def stage2_images(glance_client, nova_client, *tenants):
             if image.owner == tenant:
                 images.append(image)
 
-    print "\n%d image%s found for tenantID %s" % (len(images),
+    print "\n%d image%s found for tenant ID %s" % (len(images),
             "s"[len(images)==1:], tenant)
     for image in images:
         instances = nova_client.servers.list(search_opts={'image': image.id,
@@ -122,7 +122,7 @@ def stage2_objects(auth_url, token, swift_url, dry_run=True, *tenants):
         account_details = swiftclient.head_account(swift_url, token)
         containers = int(account_details['x-account-container-count'])
 
-    print "\n%d container%s found for tenantID %s" % (containers,
+    print "\n%d container%s found for tenant ID %s" % (containers,
             "s"[containers==1:], tenant)
 
     if containers:
@@ -144,7 +144,7 @@ def stage3_instances(client, dry_run=True, *tenants):
     for tenant in tenants:
         instances = client.servers.list(search_opts={'tenant_id': tenant, 
                                                     'all_tenants': 1})
-        print "%d instance%s found for tenantID %s\n" % (len(instances),
+        print "%d instance%s found for tenant ID %s\n" % (len(instances),
                 "s"[len(instances)==1:], tenant)
         if instances:
             for instance in instances:
@@ -156,20 +156,23 @@ def stage3_volumes(client, dry_run=True, *tenants):
 
     """ =========  Cinder Data  ============
     """
-
+    volumes = []
+    # Below should work but doesn't :(
+    #volumes = client.volumes.list(search_opts={'os-vol-tenant-attr:tenant_id': tenant_id,
+    #                                            'all_tenants': 1})
+    volumes = client.volumes.list(search_opts={'all_tenants': 1})
     for tenant in tenants:
-        # Below should work but doesn't :(
-        #volumes = client.volumes.list(search_opts={'os-vol-tenant-attr:tenant_id': tenant_id,
-        #                                            'all_tenants': 1})
-        volumes = client.volumes.list(search_opts={'all_tenants': 1})
-
         for volume in volumes:
             vol_tenant= getattr(volume, "os-vol-tenant-attr:tenant_id", None)
-            # There could be a better way than checking each tenant ID
             if vol_tenant == tenant:
-                #utils.print_dict(volume._info)
-                print "%s attachments: %s, bootable: %s, size: %sGB" % (volume.id,
-                        volume.attachments, volume.bootable, volume.size)
+                volumes.append(volume)
+
+        print "\n%d volume%s found for tenant ID %s" % (len(volumes),
+                "s"[len(volumes)==1:], tenant)
+        for volume in volumes:
+            print "%s attachments: %s, bootable: %s, size: %sGB" % (volume.id,
+                    volume.attachments, volume.bootable, volume.size)
+            if not dry_run:
                 volume_delete(volume, dry_run=dry_run)
 
 
@@ -254,6 +257,10 @@ if __name__ == '__main__':
     auth_url = kc.auth_url
     catalog = kc.service_catalog
     glance_url = catalog.url_for(service_type='image')
+    # Currently keystone returns version number in it's URL,
+    # so we remove it because it gets set by glanceclient
+    if glance_url.endswith('v1'):
+        glance_url = glance_url[:-2]
     gc = auth.get_glance_client(glance_url, token)
     nc = auth.get_nova_client()
     cc = auth.get_cinder_client()
@@ -279,8 +286,8 @@ if __name__ == '__main__':
         #exit
     if args.stage2:
         stage2_instances(nc, dry_run, *tenants)
-        #stage2_volumes(cc, dry_run, *tenants)
-        #stage2_images(gc, nc, *tenants)
+        stage2_volumes(cc, dry_run, *tenants)
+        stage2_images(gc, nc, *tenants)
         if swift_url:
             stage2_objects(auth_url, token, swift_url, dry_run, *tenants)
     if args.stage3:
