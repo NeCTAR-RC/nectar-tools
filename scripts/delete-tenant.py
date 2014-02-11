@@ -1,28 +1,24 @@
 #!/usr/bin/env python
 
-import sys
-import os
 import argparse
-from operator import attrgetter
-
-from keystoneclient.v2_0 import client as ks_client
-from keystoneclient.exceptions import AuthorizationFailure
-import glanceclient as glance_client
-from novaclient.v1_1 import client as nova_client
 import swiftclient
-
-from jinja2 import Environment, FileSystemLoader
+import auth
+import csv
+from keystoneclient.exceptions import NotFound
 
 
 def collect_args():
 
     parser = argparse.ArgumentParser(description='Deletes a Tenant')
-    parser.add_argument('-u', '--user', metavar='user', type=str,
-                        required=False,
-                        help='user to delete')
+    #parser.add_argument('-u', '--user', metavar='user', type=str,
+    #                    required=False,
+    #                    help='user to delete')
     parser.add_argument('-t', '--tenant', metavar='tenant', type=str,
-                        required=True,
+                        required=False,
                         help='tenant to delete')
+    parser.add_argument('-f', '--filename', metavar='filename',
+            type=argparse.FileType('r'), required=False,
+            help='file path with a list of tenants')
     parser.add_argument('-y', '--no-dry-run', action='store_true',
                         required=False,
                         help='Perform the actual actions, default is to only show what would happen')
@@ -39,162 +35,225 @@ def collect_args():
     return parser
 
 
-def get_keystone_client():
+def stage2_instances(client, dry_run=True, *tenants):
 
-    auth_username = os.environ.get('OS_USERNAME')
-    auth_password = os.environ.get('OS_PASSWORD')
-    auth_tenant = os.environ.get('OS_TENANT_NAME')
-    auth_url = os.environ.get('OS_AUTH_URL')
+    """ =========  Nova Data  ==============
+    """
 
-    try:
-        kc = ks_client.Client(username=auth_username,
-                              password=auth_password,
-                              tenant_name=auth_tenant,
-                              auth_url=auth_url)
-    except AuthorizationFailure as e:
-        print e
-        print 'Authorization failed, have you sourced your openrc?'
-        sys.exit(1)
-    return kc
+    for tenant in tenants:
+        instances = client.servers.list(search_opts={'tenant_id': tenant,
+                                                    'all_tenants': 1})
+        tenant_obj = kc.tenants.get(tenant)
 
+        print "%d instance%s found for %s - %s" % (len(instances),
+                "s"[len(instances)==1:], tenant, tenant_obj.name)
+        if instances:
+            for instance in instances:
+                print "Instance ID", instance.id
+                #instance_backup(instance, dry_run)
+                instance_suspend(instance, dry_run)
+                instance_lock(instance, dry_run)
 
-def get_nova_client():
-
-    auth_username = os.environ.get('OS_USERNAME')
-    auth_password = os.environ.get('OS_PASSWORD')
-    auth_tenant = os.environ.get('OS_TENANT_NAME')
-    auth_url = os.environ.get('OS_AUTH_URL')
-
-    nc = nova_client.Client(auth_username,
-                            auth_password,
-                            auth_tenant,
-                            auth_url,
-                            service_type="compute")
-    return nc
+        # TODO Backup filesystem, compress and store somewhere
+        # for potential access otherwise delete instance
 
 
-def stage2_images(client, nova_client, tenant_id):
-    print "===================================="
-    print "=========  Glance Data  ============"
-    print "===================================="
-    raw_images = list(client.images.list(**{"owner": tenant_id}))
+def stage2_volumes(client, dry_run=True, *tenants):
+
+    """ =========  Cinder Data  ============
+    """
+
+    volumes = []
+    all_volumes = client.volumes.list(search_opts={'all_tenants': 1})
+    for tenant in tenants:
+        for volume in all_volumes:
+            vol_tenant = getattr(volume, "os-vol-tenant-attr:tenant_id", None)
+            # There could be a better way than checking each tenant ID
+            if vol_tenant == tenant:
+                volumes.append(volume)
+
+        print "\n%d volume%s found for tenant ID %s" % (len(volumes),
+                "s"[len(volumes)==1:], tenant)
+        for volume in volumes:
+                print "%s attachments: %s, bootable: %s, size: %sGB" % (volume.id,
+                        volume.attachments, volume.bootable, volume.size)
+
+
+def stage2_images(glance_client, nova_client, *tenants):
+
+    """ =========  Glance Data  ============
+    """
+
     images = []
-    if raw_images:
-        for i in raw_images:
-            # Seems like the glance client returns all images user can
-            # see so this is needed
-            if i.owner == tenant_id:
-                images.append(i)
-                instances = nova_client.servers.list(search_opts={'image': i.id, 'all_tenants': 1})
-                print "%s public: %s, instances: %s" % (i.id, i.is_public, len(instances))
-    else:
-        print "No images"
+    for tenant in tenants:
+        #all_images = list(glance_client.images.list(owner=tenant))
+        all_images = glance_client.images.list(owner=tenant)
+        for image in all_images:
+            # Glance client returns all images user can see so this is needed
+            if image.owner == tenant:
+                images.append(image)
+
+    print "\n%d image%s found for tenant ID %s" % (len(images),
+            "s"[len(images)==1:], tenant)
+    for image in images:
+        instances = nova_client.servers.list(search_opts={'image': image.id,
+                                                        'all_tenants': 1})
+        print "%s public: %s, instances: %s" % (image.id, image.is_public,
+                len(instances))
+
     # TODO Option to delete all images that have no running
     # instances. What if instances are in same tenant and will be
     # deleted though?
 
 
-def instance_suspend(instance, dry_run=True):
-    if instance.status == 'SUSPENDED':
-        print "%s - already suspended" % instance.id
-    else:
-        if dry_run:
-            print "%s - would suspend this instance" % instance.id
-        else:
-            print "%s - suspending" % instance.id
-            instance.suspend()
+def stage2_objects(auth_url, token, swift_url, dry_run=True, *tenants):
 
+    """ =========  Swift Data  =============
+    """
 
-def instance_lock(instance, dry_run=True):
-    if dry_run:
-        print "%s - would lock this instance" % instance.id
-    else:
-        print "%s - locking" % instance.id
-        instance.lock()
+    for tenant in tenants:
+        swift_auth = 'AUTH_' + tenant
+        swift_url = swift_url + swift_auth
+        account_details = swiftclient.head_account(swift_url, token)
+        containers = int(account_details['x-account-container-count'])
 
+    print "\n%d container%s found for tenant ID %s" % (containers,
+            "s"[containers==1:], tenant)
 
-def stage2_instances(client, tenant_id, dry_run=True):
-    print "===================================="
-    print "=========  Nova Data  =============="
-    print "===================================="
-    instances = client.servers.list(search_opts={'tenant_id': tenant_id,
-                                                 'all_tenants': 1})
-    if instances:
-        for i in instances:
-            instance_suspend(instance=i, dry_run=dry_run)
-            instance_lock(instance=i, dry_run=dry_run)
-
-    # archive? (copy to swift?) (2
-    # terminate (2
-
-    print "%d instances processed" % len(instances)
+    if containers:
+        bytes_used = account_details['x-account-bytes-used']
+        mb_used = float(bytes_used) / 1024 / 1024
+        print "Containers: %s" % containers
+        print "Objects   : %s" % account_details['x-account-object-count']
+        print "Data used : %.2f MB" % mb_used
 
     # TODO Option to Archive all data
     # TODO Option to delete all data
 
 
-def stage2_swift(auth_url, token, swift_url, dry_run=True):
-    print "===================================="
-    print "=========  Swift Data  ============="
-    print "===================================="
-    account_details = swiftclient.head_account(swift_url, token)
-    print "Data used : %s Bytes" % account_details['x-account-bytes-used']
-    print "Containers: %s" % account_details['x-account-container-count']
-    print "Objects   : %s" % account_details['x-account-object-count']
+def stage3_instances(client, dry_run=True, *tenants):
 
-    # TODO Option to Archive all data
-    # TODO Option to delete all data
+    """ =========  Nova Data  ==============
+    """
+
+    for tenant in tenants:
+        instances = client.servers.list(search_opts={'tenant_id': tenant,
+                                                    'all_tenants': 1})
+        print "%d instance%s found for tenant ID %s\n" % (len(instances),
+                "s"[len(instances)==1:], tenant)
+        if instances:
+            for instance in instances:
+                print "Instance ID", instance.id
+                instance_delete(instance, dry_run)
+
+
+def stage3_volumes(client, dry_run=True, *tenants):
+
+    """ =========  Cinder Data  ============
+    """
+    volumes = []
+    # Below should work but doesn't :(
+    #volumes = client.volumes.list(search_opts={'os-vol-tenant-attr:tenant_id': tenant_id,
+    #                                            'all_tenants': 1})
+    volumes = client.volumes.list(search_opts={'all_tenants': 1})
+    for tenant in tenants:
+        for volume in volumes:
+            vol_tenant= getattr(volume, "os-vol-tenant-attr:tenant_id", None)
+            if vol_tenant == tenant:
+                volumes.append(volume)
+
+        print "\n%d volume%s found for tenant ID %s" % (len(volumes),
+                "s"[len(volumes)==1:], tenant)
+        for volume in volumes:
+            print "%s attachments: %s, bootable: %s, size: %sGB" % (volume.id,
+                    volume.attachments, volume.bootable, volume.size)
+            if not dry_run:
+                volume_delete(volume, dry_run=dry_run)
 
 
 def stage3_keystone(client, tenant_id, dry_run=True):
-    print "===================================="
-    print "===== Keystone Data (tenant) ======="
-    print "===================================="
-    users = client.tenants.list_users(tenant_id)
-    print "Users: %s" % " ".join(map(attrgetter("id"), users))
+
+    """ ===== Keystone Data (tenant) =======
+    """
+
+    try:
+        print "Deleting tenant", tenant_id
+        if not dry_run:
+            client.tenants.update(tenant_id, status='suspended')
+    except NotFound as e:
+        print e, '\n'
+
+
+def instance_suspend(instance, dry_run=True):
+
+    print "Suspending instance..."
     if not dry_run:
-        print "Deleting tenant %s" % tenant_id
-        client.tenant.delete(tenant_id)
+        if instance.status == 'SUSPENDED':
+            print "Instance is already suspended."
+        elif instance.status == 'SHUTOFF':
+            print "Instance is off"
+        else:
+            instance.suspend()
 
 
-def stage3_keystone_user(client, user_id, dry_run=True):
-    print "===================================="
-    print "====== Keystone Data (user) ========"
-    print "===================================="
-    print "Deleting user %s" % user_id
+def instance_backup(instance, dry_run=True):
+
+    print "Backing up..."
     if not dry_run:
-        print "Deleting user %s" % user_id
-        client.user.delete(user_id)
+        instance.create_image(instance.id)
 
 
-def render_email():
-    env = Environment(loader=FileSystemLoader('templates'))
-    template = env.get_template('first-notification.tmpl')
-    template.render()
+def instance_lock(instance, dry_run=True):
+
+    print "Locking instance..."
+    if not dry_run:
+        instance.lock()
+
+
+def instance_delete(instance, dry_run=True):
+
+    print "Deleting instance..."
+    if not dry_run:
+        instance.delete()
+
+
+def volume_delete(volume, dry_run=True):
+
+    print "Deleting volume..."
+    if not dry_run:
+        volume.delete()
 
 
 if __name__ == '__main__':
 
     args = collect_args().parse_args()
-    user_id = args.user
-    tenant_id = args.tenant
 
     if args.no_dry_run:
         dry_run = False
     else:
         dry_run = True
 
-    kc = get_keystone_client()
+    kc = auth.get_keystone_client()
     token = kc.auth_token
     auth_url = kc.auth_url
     catalog = kc.service_catalog
+    glance_url = catalog.url_for(service_type='image')
+    # Currently keystone returns version number in glance endpoint URL,
+    # so we remove it because it gets set by glanceclient itself
+    if glance_url.endswith('v1'):
+        glance_url = glance_url[:-2]
+    gc = auth.get_glance_client(glance_url, token)
+    nc = auth.get_nova_client()
+    cc = auth.get_cinder_client()
 
-    image_endpoint = catalog.url_for(service_type='image')
-    gc = glance_client.Client('1', image_endpoint, token=token)
+    tenants = []
+    if args.tenant:
+        tenants.append(args.tenant)
+    if args.filename:
+        reader = csv.reader(args.filename)
+        for row in reader:
+            tenants.append(row[0])
 
-    nc = get_nova_client()
-
-    swift_auth = 'AUTH_' + tenant_id
     if catalog.get_endpoints(service_type='object-store',
                              endpoint_type='adminURL'):
         swift_url = catalog.url_for(service_type='object-store',
@@ -207,12 +266,14 @@ if __name__ == '__main__':
         #render_email()
         #exit
     if args.stage2:
-        stage2_images(gc, nc, tenant_id)
-        stage2_instances(nc, tenant_id, dry_run)
+        stage2_instances(nc, dry_run, *tenants)
+        stage2_volumes(cc, dry_run, *tenants)
+        stage2_images(gc, nc, *tenants)
         if swift_url:
-            stage2_swift(auth_url, token, swift_url + swift_auth, dry_run)
+            stage2_objects(auth_url, token, swift_url, dry_run, *tenants)
     if args.stage3:
-        if tenant_id:
-            stage3_keystone(kc, tenant_id)
-        if user_id:
-            stage3_keystone_user(kc, tenant_id)
+        stage3_instances(nc, dry_run, *tenants)
+        stage3_volumes(cc, dry_run, *tenants)
+        stage3_keystone(kc, *tenants)
+        #if user_id:
+        #    stage3_keystone_user(kc, tenant_id)
