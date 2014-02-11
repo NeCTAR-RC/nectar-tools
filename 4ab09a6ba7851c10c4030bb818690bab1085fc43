@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3///q8\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-02-11T03:43:41Z",
+      "side": 1,
+      "message": "from keystoneclient.exceptions import NotFound",
+      "revId": "4ab09a6ba7851c10c4030bb818690bab1085fc43",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///q0\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-02-11T03:43:41Z",
+      "side": 1,
+      "message": "This if statement etc. shouldn\u0027t be in here",
+      "revId": "4ab09a6ba7851c10c4030bb818690bab1085fc43",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///qw\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-02-11T03:43:41Z",
+      "side": 1,
+      "message": "Is this needed since you\u0027re filtering above?",
+      "revId": "4ab09a6ba7851c10c4030bb818690bab1085fc43",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///qo\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-02-11T03:43:41Z",
+      "side": 1,
+      "message": "Need to archive before deleting",
+      "revId": "4ab09a6ba7851c10c4030bb818690bab1085fc43",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///qk\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-02-11T03:43:41Z",
+      "side": 1,
+      "message": "Don\u0027t delete just mark as disabled",
+      "revId": "4ab09a6ba7851c10c4030bb818690bab1085fc43",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///qg\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-02-11T03:43:41Z",
+      "side": 1,
+      "message": "This shouldn\u0027t be here, we\u0027re just expiring projects not users",
+      "revId": "4ab09a6ba7851c10c4030bb818690bab1085fc43",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
