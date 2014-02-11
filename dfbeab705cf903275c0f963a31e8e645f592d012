@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3///pk\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-02-11T05:37:36Z",
+      "side": 1,
+      "message": "So disabling the tenant here will break dashboard login.\n\nRather than disabling the tenant we should be setting the quotas for cinder and nova to 0. You could add the calls in stage2_instances() and stage2_volumes().\n\nThere\u0027s an example of setting quotas in the create-project.py script in this repo.",
+      "revId": "dfbeab705cf903275c0f963a31e8e645f592d012",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
