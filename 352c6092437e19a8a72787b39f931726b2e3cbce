@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3///o4\u003d",
+        "filename": "announce/example.tmpl",
+        "patchSetId": 4
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-02-11T05:39:54Z",
+      "side": 1,
+      "message": "SUFF!??",
+      "revId": "352c6092437e19a8a72787b39f931726b2e3cbce",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
