@@ -1,0 +1,225 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3///N4\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "this docstring is useless, it\u0027s better deleted",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///Ng\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "can this be printed to stderr",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///NQ\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "why not print the tenant.id in each of the messages. that way we won\u0027t need to look up a line to find it in the log. perhaps something like",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///No\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "what happens if the send fails?\n\nsend_email should be in a try catch, and it should be resetting the status back to what it was before.",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///Ns\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "what happens if the send fails?\n\nsend_email should be in a try catch, and it should be resetting the status back to what it was before.",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///M8\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "spelling error.  this doc string should explain more about what the function does.",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///M4\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "this template also requires the user be passed in.",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///Nw\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "this should be rewritten to use email.mime.text.MIMEText instead of encoding header directly.\n\ne.g.\n\n\n from email.mime.text import MIMEText\n msg \u003d MIMEText(render_template(tenantname, expires))\n\n msg[\u0027Subject\u0027] \u003d \u0027The contents of %s\u0027 % textfile\n msg[\u0027From\u0027] \u003d \u0027NeCTAR RC \u003crc-rt-bounces@melbourne.nectar.org.au\u003e\u0027\n msg[\u0027Reply-to\u0027] \u003d \u0027support@rc.nectar.org.au\u0027\n msg[\u0027To\u0027] \u003d recepient\n\n s \u003d smtplib.SMTP(\u0027smtp.unimelb.edu.au\u0027)\n if not dry_run:\n     try:\n         s.sendmail(msg[\u0027From\u0027], [recepient], msg.as_string())\n     except smtplib.SMTPRecipientsRefused as e:\n         print e\n     finally:\n         s.quit()",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///Nc\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "can this be printed to stderr",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///N0\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "these credentials should be in a configuration file.  this file will be pushed to github we don\u0027t want accounts to be visible to the world",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///NE\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "these commented out lines should be deleted.",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///Nk\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "this seems more complex than it needs to be.\n\ndry_run \u003d not args.no_dry_run",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///NA\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-24T05:05:57Z",
+      "side": 1,
+      "message": "why aren\u0027t these alternative function exposed with arguments at the command line?",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
