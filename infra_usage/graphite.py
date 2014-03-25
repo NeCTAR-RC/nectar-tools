@@ -1,12 +1,20 @@
 #!/usr/bin/env python
 import time
 import socket
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+import logging
 from collections import defaultdict
 
 from util_report import processConfig
 from util_nova import createNovaConnection
 from util_keystone import createConnection as createKeystoneConnection
+
+
+if __name__ == '__main__':
+    LOG_NAME = __file__
+else:
+    LOG_NAME = __name__
+
+logger = logging.getLogger(LOG_NAME)
 
 DEBUG = False
 
@@ -106,9 +114,12 @@ def main(host, port, cell):
         # Skip any hosts that are being run by users without an email
         # address.
         if server.user_id in users and users[server.user_id] is None:
+            logger.info("skipping unknown user %s" % server.user_id)
             continue
         if server.user_id not in users:
-            print "ERROR user %s doesn't exist but is currently owner of server %s" % (server.user_id, server.id)
+            logger.error(
+                "user %s doesn't exist but is currently owner of server %s"
+                % (server.user_id, server.id))
             continue
         servers_by_cell_by_domain[cell][users[server.user_id]].append(server)
 
@@ -138,9 +149,12 @@ def main(host, port, cell):
         sock.close()
 
 if __name__ == '__main__':
+    from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
     parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument('--cell', action='store',
                         help='specify 1 cell name to overide, e.g. -a np')
+    parser.add_argument('-v', '--verbose', action='count', default=0,
+                        help="Increase verbosity (specify multiple times for more)")
     parser.add_argument('--host', required=True,
                         help='Carbon Host.')
     parser.add_argument('--debug', required=False, action='store_true',
@@ -149,5 +163,16 @@ if __name__ == '__main__':
                         required=False,
                         help='Carbon Port.')
     args = parser.parse_args()
+
+    log_level = logging.WARNING
+    if args.verbose == 1:
+        log_level = logging.INFO
+    elif args.verbose >= 2:
+        log_level = logging.DEBUG
+
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s %(name)s %(levelname)s %(message)s')
+
     DEBUG = args.debug
     main(args.host, args.port, args.cell)
