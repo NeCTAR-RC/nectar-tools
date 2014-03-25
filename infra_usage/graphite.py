@@ -86,6 +86,7 @@ def main(host, port, cell):
     users = {}
     for user in kclient.users.list():
         if not user.email:
+            users[user.id] = None
             continue
         email = user.email.split('@')[-1]
         if email.endswith('.edu.au'):
@@ -102,6 +103,13 @@ def main(host, port, cell):
     for server in servers:
         cell = getattr(server, 'OS-EXT-AZ:availability_zone')
         servers_by_cell[cell].append(server)
+        # Skip any hosts that are being run by users without an email
+        # address.
+        if server.user_id in users and users[server.user_id] is None:
+            continue
+        if server.user_id not in users:
+            print "ERROR user %s doesn't exist but is currently owner of server %s" % (server.user_id, server.id)
+            continue
         servers_by_cell_by_domain[cell][users[server.user_id]].append(server)
 
     if DEBUG:
