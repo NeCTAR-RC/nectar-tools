@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3///L8\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Updated the docstring to reflect the function of the function.",
+      "parentUuid": "AAAAT3///N4\u003d",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3///Ng\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 4
@@ -30,6 +48,24 @@
       "writtenOn": "2014-03-24T05:05:57Z",
       "side": 1,
       "message": "can this be printed to stderr",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///Lw\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3///Ng\u003d",
       "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3///FI\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3///NQ\u003d",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3///No\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 4
@@ -64,6 +118,24 @@
       "writtenOn": "2014-03-24T05:05:57Z",
       "side": 1,
       "message": "what happens if the send fails?\n\nsend_email should be in a try catch, and it should be resetting the status back to what it was before.",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///FE\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Please review new logic per new policy...",
+      "parentUuid": "AAAAT3///No\u003d",
       "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -104,6 +176,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3///FQ\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Function title is self explanatory. Removed.",
+      "parentUuid": "AAAAT3///M8\u003d",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3///M4\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 4
@@ -115,6 +205,24 @@
       "writtenOn": "2014-03-24T05:05:57Z",
       "side": 1,
       "message": "this template also requires the user be passed in.",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///FM\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Which user? Where?",
+      "parentUuid": "AAAAT3///M4\u003d",
       "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -138,6 +246,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3///FU\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3///Nw\u003d",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3///Nc\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 4
@@ -149,6 +275,24 @@
       "writtenOn": "2014-03-24T05:05:57Z",
       "side": 1,
       "message": "can this be printed to stderr",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///Ls\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3///Nc\u003d",
       "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -172,6 +316,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3///FY\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3///N0\u003d",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3///NE\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 4
@@ -183,6 +345,24 @@
       "writtenOn": "2014-03-24T05:05:57Z",
       "side": 1,
       "message": "these commented out lines should be deleted.",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///KM\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3///NE\u003d",
       "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -206,6 +386,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3///Lo\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "I\u0027ve set the default in the argument construction up the top. No need for this at all now.",
+      "parentUuid": "AAAAT3///Nk\u003d",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3///NA\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 4
@@ -217,6 +415,24 @@
       "writtenOn": "2014-03-24T05:05:57Z",
       "side": 1,
       "message": "why aren\u0027t these alternative function exposed with arguments at the command line?",
+      "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///Fc\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-03-25T07:07:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3///NA\u003d",
       "revId": "5dbfc176e99da801e727dc3b0bee7ea499a0b9f3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
