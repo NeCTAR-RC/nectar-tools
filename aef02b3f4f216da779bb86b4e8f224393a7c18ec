@@ -16,6 +16,24 @@
       "revId": "aef02b3f4f216da779bb86b4e8f224393a7c18ec",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///F0\u003d",
+        "filename": "infra_usage/graphite.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-25T05:23:29Z",
+      "side": 1,
+      "message": "in the next version when i add logging it\u0027s a log message, i think at the error level, but it could be at the warning level",
+      "parentUuid": "AAAAT3///Kw\u003d",
+      "revId": "aef02b3f4f216da779bb86b4e8f224393a7c18ec",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
