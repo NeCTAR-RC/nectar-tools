@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3///HM\u003d",
+        "filename": "scripts/backup_vm.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-25T05:20:27Z",
+      "side": 1,
+      "message": "please delete commented out lines.",
+      "revId": "8ac7ff8914d4b2333eeed8f4acd2b2d38c3006aa",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///IE\u003d",
+        "filename": "scripts/backup_vm.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-25T05:20:27Z",
+      "side": 1,
+      "message": "you could have done\n\nreturn [os.path.dirname(x) for x in vm_obj if x is not None]\n\nit will be shorter and easier to read",
+      "revId": "8ac7ff8914d4b2333eeed8f4acd2b2d38c3006aa",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///HI\u003d",
+        "filename": "scripts/backup_vm.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-25T05:20:27Z",
+      "side": 1,
+      "message": "so this script just does stuff.  that is terrible.  it should at least catch a -h option and print some help",
+      "revId": "8ac7ff8914d4b2333eeed8f4acd2b2d38c3006aa",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///Gw\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-25T05:20:27Z",
+      "side": 1,
+      "message": "there is a getattr function that is better for getting these stupid attributes\n\nhost \u003d getattr(instance, \u0027OS-EXT-SRV-ATTR:host\u0027)",
+      "revId": "8ac7ff8914d4b2333eeed8f4acd2b2d38c3006aa",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///GA\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-25T05:20:27Z",
+      "side": 1,
+      "message": "can you shove a comment in explaining why a sleep is important.",
+      "revId": "8ac7ff8914d4b2333eeed8f4acd2b2d38c3006aa",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///HE\u003d",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-03-25T05:20:27Z",
+      "side": 1,
+      "message": "can you shove a comment in explaining why a sleep is important.",
+      "revId": "8ac7ff8914d4b2333eeed8f4acd2b2d38c3006aa",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
