@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3///BI\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-03-26T06:17:15Z",
+      "side": 1,
+      "message": "Looks good. Could you add an example update-expiry.conf file to this commit with comments above each option and blank values for everything?",
+      "revId": "8a60d98af90dd7e92c396798990c23dfaeaf347a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///BE\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-03-26T06:17:15Z",
+      "side": 1,
+      "message": "I suggest you just pick a section name here (or use DEFAULT) and read from that. Values from different sections will overlap in the dict anyway.",
+      "revId": "8a60d98af90dd7e92c396798990c23dfaeaf347a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///BM\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 174,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-03-26T06:17:15Z",
+      "side": 1,
+      "message": "Just a suggestion for later improvement. If you convert this list of tuples:\n\n   [(132, \u00272014-03-11 12:00:12\u0027), ...]\n\nto a list of dictionaries like\n\n   [{\u0027id\u0027: 132, \u0027terms\u0027: \u00272014-03-11 12:00:12\u0027}, ...]\n\nit\u0027ll be a lot clearer what the items are when you\u0027re using the list later. So instead of:\n\n    for row in user_list:\t\n        user \u003d row[0]\n        start \u003d row[1]\n\nYou\u0027d be able to write:\n\n    for user in user_list:\n        user_id \u003d user[\u0027id\u0027]\n        start \u003d user[\u0027terms\u0027]",
+      "revId": "8a60d98af90dd7e92c396798990c23dfaeaf347a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///BU\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-03-26T06:17:15Z",
+      "side": 1,
+      "message": "This is a bit confusing because you\u0027re actually passing in the user list, so maybe call this user_list or just users?",
+      "revId": "8a60d98af90dd7e92c396798990c23dfaeaf347a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3///BQ\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-03-26T06:17:15Z",
+      "side": 1,
+      "message": "for user in users:",
+      "revId": "8a60d98af90dd7e92c396798990c23dfaeaf347a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
