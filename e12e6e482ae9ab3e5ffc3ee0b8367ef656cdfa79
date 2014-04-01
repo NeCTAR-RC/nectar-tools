@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//+wk\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-04-01T23:57:30Z",
+      "side": 1,
+      "message": "This should happen in stage 3",
+      "revId": "e12e6e482ae9ab3e5ffc3ee0b8367ef656cdfa79",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+wo\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-04-01T23:57:30Z",
+      "side": 1,
+      "message": "Stage 3 instances also needs to archive before deleting, can you add a TODO or something here",
+      "revId": "e12e6e482ae9ab3e5ffc3ee0b8367ef656cdfa79",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+wg\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-04-01T23:57:30Z",
+      "side": 1,
+      "message": "We need to do a cinder backup before deleting.\n\nNeed to make sure their instances are deleted before running this or else the volume could still be attached.",
+      "revId": "e12e6e482ae9ab3e5ffc3ee0b8367ef656cdfa79",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
