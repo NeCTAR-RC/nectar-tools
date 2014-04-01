@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//+w8\u003d",
+        "filename": "scripts/outage-mailout.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-04-01T07:07:05Z",
+      "side": 1,
+      "message": "bounces@rc.nectar.org.au should be the same thing and is clearer.",
+      "revId": "159ff3344eee9bcd7bd06804ea6cc68689c60558",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+xE\u003d",
+        "filename": "scripts/templates/outage-notification.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-04-01T07:07:05Z",
+      "side": 1,
+      "message": "If the user has no instances in the zone, can we change the text to read - \"Currently you have no instances running in this availability zone, so this email is purely informational\" or something like that?",
+      "revId": "159ff3344eee9bcd7bd06804ea6cc68689c60558",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+xA\u003d",
+        "filename": "scripts/templates/outage-notification.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-04-01T07:07:05Z",
+      "side": 1,
+      "message": "There\u0027s an updated version of the full text on the google doc that contains some typo fixes.",
+      "revId": "159ff3344eee9bcd7bd06804ea6cc68689c60558",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+xI\u003d",
+        "filename": "scripts/templates/outage-notification.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-04-01T07:07:05Z",
+      "side": 1,
+      "message": "If the user has no instances in that zone, can we skip this part?",
+      "revId": "159ff3344eee9bcd7bd06804ea6cc68689c60558",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
