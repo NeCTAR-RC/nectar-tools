@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3//+x4\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-01T02:53:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3//+3U\u003d",
+      "revId": "e65fc612f61b087d2ed0e7216bd9d9d3d5a46e6e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3//+4I\u003d",
         "filename": "scripts/delete-tenant.py",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2014-03-27T05:57:54Z",
       "side": 1,
       "message": "your dry run doesn\u0027t seem to be actually running the same checks as your real run.  I would imagine that dry_run would be exactly the same as a real run, just no modifications occur.\n\nso perhaps more similar to this\n\ne.g.\n\n if status \u003d\u003d \u0027suspended\u0027:\n     print \"Tenant is already suspended.\"\n else:\n     if not dry_run:\n         client.tenants.update(tenant, status\u003d\u0027suspended\u0027)",
+      "revId": "e65fc612f61b087d2ed0e7216bd9d9d3d5a46e6e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+xc\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-01T02:53:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3//+4I\u003d",
       "revId": "e65fc612f61b087d2ed0e7216bd9d9d3d5a46e6e",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3//+xg\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-01T02:53:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3//+34\u003d",
+      "revId": "e65fc612f61b087d2ed0e7216bd9d9d3d5a46e6e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3//+4M\u003d",
         "filename": "scripts/delete-tenant.py",
         "patchSetId": 5
@@ -64,6 +118,24 @@
       "writtenOn": "2014-03-27T05:57:54Z",
       "side": 1,
       "message": "you can use \n\nglance_url \u003d glance_url.rstrip(\u0027v1\u0027)\n\nthis will make the if redundent",
+      "revId": "e65fc612f61b087d2ed0e7216bd9d9d3d5a46e6e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+xk\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-01T02:53:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "AAAAT3//+4M\u003d",
       "revId": "e65fc612f61b087d2ed0e7216bd9d9d3d5a46e6e",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
