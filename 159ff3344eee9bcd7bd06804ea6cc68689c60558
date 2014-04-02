@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "AAAAT3//+u0\u003d",
+        "filename": "scripts/outage-mailout.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-04-02T07:18:57Z",
+      "side": 1,
+      "message": "where is this module?",
+      "revId": "159ff3344eee9bcd7bd06804ea6cc68689c60558",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3//+w8\u003d",
         "filename": "scripts/outage-mailout.py",
         "patchSetId": 2
@@ -47,6 +64,40 @@
       "writtenOn": "2014-04-01T07:07:05Z",
       "side": 1,
       "message": "There\u0027s an updated version of the full text on the google doc that contains some typo fixes.",
+      "revId": "159ff3344eee9bcd7bd06804ea6cc68689c60558",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+uw\u003d",
+        "filename": "scripts/templates/outage-notification.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-04-02T07:18:57Z",
+      "side": 1,
+      "message": "shouldn\u0027t this be \nfor instances in match?",
+      "revId": "159ff3344eee9bcd7bd06804ea6cc68689c60558",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+us\u003d",
+        "filename": "scripts/templates/outage-notification.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-04-02T07:18:57Z",
+      "side": 1,
+      "message": "and this should be tenant.name?",
       "revId": "159ff3344eee9bcd7bd06804ea6cc68689c60558",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
