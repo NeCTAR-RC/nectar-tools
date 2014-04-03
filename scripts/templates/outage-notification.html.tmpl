@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <style type="text/css">
+      span.bold {font-weight: bold;}
+      table.noborder {border: 0px;}
+      th {text-align: left;}
+    </style>
+  </head>
+<body>
+
+<p>
+Dear NeCTAR Research Cloud User,
+</p>
+
+<p>
+This email is to inform you of a scheduled outage to the NeCTAR Research Cloud.
+</p>
+
+<table>
+<tr><td><span class='bold'>DURATION:</span></td><td>24 hours</td></tr>
+<tr><td><span class='bold'>START TIME:</span></td><td>09:00 AEST Tue Apr 29th 2014</td></tr>
+<tr><td><span class='bold'>END TIME:</span></td><td>09:00 AEST Wed Apr 30th 2014</td></tr>
+</table>
+
+<p>
+<span class='bold'>DESCRIPTION:</span>
+<br />
+A 24 hour outage is required to relocate and upgrade the cloud storage
+infrastructure at the University of Melbourne. Only instances in the
+{{ target_zone }} availability zone will be affected. The upgrade will bring
+further stability and increased performance to this availability zone.
+</p>
+
+<p>
+<span class='bold'>IMPACT:</span>
+<br />
+All instances in the {{ target_zone }} availability zone will be shut down
+and will be inaccessible during the outage. Instances will NOT be destroyed,
+only shut down. This zone will be offline during the outage period and no
+requests to the zone will be processed. Users have the option of relocating
+instances to other availability zones prior to the outage. At present there is
+reasonable spare capacity across the cloud to start instances elsewhere,
+however this capacity may decrease as the outage date approaches.
+<br />
+{% if affected -%}
+Your current instances in the {{ target_zone }} zone are listed below.
+<br />
+{% endif -%}
+</p>
+
+<p>
+<span class='bold'>ACTION REQUIRED:</span>
+</p>
+<ul>
+<li>It is recommended that users complete their own backups, snapshots or
+otherwise copy data to somewhere other than the {{ target_zone }} zone</li>
+<li>Once backups are complete, it is recommended that users detach volumes and
+shut down their own instances. If a user is unable to do so, the instances
+will be shut down at the outage start time</li>
+<li>Ensure that the above items are completed well in advance of the outage
+start time</li>
+<li>After the outage, users will be required to restart their own instances</li>
+</ul>
+
+{% if affected -%}
+<p>
+<span class='bold'>AFFECTED INSTANCES:</span>
+<br />
+The following instances in the project {{ project_name }} are affected
+by this outage:
+<br />
+</p>
+
+<table class='noborder'>
+<tr><th>UUID</th><th>IP Address</th><th>Host</th></tr>
+{% for instance in instances -%}
+<tr><td>{{ instance.id }}</td><td>{{ instance.accessIPv4 }}</td><td>{{ instance.name }}</td></tr>
+{% endfor %}
+</table>
+{% endif -%}
+
+<p>
+If you have any queries regarding this outage, please contact us by email:
+support@rc.nectar.org.au or through the support forum:
+<br />
+<br />
+   http://support.rc.nectar.org.au/forum/viewforum.php?f=21.
+<br />
+<br />
+We apologise sincerely for any inconvenience caused by this outage.
+<br />
+<br />
+Regards,
+<br />
+<br />
+The NeCTAR Research Cloud Support Team
+</p>
+
+<p>
+--<br />
+This email has been sent to all users of the NeCTAR Research Cloud. It has been
+sent to the email address associated with your Research Cloud login. These
+emails are essential communications which we endeavour to keep to a minimum.
+They only relate to events that may affect your NeCTAR Research Cloud resources
+or data integrity. If you receive multiple copies of this email, it may be due
+to the fact that you are a member of multiple projects.
+</p>
+</body>
+</html>
