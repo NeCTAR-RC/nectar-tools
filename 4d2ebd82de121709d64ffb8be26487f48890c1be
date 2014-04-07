@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//+eU\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-04-07T23:40:54Z",
+      "side": 1,
+      "message": "you can write to stdout using print using the \u003e\u003e syntax\n\nprint \u003e\u003e sys.stderr, \u0027hello stderr\u0027\n\nbut this is the old way of doing things, if you prefer that print were to look more like a function you could use the __future__ import\n\n\nfrom __future__ import print_function\nprint(\"hello stdout\")\nprint(\"hello stderror \", file\u003dsys.stderr)",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+ec\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-04-07T23:40:54Z",
+      "side": 1,
+      "message": "prepare",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+ek\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-04-07T23:40:54Z",
+      "side": 1,
+      "message": "this template requires the user and the allocation to render correctly.",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+ew\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-04-07T23:40:54Z",
+      "side": 1,
+      "message": "limit 10?",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
