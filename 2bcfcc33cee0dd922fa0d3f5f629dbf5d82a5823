@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//+bw\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-08T04:42:42Z",
+      "side": 1,
+      "message": "Since we are not expiring based on dates anymore, do we even want to keep started/terms date in Keystone?",
+      "revId": "2bcfcc33cee0dd922fa0d3f5f629dbf5d82a5823",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
