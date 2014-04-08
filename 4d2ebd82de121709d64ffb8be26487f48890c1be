@@ -53,6 +53,23 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3//+dc\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-04-08T00:57:02Z",
+      "side": 1,
+      "message": "Can we make this configurable (maybe defaulting to 127.0.0.1). smtp.unimelb.edu.au rate-limited, then blocked us last week.",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3//+ew\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 8
