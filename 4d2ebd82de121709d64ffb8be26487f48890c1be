@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3//+dQ\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-08T01:26:42Z",
+      "side": 1,
+      "message": "So which is the \u0027best\u0027 way? Is the way it is acceptable or you\u0027d rather use print function?",
+      "parentUuid": "AAAAT3//+eU\u003d",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3//+ec\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 8
@@ -30,6 +48,24 @@
       "writtenOn": "2014-04-07T23:40:54Z",
       "side": 1,
       "message": "prepare",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+dM\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-08T01:26:42Z",
+      "side": 1,
+      "message": "No need for this pissy docstring here. Function name is self explanatory",
+      "parentUuid": "AAAAT3//+ec\u003d",
       "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3//+dA\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-08T01:26:42Z",
+      "side": 1,
+      "message": "I\u0027m not sure I know what you mean. Please explain.",
+      "parentUuid": "AAAAT3//+ek\u003d",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3//+dc\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 8
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "AAAAT3//+dI\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-08T01:26:42Z",
+      "side": 1,
+      "message": "Is there SMTP server we can use instead?",
+      "parentUuid": "AAAAT3//+dc\u003d",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "AAAAT3//+ew\u003d",
         "filename": "scripts/update-expiry.py",
         "patchSetId": 8
@@ -81,6 +153,24 @@
       "writtenOn": "2014-04-07T23:40:54Z",
       "side": 1,
       "message": "limit 10?",
+      "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+dE\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000085
+      },
+      "writtenOn": "2014-04-08T01:26:42Z",
+      "side": 1,
+      "message": "Limiting the amount of users to work on for testing purposes. The script is still in testing.",
+      "parentUuid": "AAAAT3//+ew\u003d",
       "revId": "4d2ebd82de121709d64ffb8be26487f48890c1be",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
