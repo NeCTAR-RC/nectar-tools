@@ -16,6 +16,24 @@
       "revId": "2bcfcc33cee0dd922fa0d3f5f629dbf5d82a5823",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+aQ\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-04-10T00:15:28Z",
+      "side": 1,
+      "message": "i don\u0027t think it hurts.  why not keep it for the time being.",
+      "parentUuid": "AAAAT3//+bw\u003d",
+      "revId": "2bcfcc33cee0dd922fa0d3f5f629dbf5d82a5823",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
