@@ -106,7 +106,7 @@ def render_templates(subject, instances, zone, affected):
     return text, html
 
 
-def send_email(recepient, subject, text, html):
+def send_email(recipient, subject, text, html):
 
     global smtp_server
 
@@ -115,14 +115,14 @@ def send_email(recepient, subject, text, html):
     msg.attach(MIMEText(html, 'html', 'utf-8'))
 
     msg['From'] = 'NeCTAR Research Cloud <bounces@rc.nectar.org.au>'
-    msg['To'] = recepient
+    msg['To'] = recipient
     msg['Reply-to'] = 'support@rc.nectar.org.au'
     msg['Subject'] = subject
 
     s = smtplib.SMTP(smtp_server)
 
     try:
-        s.sendmail(msg['From'], [recepient], msg.as_string())
+        s.sendmail(msg['From'], [recipient], msg.as_string())
     except smtplib.SMTPRecipientsRefused as err:
         sys.stderr.write('%s\n' % str(err))
     finally:
