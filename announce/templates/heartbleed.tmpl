@@ -1,0 +1,44 @@
+Dear NeCTAR Research Cloud User,
+
+We have determined that some of your NeCTAR Research Cloud instances running at
+{{ zone }} are affected by the recent heartbleed OpenSSL vulnerability.
+
+AFFECTED INSTANCES:
+
+UUID                                  IP Address:Port      Host            Project
+{% for project, servers in instances.iteritems() -%}
+{% for server in servers -%}
+{{ server.id }}  {{ server.accessIPv4 }}:{{ server.port }}  {{ server.name }}      {{ project }}
+{% endfor -%}
+{% endfor -%}
+
+We strongly advise you to take the following actions for each affected instance:
+
+* Upgrade OpenSSL to latest version and restart all services. A reboot after
+  upgrading will restart all services.
+
+* If you use SSL certificates, request the revocation of your current
+  certificates and replace them.
+
+* Reset any OS or application passwords, as these may have been leaked.
+
+You can use http://filippo.io/Heartbleed to test if your instance is still
+vulnerable after completing the above steps.
+
+Please see http://heartbleed.com for further information about this
+vulnerability.
+
+If you require any assistance or have any queries regarding this notice, please
+contact us.
+
+Regards,
+
+The Research Cloud Support team.
+
+--
+This email has been sent to all users of the NeCTAR Research Cloud. It has been
+sent to the email address associated with your Research Cloud login. These
+emails are essential communications which we endeavour to keep to a minimum.
+They only relate to events that may affect your NeCTAR Research Cloud resources
+or data integrity. If you receive multiple copies of this email, it may be due
+to the fact that you are a member of multiple projects.
