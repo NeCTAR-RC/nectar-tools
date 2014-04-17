@@ -19,25 +19,22 @@ Dear NeCTAR Research Cloud User,
     </p>
 
     <p>
-We have determined that some of your NeCTAR Research Cloud instances running at
-{{ zone }} are affected by the recent heartbleed OpenSSL vulnerability.
+We have determined that one of your NeCTAR Research Cloud instances running at
+{{ server.zone }} is affected by the recent heartbleed OpenSSL vulnerability.
     </p>
     <p>
-      <span class='bold'>AFFECTED INSTANCES:</span>
+      <span class='bold'>AFFECTED INSTANCE:</span>
     </p>
 
     <table class='noborder'>
       <tr><th>UUID</th><th>IP Address:Port</th><th>Host</th><th>Project</th></tr>
-  {% for project, servers in instances.iteritems() -%}
-    {% for server in servers -%}
       <tr>
         <td>{{ server.id }}</td>
         <td>{{ server.accessIPv4 }}:{{ server.port }}</td>
         <td>{{ server.name }}</td>
-        <td>{{ project }}</td>
+        <td>{{ server.project }}</td>
+
       </tr>
-    {% endfor %}
-  {% endfor %}
     </table>
 
     <p>
@@ -66,7 +63,7 @@ Please see http://heartbleed.com for further information about this vulnerabilit
 
     <p>
 If you have any queries regarding this notice, please contact us by email:
- <a href="mailto:support@rc.nectar.org.au">mailto:support@rc.nectar.org.au</a>
+ <a href="mailto:support@rc.nectar.org.au">support@rc.nectar.org.au</a>
       <br />
       <br />
 Regards,
