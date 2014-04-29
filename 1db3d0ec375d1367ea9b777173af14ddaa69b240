@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//+M8\u003d",
+        "filename": "announce/mailer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-04-29T04:58:23Z",
+      "side": 1,
+      "message": "this + needs spaces arround it for pep8",
+      "revId": "1db3d0ec375d1367ea9b777173af14ddaa69b240",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+Nk\u003d",
+        "filename": "announce/mailer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-04-29T04:58:23Z",
+      "side": 1,
+      "message": "you can\u0027t declaire globals like this in python.  Basically any variable in the top level of a module is scoped to that module.\n\nThe global keyword is used to allow the setting of a variable outside the scope of a function.\n\ne.g.\n\n var1 \u003d 10\n\n def set_var1(value):\n     global var1\n     var1 \u003d value",
+      "revId": "1db3d0ec375d1367ea9b777173af14ddaa69b240",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+NA\u003d",
+        "filename": "announce/mailer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-04-29T04:58:23Z",
+      "side": 1,
+      "message": "these values were set at the top of the file before.  is that not a better place for them?  i guess i like having most things as a variable from the start.",
+      "revId": "1db3d0ec375d1367ea9b777173af14ddaa69b240",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+Nw\u003d",
+        "filename": "announce/mailer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-04-29T04:58:23Z",
+      "side": 1,
+      "message": "this is redundent, you are already in the module scope.  This is an if not a function.",
+      "revId": "1db3d0ec375d1367ea9b777173af14ddaa69b240",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
