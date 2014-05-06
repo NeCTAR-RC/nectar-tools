@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//+Fc\u003d",
+        "filename": "announce/base.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-05-06T01:28:42Z",
+      "side": 0,
+      "message": "Instead of virtual machines can we say resources",
+      "revId": "4c366cddc6ee18ebbb61e5f76c4145e414296dc8",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//+Fs\u003d",
+        "filename": "announce/mailer.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-05-06T01:28:42Z",
+      "side": 1,
+      "message": "Ideally you would use os.path.join(....) here",
+      "revId": "b2637129e4244556f63cf8edab99f32f14faacea",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+Fk\u003d",
+        "filename": "announce/templates/example.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-05-06T01:28:42Z",
+      "side": 1,
+      "message": "Spelling mistake",
+      "revId": "b2637129e4244556f63cf8edab99f32f14faacea",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
