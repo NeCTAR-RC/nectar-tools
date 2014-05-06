@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//+Gg\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-05-06T01:17:15Z",
+      "side": 1,
+      "message": "This is still missing the backup step. Adding a TODO for now would do.",
+      "revId": "0644873dbf36e596b8de4efc53eaf84fb744d092",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+Gc\u003d",
+        "filename": "scripts/delete-tenant.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-05-06T01:17:15Z",
+      "side": 1,
+      "message": "You should be able to get every image in the system with a call outside this loop, then write a function to filter that list by tenant.",
+      "revId": "0644873dbf36e596b8de4efc53eaf84fb744d092",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+GY\u003d",
+        "filename": "scripts/templates/first-notification.tmpl",
+        "patchSetId": 8
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-05-06T01:17:15Z",
+      "side": 1,
+      "message": "This still needs to be changed to:\n\nhttp://support.rc.nectar.org.au/docs/allocations",
+      "revId": "0644873dbf36e596b8de4efc53eaf84fb744d092",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
