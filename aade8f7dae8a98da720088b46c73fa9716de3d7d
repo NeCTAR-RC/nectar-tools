@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//+G0\u003d",
+        "filename": "debugging/amqp_dump.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-05-06T00:33:08Z",
+      "side": 1,
+      "message": "log.exception so we can know why?",
+      "revId": "aade8f7dae8a98da720088b46c73fa9716de3d7d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
