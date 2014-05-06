@@ -16,6 +16,24 @@
       "revId": "aade8f7dae8a98da720088b46c73fa9716de3d7d",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//+Eo\u003d",
+        "filename": "debugging/amqp_dump.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-05-06T04:10:33Z",
+      "side": 1,
+      "message": "this is what the current output looks like\n\n $ ./intercept.py --rabbit-exchange amq.rabbitmq.trace --rabbit-port 33333\n 2014-05-06 14:08:41,525 pika.adapters.base_connection WARNING Connection to 127.0.0.1:33333 failed: [Errno 111] Connection refused\n 2014-05-06 14:08:41,525 ./intercept.py ERROR Unable to connect to rabbitmq.\n\n\nif i also print the exception then you get\n\n$ ./intercept.py --rabbit-exchange amq.rabbitmq.trace --rabbit-port 33333\n2014-05-06 14:09:15,638 pika.adapters.base_connection WARNING Connection to 127.0.0.1:33333 failed: [Errno 111] Connection refused\n2014-05-06 14:09:15,638 ./intercept.py ERROR 1\nTraceback (most recent call last):\n  File \"./intercept.py\", line 175, in \u003cmodule\u003e\n    connection \u003d pika.BlockingConnection(parameters)\n  File \"/usr/lib/python2.7/dist-packages/pika/adapters/blocking_connection.py\", line 107, in __init__\n    super(BlockingConnection, self).__init__(parameters, None, False)\n  File \"/usr/lib/python2.7/dist-packages/pika/adapters/base_connection.py\", line 62, in __init__\n    on_close_callback)\n  File \"/usr/lib/python2.7/dist-packages/pika/connection.py\", line 590, in __init__\n    self.connect()\n  File \"/usr/lib/python2.7/dist-packages/pika/adapters/blocking_connection.py\", line 206, in connect\n    if not self._adapter_connect():\n  File \"/usr/lib/python2.7/dist-packages/pika/adapters/blocking_connection.py\", line 275, in _adapter_connect\n    raise exceptions.AMQPConnectionError(1)\nAMQPConnectionError: 1\n2014-05-06 14:09:15,642 ./intercept.py ERROR Unable to connect to rabbitmq.\n\n\nWould you still like me to add it?",
+      "parentUuid": "AAAAT3//+G0\u003d",
+      "revId": "aade8f7dae8a98da720088b46c73fa9716de3d7d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
