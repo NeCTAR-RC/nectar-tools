@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//9/c\u003d",
+        "filename": "scripts/templates/first-notification.tmpl",
+        "patchSetId": 16
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-05-07T02:49:10Z",
+      "side": 1,
+      "message": "whitespace",
+      "revId": "f9ad5b2c2e2a604c01e0e396074af9efe0416ad4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//9/Y\u003d",
+        "filename": "scripts/templates/first-notification.tmpl",
+        "patchSetId": 16
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-05-07T02:49:10Z",
+      "side": 1,
+      "message": "whitespace",
+      "revId": "f9ad5b2c2e2a604c01e0e396074af9efe0416ad4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//9/U\u003d",
+        "filename": "scripts/update-expiry.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-05-07T02:49:10Z",
+      "side": 1,
+      "message": "as discussed, abstract this out to a variable that is set above, we have different emails per stage.\n\nInitially just copy the stage one template.",
+      "revId": "f9ad5b2c2e2a604c01e0e396074af9efe0416ad4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
