@@ -12,11 +12,44 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from jinja2 import Environment, FileSystemLoader
+from jinja2.exceptions import TemplateNotFound
 from keystoneclient.exceptions import NotFound
 
 DRY_RUN = True
 
 PT_RE = re.compile(r'^pt-\d+$')
+
+
+def main():
+
+    parser = collect_args()
+    args = parser.parse_args()
+
+    if args.no_dry_run:
+        DRY_RUN = False
+    else:
+        print_stderr('DRY RUN')
+
+    kc = auth.get_keystone_client()
+    nc = auth.get_nova_client()
+
+    data = []
+    if args.set_admin:
+        if not args.filename:
+            parser.error("Can't specify set admin without list of users.")
+
+        data = read_csv(args.filename)
+        set_admin(kc, data)
+    else:
+        if args.filename:
+            data = read_csv(args.filename)
+        elif args.user_id:
+            user = kc.users.get(args.user_id)
+            data.append(user)
+        else:
+            data = kc.users.list()
+
+        update(kc, nc, data)
 
 
 def parse_config(section, filename='update-expiry.conf'):
@@ -30,7 +63,7 @@ def parse_config(section, filename='update-expiry.conf'):
             parser = SafeConfigParser()
             parser.read(config_file)
     except IOError as err:
-        sys.stderr.write('%s\n' % str(err))
+        print_stderr(str(err))
         raise SystemExit
 
     for name, value in parser.items(section):
@@ -76,7 +109,7 @@ def update(kc, nc, users):
             if isinstance(user, (str, unicode)):
                 user = kc.users.get(user)
         except NotFound as err:
-            sys.stderr.write('%s\n' % str(err))
+            print_stderr(str(err))
             errors += 1
             continue
 
@@ -87,7 +120,7 @@ def update(kc, nc, users):
         try:
             tenant = kc.tenants.get(user.tenantId)
         except NotFound as err:
-            sys.stderr.write('%s\n' % str(err))
+            print_stderr(str(err))
             errors += 1
             continue
 
@@ -114,12 +147,13 @@ def update(kc, nc, users):
                 print tenant.id, 'tenant expired...'
                 set_status(user.tenantId, 'suspended')
                 set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
-                instances = get_instances(nc, tenant.id)
-                print "\t%d instance%s found" % (len(instances), "s"[len(instances) == 1:])
-                if instances:
-                    for instance in instances:
-                        suspend_instance(instance)
-                        lock_instance(instance)
+                # TODO fix test cloud - can't list instances. Redmine #3604
+                #instances = get_instances(nc, tenant.id)
+                #print "\t%d instance%s found" % (len(instances), "s"[len(instances) == 1:])
+                #if instances:
+                #    for instance in instances:
+                #        suspend_instance(instance)
+                #        lock_instance(instance)
             else:
                 print tenant.id, 'will expire on', tenant.expires
         elif cpu_hours < limit*0.8:
@@ -127,23 +161,20 @@ def update(kc, nc, users):
         elif cpu_hours <= limit:
             print tenant.id, 'tenant is over 80% - setting status to first'
             if tenant.status != 'first':
-                send_email(user.email, tenant.name)
+                send_email(user.email, tenant.name, 'first')
                 set_status(user.tenantId, 'first')
         elif cpu_hours <= limit*1.2:
             print tenant.id, 'tenant is over 100% - setting status to second'
             if tenant.status != 'second':
-                print 'Would set status to second and notify the tenant'
-                # TODO add second email template
-                #send_email(user.email, tenant.name)
-                #set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
-                #set_status(user.tenantId, 'second')
+                send_email(user.email, tenant.name, 'second')
+                set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
+                set_status(user.tenantId, 'second')
         elif cpu_hours > limit*1.2:
             print tenant.id, 'tenant is over 120% - setting status to final'
             if tenant.status != 'final':
-                print 'Would set status to second and notify the tenant'
-                # TODO add third email template
-                #send_email(user.email, tenant.name)
-                #set_status(user.tenantId, 'final', new_expiry)
+                send_email(user.email, tenant.name, 'final')
+                set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
+                set_status(user.tenantId, 'final', new_expiry)
 
     print '\nProcessed', tenants, 'tenants.', \
         suspended, 'suspended.', errors, '404s'
@@ -203,18 +234,30 @@ def set_status(tenant_id, status, expires=''):
         kc.tenants.update(user.tenantId, status=status)
 
 
-def render_template(tenantname):
+def render_template(tenantname, status):
+
+    tmpl = ''
+    if status == 'first':
+        tmpl = 'first-notification.tmpl'
+    elif status == 'second':
+        tmpl = 'second-notification.tmpl'
+    elif status == 'final':
+        tmpl = 'final-notification.tmpl'
 
     env = Environment(loader=FileSystemLoader('templates'))
-    template = env.get_template('first-notification.tmpl')
+    try:
+        template = env.get_template(tmpl)
+    except TemplateNotFound as err:
+        print_stderr('Template not found. Make sure status is correct.')
+
     template = template.render({'project_name': tenantname})
     return template
 
 
-def send_email(recepient, tenantname):
+def send_email(recepient, tenantname, status):
 
     from email.mime.text import MIMEText
-    msg = MIMEText(render_template(tenantname))
+    msg = MIMEText(render_template(tenantname, status))
 
     msg['From'] = 'NeCTAR Research Cloud <bounces@rc.nectar.org.au>'
     msg['To'] = recepient
@@ -230,7 +273,7 @@ def send_email(recepient, tenantname):
         try:
             s.sendmail(msg['From'], [recepient], msg.as_string())
         except smtplib.SMTPRecipientsRefused as err:
-            sys.stderr.write('%s\n' % str(err))
+            print_stderr(str(err))
         finally:
             s.quit()
 
@@ -260,33 +303,12 @@ def set_admin(kc, tenant_ids):
                 kc.tenants.update(tenant.id, status='admin', expires='')
 
 
+def print_stderr(msg):
+
+    sys.stderr.write(msg+'\n')
+    sys.stderr.flush()
+
+
 if __name__ == '__main__':
 
-    parser = collect_args()
-    args = parser.parse_args()
-
-    if args.no_dry_run:
-        DRY_RUN = False
-    else:
-        print >> sys.stderr, "DRY RUN"
-
-    kc = auth.get_keystone_client()
-    nc = auth.get_nova_client()
-
-    data = []
-    if args.set_admin:
-        if not args.filename:
-            parser.error("Can't specify set admin without list of users.")
-
-        data = read_csv(args.filename)
-        set_admin(kc, data)
-    else:
-        if args.filename:
-            data = read_csv(args.filename)
-        elif args.user_id:
-            user = kc.users.get(args.user_id)
-            data.append(user)
-        else:
-            data = kc.users.list()
-
-        update(kc, nc, data)
+    main()
