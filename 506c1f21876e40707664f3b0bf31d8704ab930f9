@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//9mQ\u003d",
+        "filename": "scripts/usage-byuniversities.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-05-16T06:03:36Z",
+      "side": 1,
+      "message": "is it possible to make this a variable?",
+      "revId": "506c1f21876e40707664f3b0bf31d8704ab930f9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//9mM\u003d",
+        "filename": "scripts/usage-byuniversities.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-05-16T06:03:36Z",
+      "side": 1,
+      "message": "Maybe make this a variable as well? Or source a config file? Otherwise this will be up on github and maybe leaking information that shouldn\u0027t be there.",
+      "revId": "506c1f21876e40707664f3b0bf31d8704ab930f9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//9mI\u003d",
+        "filename": "scripts/usage-byuniversities.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-05-16T06:03:36Z",
+      "side": 1,
+      "message": "The gerrit interface shows extra whitespace here and in a few places below as well. Could we just remove those?",
+      "revId": "506c1f21876e40707664f3b0bf31d8704ab930f9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
