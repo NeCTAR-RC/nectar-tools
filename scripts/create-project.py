@@ -3,130 +3,159 @@
 import os
 import sys
 import argparse
-from keystoneclient.v2_0 import client as keystone_client
+
+from keystoneclient.v2_0 import client as ks_client
+from keystoneclient.exceptions import AuthorizationFailure
 from novaclient.v1_1 import client as nova_client
 from cinderclient.v1 import client as cinder_client
 
 
-# Get authentication details from environment
-AUTH_USER = os.environ.get('OS_USERNAME', None)
-AUTH_PASSWORD = os.environ.get('OS_PASSWORD', None)
-AUTH_TENANT_NAME = os.environ.get('OS_TENANT_NAME', None)
-AUTH_URL = os.environ.get('OS_AUTH_URL', None)
-CACERT = os.environ.get('OS_CACERT', None)
-
-
-def add_tenant(name, description, manager_email, allocation_id):
-
-    # Create keystone client
-    ksclient = keystone_client.Client(username=AUTH_USER,
-                                      password=AUTH_PASSWORD,
-                                      tenant_name=AUTH_TENANT_NAME,
-                                      auth_url=AUTH_URL,
-                                      cacert=CACERT)
+def add_tenant(kc, name, description, manager_email, allocation_id):
 
     try:
-        tenant_manager = ksclient.users.find(name=manager_email)
+        tenant_manager = kc.users.find(name=manager_email)
     except:
         print "Couldn't find a unique user with that email"
         return sys.exit(1)
 
     try:
-        tenant_manager_role = ksclient.roles.find(name='TenantManager')
-        member_role = ksclient.roles.find(name='Member')
+        tenant_manager_role = kc.roles.find(name='TenantManager')
+        member_role = kc.roles.find(name='Member')
     except:
         print "Couldn't find roles"
         return sys.exit(1)
 
     # Create tenant
-    tenant = ksclient.tenants.create(name, description)
+    tenant = kc.tenants.create(name, description)
 
     # Link tenant to allocation
     kwargs = {'allocation_id': allocation_id}
-    ksclient.tenants.update(tenant.id, **kwargs)
+    kc.tenants.update(tenant.id, **kwargs)
 
     # Add roles to tenant manager
-    ksclient.tenants.add_user(tenant, tenant_manager, tenant_manager_role)
-    ksclient.tenants.add_user(tenant, tenant_manager, member_role)
+    kc.tenants.add_user(tenant, tenant_manager, tenant_manager_role)
+    kc.tenants.add_user(tenant, tenant_manager, member_role)
 
     return tenant.id
 
 
-def add_cinder_quota(tenant_id, gigabytes, volumes):
-    cclient = cinder_client.Client(username=AUTH_USER,
-                                   api_key=AUTH_PASSWORD,
-                                   project_id=AUTH_TENANT_NAME,
-                                   auth_url=AUTH_URL,
-                                   cacert=CACERT)
+def add_cinder_quota(cc, tenant_id, gigabytes, volumes):
+
     # volumes and snapshots the same as we don't care
-    cclient.quotas.update(tenant_id=tenant_id,
-                          gigabytes=gigabytes,
-                          volumes=volumes,
-                          snapshots=volumes)
+    cc.quotas.update(tenant_id=tenant_id,
+                     gigabytes=gigabytes,
+                     volumes=volumes,
+                     snapshots=volumes)
 
 
-def add_nova_quota(tenant_id, cores, instances, ram):
-    nclient = nova_client.Client(username=AUTH_USER,
-                                 api_key=AUTH_PASSWORD,
-                                 project_id=AUTH_TENANT_NAME,
-                                 auth_url=AUTH_URL,
-                                 cacert=CACERT)
+def add_nova_quota(nc, tenant_id, cores, instances, ram):
 
-    nclient.quotas.update(tenant_id=tenant_id,
-                          ram=ram,
-                          instances=instances,
-                          cores=cores)
+    nc.quotas.update(tenant_id=tenant_id,
+                     ram=ram,
+                     instances=instances,
+                     cores=cores)
 
 
-def main():
+def get_keystone_client():
 
-    for auth_variable in (AUTH_USER, AUTH_PASSWORD,
-                          AUTH_TENANT_NAME, AUTH_URL):
-        if not auth_variable:
-            print "Missing environment variable %s" % auth_variable
-            return sys.exit(1)
+    auth_username = os.environ.get('OS_USERNAME')
+    auth_password = os.environ.get('OS_PASSWORD')
+    auth_tenant = os.environ.get('OS_TENANT_NAME')
+    auth_url = os.environ.get('OS_AUTH_URL')
 
-    args = get_args()
-    name = args.t
-    description = args.d
-    manager_email = args.e
-    cores = args.c
-    instances = args.i
-    ram = cores * 4096
+    try:
+        kc = ks_client.Client(username=auth_username,
+                              password=auth_password,
+                              tenant_name=auth_tenant,
+                              auth_url=auth_url)
+    except AuthorizationFailure as e:
+        print e
+        print 'Authorization failed, have you sourced your openrc?'
+        sys.exit(1)
+
+    return kc
+
+
+def get_nova_client():
+
+    auth_username = os.environ.get('OS_USERNAME')
+    auth_password = os.environ.get('OS_PASSWORD')
+    auth_tenant = os.environ.get('OS_TENANT_NAME')
+    auth_url = os.environ.get('OS_AUTH_URL')
+
+    nc = nova_client.Client(username=auth_username,
+                            password=auth_password,
+                            tenant_name=auth_tenant,
+                            auth_url=auth_url,
+                            service_type='compute')
+    return nc
+
+
+def get_cinder_client():
+
+    auth_username = os.environ.get('OS_USERNAME')
+    auth_password = os.environ.get('OS_PASSWORD')
+    auth_tenant = os.environ.get('OS_TENANT_NAME')
+    auth_url = os.environ.get('OS_AUTH_URL')
+
+    cc = cinder_client.Client(username=auth_username,
+                              password=auth_password,
+                              tenant_name=auth_tenant,
+                              auth_url=auth_url)
+    return cc
+
+
+def collect_args():
+
+    parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
+    parser.add_argument('-t', '--tenant_name', action='store',
+                        required=True, help='Tenant Name')
+    parser.add_argument('-d', '--tenant_desc', action='store',
+                        required=True, help='Tenant description')
+    parser.add_argument('-e', '--manager_email', action='store',
+                        required=True, help='Manager email')
+    parser.add_argument('-a', '--allocation-id', action='store',
+                        required=True, type=int,
+                        help='NeCTAR allocation request ID')
+    parser.add_argument('-c', '--cores', action="store", type=int,
+                        required=True, help='Number of cores')
+    parser.add_argument('-r', '--ram', action="store", type=int,
+                        required=False, help='Amount of RAM')
+    parser.add_argument('-i', '--instances', action='store',
+                        required=True, type=int, help='Number of instances')
+    parser.add_argument('-v', '--volumes', action='store',
+                        required=False, type=int, help='Number of volumes')
+    parser.add_argument('-g', '--gigabytes', action='store',
+                        required=False, type=int, help='Number of gigabytes')
+
+    return parser
+
+
+if __name__ == '__main__':
+
+    args = collect_args().parse_args()
+    name = args.tenant_name
+    description = args.tenant_desc
+    manager_email = args.manager_email
+    cores = args.cores
+    instances = args.instances
+    if 'ram' in args:
+        ram = args.ram
+    else:
+        ram = cores * 4096
     if 'v' in args:
         volumes = args.v
     if 'g' in args:
         gigabytes = args.g
 
+    kc = get_keystone_client()
+    nc = get_nova_client()
+    cc = get_cinder_client()
+
     allocation_id = args.allocation_id
-    tenant_id = add_tenant(name, description, manager_email, allocation_id)
-    add_nova_quota(tenant_id, cores, instances, ram)
+
+    tenant_id = add_tenant(kc, name, description, manager_email, allocation_id)
+    add_nova_quota(nc, tenant_id, cores, instances, ram)
+
     if gigabytes and volumes:
-        add_cinder_quota(tenant_id, gigabytes, volumes)
-    sys.exit(0)
-
-
-def get_args():
-    parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    parser.add_argument('-t', '-tenant_name', action='store',
-                        required=True, help='Tenant Name')
-    parser.add_argument('-d', '-tenant_desc', action='store',
-                        required=True, help='Tenant description')
-    parser.add_argument('-e', '-manager_email', action='store',
-                        required=True, help='Manager email')
-    parser.add_argument('-a', '--allocation-id', action='store',
-                        required=True, type=int,
-                        help='NeCTAR allocation request ID')
-    parser.add_argument('-c', '-cores', action="store", type=int,
-                        required=True, help='Number or cores')
-    parser.add_argument('-i', '-instances', action='store',
-                        required=True, type=int, help='Number of instances')
-    parser.add_argument('-v', '-volumes', action='store',
-                        required=False, type=int, help='Number of volumes')
-    parser.add_argument('-g', '-gigabytes', action='store',
-                        required=False, type=int, help='Number of gigabytes')
-
-    return parser.parse_args()
-
-if __name__ == '__main__':
-    main()
+        add_cinder_quota(cc, tenant_id, gigabytes, volumes)
