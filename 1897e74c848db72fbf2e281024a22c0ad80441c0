@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAT3//9NE\u003d",
+        "filename": "scripts/create-project.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-05-27T07:29:42Z",
+      "side": 1,
+      "message": "Are these changes necessary? auth_tenant is not a project id. Have you tested this?",
+      "revId": "1897e74c848db72fbf2e281024a22c0ad80441c0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//9NA\u003d",
+        "filename": "scripts/create-project.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-05-27T07:29:42Z",
+      "side": 1,
+      "message": "As above.",
+      "revId": "1897e74c848db72fbf2e281024a22c0ad80441c0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "AAAAT3//9NI\u003d",
+        "filename": "scripts/create-project.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-05-27T07:29:42Z",
+      "side": 1,
+      "message": "This is the number of volumes",
+      "revId": "1897e74c848db72fbf2e281024a22c0ad80441c0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
