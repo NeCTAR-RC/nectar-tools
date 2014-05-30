@@ -156,6 +156,8 @@ if __name__ == '__main__':
     else:
         ram = cores * 4096
     volumes = args.volumes
+    if not args.volumes:
+        volumes = args.gigabytes
     gigabytes = args.gigabytes
 
     kc = get_keystone_client()
