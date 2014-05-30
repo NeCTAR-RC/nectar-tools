@@ -36,10 +36,6 @@ def add_tenant(kc, name, description, manager_email, allocation_id):
     kc.tenants.add_user(tenant, tenant_manager, tenant_manager_role)
     kc.tenants.add_user(tenant, tenant_manager, member_role)
 
-    print 'Tenant %s created for allocation %s' % (tenant.id, allocation_id)
-    print 'Name: %s' % name
-    print 'Email: %s' % manager_email
-    print 'Description: %s' % description
     return tenant
 
 
@@ -166,9 +162,39 @@ if __name__ == '__main__':
 
     allocation_id = args.allocation_id
 
+    quota = [
+        ("Instances:", instances),
+        ("Cores:", cores),
+        ("Ram:", ram),
+        ("Volume Storage (GB):", gigabytes),
+    ]
     tenant = add_tenant(kc, name, description, manager_email,
                         allocation_id)
     add_nova_quota(nc, tenant, cores, instances, ram)
 
     if gigabytes != 0 or volumes != 0:
         add_cinder_quota(cc, tenant, gigabytes, volumes)
+
+    print """Hi,
+
+Congratulations on obtaining NeCTAR Research Cloud resources for your
+project.  Your request has been processed and the details are below.
+    """
+    print 'Tenant %s created for allocation %s' % (tenant.id, allocation_id)
+    print 'Name: %s' % name
+    print 'Email: %s' % manager_email
+    print 'Description: %s' % description
+
+    print ''
+    print 'Allocation:'
+
+    for key, value in quota:
+        if value > 0:
+            print key, value
+    print """
+For hints on the next steps to access these resources, add users and launch VMs, please visit
+https://support.rc.nectar.org.au/wiki/AllocationsGettingStarted:_Allocations_GettingStarted
+
+Kind Regards,
+The NeCTAR Research Cloud Team.
+"""
