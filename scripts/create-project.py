@@ -40,15 +40,14 @@ def add_tenant(kc, name, description, manager_email, allocation_id):
     print 'Name: %s' % name
     print 'Email: %s' % manager_email
     print 'Description: %s' % description
+    return tenant
 
-    return tenant.id
 
-
-def add_cinder_quota(cc, tenant_id, gigabytes, volumes):
+def add_cinder_quota(cc, tenant, gigabytes, volumes):
 
     snapshots = volumes
     # volumes and snapshots are the same as we don't care
-    cc.quotas.update(tenant_id=tenant_id,
+    cc.quotas.update(tenant_id=tenant.id,
                      gigabytes=gigabytes,
                      volumes=volumes,
                      snapshots=snapshots)
@@ -56,9 +55,9 @@ def add_cinder_quota(cc, tenant_id, gigabytes, volumes):
         % (gigabytes, volumes, snapshots)
 
 
-def add_nova_quota(nc, tenant_id, cores, instances, ram):
+def add_nova_quota(nc, tenant, cores, instances, ram):
 
-    nc.quotas.update(tenant_id=tenant_id,
+    nc.quotas.update(tenant_id=tenant.id,
                      ram=ram,
                      instances=instances,
                      cores=cores)
@@ -165,8 +164,9 @@ if __name__ == '__main__':
 
     allocation_id = args.allocation_id
 
-    tenant_id = add_tenant(kc, name, description, manager_email, allocation_id)
-    add_nova_quota(nc, tenant_id, cores, instances, ram)
+    tenant = add_tenant(kc, name, description, manager_email,
+                        allocation_id)
+    add_nova_quota(nc, tenant, cores, instances, ram)
 
     if gigabytes != 0 or volumes != 0:
-        add_cinder_quota(cc, tenant_id, gigabytes, volumes)
+        add_cinder_quota(cc, tenant, gigabytes, volumes)
