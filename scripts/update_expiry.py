@@ -1,23 +1,36 @@
 #!/usr/bin/env python
 
+import logging
 import os
 import re
-import sys
 import argparse
 import auth
 import csv
 import smtplib
-from ConfigParser import SafeConfigParser
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
-from keystoneclient.exceptions import NotFound
+from enum import Enum
+import prettytable
 
 DRY_RUN = True
+USAGE_LIMIT_HOURS = 4383  # 6 months in hours
+EXPIRY_DATE_FORMAT = "%Y-%m-%d"
+
+
+class CPULimit(Enum):
+    UNDER_LIMIT = 0
+    NEAR_LIMIT = 1
+    AT_LIMIT = 2
+    OVER_LIMIT = 3
+
 
 PT_RE = re.compile(r'^pt-\d+$')
+
+
+LOG = logging.getLogger(__name__)
 
 
 def main():
@@ -25,52 +38,61 @@ def main():
     parser = collect_args()
     args = parser.parse_args()
 
+    LOG.setLevel(logging.DEBUG if args.debug else logging.INFO)
+
     if args.no_dry_run:
         global DRY_RUN
         DRY_RUN = False
     else:
-        print_stderr('DRY RUN')
+        LOG.info('DRY RUN')
 
     kc = auth.get_keystone_client()
     nc = auth.get_nova_client()
 
-    data = []
-    if args.set_admin:
-        if not args.filename:
-            parser.error("Can't specify set admin without list of users.")
-
-        data = read_csv(args.filename)
-        set_admin(kc, data)
-    else:
+    tenants = []
+    if args.tenant_id:
+        tenant = kc.tenants.get(args.tenant_id)
+        tenants.append(tenant)
+    if not tenants:
+        tenants = kc.tenants.list()
         if args.filename:
-            data = read_csv(args.filename)
-        elif args.user_id:
-            user = kc.users.get(args.user_id)
-            data.append(user)
+            wanted_tenants = read_csv(args.filename)[0]
+            tenants = [t for t in tenants if t.id in wanted_tenants]
+    tenants.sort(key=lambda t: t.name.split('-')[-1].zfill(5))
+
+    if args.zone:
+        tenants = filter_tenants_by_instances_zone(nc, tenants, args.zone)
+
+    if args.set_admin:
+        if not args.filename and not args.tenant_id:
+            parser.error("Can't specify set admin without list of tenants.")
+        set_admin(kc, tenants)
+    elif args.metadata:
+        if not args.filename and not args.tenant_id:
+            parser.error("Can't set metadata without list of specific "
+                         "tenants.")
+        kwargs = [tuple(meta.split('=', 1))
+                  for meta in args.metadata.split(',')]
+        kwargs = dict(kwargs)
+        for tenant in tenants:
+            kc.tenants.update(tenant.id, **kwargs)
+    else:
+        users = kc.users.list()
+        link_tenants_to_users(tenants, users)
+        if args.status:
+            print_status(tenants)
         else:
-            data = kc.users.list()
-
-        update(kc, nc, data)
+            process_tenants(kc, nc, tenants, users)
 
 
-def parse_config(section, filename='update-expiry.conf'):
-    """Read configuration settings from config file"""
-
-    options = {}
-    config_file = os.path.join(os.getcwd(), filename)
-
-    try:
-        with open(config_file):
-            parser = SafeConfigParser()
-            parser.read(config_file)
-    except IOError as err:
-        print_stderr(str(err))
-        raise SystemExit
-
-    for name, value in parser.items(section):
-        options[name] = value
-
-    return options
+def print_status(tenants):
+    pt = prettytable.PrettyTable(['Name', 'Owner', 'Status', 'Expiry date'])
+    for tenant in tenants:
+        tenant_set_defaults(tenant)
+        if is_personal_tenant(tenant):
+            pt.add_row([tenant.name, getattr(tenant.owner, 'email', ''),
+                        tenant.status, tenant.expires])
+    print str(pt)
 
 
 def collect_args():
@@ -83,119 +105,203 @@ def collect_args():
                         only show what would happen')
     parser.add_argument('-f', '--filename',
                         type=argparse.FileType('r'),
-                        help='File path with a list of users')
-    parser.add_argument('-u', '--user-id',
-                        help='User ID to process')
+                        help='File path with a list of tenants')
+    parser.add_argument('-t', '--tenant-id',
+                        help='Tenant ID to process')
     parser.add_argument('-c', '--config',
                         help='Path of configuration file')
     parser.add_argument('-a', '--set-admin', action='store_true',
                         help='Mark a list of tenants as admins')
-
+    parser.add_argument('-m', '--metadata', action='store',
+                        help='Set metadata on tenants as a comma-separated '
+                             'list of key=value pairs.')
+    parser.add_argument('-s', '--status', action='store_true',
+                        help='Report current status of each tenant.')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='Show debug logging.')
+    parser.add_argument('-z', '--zone', action='store',
+                        help='Limit actions to tenants with instances only '
+                             'in this zone.')
     return parser
 
 
-def update(kc, nc, users):
-    """Update tenant start and expiry dates in Keystone DB"""
-
-    dateformat = "%Y-%m-%d"
-    limit = 4383  # 6 months in hours
-    end = datetime.now() + relativedelta(days=1)  # tomorrow
-    new_expiry = datetime.today() + relativedelta(months=1)
-    new_expiry = new_expiry.strftime(dateformat)  # string
-    tenants = suspended = errors = 0
-    start = datetime(2011, 1, 1)
-
+def link_tenants_to_users(tenants, users):
+    tenants_dict = {tenant.id: tenant for tenant in tenants}
     for user in users:
-        try:
-            if isinstance(user, (str, unicode)):
-                user = kc.users.get(user)
-        except NotFound as err:
-            print_stderr(str(err))
-            errors += 1
-            continue
-
-        # skip users that have no tenant
-        if not getattr(user, "tenantId", None):
-            continue
-
-        try:
-            tenant = kc.tenants.get(user.tenantId)
-        except NotFound as err:
-            print_stderr(str(err))
-            errors += 1
-            continue
-
-        if not PT_RE.match(tenant.name):
-            continue
-
-        tenants += 1
-
-        usage = nc.usage.get(user.tenantId, start, end)
-        cpu_hours = getattr(usage, 'total_vcpus_usage', None)
-
-        if not hasattr(tenant, 'status'):
-            print tenant.id, "tenant has no status set"
-            set_status(kc, user.tenantId, None)
-        elif tenant.status == 'suspended':
-            print tenant.id, 'tenant is suspended'
-            suspended += 1
-        elif tenant.status == 'admin':
-            print tenant.id, 'tenant is admin. Will never expire'
-        elif hasattr(tenant, 'expires') and tenant.expires is not None:
-            # Convert expires string to datetime object for comparison
-            expires = datetime.strptime(tenant.expires, dateformat)
-            if expires <= datetime.today():
-                print tenant.id, 'tenant expired...'
-                set_status(kc, user.tenantId, 'suspended')
-                set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
-                instances = get_instances(nc, tenant.id)
-                print "\t%d instance%s found" % (len(instances), "s"[len(instances) == 1:])
-                if instances:
-                    for instance in instances:
-                        suspend_instance(instance)
-                        lock_instance(instance)
+        tenant_id = getattr(user, 'tenantId', None)
+        if tenant_id:
+            if tenant_id in tenants_dict:
+                tenants_dict[tenant_id].owner = user
             else:
-                print tenant.id, 'will expire on', tenant.expires
-        elif cpu_hours < limit*0.8:
-            print tenant.id, 'tenant is under 80%'
-        elif cpu_hours <= limit:
-            print tenant.id, 'tenant is over 80% - setting status to first'
-            if tenant.status != 'first':
-                send_email(user.email, tenant.name, 'first')
-                set_status(kc, user.tenantId, 'first')
-        elif cpu_hours <= limit*1.2:
-            print tenant.id, 'tenant is over 100% - setting status to second'
-            if tenant.status != 'second':
-                send_email(user.email, tenant.name, 'second')
-                set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
-                set_status(kc, user.tenantId, 'second')
-        elif cpu_hours > limit*1.2:
-            print tenant.id, 'tenant is over 120% - setting status to final'
-            if tenant.status != 'final':
-                send_email(user.email, tenant.name, 'final')
-                set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
-                set_status(kc, user.tenantId, 'final', new_expiry)
+                LOG.debug("Found orphan user with no tenant: %s", user.email)
 
-    print '\nProcessed', tenants, 'tenants.', \
-        suspended, 'suspended.', errors, '404s'
+
+def filter_tenants_by_instances_zone(nc, tenants, node_prefix):
+    def is_in_target_az(instance):
+        az = instance.to_dict().get('OS-EXT-AZ:availability_zone') or ''
+        return az.startswith(node_prefix)
+
+    tenants_out = []
+    for tenant in tenants:
+        instances = get_instances(nc, tenant.id)
+        if instances and all(map(is_in_target_az, instances)):
+            tenants_out.append(tenant)
+    return tenants_out
+
+
+def process_tenants(kc, nc, tenants, users):
+    """Update tenant start and expiry dates in Keystone DB"""
+    for tenant in tenants:
+        tenant_set_defaults(tenant)
+        if should_process_tenant(tenant):
+            try:
+                process_tenant(kc, nc, tenant)
+            except Exception as e:
+                LOG.error('Failed processing tenant %s: %s', tenant.id, str(e))
+
+
+def tenant_set_defaults(tenant):
+    tenant.status = getattr(tenant, 'status', '')
+    tenant.expires = getattr(tenant, 'expires', '')
+    tenant.owner = getattr(tenant, 'owner', None)
+
+
+def should_process_tenant(tenant):
+    personal = is_personal_tenant(tenant)
+    has_owner = tenant_has_owner(tenant)
+    if personal and not has_owner:
+        LOG.debug("Tenant %s (%s) has no owner.", tenant.id, tenant.name)
+    return personal and has_owner and not is_ignored_tenant(tenant)
+
+
+def is_personal_tenant(tenant):
+    return PT_RE.match(tenant.name)
+
+
+def is_ignored_tenant(tenant):
+    status = getattr(tenant, 'status', None)
+    if status == 'suspended':
+        LOG.debug('%s tenant is suspended', tenant.id)
+        return True
+    elif status == 'admin':
+        LOG.debug('%s tenant is admin. Will never expire', tenant.id)
+        return True
+    return False
+
+
+def tenant_has_owner(tenant):
+    return tenant.owner is not None
+
+
+def process_tenant(kc, nc, tenant):
+    LOG.debug("\nProcessing tenant %s (%s)", tenant.name, tenant.id)
+
+    limit = check_cpu_usage(kc, nc, tenant)
+    return notify(kc, nc, tenant, limit)
+
+
+def tenant_is_expired(tenant):
+    if not tenant.expires:
+        return False
+
+    try:
+        expires = datetime.strptime(tenant.expires, EXPIRY_DATE_FORMAT)
+    except ValueError:
+        LOG.debug('\tInvalid expires value')
+        return False
+    return expires <= datetime.today()
+
+
+def check_cpu_usage(kc, nc, tenant):
+    limit = USAGE_LIMIT_HOURS
+    start = datetime(2011, 1, 1)
+    end = datetime.now() + relativedelta(days=1)  # tomorrow
+    usage = nc.usage.get(tenant.id, start, end)
+    cpu_hours = getattr(usage, 'total_vcpus_usage', None)
+
+    LOG.debug("\tTotal VCPU hours: %s", cpu_hours)
+
+    if cpu_hours < limit * 0.8:
+        return CPULimit.UNDER_LIMIT
+    elif cpu_hours < limit:
+        return CPULimit.NEAR_LIMIT
+    elif cpu_hours < limit * 1.2:
+        return CPULimit.AT_LIMIT
+    elif cpu_hours >= limit * 1.2:
+        return CPULimit.OVER_LIMIT
+
+
+def notify(kc, nc, tenant, event):
+    limits = {
+        CPULimit.UNDER_LIMIT: lambda *x: False,
+        CPULimit.NEAR_LIMIT: notify_near_limit,
+        CPULimit.AT_LIMIT: notify_at_limit,
+        CPULimit.OVER_LIMIT: notify_over_limit
+    }
+    if event != CPULimit.UNDER_LIMIT:
+        LOG.debug('\t%s', event)
+    return limits[event](kc, nc, tenant)
+
+
+def notify_near_limit(kc, nc, tenant):
+    if tenant.status != 'quota warning':
+        LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
+        LOG.info('\tUsage is over 80% - setting status '
+                 'to "quota warning"')
+        send_email(tenant, 'first')
+        set_status(kc, tenant.id, 'quota warning')
+
+
+def notify_at_limit(kc, nc, tenant):
+    if tenant.status != 'pending suspension':
+        LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
+        LOG.info('\tUsage is over 100% - setting status to '
+                 '"pending suspension"')
+        if tenant.status == 'quota warning':
+            set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
+        new_expiry = datetime.today() + relativedelta(months=1)
+        new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
+        set_status(kc, tenant.id, 'pending suspension', new_expiry)
+        send_email(tenant, 'second')
+
+
+def notify_over_limit(kc, nc, tenant):
+    if tenant.status == 'pending suspension':
+        if tenant_is_expired(tenant):
+            LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
+            LOG.info('\tUsage is over 120% - suspending tenant')
+            suspend_tenant(kc, nc, tenant)
+    else:
+        notify_at_limit(kc, nc, tenant)
+
+
+def suspend_tenant(kc, nc, tenant):
+    set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
+    instances = get_instances(nc, tenant.id)
+    LOG.info("\t%d instance(s) found", len(instances))
+    for instance in instances:
+        suspend_instance(instance)
+        lock_instance(instance)
+    new_expiry = datetime.today() + relativedelta(months=1)
+    new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
+    set_status(kc, tenant.id, 'suspended', new_expiry)
+    send_email(tenant, 'final')
 
 
 def get_instances(nc, tenant_id):
-
     search_opts = {'tenant_id': tenant_id, 'all_tenants': 1}
     instances = nc.servers.list(search_opts=search_opts)
     return instances
 
 
 def suspend_instance(instance):
-
     if instance.status == 'SUSPENDED':
-        print "\t%s - instance is already suspended" % instance.id
+        LOG.info("\t%s - instance is already suspended" % instance.id)
     elif instance.status == 'SHUTOFF':
-        print "\t%s - instance is off" % instance.id
+        LOG.info("\t%s - instance is off" % instance.id)
     else:
         if DRY_RUN:
-            print "\t%s - would suspend instance (dry run)" % instance.id
+            LOG.info("\t%s - would suspend instance (dry run)" % instance.id)
         else:
             instance.suspend()
 
@@ -203,7 +309,7 @@ def suspend_instance(instance):
 def lock_instance(instance):
 
     if DRY_RUN:
-        print "\t%s - would lock instance (dry run)" % instance.id
+        LOG.info("\t%s - would lock instance (dry run)" % instance.id)
     else:
         instance.lock()
 
@@ -211,27 +317,29 @@ def lock_instance(instance):
 def set_nova_quota(nc, tenant_id, cores, instances, ram):
 
     if DRY_RUN:
-        print "\twould set Nova quota to 0 (dry run)"
+        LOG.info("\twould set Nova quota to 0 (dry run)")
     else:
-        print "\tsetting Nova quota to 0"
+        LOG.info("\tsetting Nova quota to 0")
         nc.quotas.update(tenant_id=tenant_id,
-                        ram=ram,
-                        instances=instances,
-                        cores=cores)
+                         ram=ram,
+                         instances=instances,
+                         cores=cores,
+                         force=True)
+
 
 def set_status(kc, tenant_id, status, expires=''):
 
     if DRY_RUN:
         if status is None:
-            print "\twould set empty status (dry run)"
+            LOG.info("\twould set empty status (dry run)")
         else:
-            print "\twould set status to %s (dry run)" % status
+            LOG.info("\twould set status to %s (dry run)", status)
     else:
         if status is None:
-            print "\tsetting empty status"
+            LOG.info("\tsetting empty status")
         else:
-            print "\tsetting status to %s" % status
-        kc.tenants.update(tenant_id, status=status)
+            LOG.info("\tsetting status to %s", status)
+        kc.tenants.update(tenant_id, status=status, expires=expires)
 
 
 def render_template(tenantname, status):
@@ -243,37 +351,45 @@ def render_template(tenantname, status):
         tmpl = 'second-notification.tmpl'
     elif status == 'final':
         tmpl = 'final-notification.tmpl'
-
-    env = Environment(loader=FileSystemLoader('templates'))
+    template_dir = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                                 'templates'))
+    env = Environment(loader=FileSystemLoader(template_dir))
     try:
         template = env.get_template(tmpl)
     except TemplateNotFound:
-        print_stderr('Template not found. Make sure status is correct.')
+        LOG.error('Template "%s" not found. '
+                  'Make sure status is correct.' % tmpl)
+        return None
 
     template = template.render({'project_name': tenantname})
     return template
 
 
-def send_email(recepient, tenantname, status):
+def send_email(tenant, status):
+    tenantname = tenant.name
+    assert tenant.owner is not None
+    recipient = tenant.owner.email
 
     from email.mime.text import MIMEText
-    msg = MIMEText(render_template(tenantname, status))
+    text = render_template(tenantname, status)
+    if text is None:
+        return
+    msg = MIMEText(text)
 
     msg['From'] = 'NeCTAR Research Cloud <bounces@rc.nectar.org.au>'
-    msg['To'] = recepient
+    msg['To'] = recipient
     msg['Reply-to'] = 'support@rc.nectar.org.au'
     msg['Subject'] = 'NeCTAR project upcoming expiry - %s' % tenantname
 
     s = smtplib.SMTP('smtp.unimelb.edu.au')
 
-    if DRY_RUN:
-        print "would send email to %s (dry run)" % recepient
-    else:
-        print 'Sending an email to', recepient
+    LOG.info('\tSending an email to %s', recipient)
+    LOG.debug('%s', msg.as_string())
+    if not DRY_RUN:
         try:
-            s.sendmail(msg['From'], [recepient], msg.as_string())
+            s.sendmail(msg['From'], [recipient], msg.as_string())
         except smtplib.SMTPRecipientsRefused as err:
-            print_stderr(str(err))
+            LOG.error('Error sending email: %s', str(err))
         finally:
             s.quit()
 
@@ -303,12 +419,6 @@ def set_admin(kc, tenant_ids):
                 kc.tenants.update(tenant.id, status='admin', expires='')
 
 
-def print_stderr(msg):
-
-    sys.stderr.write(msg+'\n')
-    sys.stderr.flush()
-
-
 if __name__ == '__main__':
-
+    logging.basicConfig(format='%(message)s')
     main()
