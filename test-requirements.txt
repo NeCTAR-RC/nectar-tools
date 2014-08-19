@@ -1,0 +1,5 @@
+pip
+nose
+flake8
+mock
+freezegun

@@ -16,6 +16,8 @@ from jinja2.exceptions import TemplateNotFound
 from keystoneclient.exceptions import NotFound
 
 DRY_RUN = True
+USAGE_LIMIT_HOURS = 4383  # 6 months in hours
+EXPIRY_DATE_FORMAT = "%Y-%m-%d"
 
 PT_RE = re.compile(r'^pt-\d+$')
 
@@ -97,13 +99,11 @@ def collect_args():
 def update(kc, nc, users):
     """Update tenant start and expiry dates in Keystone DB"""
 
-    dateformat = "%Y-%m-%d"
-    limit = 4383  # 6 months in hours
+    limit = USAGE_LIMIT_HOURS
     end = datetime.now() + relativedelta(days=1)  # tomorrow
-    new_expiry = datetime.today() + relativedelta(months=1)
-    new_expiry = new_expiry.strftime(dateformat)  # string
     tenants = suspended = errors = 0
     start = datetime(2011, 1, 1)
+
 
     for user in users:
         try:
@@ -136,52 +136,75 @@ def update(kc, nc, users):
         if not hasattr(tenant, 'status'):
             print tenant.id, "tenant has no status set"
             set_status(kc, user.tenantId, None)
+            tenant.status = None
         elif tenant.status == 'suspended':
             print tenant.id, 'tenant is suspended'
             suspended += 1
+            continue
         elif tenant.status == 'admin':
             print tenant.id, 'tenant is admin. Will never expire'
-        elif hasattr(tenant, 'expires') and tenant.expires is not None:
+            continue
+
+        if hasattr(tenant, 'expires') and tenant.expires is not None:
             # Convert expires string to datetime object for comparison
-            expires = datetime.strptime(tenant.expires, dateformat)
+            expires = datetime.strptime(tenant.expires, EXPIRY_DATE_FORMAT)
             if expires <= datetime.today():
-                print tenant.id, 'tenant expired...'
-                set_status(kc, user.tenantId, 'suspended')
-                set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
-                instances = get_instances(nc, tenant.id)
-                print "\t%d instance%s found" % (len(instances), "s"[len(instances) == 1:])
-                if instances:
-                    for instance in instances:
-                        suspend_instance(instance)
-                        lock_instance(instance)
+                suspend_tenant(kc, nc, user, tenant)
+                continue
             else:
                 print tenant.id, 'will expire on', tenant.expires
-        elif cpu_hours < limit*0.8:
+
+        if cpu_hours < limit*0.8:
             print tenant.id, 'tenant is under 80%'
-        elif cpu_hours <= limit:
-            print tenant.id, 'tenant is over 80% - setting status to first'
-            if tenant.status != 'first':
-                send_email(user.email, tenant.name, 'first')
-                set_status(kc, user.tenantId, 'first')
-        elif cpu_hours <= limit*1.2:
-            print tenant.id, 'tenant is over 100% - setting status to second'
-            if tenant.status != 'second':
-                send_email(user.email, tenant.name, 'second')
-                set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
-                set_status(kc, user.tenantId, 'second')
-        elif cpu_hours > limit*1.2:
-            print tenant.id, 'tenant is over 120% - setting status to final'
-            if tenant.status != 'final':
-                send_email(user.email, tenant.name, 'final')
-                set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
-                set_status(kc, user.tenantId, 'final', new_expiry)
+            pass
+        elif cpu_hours < limit:
+            notify_80(kc, user, tenant)
+        elif cpu_hours < limit*1.2:
+            notify_100(kc, nc, user, tenant)
+        elif cpu_hours >= limit*1.2:
+            notify_120(kc, nc, user, tenant)
 
     print '\nProcessed', tenants, 'tenants.', \
         suspended, 'suspended.', errors, '404s'
 
 
-def get_instances(nc, tenant_id):
+def notify_80(kc, user, tenant):
+    print tenant.id, 'tenant is over 80% - setting status to first'
+    if tenant.status != 'first':
+        send_email(user.email, tenant.name, 'first')
+        set_status(kc, user.tenantId, 'first')
 
+
+def notify_100(kc, nc, user, tenant):
+    print tenant.id, 'tenant is over 100% - setting status to second'
+    if tenant.status != 'second':
+        send_email(user.email, tenant.name, 'second')
+        set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
+        set_status(kc, user.tenantId, 'second')
+
+
+def notify_120(kc, nc, user, tenant):
+    print tenant.id, 'tenant is over 120% - setting status to final'
+    if tenant.status != 'final':
+        send_email(user.email, tenant.name, 'final')
+        set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
+        new_expiry = datetime.today() + relativedelta(months=1)
+        new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)  # string
+        set_status(kc, user.tenantId, 'final', new_expiry)
+
+
+def suspend_tenant(kc, nc, user, tenant):
+    print tenant.id, 'tenant expired...'
+    set_status(kc, user.tenantId, 'suspended')
+    set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
+    instances = get_instances(nc, tenant.id)
+    print "\t%d instance%s found" % (len(instances), "s"[len(instances) == 1:])
+    for instance in instances:
+        suspend_instance(instance)
+        lock_instance(instance)
+
+
+def get_instances(nc, tenant_id):
     search_opts = {'tenant_id': tenant_id, 'all_tenants': 1}
     instances = nc.servers.list(search_opts=search_opts)
     return instances
@@ -254,24 +277,24 @@ def render_template(tenantname, status):
     return template
 
 
-def send_email(recepient, tenantname, status):
+def send_email(recipient, tenantname, status):
 
     from email.mime.text import MIMEText
     msg = MIMEText(render_template(tenantname, status))
 
     msg['From'] = 'NeCTAR Research Cloud <bounces@rc.nectar.org.au>'
-    msg['To'] = recepient
+    msg['To'] = recipient
     msg['Reply-to'] = 'support@rc.nectar.org.au'
     msg['Subject'] = 'NeCTAR project upcoming expiry - %s' % tenantname
 
     s = smtplib.SMTP('smtp.unimelb.edu.au')
 
     if DRY_RUN:
-        print "would send email to %s (dry run)" % recepient
+        print "would send email to %s (dry run)" % recipient
     else:
-        print 'Sending an email to', recepient
+        print 'Sending an email to', recipient
         try:
-            s.sendmail(msg['From'], [recepient], msg.as_string())
+            s.sendmail(msg['From'], [recipient], msg.as_string())
         except smtplib.SMTPRecipientsRefused as err:
             print_stderr(str(err))
         finally:

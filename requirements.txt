@@ -1,0 +1,5 @@
+python-keystoneclient
+python-novaclient
+python-glanceclient
+python-cinderclient
+jinja2
