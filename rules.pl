@@ -3,22 +3,27 @@
 sum_list([], 0).
 sum_list([H | Rest], Sum) :- sum_list(Rest,Tmp), Sum is H + Tmp.
 
-add_category_min_score(In, Category, Min,  P) :-
-  gerrit:commit_author(A),
-  findall(X, gerrit:commit_label(label(Category,X),R),Y),
-  findall(X, gerrit:commit_label(label(Category,X),A),Z),
-  sum_list(Y, Total_sum),
-  sum_list(Z, Author_sum),
-  Sum is Total_sum - Author_sum,
-  Sum >= Min, !,
-  P = [label(Category, ok(R)) | In].
+first_list([], _).
+first_list([F], F).
+first_list([F | Rest], F).
 
-add_category_min_score(In, Category,Min,P) :-
-  P = [label(Category,need(Min)) | In].
+score(Category, Score, User) :-
+  gerrit:commit_label(label(Category, Score), User).
+
+add_category_min_score(In, Category, Min,  P) :-
+  findall(Score, score(Category, Score, User), Scores),
+  findall(User, score(Category, Score, User), Users),
+  sum_list(Scores, Sum),
+  Sum >= Min, !,
+  first_list(Users, FirstUser),
+  P = [label(Category, ok(FirstUser)) | In].
+
+add_category_min_score(In, Category, Min, P) :-
+  P = [label(Category, need(Min)) | In].
 
 submit_rule(S) :-
   gerrit:default_submit(X),
   X =.. [submit | Ls],
-  gerrit:remove_label(Ls,label('Code-Review',_),NoCR),
-  add_category_min_score(NoCR,'Code-Review', 2, Labels),
+  gerrit:remove_label(Ls, label('Code-Review', _), NoCR),
+  add_category_min_score(NoCR, 'Code-Review', 2, Labels),
   S =.. [submit | Labels].
