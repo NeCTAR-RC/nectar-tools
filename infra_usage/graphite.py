@@ -151,7 +151,7 @@ def main(sender):
     kclient = createKeystoneConnection(username, key, tenant_name, url)
     users = {}
     for user in kclient.users.list():
-        if not user.email:
+        if getattr(email, 'email', None):
             users[user.id] = None
             continue
         email = user.email.split('@')[-1]
