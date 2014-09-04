@@ -3,7 +3,8 @@
 import os
 import sys
 import argparse
-from keystoneclient.v2_0 import client as keystone_client
+from keystoneclient.v2_0 import client as ks_client
+from keystoneclient import exceptions as ks_exceptions
 
 # Get authentication details from environment
 AUTH_USER = os.environ.get('OS_USERNAME', None)
@@ -21,20 +22,29 @@ def main():
             return sys.exit(1)
 
     args = get_args()
-    name = args.t
+    tenant = None
 
-    print name
+    ksclient = ks_client.Client(username=AUTH_USER,
+                                password=AUTH_PASSWORD,
+                                tenant_name=AUTH_TENANT_NAME,
+                                auth_url=AUTH_URL)
+
+    try:
+        tenant = ksclient.tenants.get(tenant_id=args.tenant)
+    except ks_exceptions.NotFound:
+        try:
+            tenant = ksclient.tenants.find(name=args.tenant)
+        except ks_exceptions.NotFound:
+            if tenant is None:
+                print "Tenant not found."
+                sys.exit(1)
+
+    print "Tenant name: %s" % tenant.name
+    print "Tenant ID:   %s" % tenant.id
     print "==============="
-
-    ksclient = keystone_client.Client(username=AUTH_USER,
-                                      password=AUTH_PASSWORD,
-                                      tenant_name=AUTH_TENANT_NAME,
-                                      auth_url=AUTH_URL)
-
-    manager_role = ksclient.roles.find(name='TenantManager')
-    tenant = ksclient.tenants.find(name=name)
     tenant_managers = []
     members = []
+    manager_role = ksclient.roles.find(name='TenantManager')
     for user in tenant.list_users():
         if manager_role in user.list_roles(tenant=tenant):
             tenant_managers.append(user)
@@ -62,9 +72,9 @@ def main():
 
 def get_args():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    parser.add_argument('-t', '-tenant_name', action='store',
-                        required=True, help='Tenant Name')
-
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-t', '--tenant', action='store',
+                       help='Tenant Name or ID')
     return parser.parse_args()
 
 if __name__ == '__main__':
