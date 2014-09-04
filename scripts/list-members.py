@@ -21,10 +21,18 @@ def main():
             return sys.exit(1)
 
     args = get_args()
-    name = args.t
 
-    print name
-    print "==============="
+    tenant_name = tenant_id = None
+
+    if 'tn' in args:
+        tenant_name = args.tn
+        print tenant_name
+        print "==============="
+
+    if 'ti' in args:
+        tenant_id = args.ti
+        print tenant_id
+        print "==============="
 
     ksclient = keystone_client.Client(username=AUTH_USER,
                                       password=AUTH_PASSWORD,
@@ -32,7 +40,10 @@ def main():
                                       auth_url=AUTH_URL)
 
     manager_role = ksclient.roles.find(name='TenantManager')
-    tenant = ksclient.tenants.find(name=name)
+    if tenant_name is not None:
+        tenant = ksclient.tenants.find(name=tenant_name)
+    if tenant_id is not None:
+        tenant = ksclient.tenants.find(id=tenant_id)
     tenant_managers = []
     members = []
     for user in tenant.list_users():
@@ -62,9 +73,11 @@ def main():
 
 def get_args():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    parser.add_argument('-t', '-tenant_name', action='store',
-                        required=True, help='Tenant Name')
-
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-tn', '-tenant-name', action='store',
+                       help='Tenant Name')
+    group.add_argument('-ti', '-tenant-id', action='store',
+                       help='Tenant ID')
     return parser.parse_args()
 
 if __name__ == '__main__':
