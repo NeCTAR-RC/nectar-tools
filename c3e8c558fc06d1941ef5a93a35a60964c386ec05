@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7af0899e_b140ba36",
+        "filename": "scripts/list-members.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-09-05T05:59:40Z",
+      "side": 1,
+      "message": "So another option instead of passing these in separately is to just take a single arg that can be name or id. Try tenants.get(name_or_id) first and if that raises NotFound then do tenants.find(name\u003dname_or_id)\n\nThat\u0027s what keystoneclient CLI does.",
+      "range": {
+        "startLine": 28,
+        "startChar": 18,
+        "endLine": 28,
+        "endChar": 25
+      },
+      "revId": "c3e8c558fc06d1941ef5a93a35a60964c386ec05",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7af0899e_f13362f4",
+        "filename": "scripts/list-members.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-09-05T05:59:40Z",
+      "side": 1,
+      "message": "double-dash for a long arg?\n\nthe arg.tenant_name above won\u0027t work otherwise.",
+      "range": {
+        "startLine": 79,
+        "startChar": 39,
+        "endLine": 79,
+        "endChar": 43
+      },
+      "revId": "c3e8c558fc06d1941ef5a93a35a60964c386ec05",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7af0899e_d130e6ea",
+        "filename": "scripts/list-members.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-09-05T05:59:40Z",
+      "side": 1,
+      "message": "\u0027\u0027",
+      "range": {
+        "startLine": 81,
+        "startChar": 32,
+        "endLine": 81,
+        "endChar": 38
+      },
+      "revId": "c3e8c558fc06d1941ef5a93a35a60964c386ec05",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
