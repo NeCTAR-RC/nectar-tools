@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7af0899e_4ebbb372",
+        "filename": "scripts/list-members.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-09-05T03:28:34Z",
+      "side": 1,
+      "message": "This bit where we print name and ID should be removed",
+      "revId": "79bc7d72b7dba23e0ea13d0162ce0ab5cd28d0b6",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7af0899e_aeafb72a",
+        "filename": "scripts/list-members.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-09-05T03:28:34Z",
+      "side": 1,
+      "message": "Now that we have the tenant object just do a \n\nprint tenant.name\nprint tenant.id",
+      "revId": "79bc7d72b7dba23e0ea13d0162ce0ab5cd28d0b6",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
