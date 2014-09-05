@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7af0899e_510eb635",
+        "filename": "scripts/list-members.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-09-05T05:20:25Z",
+      "side": 1,
+      "message": "what\u0027s a tn?",
+      "range": {
+        "startLine": 28,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 20
+      },
+      "revId": "4a080057ac0be7c05b8162e5e4b7c8d872f222e9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7af0899e_b1127a56",
+        "filename": "scripts/list-members.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-09-05T05:20:25Z",
+      "side": 1,
+      "message": "what\u0027s a ti?",
+      "range": {
+        "startLine": 31,
+        "startChar": 15,
+        "endLine": 31,
+        "endChar": 19
+      },
+      "revId": "4a080057ac0be7c05b8162e5e4b7c8d872f222e9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "7af0899e_910f7e2e",
+        "filename": "scripts/list-members.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-09-05T05:20:25Z",
+      "side": 1,
+      "message": "You can simplify the above by doing:\n\n    tenant_name \u003d getattr(args, \u0027tenant_name\u0027, None)\n    tenant_id \u003d getattr(args, \u0027tenant_id\u0027, None)",
+      "range": {
+        "startLine": 32,
+        "startChar": 8,
+        "endLine": 32,
+        "endChar": 17
+      },
+      "revId": "4a080057ac0be7c05b8162e5e4b7c8d872f222e9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
