@@ -18,6 +18,17 @@ from jinja2 import Environment, FileSystemLoader
 email_pattern = re.compile('([\w\-\.\']+@(\w[\w\-]+\.)+[\w\-]+)')
 global tenant_data, user_data, total, smtp_server
 
+# useful for filtering instance listing
+zones_ip_regexp = \
+    {
+        'melbourne': '115.146.*',
+        'monash-01': '118.138.*',
+        'qld': '130.102.*',
+        'sa': '130.220.*',
+        'nci': '130.56.*',
+        'tas': '144.6.*',
+    }
+
 
 def collect_args():
 
@@ -31,6 +42,9 @@ def collect_args():
     parser.add_argument('-z', '--target-zone',
                         required=True,
                         help='Specify availability zone to notify')
+    parser.add_argument('-o', '--only-affected', action='store_true',
+                        default=False,
+                        help='Only mail users with affected instances')
     parser.add_argument('-t', '--test', action='store_true',
                         help='Use test data instead of all keystone tenants')
     parser.add_argument('-p', '--smtp_server',
@@ -46,7 +60,7 @@ def collect_args():
     return parser
 
 
-def mailout(user_id, user, zone, dry_run):
+def mailout(user_id, user, zone, dry_run, only_affected):
 
     instances = user['instances']
     email = user['email']
@@ -63,19 +77,24 @@ def mailout(user_id, user, zone, dry_run):
         for server in servers:
             affected_instances += 1
 
+    if only_affected and affected_instances == 0:
+        print 'User %s: user not affected, not sending email => %s' % (name,
+            email)
+        return False
+    
     text, html = render_templates(subject, instances, zone, affected)
 
     if not enabled:
         print 'User %s: user disabled, not sending email => %s' % (name, email)
-        return
+        return False
 
     if email is None:
         print 'User %s: no email address' % name
-        return
+        return False
 
     if email_pattern.match(email) is None:
         print 'User %s: invalid email address => %s' % (name, email)
-        return
+        return False
 
     msg = 'User %s: sending email to %s => %s instances affected' % \
         (name, email, affected_instances)
@@ -86,6 +105,7 @@ def mailout(user_id, user, zone, dry_run):
         print msg
         sys.stdout.flush()
         send_email(email, subject, text, html)
+    return True
 
 
 def render_templates(subject, instances, zone, affected):
@@ -164,12 +184,14 @@ def get_nova_client():
     return nc
 
 
-def all_servers(client):
+def all_servers(client, zone=None):
     servers = []
     marker = None
 
     while True:
         opts = {'all_tenants': True}
+        if zone is not None and zone in zones_ip_regexp.keys():
+            opts['ip'] = zones_ip_regexp[zone]
         if marker:
             opts['marker'] = marker
         res = client.servers.list(search_opts=opts)
@@ -180,9 +202,9 @@ def all_servers(client):
     return servers
 
 
-def get_data(kc, nc):
+def get_data(kc, nc, zone):
 
-    instances = all_servers(nc)
+    instances = all_servers(nc, zone)
     tenants = kc.tenants.list()
 
     populate_instances(instances)
@@ -309,7 +331,7 @@ if __name__ == '__main__':
     if args.test:
         get_test_data(kc, nc)
     else:
-        get_data(kc, nc)
+        get_data(kc, nc, zone)
 
     proceed = False
 
@@ -321,7 +343,10 @@ if __name__ == '__main__':
         else:
             populate_users(tenant, data, zone)
 
+    sent = 0
     for uid, user in user_data.iteritems():
-        mailout(uid, user, zone, args.no_dry_run)
+        if mailout(uid, user, zone, args.no_dry_run, args.only_affected):
+            sent += 1
 
     print 'Total instances affected in %s zone: %s' % (zone, total)
+    print 'Sent %s notifications' % sent
