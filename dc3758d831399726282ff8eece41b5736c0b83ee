@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7af0899e_773be2eb",
+        "filename": "announce/outage.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-09-22T01:15:58Z",
+      "side": 1,
+      "message": "Jenkins could be complaining about this whitespace? I can log in but can\u0027t see any build output...",
+      "revId": "dc3758d831399726282ff8eece41b5736c0b83ee",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
