@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3afa9182_72cad0a2",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-09-26T03:46:26Z",
+      "side": 1,
+      "message": "This looks like just duplication? See below.",
+      "revId": "c0ae238b9d0529a9efffbdf5d334ed96bee02ca9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3afa9182_32d04853",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-09-26T03:46:26Z",
+      "side": 1,
+      "message": "If the above is just duplication, we only need \"if only_affected and affected\"",
+      "revId": "c0ae238b9d0529a9efffbdf5d334ed96bee02ca9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3afa9182_12d54c43",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-09-26T03:46:26Z",
+      "side": 1,
+      "message": "Because we already do the counting down here. Maybe just add the affected_instances into the variable below:\n\nuser[\u0027affected_instances\u0027] \u003d affected_instances",
+      "revId": "c0ae238b9d0529a9efffbdf5d334ed96bee02ca9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
