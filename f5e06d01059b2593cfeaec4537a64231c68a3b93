@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3afa9182_40889e22",
+        "filename": "scripts/update_expiry.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2014-10-02T04:26:30Z",
+      "side": 1,
+      "message": "Should we be filtering out disabled tenants here?",
+      "range": {
+        "startLine": 57,
+        "startChar": 33,
+        "endLine": 57,
+        "endChar": 35
+      },
+      "revId": "f5e06d01059b2593cfeaec4537a64231c68a3b93",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
