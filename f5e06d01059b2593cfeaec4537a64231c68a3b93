@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "3afa9182_1b944736",
+        "filename": "requirements.txt",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-10-03T05:02:57Z",
+      "side": 1,
+      "message": "python-dateutil",
+      "revId": "f5e06d01059b2593cfeaec4537a64231c68a3b93",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3afa9182_40889e22",
         "filename": "scripts/update_expiry.py",
         "patchSetId": 2
@@ -18,6 +35,29 @@
         "startChar": 33,
         "endLine": 57,
         "endChar": 35
+      },
+      "revId": "f5e06d01059b2593cfeaec4537a64231c68a3b93",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3afa9182_9b78372d",
+        "filename": "scripts/update_expiry.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-10-03T05:02:57Z",
+      "side": 1,
+      "message": "set_defaults?",
+      "range": {
+        "startLine": 162,
+        "startChar": 4,
+        "endLine": 162,
+        "endChar": 7
       },
       "revId": "f5e06d01059b2593cfeaec4537a64231c68a3b93",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
