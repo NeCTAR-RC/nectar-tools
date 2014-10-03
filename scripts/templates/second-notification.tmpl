@@ -5,15 +5,22 @@ We hope that you have found the NeCTAR Research Cloud (NRC) helpful in your rese
 
 Projects on the NRC are created for a fixed term to ensure fair access to resources for all users of the cloud.
 
-This is a heads up on your trial project, {{ project_name }}, is over 100% (3 months cloud usage).
-Our system will now set your project's quota to 0.
-The instances within the project will remain active, however you won't be able
-to launch any new instances.
+Trial projects are given a time-based quota equivalent to running two
+CPU cores for three months (approximately 4000 core-hours).
 
-If you reach 120%, our system will shut down and archive any instances in this
-trial project releasing the resources for other users of the cloud. The archived
-instances will be safely stored, and will remain available to you for 3 months
-from the date when the project was closed.
+Your trial project, {{ project.name }}, has reached 100% of allowed cloud usage.
+
+Our system has now set your project's instance and core quota to 0.
+Any instances within the project will remain active,
+but you won't be able to launch any new instances.
+
+In one month, on {{ project.expires }}, our system will shut down and
+archive any instances in this trial project (including suspended and
+stopped instances), releasing the resources
+for other users of the cloud. The archived
+instances will be safely stored, and will
+remain available to you for 3 months
+from the date they were shut down.
 
 If you wish to continue using the NRC for your research please submit an
 allocation request; see http://support.rc.nectar.org.au/docs/allocations for

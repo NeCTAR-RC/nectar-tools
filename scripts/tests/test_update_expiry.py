@@ -22,6 +22,7 @@ pytest_mock_fixtures = [
     'scripts.update_expiry.lock_instance',
     'scripts.update_expiry.suspend_instance',
     'scripts.update_expiry.get_instances',
+    'scripts.update_expiry.do_email_send',
 ]
 
 
@@ -31,6 +32,7 @@ def user():
         username = 'user@thecloud.com'
         tenantId = 1
         email = 'user@thecloud.com'
+        enabled = True
     return User()
 
 
@@ -239,3 +241,24 @@ def test_suspend_tenant(nova, keystone, tenant, now,
     set_status.assert_called_with(keystone, tenant.id, 'suspended',
                                   new_expires)
     send_email.assert_called_with(tenant, 'final')
+
+
+@pytest.mark.parametrize("status", ['first', 'second', 'final'])
+def test_render_template(tenant, status, do_email_send):
+    tenant.expires = '2014-01-01'
+    update_expiry.send_email(tenant, status)
+
+    assert do_email_send.called
+    args = do_email_send.call_args[0]
+    subject, body, to = args
+    assert to == tenant.owner.email
+    assert tenant.name in subject
+    assert tenant.name in body
+    if status == 'second':
+        assert tenant.expires in body
+
+
+def test_disabled_user_doesnt_get_emailed(tenant, do_email_send):
+    tenant.owner.enabled = False
+    update_expiry.send_email(tenant, 'first')
+    assert not do_email_send.called
