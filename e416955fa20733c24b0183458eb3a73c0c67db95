@@ -91,6 +91,30 @@
       "revId": "e416955fa20733c24b0183458eb3a73c0c67db95",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3afa9182_26bf6ad2",
+        "filename": "scripts/tests/test_update_expiry.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-10-03T07:35:17Z",
+      "side": 1,
+      "message": "the actual template used is irrelevant since it shouldn\u0027t get that far",
+      "parentUuid": "3afa9182_a6e35a04",
+      "range": {
+        "startLine": 263,
+        "startChar": 37,
+        "endLine": 263,
+        "endChar": 45
+      },
+      "revId": "e416955fa20733c24b0183458eb3a73c0c67db95",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
