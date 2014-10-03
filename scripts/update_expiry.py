@@ -341,7 +341,7 @@ def set_status(kc, tenant_id, status, expires=''):
         kc.tenants.update(tenant_id, status=status, expires=expires)
 
 
-def render_template(tenantname, status):
+def render_template(tenant, status):
 
     tmpl = ''
     if status == 'first':
@@ -360,29 +360,36 @@ def render_template(tenantname, status):
                   'Make sure status is correct.' % tmpl)
         return None
 
-    template = template.render({'project_name': tenantname})
+    template = template.render({'project': tenant, 'user': tenant.owner})
     return template
 
 
 def send_email(tenant, status):
-    tenantname = tenant.name
-    assert tenant.owner is not None
     recipient = tenant.owner.email
+    if not tenant.owner.enabled:
+        LOG.warning('User %s is disabled. Not sending email.', recipient)
+        return
 
-    from email.mime.text import MIMEText
-    text = render_template(tenantname, status)
+    text = render_template(tenant, status)
     if text is None:
         return
-    msg = MIMEText(text)
 
+    LOG.info('\tSending an email to %s', recipient)
+
+    subject = 'NeCTAR project upcoming expiry - %s' % tenant.name
+    do_email_send(subject, text, recipient)
+
+
+def do_email_send(subject, text, recipient):
+    from email.mime.text import MIMEText
+    msg = MIMEText(text)
     msg['From'] = 'NeCTAR Research Cloud <bounces@rc.nectar.org.au>'
     msg['To'] = recipient
     msg['Reply-to'] = 'support@rc.nectar.org.au'
-    msg['Subject'] = 'NeCTAR project upcoming expiry - %s' % tenantname
+    msg['Subject'] = subject
 
     s = smtplib.SMTP('smtp.unimelb.edu.au')
 
-    LOG.info('\tSending an email to %s', recipient)
     LOG.debug('%s', msg.as_string())
     if not DRY_RUN:
         try:
