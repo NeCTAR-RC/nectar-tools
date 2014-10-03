@@ -62,9 +62,6 @@ def main():
             tenants = [t for t in tenants if t.id in wanted_tenants]
     tenants.sort(key=lambda t: t.name.split('-')[-1].zfill(5))
 
-    if args.zone:
-        tenants = filter_tenants_by_instances_zone(nc, tenants, args.zone)
-
     if args.set_admin:
         if not args.filename and not args.tenant_id:
             parser.error("Can't specify set admin without list of tenants.")
@@ -83,7 +80,7 @@ def main():
         if args.status:
             print_status(tenants)
         else:
-            process_tenants(kc, nc, tenants, users)
+            process_tenants(kc, nc, tenants, users, args.zone, args.limit)
 
 
 def print_status(tenants):
@@ -107,6 +104,10 @@ def collect_args():
     parser.add_argument('-f', '--filename',
                         type=argparse.FileType('r'),
                         help='File path with a list of tenants')
+    parser.add_argument('-l', '--limit',
+                        type=int,
+                        default=0,
+                        help='Only process this many eligible tenants.')
     parser.add_argument('-t', '--tenant-id',
                         help='Tenant ID to process')
     parser.add_argument('-c', '--config',
@@ -137,28 +138,37 @@ def link_tenants_to_users(tenants, users):
                 LOG.debug("Found orphan user with no tenant: %s", user.email)
 
 
-def filter_tenants_by_instances_zone(nc, tenants, node_prefix):
+def tenant_instances_are_all_in_zone(nc, tenant, zone_prefix):
     def is_in_target_az(instance):
         az = instance.to_dict().get('OS-EXT-AZ:availability_zone') or ''
-        return az.startswith(node_prefix)
+        return az.startswith(zone_prefix)
 
-    tenants_out = []
-    for tenant in tenants:
+    try:
         instances = get_instances(nc, tenant.id)
-        if instances and all(map(is_in_target_az, instances)):
-            tenants_out.append(tenant)
-    return tenants_out
+    except Exception:
+        LOG.exception('Nova list instances failed')
+        return False
+    return instances and all(map(is_in_target_az, instances))
 
 
-def process_tenants(kc, nc, tenants, users):
+
+
+def process_tenants(kc, nc, tenants, users, zone, limit=0):
     """Update tenant start and expiry dates in Keystone DB"""
+    processed = 0
     for tenant in tenants:
         fix_tenant_object(tenant)
         if should_process_tenant(tenant):
+            if zone and not tenant_instances_are_all_in_zone(nc, tenant, zone):
+                continue
+
             try:
                 process_tenant(kc, nc, tenant)
+                processed += 1
             except Exception as e:
                 LOG.error('Failed processing tenant %s: %s', tenant.id, str(e))
+            if limit > 0 and processed == limit:
+                break
 
 
 def fix_tenant_object(tenant):
