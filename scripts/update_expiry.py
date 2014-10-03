@@ -418,13 +418,10 @@ def read_csv(filename=False):
     return list(reader)
 
 
-def set_admin(kc, tenant_ids):
-    """Set status to admin for specified list of tenants"""
-
-    for tenant_id in tenant_ids:
-        tenant_id = tenant_id[0]
-        tenant = kc.tenants.get(tenant_id)
-
+def set_admin(kc, tenants):
+    """Set status to admin for specified list of tenants.
+    """
+    for tenant in tenants:
         if hasattr(tenant, 'status') and tenant.status == 'admin':
             print tenant.id, "- tenant is already admin"
         else:
