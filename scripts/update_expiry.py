@@ -1,19 +1,21 @@
 #!/usr/bin/env python
 
-import logging
-import os
-import re
 import argparse
 import auth
 import csv
-import smtplib
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from email.mime.text import MIMEText
+import logging
+import os
+import re
+import smtplib
 
+from enum import Enum
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
-from enum import Enum
 import prettytable
+
 
 DRY_RUN = True
 USAGE_LIMIT_HOURS = 4383  # 6 months in hours
@@ -382,7 +384,6 @@ def send_email(tenant, status):
 
 
 def do_email_send(subject, text, recipient):
-    from email.mime.text import MIMEText
     msg = MIMEText(text)
     msg['From'] = 'NeCTAR Research Cloud <bounces@rc.nectar.org.au>'
     msg['To'] = recipient
