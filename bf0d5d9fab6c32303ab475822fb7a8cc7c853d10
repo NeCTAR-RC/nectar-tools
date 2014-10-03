@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3afa9182_066cee9b",
+        "filename": "scripts/update_expiry.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-10-03T07:34:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3afa9182_46d0b653",
+      "range": {
+        "startLine": 74,
+        "startChar": 35,
+        "endLine": 74,
+        "endChar": 40
+      },
+      "revId": "bf0d5d9fab6c32303ab475822fb7a8cc7c853d10",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3afa9182_26d5aa43",
         "filename": "scripts/update_expiry.py",
         "patchSetId": 3
@@ -59,6 +83,30 @@
       "writtenOn": "2014-10-03T07:12:23Z",
       "side": 1,
       "message": "retarded comment",
+      "range": {
+        "startLine": 262,
+        "startChar": 60,
+        "endLine": 262,
+        "endChar": 69
+      },
+      "revId": "bf0d5d9fab6c32303ab475822fb7a8cc7c853d10",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3afa9182_86261e67",
+        "filename": "scripts/update_expiry.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-10-03T07:34:47Z",
+      "side": 1,
+      "message": "# review comment",
+      "parentUuid": "3afa9182_86ca9e9f",
       "range": {
         "startLine": 262,
         "startChar": 60,
