@@ -265,8 +265,7 @@ def notify_at_limit(kc, nc, tenant):
         LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
         LOG.info('\tUsage is over 100% - setting status to '
                  '"pending suspension"')
-        if tenant.status == 'quota warning':
-            set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
+        set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
         new_expiry = datetime.today() + relativedelta(months=1)
         new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
         set_status(kc, tenant, 'pending suspension', new_expiry)

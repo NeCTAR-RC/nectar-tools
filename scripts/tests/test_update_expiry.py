@@ -164,22 +164,6 @@ def test_first_warning_for_near_limit(tenant, keystone, nova, now,
     assert not suspend_tenant.called
 
 
-def test_first_warning_is_at_over_limit(tenant, keystone, nova, now,
-                                        suspend_tenant, check_cpu_usage,
-                                        set_status, set_nova_quota):
-    """Don't set quotas to 0 if this is the user's first warning.
-        The tenant will still expire as normal.
-    """
-    check_cpu_usage.return_value = CPULimit.OVER_LIMIT
-    with freeze_time(now):
-        update_expiry.process_tenant(keystone, nova, tenant)
-    expires = '2014-02-01'
-    set_status.assert_called_with(keystone, tenant,
-                                  'pending suspension', expires)
-    assert not set_nova_quota.called
-    assert not suspend_tenant.called
-
-
 def test_second_warning_for_over_limit(tenant, keystone, nova, now,
                                        suspend_tenant, check_cpu_usage,
                                        set_status, set_nova_quota):
