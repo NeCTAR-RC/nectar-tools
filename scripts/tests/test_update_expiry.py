@@ -158,7 +158,7 @@ def test_first_warning_for_near_limit(tenant, keystone, nova, now,
     check_cpu_usage.return_value = CPULimit.NEAR_LIMIT
     with freeze_time(now):
         update_expiry.process_tenant(keystone, nova, tenant)
-    set_status.assert_called_with(keystone, tenant.id,
+    set_status.assert_called_with(keystone, tenant,
                                   'quota warning')
     send_email.assert_called_with(tenant, 'first')
     assert not suspend_tenant.called
@@ -174,7 +174,7 @@ def test_first_warning_is_at_over_limit(tenant, keystone, nova, now,
     with freeze_time(now):
         update_expiry.process_tenant(keystone, nova, tenant)
     expires = '2014-02-01'
-    set_status.assert_called_with(keystone, tenant.id,
+    set_status.assert_called_with(keystone, tenant,
                                   'pending suspension', expires)
     assert not set_nova_quota.called
     assert not suspend_tenant.called
@@ -188,7 +188,7 @@ def test_second_warning_for_over_limit(tenant, keystone, nova, now,
     with freeze_time(now):
         update_expiry.process_tenant(keystone, nova, tenant)
     expires = '2014-02-01'
-    set_status.assert_called_with(keystone, tenant.id,
+    set_status.assert_called_with(keystone, tenant,
                                   'pending suspension', expires)
     set_nova_quota.assert_called_with(nova, tenant.id,
                                       ram=0, instances=0, cores=0)
@@ -238,7 +238,7 @@ def test_suspend_tenant(nova, keystone, tenant, now,
     calls = [mock.call(instance) for instance in instances]
     suspend_instance.assert_has_calls(calls)
     lock_instance.assert_has_calls(calls)
-    set_status.assert_called_with(keystone, tenant.id, 'suspended',
+    set_status.assert_called_with(keystone, tenant, 'suspended',
                                   new_expires)
     send_email.assert_called_with(tenant, 'final')
 
@@ -262,3 +262,12 @@ def test_disabled_user_doesnt_get_emailed(tenant, do_email_send):
     tenant.owner.enabled = False
     update_expiry.send_email(tenant, 'first')
     assert not do_email_send.called
+
+
+def test_set_status(keystone, tenant):
+    status = 'suspended'
+    expires = '2014-01-01'
+    update_expiry.set_status(keystone, tenant,
+                             status=status, expires=expires)
+    assert tenant.status == status
+    assert tenant.expires == expires

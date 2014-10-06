@@ -257,7 +257,7 @@ def notify_near_limit(kc, nc, tenant):
         LOG.info('\tUsage is over 80% - setting status '
                  'to "quota warning"')
         send_email(tenant, 'first')
-        set_status(kc, tenant.id, 'quota warning')
+        set_status(kc, tenant, 'quota warning')
 
 
 def notify_at_limit(kc, nc, tenant):
@@ -269,7 +269,7 @@ def notify_at_limit(kc, nc, tenant):
             set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
         new_expiry = datetime.today() + relativedelta(months=1)
         new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
-        set_status(kc, tenant.id, 'pending suspension', new_expiry)
+        set_status(kc, tenant, 'pending suspension', new_expiry)
         send_email(tenant, 'second')
 
 
@@ -292,7 +292,7 @@ def suspend_tenant(kc, nc, tenant):
         lock_instance(instance)
     new_expiry = datetime.today() + relativedelta(months=1)
     new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
-    set_status(kc, tenant.id, 'suspended', new_expiry)
+    set_status(kc, tenant, 'suspended', new_expiry)
     send_email(tenant, 'final')
 
 
@@ -335,7 +335,7 @@ def set_nova_quota(nc, tenant_id, cores, instances, ram):
                          force=True)
 
 
-def set_status(kc, tenant_id, status, expires=''):
+def set_status(kc, tenant, status, expires=''):
 
     if DRY_RUN:
         if status is None:
@@ -347,7 +347,9 @@ def set_status(kc, tenant_id, status, expires=''):
             LOG.info("\tsetting empty status")
         else:
             LOG.info("\tsetting status to %s", status)
-        kc.tenants.update(tenant_id, status=status, expires=expires)
+        kc.tenants.update(tenant.id, status=status, expires=expires)
+    tenant.status = status
+    tenant.expires = expires
 
 
 def render_template(tenant, status):
