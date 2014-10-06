@@ -386,7 +386,7 @@ def send_email(tenant, status):
 
     LOG.info('\tSending an email to %s', recipient)
 
-    subject = 'NeCTAR project upcoming expiry - %s' % tenant.name
+    subject, text = text.split('----', 1)
     do_email_send(subject, text, recipient)
 
 
