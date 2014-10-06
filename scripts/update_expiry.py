@@ -135,8 +135,6 @@ def link_tenants_to_users(tenants, users):
         if tenant_id:
             if tenant_id in tenants_dict:
                 tenants_dict[tenant_id].owner = user
-            else:
-                LOG.debug("Found orphan user with no tenant: %s", user.email)
 
 
 def tenant_instances_are_all_in_zone(nc, tenant, zone_prefix):
