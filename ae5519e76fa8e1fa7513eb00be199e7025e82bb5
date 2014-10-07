@@ -70,6 +70,30 @@
       "revId": "ae5519e76fa8e1fa7513eb00be199e7025e82bb5",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3afa9182_81fe086a",
+        "filename": "scripts/update_expiry.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2014-10-07T03:03:13Z",
+      "side": 1,
+      "message": "Whenever this function is called. status shouldn\u0027t ever be none now, that\u0027s a hangover from the old pre-kieran code. I\u0027ll fix that up in another commit.",
+      "parentUuid": "3afa9182_a1cd0460",
+      "range": {
+        "startLine": 351,
+        "startChar": 0,
+        "endLine": 352,
+        "endChar": 28
+      },
+      "revId": "ae5519e76fa8e1fa7513eb00be199e7025e82bb5",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
