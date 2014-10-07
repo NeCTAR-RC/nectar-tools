@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3afa9182_21bbd4c5",
+        "filename": "scripts/update_expiry.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-10-07T01:09:17Z",
+      "side": 0,
+      "message": "surely if this was outdented it would be valid? assuming that all system accounts still have a tenant",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 77
+      },
+      "revId": "82d5e419f230ec1945e8970bb2d9dbcce6396a63",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
