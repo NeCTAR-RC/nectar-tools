@@ -195,6 +195,11 @@ def is_ignored_tenant(tenant):
     elif status == 'admin':
         LOG.debug('%s tenant is admin. Will never expire', tenant.id)
         return True
+    elif status.startswith('rt-'):
+        url = ('https://support.rc.nectar.org.au'
+               '/rt/Ticket/Display.html?id=%s') % status.rsplit('-', 1)[1]
+        LOG.debug('%s tenant ignored. See %s', tenant.id, url)
+        return True
     return False
 
 
