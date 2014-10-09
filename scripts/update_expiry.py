@@ -160,8 +160,9 @@ def process_tenants(kc, nc, tenants, users, zone, limit=0):
                 continue
 
             try:
-                process_tenant(kc, nc, tenant)
-                processed += 1
+                did_something = process_tenant(kc, nc, tenant)
+                if did_something:
+                    processed += 1
             except Exception as e:
                 LOG.error('Failed processing tenant %s: %s', tenant.id, str(e))
             if limit > 0 and processed == limit:
@@ -252,34 +253,43 @@ def notify(kc, nc, tenant, event):
 
 
 def notify_near_limit(kc, nc, tenant):
-    if tenant.status != 'quota warning':
-        LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
-        LOG.info('\tUsage is over 80% - setting status '
-                 'to "quota warning"')
-        send_email(tenant, 'first')
-        set_status(kc, tenant, 'quota warning')
+    if tenant.status == 'quota warning':
+        return False
+
+    LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
+    LOG.info('\tUsage is over 80% - setting status '
+             'to "quota warning"')
+    send_email(tenant, 'first')
+    set_status(kc, tenant, 'quota warning')
+    return True
 
 
 def notify_at_limit(kc, nc, tenant):
-    if tenant.status != 'pending suspension':
-        LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
-        LOG.info('\tUsage is over 100% - setting status to '
-                 '"pending suspension"')
-        set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
-        new_expiry = datetime.today() + relativedelta(months=1)
-        new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
-        set_status(kc, tenant, 'pending suspension', new_expiry)
-        send_email(tenant, 'second')
+    if tenant.status == 'pending suspension':
+        return False
+
+    LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
+    LOG.info('\tUsage is over 100% - setting status to '
+             '"pending suspension"')
+    set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
+    new_expiry = datetime.today() + relativedelta(months=1)
+    new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
+    set_status(kc, tenant, 'pending suspension', new_expiry)
+    send_email(tenant, 'second')
+    return True
 
 
 def notify_over_limit(kc, nc, tenant):
-    if tenant.status == 'pending suspension':
-        if tenant_is_expired(tenant):
-            LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
-            LOG.info('\tUsage is over 120% - suspending tenant')
-            suspend_tenant(kc, nc, tenant)
-    else:
-        notify_at_limit(kc, nc, tenant)
+    if tenant.status != 'pending suspension':
+        return notify_at_limit(kc, nc, tenant)
+
+    if not tenant_is_expired(tenant):
+        return False
+
+    LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
+    LOG.info('\tUsage is over 120% - suspending tenant')
+    suspend_tenant(kc, nc, tenant)
+    return True
 
 
 def suspend_tenant(kc, nc, tenant):
