@@ -1,4 +1,4 @@
-from .. import update_expiry
+from nectar_tools.update_expiry import main as update_expiry
 
 import datetime
 from freezegun import freeze_time
@@ -13,16 +13,16 @@ CPULimit = update_expiry.CPULimit
 
 
 pytest_mock_fixtures = [
-    'scripts.update_expiry.send_email',
-    'scripts.update_expiry.set_status',
-    'scripts.update_expiry.set_nova_quota',
-    'scripts.update_expiry.check_cpu_usage',
-    'scripts.update_expiry.suspend_tenant',
-    'scripts.update_expiry.notify_at_limit',
-    'scripts.update_expiry.lock_instance',
-    'scripts.update_expiry.suspend_instance',
-    'scripts.update_expiry.get_instances',
-    'scripts.update_expiry.do_email_send',
+    'nectar_tools.update_expiry.main.send_email',
+    'nectar_tools.update_expiry.main.set_status',
+    'nectar_tools.update_expiry.main.set_nova_quota',
+    'nectar_tools.update_expiry.main.check_cpu_usage',
+    'nectar_tools.update_expiry.main.suspend_tenant',
+    'nectar_tools.update_expiry.main.notify_at_limit',
+    'nectar_tools.update_expiry.main.lock_instance',
+    'nectar_tools.update_expiry.main.suspend_instance',
+    'nectar_tools.update_expiry.main.get_instances',
+    'nectar_tools.update_expiry.main.do_email_send',
 ]
 
 
