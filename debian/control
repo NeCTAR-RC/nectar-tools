@@ -1,0 +1,13 @@
+Source: python-nectar-tools
+Section: unknown
+Priority: optional
+Maintainer: Kieran Spear <kispear@gmail.com>
+Build-Depends: debhelper (>= 9), python-all (>= 2.6), python-setuptools, python-pip (>= 1.2)
+Standards-Version: 3.9.5
+Homepage: https://github.com/NeCTAR-RC/nectar_tools
+
+Package: python-nectar-tools
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
+Description: A collection of useful tools for operating the NeCTAR Research Cloud
+ NeCTAR Tools, A collection of useful tools for operating the NeCTAR Research Cloud
