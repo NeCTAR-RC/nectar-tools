@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-import auth
 import csv
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -15,6 +14,9 @@ from enum import Enum
 from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
 import prettytable
+
+
+from nectar_tools import auth
 
 
 DRY_RUN = True
