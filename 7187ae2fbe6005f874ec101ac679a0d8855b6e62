@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3afa9182_47d54d42",
+        "filename": "scripts/glance-audit.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000082
+      },
+      "writtenOn": "2014-10-22T02:46:24Z",
+      "side": 1,
+      "message": "Some definition of what \"shouldn\u0027t be there\" and \"orphaned\" would help readability and understanding of main() and delete_swift_images(). I guess we are looking for Swift objects (in the relevant containers) for which there is no corresponding Glance record?",
+      "range": {
+        "startLine": 4,
+        "startChar": 1,
+        "endLine": 5,
+        "endChar": 56
+      },
+      "revId": "7187ae2fbe6005f874ec101ac679a0d8855b6e62",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3afa9182_a7ca319f",
+        "filename": "scripts/glance-audit.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1000082
+      },
+      "writtenOn": "2014-10-22T02:46:24Z",
+      "side": 1,
+      "message": "Maybe better to parameterise/argument-ise for which container to operate on (to make this more concise) - then just run twice for each of glance and images containers?",
+      "range": {
+        "startLine": 205,
+        "startChar": 4,
+        "endLine": 206,
+        "endChar": 54
+      },
+      "revId": "7187ae2fbe6005f874ec101ac679a0d8855b6e62",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
