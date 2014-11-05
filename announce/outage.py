@@ -5,6 +5,7 @@ import sys
 import re
 import argparse
 import smtplib
+import logging
 from collections import OrderedDict
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -15,23 +16,14 @@ from novaclient.v1_1 import client as nova_client
 
 from jinja2 import Environment, FileSystemLoader
 
-email_pattern = re.compile('([\w\-\.\']+@(\w[\w\-]+\.)+[\w\-]+)')
-global tenant_data, user_data, total, smtp_server
+LOG = logging.getLogger(__name__)
 
-# useful for filtering instance listing
-zones_ip_regexp = \
-    {
-        'melbourne': '115.146.*',
-        'melbourne-np': '115.146.9*',
-        'melbourne-qh2': '115.146.8*',
-        'monash': '118.138.*',
-        'monash-01': '118.138.24*',
-        'monash-02': '118.138.23*',
-        'qld': '130.102.*',
-        'sa': '130.220.*',
-        'nci': '130.56.*',
-        'tas': '144.6.*',
-    }
+email_pattern = re.compile('([\w\-\.\']+@(\w[\w\-]+\.)+[\w\-]+)')
+
+total = 0
+tenant_data = OrderedDict()
+user_data = OrderedDict()
+smtp_server = None
 
 
 def collect_args():
@@ -164,16 +156,14 @@ def get_keystone_client():
     auth_url = os.environ.get('OS_AUTH_URL')
 
     try:
-        kc = ks_client.Client(username=auth_username,
-                              password=auth_password,
-                              tenant_name=auth_tenant,
-                              auth_url=auth_url)
+        return ks_client.Client(username=auth_username,
+                                password=auth_password,
+                                tenant_name=auth_tenant,
+                                auth_url=auth_url)
     except AuthorizationFailure as e:
         print e
         print 'Authorization failed, have you sourced your openrc?'
         sys.exit(1)
-
-    return kc
 
 
 def get_nova_client():
@@ -192,43 +182,39 @@ def get_nova_client():
 
 
 def get_servers(client, zone=None, inst_status=None):
-
-    servers = []
     marker = None
 
     while True:
         opts = {'all_tenants': True}
-        if zone is not None and zone in zones_ip_regexp.keys():
-            opts['ip'] = zones_ip_regexp[zone]
         if inst_status is not None:
             opts['status'] = inst_status
         if marker:
             opts['marker'] = marker
-        res = client.servers.list(search_opts=opts)
-        if not res:
+        response = client.servers.list(search_opts=opts)
+        if not response:
             break
-        servers.extend(res)
-        marker = servers[-1].id
-    return servers
+        for server in response:
+            marker = server.id
+            server_az = server._info.get('OS-EXT-AZ:availability_zone') or ''
+            if zone and not server_az.lower() == zone.lower():
+                continue
+            yield server
 
 
 def get_data(kc, nc, zone, inst_status):
 
-    print 'Gathering instance, tenant and user data...'
+    print 'Gathering instance',
 
-    instances = get_servers(nc, zone, inst_status)
-    if zone:
-        # limit scope to tenants with instances in this zone
-        tenants_set = set()
-        for instance in instances:
-            tenants_set.add(instance.tenant_id)
-        tenants = [kc.tenants.get(tenant) for tenant in tenants_set]
-    else:
-        # spam everyone!
-        tenants = kc.tenants.list()
+    servers = list(get_servers(nc, zone, inst_status))
+    print ', tenant',
+    tenants = kc.tenants.list()
+    server_tenants = set([server.tenant_id for server in servers])
 
-    populate_instances(instances)
-    populate_tenants(tenants)
+    populate_instances(servers)
+    print ' and user data...'
+    for tenant in tenants:
+        if not zone or tenant.id in server_tenants:
+            populate_tenant(tenant)
 
 
 def get_test_data(kc, nc):
@@ -245,39 +231,36 @@ def get_test_data(kc, nc):
     tenants = []
     for tid in tids:
         tenants.append(kc.tenants.get(tid))
+        populate_tenant(tid)
 
     populate_instances(instances)
-    populate_tenants(tenants)
 
 
 def populate_instances(instances):
-
-    global tenant_data
-
     for instance in instances:
-        if instance.tenant_id not in tenant_data:
-            tenant_data[instance.tenant_id] = {'instances': [instance, ]}
-        else:
-            tenant_data[instance.tenant_id]['instances'].append(instance)
+        populate_instance(instance)
 
 
-def populate_tenants(tenants):
+def populate_instance(instance):
+    if instance.tenant_id not in tenant_data:
+        tenant_data[instance.tenant_id] = {'instances': [instance, ]}
+    else:
+        tenant_data[instance.tenant_id]['instances'].append(instance)
 
-    global tenant_data
 
-    for tenant in tenants:
-        users = kc.users.list(tenant_id=tenant.id)
-        name = tenant.name
-        if tenant.id not in tenant_data:
-            tenant_data[tenant.id] = {'users': users}
-        else:
-            tenant_data[tenant.id]['users'] = users
-        tenant_data[tenant.id]['name'] = name
+def populate_tenant(tenant):
+    users = tenant.list_users()
+    name = tenant.name
+    if tenant.id not in tenant_data:
+        tenant_data[tenant.id] = {'users': users}
+    else:
+        tenant_data[tenant.id]['users'] = users
+    tenant_data[tenant.id]['name'] = name
 
 
 def populate_users(tenant, data, target_zone):
 
-    global tenant_data, user_data, total
+    global total
 
     tenant_name = data['name']
 
@@ -333,13 +316,8 @@ def skip(tenant, skip_to_tenant):
     return skip
 
 
-if __name__ == '__main__':
-
-    global tenant_data, user_data, smtp_server
-
-    total = 0
-    tenant_data = OrderedDict()
-    user_data = OrderedDict()
+def main():
+    global smtp_server
 
     args = collect_args().parse_args()
     kc = get_keystone_client()
@@ -370,4 +348,11 @@ if __name__ == '__main__':
             sent += 1
 
     print 'Total instances affected in %s zone: %s' % (zone, total)
-    print 'Sent %s notifications' % sent
+    if args.no_dry_run:
+        print 'Sent %s notifications' % sent
+    else:
+        print 'Total of %s notifications' % sent
+
+
+if __name__ == '__main__':
+    main()
