@@ -65,16 +65,16 @@ def mailout(user_id, user, zone, dry_run, only_affected):
     email = user['email']
     name = user['name']
     enabled = user['enabled']
-    affected = user['affected']
-
     subject = 'NeCTAR Research Cloud outage'
-    if affected:
-        subject += ' affecting your VMs'
 
     affected_instances = 0
     for project, servers in instances.iteritems():
         for server in servers:
             affected_instances += 1
+
+    affected = bool(affected_instances)
+    if affected:
+        subject += ' affecting your VMs'
 
     if only_affected and affected_instances == 0:
         print 'User %s: user not affected, not sending email => %s' % \
@@ -201,19 +201,19 @@ def get_servers(client, zone=None, inst_status=None):
             yield server
 
 
-def get_data(kc, nc, zone, inst_status):
+def get_data(kc, nc, zone, inst_status, only_affected):
 
-    print 'Gathering instance',
+    print 'Gathering instance,',
 
     servers = list(get_servers(nc, zone, inst_status))
-    print ', tenant',
+    print 'tenant,',
     tenants = kc.tenants.list()
     server_tenants = set([server.tenant_id for server in servers])
 
     populate_instances(servers)
-    print ' and user data...'
+    print 'user data.'
     for tenant in tenants:
-        if not zone or tenant.id in server_tenants:
+        if tenant.id in server_tenants:
             populate_tenant(tenant)
 
 
@@ -228,10 +228,9 @@ def get_test_data(kc, nc):
         for tinstance in tinstances:
             instances.append(tinstance)
 
-    tenants = []
     for tid in tids:
-        tenants.append(kc.tenants.get(tid))
-        populate_tenant(tid)
+        tenant = kc.tenants.get(tid)
+        populate_tenant(tenant)
 
     populate_instances(instances)
 
@@ -243,22 +242,21 @@ def populate_instances(instances):
 
 def populate_instance(instance):
     if instance.tenant_id not in tenant_data:
-        tenant_data[instance.tenant_id] = {'instances': [instance, ]}
-    else:
-        tenant_data[instance.tenant_id]['instances'].append(instance)
+        tenant_data[instance.tenant_id] = {'instances': []}
+    tenant_data[instance.tenant_id]['instances'].append(instance)
 
 
 def populate_tenant(tenant):
     users = tenant.list_users()
     name = tenant.name
     if tenant.id not in tenant_data:
-        tenant_data[tenant.id] = {'users': users}
+        tenant_data[tenant.id] = {'users': users, 'instances': []}
     else:
         tenant_data[tenant.id]['users'] = users
     tenant_data[tenant.id]['name'] = name
 
 
-def populate_users(tenant, data, target_zone):
+def populate_tenant_users(tenant, data, target_zone):
 
     global total
 
@@ -281,28 +279,25 @@ def populate_users(tenant, data, target_zone):
 
     affected_instances = len(instances_in_az)
 
-    if affected_instances == 0:
-        affected = False
-    else:
-        affected = True
-
     print 'Tenant %s: # affected instances => %s' % \
         (tenant, affected_instances)
     total += affected_instances
 
     for user in users:
-        if user.id not in user_data:
-            user_data[user.id] = {'instances': {},
-                                  'email': user.email,
-                                  'enabled': user.enabled,
-                                  'name': user.name,
-                                  'affected': affected}
-        user = user_data[user.id]
-        for iiaz in instances_in_az:
+        user = populate_user(user)
+        for instance in instances_in_az:
             if tenant_name not in user['instances']:
                 user['instances'][tenant_name] = []
-            user['instances'][tenant_name].append(iiaz)
-        user['affected'] = user['affected'] or affected
+            user['instances'][tenant_name].append(instance)
+
+
+def populate_user(user):
+    if user.id not in user_data:
+        user_data[user.id] = {'instances': {},
+                              'email': user._info.get('email', None),
+                              'enabled': user.enabled,
+                              'name': user.name}
+    return user_data[user.id]
 
 
 def skip(tenant, skip_to_tenant):
@@ -327,20 +322,25 @@ def main():
     smtp_server = args.smtp_server
     inst_status = args.status
 
+    print "Listing instances."
     if args.test:
         get_test_data(kc, nc)
     else:
-        get_data(kc, nc, zone, inst_status)
+        get_data(kc, nc, zone, inst_status, args.only_affected)
 
+    print "Gathering tenant information."
     proceed = False
-
     for tenant, data in tenant_data.iteritems():
         if args.skip_to_tenant is not None and not proceed:
             if not skip(tenant, args.skip_to_tenant):
-                populate_users(tenant, data, zone)
+                populate_tenant_users(tenant, data, zone)
                 proceed = True
         else:
-            populate_users(tenant, data, zone)
+            populate_tenant_users(tenant, data, zone)
+
+    print "Gathering user information."
+    for user in kc.users.list():
+        populate_user(user)
 
     sent = 0
     for uid, user in user_data.iteritems():
@@ -349,9 +349,9 @@ def main():
 
     print 'Total instances affected in %s zone: %s' % (zone, total)
     if args.no_dry_run:
-        print 'Sent %s notifications' % sent
-    else:
         print 'Total of %s notifications' % sent
+    else:
+        print 'Sent %s notifications' % sent
 
 
 if __name__ == '__main__':
