@@ -6,6 +6,7 @@ import re
 import argparse
 import smtplib
 import logging
+import datetime
 from collections import OrderedDict
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -37,7 +38,7 @@ def collect_args():
                               default is to only show what would happen')
     parser.add_argument('-z', '--target-zone',
                         required=True,
-                        help='Specify availability zone to notify')
+                        help='Availability zone affected by outage')
     parser.add_argument('-o', '--only-affected', action='store_true',
                         default=False,
                         help='Only mail users with affected instances')
@@ -49,17 +50,28 @@ def collect_args():
     parser.add_argument('-p', '--smtp_server',
                         default='127.0.0.1',
                         help='SMTP server to use, defaults to localhost')
+    parser.add_argument('-st', '--start_time', action='store',
+                        type=get_datetime,
+                        help='Outage start time (e.g. \'09:00 25-06-2015\')',
+                        required=True)
+    parser.add_argument('-d', '--duration', action='store', type=int,
+                        help='Duration of outage in hours', required=True)
+    parser.add_argument('-tz', '--timezone', action='store',
+                        help='Timezone (e.g. AEDT)', required=True)
     parser.add_argument('-s', '--skip-to-tenant',
                         required=False,
                         default=None,
                         help='Skip processing up to a given tenant. \
                              Useful in cases where the script has partially\
                              completed.')
-
     return parser
 
 
-def mailout(user_id, user, zone, dry_run, only_affected):
+def get_datetime(dt_string):
+    return datetime.datetime.strptime(dt_string, '%H:%M %d-%m-%Y')
+
+
+def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected):
 
     instances = user['instances']
     email = user['email']
@@ -81,7 +93,8 @@ def mailout(user_id, user, zone, dry_run, only_affected):
             (name, email)
         return False
 
-    text, html = render_templates(subject, instances, zone, affected)
+    text, html = render_templates(subject, instances, start_ts, end_ts, tz,
+                                  zone, affected)
 
     if not enabled:
         print 'User %s: user disabled, not sending email => %s' % (name, email)
@@ -107,19 +120,33 @@ def mailout(user_id, user, zone, dry_run, only_affected):
     return True
 
 
-def render_templates(subject, instances, zone, affected):
+def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
+
+    duration = end_ts - start_ts
+    days = duration.days
+    hours = duration.seconds//3600
 
     env = Environment(loader=FileSystemLoader('templates'))
     text = env.get_template('outage-notification.tmpl')
     text = text.render(
         {'instances': instances,
          'zone': zone,
+         'start_ts': start_ts,
+         'end_ts': end_ts,
+         'days': days,
+         'hours': hours,
+         'tz': tz,
          'affected': affected})
     html = env.get_template('outage-notification.html.tmpl')
     html = html.render(
         {'title': subject,
          'instances': instances,
          'zone': zone,
+         'start_ts': start_ts,
+         'end_ts': end_ts,
+         'days': days,
+         'hours': hours,
+         'tz': tz,
          'affected': affected})
 
     return text, html
@@ -322,6 +349,9 @@ def main():
     smtp_server = args.smtp_server
     inst_status = args.status
 
+    start_ts = args.start_time
+    end_ts = start_ts + datetime.timedelta(hours=args.duration)
+
     print "Listing instances."
     if args.test:
         get_test_data(kc, nc)
@@ -344,12 +374,13 @@ def main():
 
     sent = 0
     for uid, user in user_data.iteritems():
-        if mailout(uid, user, zone, args.no_dry_run, args.only_affected):
+        if mailout(uid, user, start_ts, end_ts, args.timezone, zone,
+                   args.no_dry_run, args.only_affected):
             sent += 1
 
     print 'Total instances affected in %s zone: %s' % (zone, total)
     if args.no_dry_run:
-        print 'Total of %s notifications' % sent
+        print 'Would send %s notifications' % sent
     else:
         print 'Sent %s notifications' % sent
 
