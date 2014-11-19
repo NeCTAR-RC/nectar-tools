@@ -19,18 +19,19 @@ This email is to inform you of a scheduled outage to the NeCTAR Research Cloud.
     </p>
 
     <table>
-      <tr><td><span class='bold'>DURATION:</span></td><td>48 hours</td></tr>
-      <tr><td><span class='bold'>START TIME:</span></td><td>09:00 AEDT Tue Nov 25th 2014</td></tr>
-      <tr><td><span class='bold'>END TIME:</span></td><td>09:00 AEDT Thu Nov 27th 2014</td></tr>
+      <tr><td><span class='bold'>DURATION:</span></td><td>{{ days }} days {{ hours }} hours</td></tr>
+      <tr><td><span class='bold'>START TIME:</span></td><td>{{ start_ts }} {{ tz }}</td></tr>
+      <tr><td><span class='bold'>END TIME:</span></td><td>{{ end_ts }} {{ tz }}</td></tr>
     </table>
 
     <p>
       <span class='bold'>DESCRIPTION:</span>
       <br />
-A 48 hour outage is required to relocate and upgrade the cloud storage
-infrastructure at the University of Melbourne. Only instances in the
-{{ zone }} availability zone will be affected. The upgrade will bring
-further stability and increased performance to this availability zone.
+A {{ days }} days {{ hours }} hours outage is required to perform essential
+maintenance on cloud infrastructure at the {{ zone }} availbility zone. Only
+instances in the {{ zone }} availability zone will be affected. The upgrade
+will bring further stability and increased performance to this availability
+zone.
     </p>
 
     <p>
