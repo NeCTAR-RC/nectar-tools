@@ -22,6 +22,30 @@
       "revId": "00be77983029ca4873f29f63d3149207143b01b3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_8e1c7b15",
+        "filename": "announce/templates/outage-notification.html.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2014-11-20T00:34:50Z",
+      "side": 1,
+      "message": "I think that\u0027s clearer than just \"2 days\". 2 days 0 hours means \"48 hours\" whereas \"2 days\" is sort of vague.",
+      "parentUuid": "1af78d9a_4e2bb330",
+      "range": {
+        "startLine": 30,
+        "startChar": 2,
+        "endLine": 30,
+        "endChar": 35
+      },
+      "revId": "00be77983029ca4873f29f63d3149207143b01b3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
