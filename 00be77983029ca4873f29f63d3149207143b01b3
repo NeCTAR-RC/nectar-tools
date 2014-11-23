@@ -94,6 +94,30 @@
       "revId": "00be77983029ca4873f29f63d3149207143b01b3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1af78d9a_2ebaa7e1",
+        "filename": "announce/templates/outage-notification.html.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2014-11-23T23:24:26Z",
+      "side": 1,
+      "message": "i think that is fine",
+      "parentUuid": "1af78d9a_eef09fcb",
+      "range": {
+        "startLine": 30,
+        "startChar": 2,
+        "endLine": 30,
+        "endChar": 35
+      },
+      "revId": "00be77983029ca4873f29f63d3149207143b01b3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
