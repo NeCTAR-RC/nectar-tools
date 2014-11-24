@@ -38,7 +38,7 @@ def get_nova_client():
 
 
 def parse_args():
-    actions = ['lock', 'unlock', 'suspend', 'resume', 'updatedb']
+    actions = ['lock', 'unlock', 'suspend', 'resume', 'updatedb', 'stop']
     views = ['all', 'suspending', 'failed', 'unmodified', 'suspended',
              'resuming', 'active', 'shutoff']
 
@@ -219,6 +219,20 @@ def resume_instance(session, instance, vm):
             update_task_state(vm.uuid, session, 'failed')
 
 
+def stop_instance(session, instance, vm):
+    host, uuid, state = get_vm_details(instance)
+    if state == 'ACTIVE':
+        print "Shutting down instances %s on %s" % (uuid, host)
+        try:
+            instance.stop()
+            update_task_state(vm.uuid, session, 'shutting')
+        except ClientException as e:
+            print e
+            update_task_state(vm.uuid, session, 'failed')
+    else:
+        print "Skipping %s on %s (state=%s)" % (uuid, host, state)
+
+
 def update_db(session, servers):
     for instance in servers:
         host, uuid, state = get_vm_details(instance)
@@ -305,6 +319,9 @@ def main():
     elif 'action' in args:
         servers = get_vms_from_nova(hosts)
         if args.action == 'updatedb':
+            update_db(session, servers)
+        elif args.action == 'stop':
+            stop_instance(session, servers)
             update_db(session, servers)
         elif args.action == 'suspend':
             suspend_instances(session, servers)
