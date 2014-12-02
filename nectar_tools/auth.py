@@ -8,50 +8,39 @@ import cinderclient.client as cinderclient
 import glanceclient
 from keystoneclient.exceptions import AuthorizationFailure
 
-auth_username = os.environ.get('OS_USERNAME')
-auth_password = os.environ.get('OS_PASSWORD')
-auth_tenant = os.environ.get('OS_TENANT_NAME')
-auth_url = os.environ.get('OS_AUTH_URL')
-auth_cacert = os.environ.get('OS_CACERT')
+
+from nectar_tools.config import configurable
 
 
-def get_keystone_client():
-
-    try:
-        kc = ksclient.Client(username=auth_username,
-                             password=auth_password,
-                             tenant_name=auth_tenant,
-                             auth_url=auth_url,
-                             cacert=auth_cacert)
-    except AuthorizationFailure as e:
-        print e
-        print 'Have you sourced your openrc?'
-        sys.exit(1)
+@configurable('openstack.client', env_prefix='OS')
+def get_keystone_client(username, password, tenant_name, auth_url):
+    kc = ksclient.Client(username=username,
+                         password=password,
+                         tenant_name=tenant_name,
+                         auth_url=auth_url)
     return kc
 
 
-def get_nova_client():
-
-    nc = novaclient.Client(auth_username,
-                           auth_password,
-                           auth_tenant,
+@configurable('openstack.client', env_prefix='OS')
+def get_nova_client(username, password, tenant_name, auth_url):
+    nc = novaclient.Client(username,
+                           password,
+                           tenant_name,
                            auth_url,
-                           cacert=auth_cacert,
                            service_type="compute")
     return nc
 
 
-def get_cinder_client():
-
-    cc = cinderclient.Client('1', auth_username,
-                             auth_password,
-                             auth_tenant,
-                             auth_url,
-                             cacert=auth_cacert)
+@configurable('openstack.client', env_prefix='OS')
+def get_cinder_client(username, password, tenant_name, auth_url):
+    cc = cinderclient.Client('1',
+                             username,
+                             password,
+                             tenant_name,
+                             auth_url)
     return cc
 
 
 def get_glance_client(glance_url, token):
-
-    gc = glanceclient.Client('1', glance_url, token=token, cacert=auth_cacert)
+    gc = glanceclient.Client('1', glance_url, token=token)
     return gc

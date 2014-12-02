@@ -17,6 +17,8 @@ import prettytable
 
 
 from nectar_tools import auth
+from nectar_tools import config
+from nectar_tools import log
 
 
 DRY_RUN = True
@@ -35,14 +37,15 @@ PT_RE = re.compile(r'^pt-\d+$')
 
 
 LOG = logging.getLogger(__name__)
+CONFIG = config.CONFIG
 
 
 def main():
+    parser = CONFIG.get_parser()
+    add_args(parser)
+    args = CONFIG.parse()
 
-    parser = collect_args()
-    args = parser.parse_args()
-
-    LOG.setLevel(logging.DEBUG if args.debug else logging.INFO)
+    log.setup()
 
     if args.no_dry_run:
         global DRY_RUN
@@ -96,10 +99,9 @@ def print_status(tenants):
     print str(pt)
 
 
-def collect_args():
+def add_args(parser):
     """Handle command-line options"""
-
-    parser = argparse.ArgumentParser(description='Updates tenant expiry date')
+    parser.description = 'Updates tenant expiry date'
     parser.add_argument('-y', '--no-dry-run', action='store_true',
                         default=False,
                         help='Perform the actual actions, default is to \
@@ -113,8 +115,6 @@ def collect_args():
                         help='Only process this many eligible tenants.')
     parser.add_argument('-t', '--tenant-id',
                         help='Tenant ID to process')
-    parser.add_argument('-c', '--config',
-                        help='Path of configuration file')
     parser.add_argument('-a', '--set-admin', action='store_true',
                         help='Mark a list of tenants as admins')
     parser.add_argument('-m', '--metadata', action='store',
@@ -122,12 +122,9 @@ def collect_args():
                              'list of key=value pairs.')
     parser.add_argument('-s', '--status', action='store_true',
                         help='Report current status of each tenant.')
-    parser.add_argument('-d', '--debug', action='store_true',
-                        help='Show debug logging.')
     parser.add_argument('-z', '--zone', action='store',
                         help='Limit actions to tenants with instances only '
                              'in this zone.')
-    return parser
 
 
 def link_tenants_to_users(tenants, users):
@@ -449,5 +446,4 @@ def set_admin(kc, tenants):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format='%(message)s')
     main()
