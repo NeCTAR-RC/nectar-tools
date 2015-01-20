@@ -2,11 +2,20 @@
 Installation
 ============
 
-At the command line::
+* Install virtualenv if you do not have it installed already. You can use your
+  package manager or pip. For Ubuntu and Fedora, the package is called
+  python-virtualenv. Instructions for using pip are at
+  https://virtualenv.pypa.io/en/latest/installation.html
+* Create a virtualenv and activate it::
 
-    $ easy_install nectar_tools
+  $ mkvirtualenv nectar_tools
 
-Or, if you have virtualenvwrapper installed::
+* Clone this repository::
 
-    $ mkvirtualenv nectar_tools
-    $ pip install nectar_tools
+  $ git clone https://github.com/NeCTAR-RC/nectar-tools.git
+
+* Install the nectar_tools package into your virtual environment. This will
+  ensure that all the necessary dependencies are also installed into this
+  environment::
+
+   $ pip install nectar_tools
