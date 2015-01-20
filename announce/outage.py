@@ -246,7 +246,9 @@ def get_data(kc, nc, zone, inst_status, only_affected):
 
 def get_test_data(kc, nc):
 
-    tids = ['42', '5', '5a6fcfe12c7a4909935e1c3e4a3f3d0c']
+    tids = ['42',  # nectar_tenant
+            '2f6f7e75fc0f453d9c127b490b02e9e3',  # NeCTAR-Devs
+            'f42f9588576c43969760d81384b83b1f']  # NeCTAR-Admins
 
     instances = []
     for tid in tids:
