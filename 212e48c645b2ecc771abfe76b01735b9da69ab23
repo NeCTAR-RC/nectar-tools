@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_6dddd142",
+        "filename": "docs/installation.rst",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2015-01-21T02:33:10Z",
+      "side": 1,
+      "message": "perhaps\n\n cd nectar_tools\n pip install -e .",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 21,
+        "endChar": 29
+      },
+      "revId": "212e48c645b2ecc771abfe76b01735b9da69ab23",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
