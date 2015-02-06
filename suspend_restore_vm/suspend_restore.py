@@ -107,10 +107,10 @@ def get_vms_from_host(client, host):
     return vms
 
 
-def get_vm_details(instance):
-    host = getattr(instance, 'OS-EXT-SRV-ATTR:host')
-    uuid = instance.id
-    state = instance.status
+def get_vm_details(server):
+    host = getattr(server, 'OS-EXT-SRV-ATTR:host')
+    uuid = server.id
+    state = server.status
     return host, uuid, state
 
 
@@ -128,8 +128,8 @@ def lock(servers):
         instance.lock()
 
 
-def add_vm_to_db(session, instance):
-    host, uuid, state = get_vm_details(instance)
+def add_vm_to_db(session, server):
+    host, uuid, state = get_vm_details(server)
     try:
         print "Adding %s on %s to database (state=%s)" % (uuid, host, state)
         vm_data = VM(host=host, uuid=uuid, original_state=state,
@@ -165,25 +165,25 @@ def get_vms_from_nova(hosts):
     return servers
 
 
-def suspend_instances(session, servers):
+def suspend_server(session, servers):
     for instance in servers:
         vm = get_vm_from_db(session, instance.id)
         if not vm:
             add_vm_to_db(session, instance)
             vm = get_vm_from_db(session, instance.id)
-        suspend_instance(session, vm)
+        suspend_servers(session, vm)
 
 
-def suspend_instance(session, instance, vm):
-    host, uuid, state = get_vm_details(instance)
+def suspend_servers(session, server, vm):
+    host, uuid, state = get_vm_details(server)
     if state == 'ACTIVE':
         print "Locking & suspending %s on %s" % (uuid, host)
-        instance.lock()
+        server.lock()
         # nova does not return a value for the lock status and it takes a
         # while for the child cell db to be updated, so we have to sleep
         time.sleep(30)
         try:
-            instance.suspend()
+            server.suspend()
             update_task_state(vm.uuid, session, 'suspending')
         except ClientException as e:
             print e
@@ -192,45 +192,53 @@ def suspend_instance(session, instance, vm):
         print "Skipping %s on %s (state=%s)" % (uuid, host, state)
 
 
-def resume_instances(session, servers):
+def resume_servers(session, servers):
     for instance in servers:
         vm = get_vm_from_db(session, instance.id)
         if vm is not None:
-            resume_instance(session, instance, vm)
+            resume_server(session, instance, vm)
         else:
             print "%s not found in db." % instance.id
 
 
-def resume_instance(session, instance, vm):
-    host, uuid, state = get_vm_details(instance)
+def resume_server(session, server, vm):
+    host, uuid, state = get_vm_details(server)
     if vm.current_state == 'SUSPENDED' and \
        vm.task_state == 'suspended' and \
        vm.original_state == 'ACTIVE':
         try:
             print "Unlocking & resuming %s on %s" % (uuid, host)
-            instance.resume()
+            server.resume()
             update_task_state(vm.uuid, session, 'resuming')
             # nova does not return a value for the lock status and it takes a
             # while for the child cell db to be updated, so we have to sleep
             time.sleep(30)
-            instance.unlock()
+            server.unlock()
         except ClientException as e:
             print e
             update_task_state(vm.uuid, session, 'failed')
 
 
-def stop_instance(session, instance, vm):
-    host, uuid, state = get_vm_details(instance)
-    if state == 'ACTIVE':
+def stop_servers(session, servers):
+    for instance in servers:
+        vm = get_vm_from_db(session, instance.id)
+        if vm.current_state == 'ACTIVE':
+            stop_server(session, instance, vm)
+        else:
+            print "Skipping %s due to state in %s" % \
+                  (instance.id, vm.current)
+
+
+def stop_server(session, server, vm):
+    host, uuid, state = get_vm_details(server)
+    try:
         print "Shutting down instances %s on %s" % (uuid, host)
-        try:
-            instance.stop()
-            update_task_state(vm.uuid, session, 'shutting')
-        except ClientException as e:
-            print e
-            update_task_state(vm.uuid, session, 'failed')
-    else:
-        print "Skipping %s on %s (state=%s)" % (uuid, host, state)
+        server.stop()
+        update_task_state(uuid, session, 'shutting')
+
+    except ClientException as e:
+        print e
+        update_task_state(uuid, session, 'failed')
 
 
 def update_db(session, servers):
@@ -321,14 +329,14 @@ def main():
         if args.action == 'updatedb':
             update_db(session, servers)
         elif args.action == 'stop':
-            stop_instance(session, servers)
+            stop_servers(session, servers)
             update_db(session, servers)
         elif args.action == 'suspend':
-            suspend_instances(session, servers)
+            suspend_servers(session, servers)
             servers = get_vms_from_nova(hosts)
             update_db(session, servers)
         elif args.action == 'resume':
-            resume_instances(session, servers)
+            resume_servers(session, servers)
             servers = get_vms_from_nova(hosts)
             update_db(session, servers)
         elif args.action == 'lock':
