@@ -219,18 +219,20 @@ def resume_instance(session, instance, vm):
             update_task_state(vm.uuid, session, 'failed')
 
 
-def stop_instance(session, instance, vm):
-    host, uuid, state = get_vm_details(instance)
-    if state == 'ACTIVE':
-        print "Shutting down instances %s on %s" % (uuid, host)
-        try:
-            instance.stop()
-            update_task_state(vm.uuid, session, 'shutting')
-        except ClientException as e:
-            print e
-            update_task_state(vm.uuid, session, 'failed')
-    else:
-        print "Skipping %s on %s (state=%s)" % (uuid, host, state)
+def stop_instance(session, servers):
+    for instance in servers:
+        host, uuid, state = get_vm_details(instance)
+        if state == 'ACTIVE':
+            print "Shutting down instances %s on %s" % (uuid, host)
+            try:
+                instance.stop()
+                update_task_state(uuid, session, 'shutting')
+
+            except ClientException as e:
+                print e
+                update_task_state(uuid, session, 'failed')
+        else:
+            print "Skipping %s on %s (state=%s)" % (uuid, host, state)
 
 
 def update_db(session, servers):
