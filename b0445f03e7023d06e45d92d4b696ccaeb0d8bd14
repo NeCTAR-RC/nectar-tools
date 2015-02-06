@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_33185a84",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-06T04:33:33Z",
+      "side": 1,
+      "message": "Can we have two functions, stop_instance and stop_instances? Then it\u0027ll match the other functions, resume_instance/resume_instances etc",
+      "revId": "b0445f03e7023d06e45d92d4b696ccaeb0d8bd14",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
