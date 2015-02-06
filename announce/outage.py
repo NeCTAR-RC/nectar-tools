@@ -36,9 +36,7 @@ def collect_args():
                         default=True,
                         help='Perform the actual actions, \
                               default is to only show what would happen')
-    parser.add_argument('-z', '--target-zone',
-                        required=True,
-                        help='Availability zone affected by outage')
+
     parser.add_argument('-o', '--only-affected', action='store_true',
                         default=False,
                         help='Only mail users with affected instances')
@@ -64,6 +62,14 @@ def collect_args():
                         help='Skip processing up to a given tenant. \
                              Useful in cases where the script has partially\
                              completed.')
+    parser.set_defaults(func='args')
+
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument('-z', '--target-zone', required=False,
+                       help='Availability zone affected by outage')
+    group.add_argument('-n', '--node', required=False,
+                       help='Host affected by the outage [e.g. np-rcc[5-84]')
     return parser
 
 
@@ -71,7 +77,8 @@ def get_datetime(dt_string):
     return datetime.datetime.strptime(dt_string, '%H:%M %d-%m-%Y')
 
 
-def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected):
+def mailout(user_id, user, start_ts, end_ts, tz, dry_run, only_affected,
+            zone=None, host=None):
 
     instances = user['instances']
     email = user['email']
@@ -80,6 +87,7 @@ def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected):
     subject = 'NeCTAR Research Cloud outage'
 
     affected_instances = 0
+
     for project, servers in instances.iteritems():
         for server in servers:
             affected_instances += 1
@@ -117,6 +125,7 @@ def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected):
         print msg
         sys.stdout.flush()
         send_email(email, subject, text, html)
+
     return True
 
 
@@ -127,7 +136,7 @@ def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
     hours = duration.seconds//3600
 
     env = Environment(loader=FileSystemLoader('templates'))
-    text = env.get_template('outage-notification.tmpl')
+    text = env.get_template('outage-notification-host.tmpl')
     text = text.render(
         {'instances': instances,
          'zone': zone,
@@ -137,7 +146,7 @@ def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
          'hours': hours,
          'tz': tz,
          'affected': affected})
-    html = env.get_template('outage-notification.html.tmpl')
+    html = env.get_template('outage-notification-host.html.tmpl')
     html = html.render(
         {'title': subject,
          'instances': instances,
@@ -153,7 +162,6 @@ def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
 
 
 def send_email(recipient, subject, text, html):
-
     global smtp_server
 
     msg = MIMEMultipart('alternative')
@@ -228,6 +236,21 @@ def get_servers(client, zone=None, inst_status=None):
             yield server
 
 
+def get_servers_from_host(client, host, inst_status=None):
+    marker = None
+    opts = {'all_tenants': True,
+            'host': host
+            }
+
+    if inst_status is not None:
+            opts['status'] = inst_status
+    if marker:
+            opts['marker'] = marker
+    servers = client.servers.list(search_opts=opts)
+
+    return servers
+
+
 def get_data(kc, nc, zone, inst_status, only_affected):
 
     print 'Gathering instance,',
@@ -242,6 +265,38 @@ def get_data(kc, nc, zone, inst_status, only_affected):
     for tenant in tenants:
         if tenant.id in server_tenants:
             populate_tenant(tenant)
+
+
+def get_data_from_host(kc, nc, host, inst_status, only_affected):
+    servers = []
+    tenants = kc.tenants.list()
+    filtered_tenant = []
+    filtered_vm = []
+
+    print "Gathering instance"
+
+    if len(host) == 1:
+        servers.append(get_servers_from_host(nc, ''.join(host), inst_status))
+    else:
+        for h in host:
+            servers.append(get_servers_from_host(nc, ''.join(h), inst_status))
+
+    populate_instances(servers, node=True)
+
+    for server in servers:
+        for vm in server:
+            filtered_vm.append(vm.tenant_id)
+
+    for fv in set(filtered_vm):
+        for tenant in tenants:
+            if tenant.id == fv:
+                filtered_tenant.append(tenant)
+
+    if len(filtered_tenant) == 1:
+        populate_tenant(filtered_tenant[0])
+    else:
+        for t in filtered_tenant:
+            populate_tenant(t)
 
 
 def get_test_data(kc, nc):
@@ -264,9 +319,14 @@ def get_test_data(kc, nc):
     populate_instances(instances)
 
 
-def populate_instances(instances):
-    for instance in instances:
-        populate_instance(instance)
+def populate_instances(instances, node=None):
+    if node is None:
+        for instance in instances:
+            populate_instance(instance)
+    else:
+        for instance in instances:
+            for i in instance:
+                populate_instance(i)
 
 
 def populate_instance(instance):
@@ -320,6 +380,35 @@ def populate_tenant_users(tenant, data, target_zone):
             user['instances'][tenant_name].append(instance)
 
 
+def populate_tenant_users_host(tenant, data):
+
+    global total
+
+    tenant_name = data['name']
+
+    users = data['users']
+    print 'Tenant %s: # users => %s' % (tenant, len(users))
+
+    try:
+        instances = data['instances']
+    except KeyError:
+        instances = []
+    print 'Tenant %s: # instances => %s' % (tenant, len(instances))
+
+    affected_instances = len(instances)
+
+    print 'Tenant %s: # affected instances => %s' % \
+        (tenant, affected_instances)
+    total += affected_instances
+
+    for user in users:
+        user = populate_user(user)
+        for instance in instances:
+            if tenant_name not in user['instances']:
+                user['instances'][tenant_name] = []
+            user['instances'][tenant_name].append(instance)
+
+
 def populate_user(user):
     if user.id not in user_data:
         user_data[user.id] = {'instances': {},
@@ -340,44 +429,80 @@ def skip(tenant, skip_to_tenant):
     return skip
 
 
+def parse_hosts(nodes):
+    hosts = []
+    hostname = nodes.split('[')[0]
+    m = re.search(r"\[([A-Za-z0-9-]+)\]", nodes)
+    if m is not None:
+        host_start = int(m.group(1).split('-')[0])
+        try:
+            host_end = int(m.group(1).split('-')[1])
+        except IndexError:
+            host_end = host_start
+        for x in range(host_start, host_end + 1):
+            host = hostname + str(x)
+            hosts.append(host)
+    else:
+        hosts.append(nodes)
+    return hosts
+
+
 def main():
+
     global smtp_server
 
     args = collect_args().parse_args()
+
     kc = get_keystone_client()
     nc = get_nova_client()
 
     zone = args.target_zone
+    node = args.node
     smtp_server = args.smtp_server
     inst_status = args.status
 
     start_ts = args.start_time
     end_ts = start_ts + datetime.timedelta(hours=args.duration)
 
-    print "Listing instances."
-    if args.test:
-        get_test_data(kc, nc)
-    else:
-        get_data(kc, nc, zone, inst_status, args.only_affected)
-
-    print "Gathering tenant information."
-    proceed = False
-    for tenant, data in tenant_data.iteritems():
-        if args.skip_to_tenant is not None and not proceed:
-            if not skip(tenant, args.skip_to_tenant):
-                populate_tenant_users(tenant, data, zone)
-                proceed = True
+    if zone:
+        print "Listing instances from %" % zone
+        if args.test:
+            get_test_data(kc, nc)
         else:
-            populate_tenant_users(tenant, data, zone)
+            get_data(kc, nc, zone, inst_status, args.only_affected)
 
-    print "Gathering user information."
-    for user in kc.users.list():
-        populate_user(user)
+        print "Gathering tenant information."
+        proceed = False
+        for tenant, data in tenant_data.iteritems():
+            if args.skip_to_tenant is not None and not proceed:
+                if not skip(tenant, args.skip_to_tenant):
+                    populate_tenant_users(tenant, data, zone)
+                    proceed = True
+            else:
+                populate_tenant_users(tenant, data, zone)
+
+    if node:
+        if args.test:
+            get_test_data(kc, nc)
+        else:
+            get_data_from_host(kc, nc, parse_hosts(node), inst_status,
+                               args.only_affected)
+
+        print "Gathering tenant information."
+        proceed = False
+        for tenant, data in tenant_data.iteritems():
+            if args.skip_to_tenant is not None and not proceed:
+                if not skip(tenant, args.skip_to_tenant):
+                    populate_tenant_users_host(tenant, data)
+                    proceed = True
+            else:
+                populate_tenant_users_host(tenant, data)
 
     sent = 0
+
     for uid, user in user_data.iteritems():
-        if mailout(uid, user, start_ts, end_ts, args.timezone, zone,
-                   args.no_dry_run, args.only_affected):
+        if mailout(uid, user, start_ts, end_ts, args.timezone,
+                   args.no_dry_run, args.only_affected, zone):
             sent += 1
 
     print 'Total instances affected in %s zone: %s' % (zone, total)
