@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_5e2515aa",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2015-02-08T23:47:53Z",
+      "side": 1,
+      "message": "stop_instances? servers? you should be consistent with your naming.  I think things are moving away from instances.  so servers would be the better choice.",
+      "range": {
+        "startLine": 222,
+        "startChar": 9,
+        "endLine": 222,
+        "endChar": 35
+      },
+      "revId": "12d57f2f051e7472e31b3b875edfc17e7fcf39c5",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_7e20d99b",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2015-02-08T23:47:53Z",
+      "side": 1,
+      "message": "what do you think about moving this if statement into the stop instance function?  that way this function would just me looping and calling stop_instance.\n\nThe main reason i like this idea is that then the only difference between stop_instance and stop_instances is one works on a list of servers.",
+      "range": {
+        "startLine": 225,
+        "startChar": 0,
+        "endLine": 225,
+        "endChar": 40
+      },
+      "revId": "12d57f2f051e7472e31b3b875edfc17e7fcf39c5",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
