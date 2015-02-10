@@ -25,6 +25,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_fe8fa973",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1000006
+      },
+      "writtenOn": "2015-02-10T06:10:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "fa2559ec_5e2515aa",
+      "revId": "12d57f2f051e7472e31b3b875edfc17e7fcf39c5",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_7e20d99b",
         "filename": "suspend_restore_vm/suspend_restore.py",
         "patchSetId": 2
@@ -42,6 +60,24 @@
         "endLine": 225,
         "endChar": 40
       },
+      "revId": "12d57f2f051e7472e31b3b875edfc17e7fcf39c5",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_fe3329f4",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1000006
+      },
+      "writtenOn": "2015-02-10T06:10:47Z",
+      "side": 1,
+      "message": "marcus wants to be consistent with the other functions",
+      "parentUuid": "fa2559ec_7e20d99b",
       "revId": "12d57f2f051e7472e31b3b875edfc17e7fcf39c5",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
