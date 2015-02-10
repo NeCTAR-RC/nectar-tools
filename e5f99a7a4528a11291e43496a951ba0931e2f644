@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_7ef3b90a",
+        "filename": "suspend_restore_vm/suspend_restore.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1000084
+      },
+      "writtenOn": "2015-02-10T22:52:38Z",
+      "side": 1,
+      "message": "the other functions do this check when operating on a single server.\n\nThey do have an if here but it checks for a None value \n\n if vm is not None:\n\nthe \u003d\u003d \u0027ACTIVE\u0027 check should be moved into the stop server function.",
+      "range": {
+        "startLine": 225,
+        "startChar": 11,
+        "endLine": 225,
+        "endChar": 40
+      },
+      "revId": "e5f99a7a4528a11291e43496a951ba0931e2f644",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
