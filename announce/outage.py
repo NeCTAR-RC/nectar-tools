@@ -62,6 +62,9 @@ def collect_args():
                         help='Skip processing up to a given tenant. \
                              Useful in cases where the script has partially\
                              completed.')
+    parser.add_argument('-tf', '--template_file', action='store',
+                        required=False,
+                        help='Overide the standard template file')
     parser.set_defaults(func='args')
 
     group = parser.add_mutually_exclusive_group()
@@ -73,12 +76,28 @@ def collect_args():
     return parser
 
 
+def template_file_check(file):
+    template_dir = os.path.dirname(os.path.realpath(__file__)) + "/templates"
+    if file is None:
+        return template_dir
+    else:
+        html_template = file + ".html.tmpl"
+        text_template = file + ".tmpl"
+
+    if os.path.isfile(template_dir + "/" + html_template) and\
+            os.path.isfile(template_dir + "/" + text_template):
+        return template_dir, text_template, html_template
+    else:
+        print "Error, template file not found!"
+        sys.exit()
+
+
 def get_datetime(dt_string):
     return datetime.datetime.strptime(dt_string, '%H:%M %d-%m-%Y')
 
 
 def mailout(user_id, user, start_ts, end_ts, tz, dry_run, only_affected,
-            zone=None, host=None):
+            template=None, zone=None, host=None):
 
     instances = user['instances']
     email = user['email']
@@ -102,7 +121,7 @@ def mailout(user_id, user, start_ts, end_ts, tz, dry_run, only_affected,
         return False
 
     text, html = render_templates(subject, instances, start_ts, end_ts, tz,
-                                  zone, affected)
+                                  zone, affected, template)
 
     if not enabled:
         print 'User %s: user disabled, not sending email => %s' % (name, email)
@@ -129,14 +148,24 @@ def mailout(user_id, user, start_ts, end_ts, tz, dry_run, only_affected,
     return True
 
 
-def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
+def render_templates(subject, instances, start_ts, end_ts, tz, zone,
+                     affected, template):
+
+    if len(template) == 3:
+        template_dir = template[0]
+        template_html = template[1]
+        template_txt = template[2]
+    else:
+        template_dir = template
+        template_html = 'outage-notification.html.tmpl'
+        template_txt = 'outage-notification.tmpl'
 
     duration = end_ts - start_ts
     days = duration.days
     hours = duration.seconds//3600
 
-    env = Environment(loader=FileSystemLoader('templates'))
-    text = env.get_template('outage-notification-host.tmpl')
+    env = Environment(loader=FileSystemLoader(template_dir))
+    text = env.get_template(template_txt)
     text = text.render(
         {'instances': instances,
          'zone': zone,
@@ -146,7 +175,7 @@ def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
          'hours': hours,
          'tz': tz,
          'affected': affected})
-    html = env.get_template('outage-notification-host.html.tmpl')
+    html = env.get_template(template_html)
     html = html.render(
         {'title': subject,
          'instances': instances,
@@ -463,6 +492,7 @@ def main():
 
     start_ts = args.start_time
     end_ts = start_ts + datetime.timedelta(hours=args.duration)
+    template_files = template_file_check(args.template_file)
 
     if zone:
         print "Listing instances from %" % zone
@@ -502,7 +532,8 @@ def main():
 
     for uid, user in user_data.iteritems():
         if mailout(uid, user, start_ts, end_ts, args.timezone,
-                   args.no_dry_run, args.only_affected, zone):
+                   args.no_dry_run,
+                   args.only_affected, template_files, zone):
             sent += 1
 
     print 'Total instances affected in %s zone: %s' % (zone, total)
