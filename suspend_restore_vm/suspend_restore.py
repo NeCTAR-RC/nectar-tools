@@ -38,7 +38,7 @@ def get_nova_client():
 
 
 def parse_args():
-    actions = ['lock', 'unlock', 'suspend', 'resume', 'updatedb', 'stop']
+    actions = ['lock', 'unlock', 'suspend', 'resume', 'updatedb', 'stop', 'start']
     views = ['all', 'suspending', 'failed', 'unmodified', 'suspended',
              'resuming', 'active', 'shutoff']
 
@@ -225,20 +225,49 @@ def stop_servers(session, servers):
         if vm.current_state == 'ACTIVE':
             stop_server(session, instance, vm)
         else:
+
             print "Skipping %s due to state in %s" % \
-                  (instance.id, vm.current)
+                  (instance.id, vm.current_state)
 
 
 def stop_server(session, server, vm):
     host, uuid, state = get_vm_details(server)
     try:
         print "Shutting down instances %s on %s" % (uuid, host)
-        server.stop()
+        server.reboot("hard")
         update_task_state(uuid, session, 'shutting')
 
     except ClientException as e:
         print e
         update_task_state(uuid, session, 'failed')
+
+
+def start_servers(session, servers):
+    for instance in servers:
+        vm = get_vm_from_db(session, instance.id)
+        if vm is not None:
+            start_server(session, instance, vm)
+        else:
+            print "%s not found in db." % instance.id
+
+
+def start_server(session, server, vm):
+    host, uuid, state = get_vm_details(server)
+    if vm.current_state == 'SHUTOFF' and \
+       vm.task_state == 'shutoff' and \
+       vm.original_state == 'ACTIVE':
+        try:
+            print "Starting %s on %s" % (uuid, host)
+            server.start()
+            update_task_state(vm.uuid, session, 'starting')
+            # nova does not return a value for the lock status and it takes a
+            # while for the child cell db to be updated, so we have to sleep
+
+        except ClientException as e:
+            print e
+            update_task_state(vm.uuid, session, 'failed')
+
+
 
 
 def update_db(session, servers):
@@ -330,6 +359,9 @@ def main():
             update_db(session, servers)
         elif args.action == 'stop':
             stop_servers(session, servers)
+            update_db(session, servers)
+        elif args.action == 'start':
+            start_servers(session, servers)
             update_db(session, servers)
         elif args.action == 'suspend':
             suspend_servers(session, servers)
