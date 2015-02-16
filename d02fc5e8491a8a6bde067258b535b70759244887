@@ -1,0 +1,208 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fa2559ec_fea96925",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "--template-file? then it matches the style of the other options",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_dea62553",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "default\u003dXXX? then we know what the standard template file is",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_9eacad37",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "maybe change this to --zone? Then it matches the --node option.",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_7e6d7904",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "this function returns a dir _or_ a dir and two files?",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_5e7235e6",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "use a non-zero value?",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_3e63011c",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "is host ever used?",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_1e68bdf4",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "if we set the default above in the CLI arguments, you don\u0027t need this check?",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_de7d85b3",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "filtered_tenants?",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_be76d1d6",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "filtered_vms? or better maybe id",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_9e730de7",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "for filtered_vm in filtered_vms?",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_fe80498d",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 319,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "filtered_vm.tenant_id?",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_3e4ae183",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 355,
+      "author": {
+        "id": 1000009
+      },
+      "writtenOn": "2015-02-16T06:24:59Z",
+      "side": 1,
+      "message": "huh? is instance also an array in this case?",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
