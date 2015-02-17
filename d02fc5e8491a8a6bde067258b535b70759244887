@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_d9b59f32",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000082
+      },
+      "writtenOn": "2015-02-17T01:57:42Z",
+      "side": 1,
+      "message": "agreed",
+      "parentUuid": "fa2559ec_fea96925",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_dea62553",
         "filename": "announce/outage.py",
         "patchSetId": 2
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_19873763",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1000082
+      },
+      "writtenOn": "2015-02-17T01:57:42Z",
+      "side": 1,
+      "message": "good idea",
+      "parentUuid": "fa2559ec_dea62553",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_9eacad37",
         "filename": "announce/outage.py",
         "patchSetId": 2
@@ -47,6 +83,24 @@
       "writtenOn": "2015-02-16T06:24:59Z",
       "side": 1,
       "message": "maybe change this to --zone? Then it matches the --node option.",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_797c7373",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1000082
+      },
+      "writtenOn": "2015-02-17T01:57:42Z",
+      "side": 1,
+      "message": "agreed",
+      "parentUuid": "fa2559ec_9eacad37",
       "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
