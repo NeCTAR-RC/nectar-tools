@@ -175,6 +175,29 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_5f734fb1",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2015-02-20T01:59:49Z",
+      "side": 1,
+      "message": "This is only ever passed in as a list of strings, so rename it \u0027hosts\u0027.",
+      "range": {
+        "startLine": 297,
+        "startChar": 31,
+        "endLine": 297,
+        "endChar": 35
+      },
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_de7d85b3",
         "filename": "announce/outage.py",
         "patchSetId": 2
@@ -209,6 +232,98 @@
     },
     {
       "key": {
+        "uuid": "fa2559ec_9f64a7e6",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2015-02-20T01:59:49Z",
+      "side": 1,
+      "message": "Remove this. No need for a special case here, the for loop below works fine for a single item list.",
+      "range": {
+        "startLine": 305,
+        "startChar": 1,
+        "endLine": 307,
+        "endChar": 9
+      },
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_bf67ebe9",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 308,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2015-02-20T01:59:49Z",
+      "side": 1,
+      "message": "for host in hosts:",
+      "range": {
+        "startLine": 308,
+        "startChar": 8,
+        "endLine": 308,
+        "endChar": 21
+      },
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_ff6163d4",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2015-02-20T01:59:49Z",
+      "side": 1,
+      "message": "Use servers.extend here. That way you get one list of servers rather than a nested list.",
+      "range": {
+        "startLine": 309,
+        "startChar": 20,
+        "endLine": 309,
+        "endChar": 26
+      },
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_df5e1f12",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2015-02-20T01:59:49Z",
+      "side": 1,
+      "message": "Once you\u0027re using .extend you can remove this bit.",
+      "range": {
+        "startLine": 314,
+        "startChar": 8,
+        "endLine": 314,
+        "endChar": 25
+      },
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fa2559ec_9e730de7",
         "filename": "announce/outage.py",
         "patchSetId": 2
@@ -237,6 +352,75 @@
       "writtenOn": "2015-02-16T06:24:59Z",
       "side": 1,
       "message": "filtered_vm.tenant_id?",
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_3f9bfbca",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 324,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2015-02-20T01:59:49Z",
+      "side": 1,
+      "message": "As above, if there\u0027s only one item in the list, the code in the else still works fine. No need for a special case here :)",
+      "range": {
+        "startLine": 322,
+        "startChar": 0,
+        "endLine": 324,
+        "endChar": 9
+      },
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_1fa0b7f3",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2015-02-20T01:59:49Z",
+      "side": 1,
+      "message": "tenant",
+      "range": {
+        "startLine": 325,
+        "startChar": 12,
+        "endLine": 325,
+        "endChar": 13
+      },
+      "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "fa2559ec_7fa57303",
+        "filename": "announce/outage.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2015-02-20T01:59:49Z",
+      "side": 1,
+      "message": "You can remove everything except for this once you\u0027re using servers.extend in the other function.",
+      "range": {
+        "startLine": 351,
+        "startChar": 0,
+        "endLine": 352,
+        "endChar": 39
+      },
       "revId": "d02fc5e8491a8a6bde067258b535b70759244887",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
