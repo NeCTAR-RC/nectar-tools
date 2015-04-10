@@ -188,6 +188,8 @@ def is_personal_tenant(tenant):
 
 def is_ignored_tenant(tenant):
     status = getattr(tenant, 'status', None)
+    if status is None:
+        return False
     if status == 'suspended':
         LOG.debug('%s tenant is suspended', tenant.id)
         return True

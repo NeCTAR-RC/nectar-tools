@@ -1,0 +1,37 @@
+Dear NeCTAR Research Cloud User,
+
+Due to a host server failure, your VM was unexpectedly halted during operation.
+It is in the process of being migrated to a stable host and should be operational again shortly.
+Please note that the guest OS has been restarted. 
+
+Your current instances listed as below.
+
+{% if affected -%}
+AFFECTED INSTANCES:
+
+UUID                                  IP Address      Host            Project
+{% for project, servers in instances.iteritems() -%}
+{% for server in servers -%}
+{{ server.id }}  {{ server.accessIPv4 }}  {{ server.name }}      {{ project }}
+{% endfor -%}
+{% endfor -%}
+{% endif %}
+
+If you have any queries regarding this outage, please contact us by email:
+
+   support@rc.nectar.org.au
+
+We apologise sincerely for any inconvenience caused.
+
+Regards,
+
+The NeCTAR Research Cloud Support Team
+
+--
+This email has been sent to users of the NeCTAR Research Cloud. It has been
+sent to the email address associated with your Research Cloud login. These
+emails are essential communications which we endeavour to keep to a minimum.
+They only relate to events that may affect your NeCTAR Research Cloud resources
+or data integrity. If you receive multiple copies of this email, it may be due
+to the fact that you are a member of multiple projects.
+

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ title }}</title>
+    <style type="text/css">
+      span.bold {font-weight: bold;}
+      table.noborder {border: 0px; padding: 8px;}
+      th {text-align: left;}
+    </style>
+  </head>
+  <body>
+
+    <p>
+Dear NeCTAR Research Cloud User,
+    </p>
+
+    <p>
+Due to a host server failure, your VM was unexpectedly halted during operation.
+It is in the process of being migrated to a stable host and should be operational again shortly.
+Please note that the guest OS has been restarted. 
+</p>
+ <p>
+
+
+Your current instances listed as below.
+
+
+
+{% if affected -%}
+    <p>
+      <span class='bold'>AFFECTED INSTANCES:</span>
+    </p>
+
+    <table class='noborder'>
+      <tr><th>UUID</th><th>IP Address</th><th>Host</th><th>Project</th></tr>
+  {% for project, servers in instances.iteritems() -%}
+    {% for server in servers -%}
+      <tr>
+        <td>{{ server.id }}</td>
+        <td>{{ server.accessIPv4 }}</td>
+        <td>{{ server.name }}</td>
+        <td>{{ project }}</td>
+      </tr>
+    {% endfor %}
+  {% endfor %}
+    </table>
+{% endif -%}
+
+    <p>
+If you have any queries regarding this outage, please contact us by email:
+ <a href="mailto:support@rc.nectar.org.au">support@rc.nectar.org.au</a>
+      <br />
+      <br/>
+We apologise sincerely for any inconvenience caused.
+      <br />
+      <br />
+Regards,
+      <br />
+      <br />
+The NeCTAR Research Cloud Support Team
+    </p>
+
+    <p>
+--
+      <br />
+This email has been sent to users of the NeCTAR Research Cloud. It has been
+sent to the email address associated with your Research Cloud login. These
+emails are essential communications which we endeavour to keep to a minimum.
+They only relate to events that may affect your NeCTAR Research Cloud resources
+or data integrity. If you receive multiple copies of this email, it may be due
+to the fact that you are a member of multiple projects.
+    </p>
+  </body>
+</html>
