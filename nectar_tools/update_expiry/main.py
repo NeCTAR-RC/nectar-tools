@@ -90,11 +90,13 @@ def main():
 
 
 def print_status(tenants):
-    pt = prettytable.PrettyTable(['Name', 'Owner', 'Status', 'Expiry date'])
+    pt = prettytable.PrettyTable(['Name', 'Tenant ID', 'Owner',
+                                  'Status', 'Expiry date'])
     for tenant in tenants:
         tenant_set_defaults(tenant)
         if is_personal_tenant(tenant):
-            pt.add_row([tenant.name, getattr(tenant.owner, 'email', ''),
+            pt.add_row([tenant.name, tenant.id,
+                        getattr(tenant.owner, 'email', ''),
                         tenant.status, tenant.expires])
     print str(pt)
 
@@ -190,9 +192,6 @@ def is_ignored_tenant(tenant):
     status = getattr(tenant, 'status', None)
     if status is None:
         return False
-    if status == 'suspended':
-        LOG.debug('%s tenant is suspended', tenant.id)
-        return True
     elif status == 'admin':
         LOG.debug('%s tenant is admin. Will never expire', tenant.id)
         return True
@@ -209,13 +208,24 @@ def tenant_has_owner(tenant):
 
 
 def process_tenant(kc, nc, tenant):
-    LOG.debug("\nProcessing tenant %s (%s)", tenant.name, tenant.id)
+    LOG.debug("Processing tenant %s (%s)", tenant.name, tenant.id)
 
-    limit = check_cpu_usage(kc, nc, tenant)
-    return notify(kc, nc, tenant, limit)
+    status = getattr(tenant, 'status', None)
+    if status == 'suspended':
+        if tenant_at_next_step_date(tenant):
+            archive_tenant(kc, nc, tenant)
+    elif status == 'archiving':
+        LOG.info('\tchecking archive status')
+        is_archive_successful(kc, nc, tenant)
+    elif status == 'archived':
+        LOG.debug('\ttenant has been archived')
+        clean_up_instances(kc, nc, tenant)
+    else:
+        limit = check_cpu_usage(kc, nc, tenant)
+        return notify(kc, nc, tenant, limit)
 
 
-def tenant_is_expired(tenant):
+def tenant_at_next_step_date(tenant):
     if not tenant.expires:
         return False
 
@@ -286,16 +296,121 @@ def notify_at_limit(kc, nc, tenant):
 
 
 def notify_over_limit(kc, nc, tenant):
+    LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
+
     if tenant.status != 'pending suspension':
         return notify_at_limit(kc, nc, tenant)
 
-    if not tenant_is_expired(tenant):
+    if not tenant_at_next_step_date(tenant):
         return False
 
-    LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
     LOG.info('\tUsage is over 120% - suspending tenant')
     suspend_tenant(kc, nc, tenant)
     return True
+
+
+def archive_tenant(kc, nc, tenant):
+    if DRY_RUN:
+        LOG.info('\twould archive tenant')
+    else:
+        if getattr(tenant, 'status', None) != 'archiving':
+            LOG.info('\tarchiving tenant')
+            snapshot_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
+            set_status(kc, tenant, 'archiving', snapshot_date)
+
+    instances = get_instances(nc, tenant.id)
+    if len(instances) == 0:
+        LOG.info('\tno instances found')
+        archive_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
+        set_status(kc, tenant, 'archived', archive_date)
+    else:
+        LOG.info('\tfound %d instance(s)' % len(instances))
+        for instance in instances:
+            archive_instance(instance)
+
+
+def is_archive_successful(kc, nc, tenant):
+    LOG.info('\tchecking if archive was successful')
+
+    glance_endpoint = kc.service_catalog.url_for(service_type='image',
+                                                 endpoint_type='publicURL')
+
+    # TODO: Fix production hack
+    glance_endpoint = glance_endpoint.replace('/v1', '')
+    gc = auth.get_glance_client(glance_endpoint, kc.auth_token)
+
+    instances = get_instances(nc, tenant.id)
+
+    if len(instances) == 0:
+        LOG.info('\tno instances found')
+        archive_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
+        set_status(kc, tenant, 'archived', archive_date)
+        return True
+    else:
+        LOG.info('\tfound %d instances' % len(instances))
+        images = [i for i in gc.images.list(
+            filters={'property-owner_id':tenant.id})]
+        image_names = [i.name for i in images]
+
+        archive_failed = True
+        archive_in_progress = False
+
+        for instance in instances:
+            LOG.info('\tchecking instance: %s' % instance.id)
+            archive_name = "%s_archive" % instance.id
+            if archive_name in image_names:
+
+                image = [ i for i in images if i.name == archive_name ][0]
+                if image.status == 'active':
+                    LOG.info('\timage archived successfully')
+                    image.update(properties={'nectar_archive': True})
+                    archive_failed = False
+                elif image.status in ['saving','queued']:
+                    LOG.info("\timage archiving in progress (%s) for "
+                             "%s" % (image.status, image.id))
+                    archive_in_progress = True
+                else:
+                    LOG.warning('\timage found with status: %s' % image.status)
+            else:
+                LOG.error('\tarchive %s not found' % archive_name)
+
+        if not DRY_RUN:
+            if archive_failed:
+                if not archive_in_progress:
+                    LOG.error('\tretrying archive')
+                    archive_tenant(kc, nc, tenant)
+            else:
+                archive_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
+                set_status(kc, tenant, 'archived', archive_date)
+                return True
+        return False
+
+
+def archive_instance(instance):
+    archive_name = "%s_archive" % instance.id
+    if instance.status == 'SHUTOFF':
+        LOG.error("\tinstance %s is OFF (state=%s)" %
+            (instance.id, instance.status))
+    elif getattr(instance, 'OS-EXT-STS:power_state') != 4:
+        LOG.error("\tinstance %s is OFF (power_state=%d)" %
+            (instance.id, getattr(instance, 'OS-EXT-STS:power_state')))
+    else:
+        if DRY_RUN:
+            LOG.warning("\twould create archive %s" % archive_name)
+        else:
+            LOG.info("\tcreating archive %s" % archive_name)
+            instance.create_image(archive_name)
+
+
+def clean_up_instances(kc, nc, tenant):
+    instances = get_instances(nc, tenant.id)
+
+    for instance in instances:
+        if DRY_RUN:
+            LOG.info("\twould delete instance: %s" % instance.id)
+        else:
+            LOG.info("\tdeleting instance: %s" % instance.id)
+            instance.delete()
 
 
 def suspend_tenant(kc, nc, tenant):
