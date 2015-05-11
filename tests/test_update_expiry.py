@@ -76,12 +76,6 @@ def now():
     return datetime.datetime(2014, 1, 1, 0, 0)
 
 
-def test_suspended_tenant_is_ignored(tenant):
-    tenant.status = 'suspended'
-    should = update_expiry.should_process_tenant(tenant)
-    assert not should
-
-
 def test_admin_tenant_is_ignored(tenant):
     tenant.status = 'admin'
     should = update_expiry.should_process_tenant(tenant)
@@ -94,17 +88,17 @@ def test_non_personal_tenant_is_ignored(tenant):
     assert not should
 
 
-def test_tenant_is_expired(tenant, now):
+def test_tenant_at_next_step_date(tenant, now):
     tenant.expires = '2013-12-31'
     with freeze_time(now):
-        expired = update_expiry.tenant_is_expired(tenant)
+        expired = update_expiry.tenant_at_next_step_date(tenant)
     assert expired
 
 
 def test_tenant_is_not_expired(tenant, now):
     tenant.expires = '2014-01-02'
     with freeze_time(now):
-        expired = update_expiry.tenant_is_expired(tenant)
+        expired = update_expiry.tenant_at_next_step_date(tenant)
     assert not expired
 
 
