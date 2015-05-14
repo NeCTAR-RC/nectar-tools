@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ba1f61a0_d18f36cb",
+        "filename": "nectar_tools/update_expiry/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2015-05-14T08:17:12Z",
+      "side": 1,
+      "message": "I think the logic is wrong here. If the first instance archive successful then archive_status \u003d False but the next instance could fail.\n\nAlso once an archive is found to be successful we should delete the instance. See comment below about handling each instance by itself.",
+      "range": {
+        "startLine": 357,
+        "startChar": 0,
+        "endLine": 374,
+        "endChar": 66
+      },
+      "revId": "742600a23619b73e19ac92c523d945d59a4d24e1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba1f61a0_f1923af5",
+        "filename": "nectar_tools/update_expiry/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 393,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2015-05-14T08:17:12Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be \u003d\u003d\n\nPowerstate 4 is shutoff. So we should be able to handle any state other than 4",
+      "range": {
+        "startLine": 393,
+        "startChar": 53,
+        "endLine": 393,
+        "endChar": 55
+      },
+      "revId": "742600a23619b73e19ac92c523d945d59a4d24e1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ba1f61a0_31bcd26c",
+        "filename": "nectar_tools/update_expiry/main.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 412,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2015-05-14T08:17:12Z",
+      "side": 1,
+      "message": "Can this be changed to just delete 1 instance, we should be able to handle them 1 at a time",
+      "range": {
+        "startLine": 404,
+        "startChar": 0,
+        "endLine": 412,
+        "endChar": 29
+      },
+      "revId": "742600a23619b73e19ac92c523d945d59a4d24e1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
