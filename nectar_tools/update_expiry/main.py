@@ -15,6 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
 import prettytable
 
+from novaclient.v1_1.contrib import instance_action
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -24,7 +25,7 @@ from nectar_tools import log
 DRY_RUN = True
 USAGE_LIMIT_HOURS = 4383  # 6 months in hours
 EXPIRY_DATE_FORMAT = "%Y-%m-%d"
-
+ACTION_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
 class CPULimit(Enum):
     UNDER_LIMIT = 0
@@ -208,17 +209,20 @@ def tenant_has_owner(tenant):
 
 
 def process_tenant(kc, nc, tenant):
+    status = getattr(tenant, 'status', None)
+    if status == 'archived':
+        return False
+
     LOG.debug("Processing tenant %s (%s)", tenant.name, tenant.id)
 
-    status = getattr(tenant, 'status', None)
     if status == 'suspended':
         if tenant_at_next_step_date(tenant):
             archive_tenant(kc, nc, tenant)
+            return True
     elif status == 'archiving':
-        LOG.info('\tchecking archive status')
+        LOG.debug('\tchecking archive status')
         is_archive_successful(kc, nc, tenant)
-    elif status == 'archived':
-        LOG.debug('\ttenant has been archived')
+        return True
     else:
         limit = check_cpu_usage(kc, nc, tenant)
         return notify(kc, nc, tenant, limit)
@@ -319,17 +323,17 @@ def archive_tenant(kc, nc, tenant):
 
     instances = get_instances(nc, tenant.id)
     if len(instances) == 0:
-        LOG.info('\tno instances found')
+        LOG.debug('\tno instances found')
         archive_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
         set_status(kc, tenant, 'archived', archive_date)
     else:
-        LOG.info('\tfound %d instance(s)' % len(instances))
+        LOG.debug('\tfound %d instance(s)' % len(instances))
         for instance in instances:
-            archive_instance(instance)
+            archive_instance(nc, instance)
 
 
 def is_archive_successful(kc, nc, tenant):
-    LOG.info('\tchecking if archive was successful')
+    LOG.debug('\tchecking if archive was successful')
 
     glance_endpoint = kc.service_catalog.url_for(service_type='image',
                                                  endpoint_type='publicURL')
@@ -340,12 +344,12 @@ def is_archive_successful(kc, nc, tenant):
 
     instances = get_instances(nc, tenant.id)
     if len(instances) == 0:
-        LOG.info('\tno instances found')
+        LOG.debug('\tno instances found')
         archive_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
         set_status(kc, tenant, 'archived', archive_date)
         return True
     else:
-        LOG.info('\tfound %d instances' % len(instances))
+        LOG.debug('\tfound %d instances' % len(instances))
         images = [i for i in gc.images.list(
             filters={'property-owner_id': tenant.id})]
         image_names = [i.name for i in images]
@@ -354,7 +358,7 @@ def is_archive_successful(kc, nc, tenant):
         archive_in_progress = False
 
         for instance in instances:
-            LOG.info('\tchecking instance: %s' % instance.id)
+            LOG.debug('\tchecking instance: %s' % instance.id)
             archive_name = "%s_archive" % instance.id
             if archive_name in image_names:
 
@@ -372,7 +376,7 @@ def is_archive_successful(kc, nc, tenant):
                     LOG.warning('\timage found with status: %s' % image.status)
                     archive_success = False
             else:
-                LOG.error('\tarchive %s not found' % archive_name)
+                LOG.debug('\tarchive %s not found' % archive_name)
                 archive_success = False
 
         if not DRY_RUN:
@@ -384,19 +388,66 @@ def is_archive_successful(kc, nc, tenant):
                 if archive_in_progress:
                     LOG.info('\tarchive still in progress')
                 else:
-                    LOG.error('\tretrying archive')
+                    LOG.debug('\tretrying archive')
                     archive_tenant(kc, nc, tenant)
         return False
 
 
-def archive_instance(instance):
+def can_delete_shutoff(nc, instance):
+    """ Check instance actions to see if an instance was shutdown by an admin
+    over three months ago """
+    actions = instance_action.InstanceActionManager(nc).list(instance.id)
+    if not actions:
+        return False
+    last_action = actions[0]
+    three_months_ago = datetime.now() - relativedelta(days=90)
+    action_date = datetime.strptime(last_action.start_time, ACTION_DATE_FORMAT)
+    allowed_actions = ['stop', 'suspend', 'delete']
+    admin_projects = ['1', '2', None]
+    if last_action.action in allowed_actions and \
+       last_action.project_id in admin_projects and \
+       action_date < three_months_ago:
+        LOG.debug(
+            "\tInstance %s has been shutdown >3 months ago" % instance.id)
+        return True
+    if last_action.action not in allowed_actions:
+        LOG.info("\t%s: Cannot delete shutdown last action is %s" % (
+            instance.id, last_action.action))
+    if last_action.project_id not in admin_projects:
+        LOG.info("\t%s: Cannot delete shutdown last action project is %s" % (
+            instance.id, last_action.project_id))
+    if action_date > three_months_ago:
+        LOG.debug("\t%s: Cannot delete shutdown last action date is %s" % (
+            instance.id, action_date))
+    return False
+
+
+def archive_instance(nc, instance):
+    task_state = getattr(instance, 'OS-EXT-STS:task_state')
     archive_name = "%s_archive" % instance.id
+    ignored_tasks = ['suspending', 'image_snapshot_pending']
+    if instance.status == 'ERROR':
+        return
+    if instance.status == 'DELETED' or task_state == 'deleting':
+        clean_up_instance(instance)
+        return
     if instance.status == 'SHUTOFF':
-        LOG.error("\tinstance %s is OFF (state=%s)" %
-                  (instance.id, instance.status))
-    elif getattr(instance, 'OS-EXT-STS:power_state') != 4:
-        LOG.error("\tinstance %s is OFF (power_state=%d)" %
-                  (instance.id, getattr(instance, 'OS-EXT-STS:power_state')))
+        if can_delete_shutoff(nc, instance):
+            clean_up_instance(instance)
+        else:
+            LOG.debug("\tinstance %s is OFF (state=%s)" %
+                      (instance.id, instance.status))
+    if task_state in ignored_tasks:
+        LOG.error("Can't snapshot due to task_state %s" % task_state)
+        return
+
+    elif getattr(instance, 'OS-EXT-STS:power_state') == 4:
+        if can_delete_shutoff(nc, instance):
+            clean_up_instance(instance)
+        else:
+            LOG.debug("\tinstance %s is OFF (power_state=%d)" %
+                      (instance.id,
+                       getattr(instance, 'OS-EXT-STS:power_state')))
     else:
         if DRY_RUN:
             LOG.warning("\twould create archive %s" % archive_name)
