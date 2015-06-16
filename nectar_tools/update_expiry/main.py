@@ -160,7 +160,6 @@ def process_tenants(kc, nc, tenants, users, zone, limit=0):
         if should_process_tenant(tenant):
             if zone and not tenant_instances_are_all_in_zone(nc, tenant, zone):
                 continue
-
             try:
                 did_something = process_tenant(kc, nc, tenant)
                 if did_something:
@@ -275,9 +274,9 @@ def notify_near_limit(kc, nc, tenant):
     if tenant.status == 'quota warning':
         return False
 
-    LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
-    LOG.info('\tUsage is over 80% - setting status '
-             'to "quota warning"')
+    LOG.debug('Tenant %s (%s)', tenant.name, tenant.id)
+    LOG.info("\t%s: Usage is over 80 percent - setting status "
+             "to quota warning" % tenant.name)
     send_email(tenant, 'first')
     set_status(kc, tenant, 'quota warning')
     return True
@@ -287,9 +286,9 @@ def notify_at_limit(kc, nc, tenant):
     if tenant.status == 'pending suspension':
         return False
 
-    LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
-    LOG.info('\tUsage is over 100% - setting status to '
-             '"pending suspension"')
+    LOG.debug('Tenant %s (%s)', tenant.name, tenant.id)
+    LOG.info("\t%s: Usage is over 100 percent - setting status to "
+             "pending suspension" % tenant.name)
     set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
     new_expiry = datetime.today() + relativedelta(months=1)
     new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
@@ -299,7 +298,7 @@ def notify_at_limit(kc, nc, tenant):
 
 
 def notify_over_limit(kc, nc, tenant):
-    LOG.info('Tenant %s (%s)', tenant.name, tenant.id)
+    LOG.debug('Tenant %s (%s)', tenant.name, tenant.id)
 
     if tenant.status != 'pending suspension':
         return notify_at_limit(kc, nc, tenant)
@@ -307,7 +306,8 @@ def notify_over_limit(kc, nc, tenant):
     if not tenant_at_next_step_date(tenant):
         return False
 
-    LOG.info('\tUsage is over 120% - suspending tenant')
+    LOG.info(
+        "\t%s: Usage is over 120 percent - suspending tenant" % tenant.name)
     suspend_tenant(kc, nc, tenant)
     return True
 
@@ -484,10 +484,19 @@ def get_instances(nc, tenant_id):
 
 
 def suspend_instance(instance):
+    task_state = getattr(instance, 'OS-EXT-STS:task_state')
+    bad_task_states = ['migrating']
     if instance.status == 'SUSPENDED':
         LOG.info("\t%s - instance is already suspended" % instance.id)
     elif instance.status == 'SHUTOFF':
         LOG.info("\t%s - instance is off" % instance.id)
+    elif instance.status == 'ERROR':
+        LOG.info("\t%s - instance is ERROR" % instance.id)
+    elif task_state in bad_task_states:
+        LOG.info("\t%s - instance in task_state %s" % (instance.id,
+                                                       task_state))
+        raise ValueError("%s - instance in task_state %s" % (instance.id,
+                                                             task_state))
     else:
         if DRY_RUN:
             LOG.info("\t%s - would suspend instance (dry run)" % instance.id)
