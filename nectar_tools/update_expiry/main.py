@@ -275,7 +275,7 @@ def notify_near_limit(kc, nc, tenant):
         return False
 
     LOG.debug('Tenant %s (%s)', tenant.name, tenant.id)
-    LOG.info("\t%s: Usage is over 80 percent - setting status "
+    LOG.info("\t%s: Usage is over 80 - setting status "
              "to quota warning" % tenant.name)
     send_email(tenant, 'first')
     set_status(kc, tenant, 'quota warning')
@@ -287,7 +287,7 @@ def notify_at_limit(kc, nc, tenant):
         return False
 
     LOG.debug('Tenant %s (%s)', tenant.name, tenant.id)
-    LOG.info("\t%s: Usage is over 100 percent - setting status to "
+    LOG.info("\t%s: Usage is over 100 - setting status to "
              "pending suspension" % tenant.name)
     set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
     new_expiry = datetime.today() + relativedelta(months=1)
@@ -306,8 +306,7 @@ def notify_over_limit(kc, nc, tenant):
     if not tenant_at_next_step_date(tenant):
         return False
 
-    LOG.info(
-        "\t%s: Usage is over 120 percent - suspending tenant" % tenant.name)
+    LOG.info("\t%s: Usage is over 120 - suspending tenant" % tenant.name)
     suspend_tenant(kc, nc, tenant)
     return True
 
@@ -425,7 +424,7 @@ def can_delete_shutoff(nc, instance):
 def archive_instance(nc, instance):
     task_state = getattr(instance, 'OS-EXT-STS:task_state')
     archive_name = "%s_archive" % instance.id
-    ignored_tasks = ['suspending', 'image_snapshot_pending']
+    ignored_tasks = ['suspending', 'image_snapshot_pending', 'deleting', 'image_snapshot']
     if instance.status == 'ERROR':
         return
     if instance.status == 'DELETED' or task_state == 'deleting':
@@ -434,6 +433,7 @@ def archive_instance(nc, instance):
     if instance.status == 'SHUTOFF':
         if can_delete_shutoff(nc, instance):
             clean_up_instance(instance)
+            return
         else:
             LOG.debug("\tinstance %s is OFF (state=%s)" %
                       (instance.id, instance.status))
@@ -444,6 +444,7 @@ def archive_instance(nc, instance):
     elif getattr(instance, 'OS-EXT-STS:power_state') == 4:
         if can_delete_shutoff(nc, instance):
             clean_up_instance(instance)
+            return
         else:
             LOG.debug("\tinstance %s is OFF (power_state=%d)" %
                       (instance.id,
@@ -493,10 +494,8 @@ def suspend_instance(instance):
     elif instance.status == 'ERROR':
         LOG.info("\t%s - instance is ERROR" % instance.id)
     elif task_state in bad_task_states:
-        LOG.info("\t%s - instance in task_state %s" % (instance.id,
-                                                       task_state))
-        raise ValueError("%s - instance in task_state %s" % (instance.id,
-                                                             task_state))
+        LOG.info("\t%s - instance in task_state %s" % (instance.id, task_state))
+        raise ValueError("%s - instance in task_state %s" % (instance.id, task_state))
     else:
         if DRY_RUN:
             LOG.info("\t%s - would suspend instance (dry run)" % instance.id)
