@@ -22,6 +22,7 @@ oneliners = [
         "/usr/bin/[ $(wc -l ${HOME}/.ssh/authorized_keys |" +
         " cut -d ' ' -f1 ) -eq 1 ]"),
     ("fail2ban running", "pgrep fail2ban"),
+    ("ntp running", "pgrep ntp"),
     ("no passwords in /etc/shadow", "test \"$(sudo cut -d ':'" +
         " -f 2 /etc/shadow | cut -d '$' -sf3)\" = ''"),
     ]
