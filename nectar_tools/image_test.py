@@ -11,7 +11,8 @@ USAGE: ssh user@guest python < image_test.py
 """
 
 oneliners = [
-    ("ephemeral disk is mounted on vdb", "grep /dev/vdb /proc/mounts"),
+    ("ephemeral disk is ext4, read-write mounted on vdb",
+        "grep '/dev/vdb.*ext4.*rw' /proc/mounts"),
     ("heat-cfn-tools installed",
         "which cfn-create-aws-symlinks cfn-get-metadata" +
         " cfn-push-stats cfn-hup cfn-init cfn-signal"),
