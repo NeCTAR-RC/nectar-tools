@@ -3,7 +3,7 @@
 import os
 import sys
 import keystoneclient.v2_0.client as ksclient
-import novaclient.v1_1.client as novaclient
+import novaclient.client as novaclient
 import cinderclient.client as cinderclient
 import glanceclient
 from keystoneclient.exceptions import AuthorizationFailure
@@ -23,7 +23,8 @@ def get_keystone_client(username, password, tenant_name, auth_url):
 
 @configurable('openstack.client', env_prefix='OS')
 def get_nova_client(username, password, tenant_name, auth_url):
-    nc = novaclient.Client(username,
+    nc = novaclient.Client(2,
+                           username,
                            password,
                            tenant_name,
                            auth_url,

@@ -11,7 +11,7 @@ from pip.req import parse_requirements
 
 readme = open('README.rst').read()
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
-requirements = parse_requirements("requirements.txt")
+requirements = parse_requirements("requirements.txt", session=False)
 
 setup(
     name='nectar_tools',

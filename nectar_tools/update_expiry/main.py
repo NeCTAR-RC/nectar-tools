@@ -15,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 from jinja2.exceptions import TemplateNotFound
 import prettytable
 
-from novaclient.v1_1.contrib import instance_action
+from novaclient.v2.contrib import instance_action
 
 from nectar_tools import auth
 from nectar_tools import config
