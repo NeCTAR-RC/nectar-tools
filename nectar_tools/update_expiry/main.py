@@ -21,11 +21,14 @@ from nectar_tools import auth
 from nectar_tools import config
 from nectar_tools import log
 
-
 DRY_RUN = True
+ARCHIVE_ATTEMPTS = 10
 USAGE_LIMIT_HOURS = 4383  # 6 months in hours
 EXPIRY_DATE_FORMAT = "%Y-%m-%d"
 ACTION_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
+TENANT_STATES = ['admin', 'quota warning', 'pending suspension', 'suspended',
+                 'archiving', 'archived', 'archive error', 'OK']
+
 
 class CPULimit(Enum):
     UNDER_LIMIT = 0
@@ -87,7 +90,9 @@ def main():
         if args.status:
             print_status(tenants)
         else:
-            process_tenants(kc, nc, tenants, users, args.zone, args.limit)
+            process_tenants(kc, nc, tenants, users, args.zone,
+                            limit=args.limit, offset=args.offset,
+                            action_state=args.action_state)
 
 
 def print_status(tenants):
@@ -99,7 +104,7 @@ def print_status(tenants):
             pt.add_row([tenant.name, tenant.id,
                         getattr(tenant.owner, 'email', ''),
                         tenant.status, tenant.expires])
-    print str(pt)
+    print(pt)
 
 
 def add_args(parser):
@@ -116,10 +121,18 @@ def add_args(parser):
                         type=int,
                         default=0,
                         help='Only process this many eligible tenants.')
+    parser.add_argument('-o', '--offset',
+                        type=int,
+                        default=None,
+                        help='Skip this many tenants before processing.')
     parser.add_argument('-t', '--tenant-id',
                         help='Tenant ID to process')
     parser.add_argument('-a', '--set-admin', action='store_true',
                         help='Mark a list of tenants as admins')
+    parser.add_argument('--action-state', action='store',
+                        choices=TENANT_STATES,
+                        default=None,
+                        help='Only process tenants in this state')
     parser.add_argument('-m', '--metadata', action='store',
                         help='Set metadata on tenants as a comma-separated '
                              'list of key=value pairs.')
@@ -152,22 +165,35 @@ def tenant_instances_are_all_in_zone(nc, tenant, zone_prefix):
     return instances and all(map(is_in_target_az, instances))
 
 
-def process_tenants(kc, nc, tenants, users, zone, limit=0):
+def process_tenants(kc, nc, tenants, users, zone, limit=0, offset=None,
+                    action_state=None):
     """Update tenant start and expiry dates in Keystone DB"""
     processed = 0
+    offset_count = 0
     for tenant in tenants:
         tenant_set_defaults(tenant)
-        if should_process_tenant(tenant):
-            if zone and not tenant_instances_are_all_in_zone(nc, tenant, zone):
-                continue
-            try:
-                did_something = process_tenant(kc, nc, tenant)
-                if did_something:
-                    processed += 1
-            except Exception as e:
-                LOG.error('Failed processing tenant %s: %s', tenant.id, str(e))
-            if limit > 0 and processed == limit:
-                break
+        offset_count += 1
+        if offset is None or offset_count > offset:
+
+            if should_process_tenant(tenant):
+                if action_state:
+                    tenant_status = getattr(tenant, 'status', None)
+                    if (not tenant_status and action_state == 'OK') or \
+                       action_state == tenant_status:
+                            if process_tenant(kc, nc, tenant):
+                                processed += 1
+
+                else:
+                    if zone and not tenant_instances_are_all_in_zone(nc,
+                                                                     tenant,
+                                                                     zone):
+                        continue
+                    did_something = process_tenant(kc, nc, tenant)
+                    if did_something:
+                        processed += 1
+
+        if limit > 0 and processed >= limit:
+            break
 
 
 def tenant_set_defaults(tenant):
@@ -180,7 +206,7 @@ def should_process_tenant(tenant):
     personal = is_personal_tenant(tenant)
     has_owner = tenant_has_owner(tenant)
     if personal and not has_owner:
-        LOG.debug("Tenant %s (%s) has no owner.", tenant.id, tenant.name)
+        LOG.debug("Tenant %s (%s) has no owner", tenant.id, tenant.name)
     return personal and has_owner and not is_ignored_tenant(tenant)
 
 
@@ -193,12 +219,12 @@ def is_ignored_tenant(tenant):
     if status is None:
         return False
     elif status == 'admin':
-        LOG.debug('%s tenant is admin. Will never expire', tenant.id)
+        LOG.debug('Tenant %s is admin. Will never expire', tenant.id)
         return True
     elif status.startswith('rt-'):
         url = ('https://support.rc.nectar.org.au'
                '/rt/Ticket/Display.html?id=%s') % status.rsplit('-', 1)[1]
-        LOG.debug('%s tenant ignored. See %s', tenant.id, url)
+        LOG.debug('Tenant %s is ignored. See %s', tenant.id, url)
         return True
     return False
 
@@ -207,14 +233,32 @@ def tenant_has_owner(tenant):
     return tenant.owner is not None
 
 
+def print_instances(instances):
+    LOG.info("\t%d instance(s) found", len(instances))
+    for instance in instances:
+        LOG.debug("\tinstance %s is %s (task_state=%s vm_state=%s)" %
+                  (instance.id, instance.status,
+                   getattr(instance, 'OS-EXT-STS:task_state'),
+                   getattr(instance, 'OS-EXT-STS:vm_state')))
+
+
+def list_instances(nc, tenant):
+    instances = get_instances(nc, tenant.id)
+    print_instances(instances)
+
+
 def process_tenant(kc, nc, tenant):
     status = getattr(tenant, 'status', None)
-    if status == 'archived':
+    LOG.debug("Processing tenant %s (%s) status: %s" %
+              (tenant.name, tenant.id, tenant.status or 'OK'))
+
+    if status in ['archived', 'archive error']:
+        if len(get_instances(nc, tenant.id)) > 0:
+            if tenant_at_next_step_date(tenant):
+                clean_up_tenant(kc, nc, tenant)
+                return True
         return False
-
-    LOG.debug("Processing tenant %s (%s)", tenant.name, tenant.id)
-
-    if status == 'suspended':
+    elif status == 'suspended':
         if tenant_at_next_step_date(tenant):
             archive_tenant(kc, nc, tenant)
             return True
@@ -223,20 +267,37 @@ def process_tenant(kc, nc, tenant):
         is_archive_successful(kc, nc, tenant)
         return True
     else:
-        limit = check_cpu_usage(kc, nc, tenant)
-        return notify(kc, nc, tenant, limit)
+        try:
+            limit = check_cpu_usage(kc, nc, tenant)
+            return notify(kc, nc, tenant, limit)
+        except Exception as e:
+            LOG.error("\tfailed to get usage for tenant %s" % tenant.id)
+            LOG.error("\t%s" % e)
 
 
-def tenant_at_next_step_date(tenant):
+def get_next_step_date(tenant):
+    # We use 'expires' for legacy reasons
     if not tenant.expires:
-        return False
+        LOG.warning('\tNo "next step" date set')
+        return
 
     try:
         expires = datetime.strptime(tenant.expires, EXPIRY_DATE_FORMAT)
+        return expires
     except ValueError:
-        LOG.debug('\tInvalid expires value')
-        return False
-    return expires <= datetime.today()
+        LOG.error('\tInvalid expires date: %s for tenant %s' %
+                  (tenant.expires, tenant.id))
+        return None
+
+
+def tenant_at_next_step_date(tenant):
+    expires = get_next_step_date(tenant)
+    if expires and expires <= datetime.today():
+        LOG.debug('\tready for next step (%s)' % expires)
+        return True
+    else:
+        LOG.debug('\tnot yet ready for next step (%s)' % expires)
+    return False
 
 
 def check_cpu_usage(kc, nc, tenant):
@@ -274,7 +335,6 @@ def notify_near_limit(kc, nc, tenant):
     if tenant.status == 'quota warning':
         return False
 
-    LOG.debug('Tenant %s (%s)', tenant.name, tenant.id)
     LOG.info("\t%s: Usage is over 80 - setting status "
              "to quota warning" % tenant.name)
     send_email(tenant, 'first')
@@ -284,11 +344,11 @@ def notify_near_limit(kc, nc, tenant):
 
 def notify_at_limit(kc, nc, tenant):
     if tenant.status == 'pending suspension':
+        LOG.debug("\tUsage OK for now, ignoring")
         return False
 
-    LOG.debug('Tenant %s (%s)', tenant.name, tenant.id)
-    LOG.info("\t%s: Usage is over 100 - setting status to "
-             "pending suspension" % tenant.name)
+    LOG.info("\tusage is over 100%%, setting status to "
+             "pending suspension for %s" % tenant.name)
     set_nova_quota(nc, tenant.id, ram=0, instances=0, cores=0)
     new_expiry = datetime.today() + relativedelta(months=1)
     new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
@@ -298,15 +358,13 @@ def notify_at_limit(kc, nc, tenant):
 
 
 def notify_over_limit(kc, nc, tenant):
-    LOG.debug('Tenant %s (%s)', tenant.name, tenant.id)
-
     if tenant.status != 'pending suspension':
         return notify_at_limit(kc, nc, tenant)
 
     if not tenant_at_next_step_date(tenant):
         return False
 
-    LOG.info("\t%s: Usage is over 120 - suspending tenant" % tenant.name)
+    LOG.info("\tusage is over 120%%, suspending tenant %s" % tenant.name)
     suspend_tenant(kc, nc, tenant)
     return True
 
@@ -317,8 +375,9 @@ def archive_tenant(kc, nc, tenant):
     else:
         if getattr(tenant, 'status', None) != 'archiving':
             LOG.info('\tarchiving tenant')
-            snapshot_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
-            set_status(kc, tenant, 'archiving', snapshot_date)
+            new_expiry = datetime.today() + relativedelta(months=1)
+            new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
+            set_status(kc, tenant, 'archiving', new_expiry)
 
     instances = get_instances(nc, tenant.id)
     if len(instances) == 0:
@@ -326,68 +385,126 @@ def archive_tenant(kc, nc, tenant):
         archive_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
         set_status(kc, tenant, 'archived', archive_date)
     else:
-        LOG.debug('\tfound %d instance(s)' % len(instances))
+        print_instances(instances)
         for instance in instances:
-            archive_instance(nc, instance)
+            attempts = int(instance.metadata.get('archive_attempts', 1))
+            if attempts >= ARCHIVE_ATTEMPTS:
+                LOG.error('\tlimit reached for archive '
+                          'attempts of instance %s' % instance.id)
+                new_expiry = datetime.today().strftime(EXPIRY_DATE_FORMAT)
+                set_status(kc, tenant, 'archive error', new_expiry)
+                break
+            else:
+                image = get_image_by_instance_id(kc, tenant, instance.id)
+                if not image:
+                    archive_instance(nc, instance)
+
+
+def tenant_has_error(kc, nc, tenant):
+    error = False
+    instances = get_instances(nc, tenant.id)
+    for instance in instances:
+        vm_state = getattr(instance, 'OS-EXT-STS:vm_state')
+        if vm_state == 'error' or instance.status == 'ERROR':
+            error = True
+    return error
+
+
+def get_glance_client(kc):
+    glance_endpoint = kc.service_catalog.url_for(service_type='image',
+                                                 endpoint_type='publicURL')
+    # TODO: Fix production hack
+    glance_endpoint = glance_endpoint.replace('/v1', '')
+    gc = auth.get_glance_client(glance_endpoint, kc.auth_token)
+    return gc
+
+
+def get_image_by_instance_id(kc, tenant, instance_id):
+    image_name = '%s_archive' % instance_id
+    return get_image_by_name(kc, tenant, image_name)
+
+
+def get_image_by_name(kc, tenant, image_name):
+    """ Get an image by a given name """
+    gc = get_glance_client(kc)
+    images = [i for i in gc.images.list(
+              filters={'property-owner_id': tenant.id})]
+    image_names = [i.name for i in images]
+    if image_name in image_names:
+        return [i for i in images if i.name == image_name][0]
+
+
+def is_image_in_progress(image):
+    if image.status in ['saving', 'queued']:
+        return True
+    return False
+
+
+def is_image_successful(image):
+    if image.status == 'active':
+        return True
+    return False
 
 
 def is_archive_successful(kc, nc, tenant):
     LOG.debug('\tchecking if archive was successful')
-
-    glance_endpoint = kc.service_catalog.url_for(service_type='image',
-                                                 endpoint_type='publicURL')
-
-    # TODO: Fix production hack
-    glance_endpoint = glance_endpoint.replace('/v1', '')
-    gc = auth.get_glance_client(glance_endpoint, kc.auth_token)
-
     instances = get_instances(nc, tenant.id)
     if len(instances) == 0:
+        # No instances found, go straight to archived
         LOG.debug('\tno instances found')
         archive_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
         set_status(kc, tenant, 'archived', archive_date)
         return True
     else:
         LOG.debug('\tfound %d instances' % len(instances))
-        images = [i for i in gc.images.list(
-            filters={'property-owner_id': tenant.id})]
-        image_names = [i.name for i in images]
 
-        archive_success = True
-        archive_in_progress = False
+        tenant_archive_success = True
+        tenant_archive_in_progress = False
 
         for instance in instances:
-            LOG.debug('\tchecking instance: %s' % instance.id)
-            archive_name = "%s_archive" % instance.id
-            if archive_name in image_names:
+            LOG.debug('\tchecking instance: %s (%s)' %
+                      (instance.id, instance.status))
 
-                image = [i for i in images if i.name == archive_name][0]
-                if image.status == 'active':
-                    LOG.info('\timage archived successfully')
-                    image.update(properties={'nectar_archive': True})
-                    clean_up_instance(instance)
-                elif image.status in ['saving', 'queued']:
-                    LOG.info("\timage archiving in progress (%s) for "
-                             "%s" % (image.status, image.id))
-                    archive_success = False
-                    archive_in_progress = True
+            image = get_image_by_instance_id(kc, tenant, instance.id)
+            if image:
+                if is_image_successful(image):
+                    LOG.info('\tinstance %s archived successfully' %
+                             instance.id)
+                    if not image.properties.get('nectar_archive'):
+                        LOG.debug('\tsetting nectar_archive property on image:'
+                                  ' %s' % image.id)
+                        image.update(properties={'nectar_archive': True})
+                elif is_image_in_progress(image):
+                    LOG.info("\tarchiving in progress (%s) for %s (image: %s)"
+                             % (image.status, instance.id, image.id))
+                    tenant_archive_success = False
+                    tenant_archive_in_progress = True
                 else:
                     LOG.warning('\timage found with status: %s' % image.status)
-                    archive_success = False
+                    tenant_archive_success = False
             else:
-                LOG.debug('\tarchive %s not found' % archive_name)
-                archive_success = False
+                LOG.debug('\tarchive for instance %s not found' % instance.id)
+                tenant_archive_success = False
 
-        if not DRY_RUN:
-            if archive_success:
-                archive_date = datetime.today().strftime(EXPIRY_DATE_FORMAT)
-                set_status(kc, tenant, 'archived', archive_date)
-                return True
+        if tenant_archive_success:
+            LOG.debug('\ttenant %s (%s) archive successful' %
+                      (tenant.id, tenant.name))
+            new_expiry = datetime.today() + relativedelta(months=1)
+            new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
+            set_status(kc, tenant, 'archived', new_expiry)
+            return True
+        else:
+            if tenant_at_next_step_date(tenant):
+                # After 1 month of attempts, mark as error
+                new_expiry = datetime.today() + relativedelta(months=1)
+                set_status(kc, tenant, 'archive error', new_expiry)
             else:
-                if archive_in_progress:
-                    LOG.info('\tarchive still in progress')
+                if tenant_archive_in_progress:
+                    LOG.info('\ttenant %s (%s) archive in progress' %
+                             (tenant.id, tenant.name))
                 else:
-                    LOG.debug('\tretrying archive')
+                    LOG.debug('\tretrying archive for tenant %s (%s) ' %
+                              (tenant.id, tenant.name))
                     archive_tenant(kc, nc, tenant)
         return False
 
@@ -395,7 +512,12 @@ def is_archive_successful(kc, nc, tenant):
 def can_delete_shutoff(nc, instance):
     """ Check instance actions to see if an instance was shutdown by an admin
     over three months ago """
-    actions = instance_action.InstanceActionManager(nc).list(instance.id)
+    try:
+        actions = instance_action.InstanceActionManager(nc).list(instance.id)
+    except Exception as e:
+        LOG.error('Failed to get instance actions: %s' % e)
+        return False
+
     if not actions:
         return False
     last_action = actions[0]
@@ -406,56 +528,83 @@ def can_delete_shutoff(nc, instance):
     if last_action.action in allowed_actions and \
        last_action.project_id in admin_projects and \
        action_date < three_months_ago:
-        LOG.debug(
-            "\tInstance %s has been shutdown >3 months ago" % instance.id)
-        return True
+            LOG.debug("\tinstance %s has been shutdown >3 months ago"
+                      % instance.id)
+            return True
     if last_action.action not in allowed_actions:
-        LOG.info("\t%s: Cannot delete shutdown last action is %s" % (
-            instance.id, last_action.action))
+        LOG.info("\tinstance %s: cannot delete, shutdown last action was %s" %
+                 (instance.id, last_action.action))
     if last_action.project_id not in admin_projects:
-        LOG.info("\t%s: Cannot delete shutdown last action project is %s" % (
-            instance.id, last_action.project_id))
+        LOG.info("\tinstance %s: cannot delete, shutdown last action was by "
+                 "project %s" % (instance.id, last_action.project_id))
     if action_date > three_months_ago:
-        LOG.debug("\t%s: Cannot delete shutdown last action date is %s" % (
-            instance.id, action_date))
+        LOG.debug("\tinstance %s cannot delete, shutdown last action date "
+                  "was %s" % (instance.id, action_date))
     return False
 
 
 def archive_instance(nc, instance):
+
+    # Increment the archive attempt counter
+    attempts = int(instance.metadata.get('archive_attempts', 0))
+    set_attempts = attempts + 1
+    if not DRY_RUN:
+        LOG.debug("\tsetting archive attempts counter to %d" % set_attempts)
+        metadata = {'archive_attempts': str(set_attempts)}
+        nc.servers.set_meta(instance.id, metadata)
+    else:
+        LOG.debug("\twould set archive attempts counter to %d" % set_attempts)
+
     task_state = getattr(instance, 'OS-EXT-STS:task_state')
-    archive_name = "%s_archive" % instance.id
-    ignored_tasks = ['suspending', 'image_snapshot_pending',
-                     'deleting', 'image_snapshot']
+    vm_state = getattr(instance, 'OS-EXT-STS:vm_state')
+
     if instance.status == 'ERROR':
+        LOG.error("\tcan't snapshot due to instance status %s"
+                  % instance.status)
         return
+
     if instance.status == 'DELETED' or task_state == 'deleting':
         clean_up_instance(instance)
         return
-    if instance.status == 'SHUTOFF':
-        if can_delete_shutoff(nc, instance):
-            clean_up_instance(instance)
-            return
-        else:
-            LOG.debug("\tinstance %s is OFF (state=%s)" %
-                      (instance.id, instance.status))
-    if task_state in ignored_tasks:
-        LOG.error("Can't snapshot due to task_state %s" % task_state)
+
+    if instance.status == 'ACTIVE':
+        # Instance should be stopped when moving into suspended status
+        # but we can stop for now and start archiving next run
+        stop_instance(instance)
         return
 
-    elif getattr(instance, 'OS-EXT-STS:power_state') == 4:
+    if task_state in ['suspending', 'image_snapshot_pending', 'deleting',
+                      'image_snapshot', 'image_pending_upload']:
+        LOG.error("\tcan't snapshot due to task_state %s" % task_state)
+        return
+
+    elif vm_state in ['stopped', 'suspended']:
+        # We need to be in stopped or suspended state to create an image
+        archive_name = "%s_archive" % instance.id
+
+        if DRY_RUN:
+            LOG.info("\twould create archive %s (attempt %d/%d)" %
+                     (archive_name, set_attempts, ARCHIVE_ATTEMPTS))
+        else:
+            try:
+                LOG.info("\tcreating archive %s (attempt %d/%d)" %
+                         (archive_name, set_attempts, ARCHIVE_ATTEMPTS))
+                image_id = instance.create_image(archive_name)
+                LOG.info("\tarchive image id: %s" % image_id)
+            except Exception as e:
+                LOG.error("\tError creating archive: %s" % e)
+    else:
+        # Fail in an unknown state
+        LOG.warning("\tinstance %s is %s (vm_state: %s)" %
+                    (instance.id, instance.status, vm_state))
+
+
+def clean_up_tenant(kc, nc, tenant):
+    instances = get_instances(nc, tenant.id)
+    LOG.info("\t%d instance(s) found", len(instances))
+    for instance in instances:
         if can_delete_shutoff(nc, instance):
             clean_up_instance(instance)
-            return
-        else:
-            LOG.debug("\tinstance %s is OFF (power_state=%d)" %
-                      (instance.id,
-                       getattr(instance, 'OS-EXT-STS:power_state')))
-    else:
-        if DRY_RUN:
-            LOG.warning("\twould create archive %s" % archive_name)
-        else:
-            LOG.info("\tcreating archive %s" % archive_name)
-            instance.create_image(archive_name)
 
 
 def clean_up_instance(instance):
@@ -471,7 +620,7 @@ def suspend_tenant(kc, nc, tenant):
     instances = get_instances(nc, tenant.id)
     LOG.info("\t%d instance(s) found", len(instances))
     for instance in instances:
-        suspend_instance(instance)
+        stop_instance(instance)
         lock_instance(instance)
     new_expiry = datetime.today() + relativedelta(months=1)
     new_expiry = new_expiry.strftime(EXPIRY_DATE_FORMAT)
@@ -488,28 +637,44 @@ def get_instances(nc, tenant_id):
 def suspend_instance(instance):
     task_state = getattr(instance, 'OS-EXT-STS:task_state')
     bad_task_states = ['migrating']
-    if instance.status == 'SUSPENDED':
-        LOG.info("\t%s - instance is already suspended" % instance.id)
-    elif instance.status == 'SHUTOFF':
-        LOG.info("\t%s - instance is off" % instance.id)
-    elif instance.status == 'ERROR':
-        LOG.info("\t%s - instance is ERROR" % instance.id)
-    elif task_state in bad_task_states:
-        msg = "%s - instance in task_state %s" % (instance.id,
+    if task_state in bad_task_states:
+        msg = "\tinstance %s is task_state %s" % (instance.id,
                                                   task_state)
         LOG.info("\t%s" % msg)
         raise ValueError(msg)
     else:
         if DRY_RUN:
-            LOG.info("\t%s - would suspend instance (dry run)" % instance.id)
+            LOG.info("\tinstance %s would be suspended" % instance.id)
         else:
+            LOG.info("\tsuspending instance %s" % instance.id)
             instance.suspend()
 
 
-def lock_instance(instance):
+def stop_instance(instance):
+    task_state = getattr(instance, 'OS-EXT-STS:task_state')
+    vm_state = getattr(instance, 'OS-EXT-STS:vm_state')
 
+    if instance.status == 'SHUTOFF':
+        LOG.info("\tinstance %s already SHUTOFF" % instance.id)
+    elif instance.status == 'ACTIVE':
+        if task_state:
+            LOG.info("\tcannot stop instance %s in task_state=%s" %
+                     (instance.id, task_state))
+        else:
+            if DRY_RUN:
+                LOG.info("\tinstance %s would be stopped" % instance.id)
+            else:
+                LOG.info("\tstopping instance %s" % instance.id)
+                instance.stop()
+    else:
+        task_state = getattr(instance, 'OS-EXT-STS:task_state')
+        LOG.info("\tinstance %s is %s (task_state=%s vm_state=%s)" %
+                 (instance.id, instance.status, task_state, vm_state))
+
+
+def lock_instance(instance):
     if DRY_RUN:
-        LOG.info("\t%s - would lock instance (dry run)" % instance.id)
+        LOG.info("\tinstance %s would be locked" % instance.id)
     else:
         instance.lock()
 
@@ -528,18 +693,20 @@ def set_nova_quota(nc, tenant_id, cores, instances, ram):
 
 
 def set_status(kc, tenant, status, expires=''):
-
     if DRY_RUN:
         if status is None:
-            LOG.info("\twould set empty status (dry run)")
+            LOG.info("\twould set empty status")
         else:
-            LOG.info("\twould set status to %s (dry run)", status)
+            LOG.info("\twould set status to %s (next step: %s)" %
+                     (status, expires))
     else:
         if status is None:
             LOG.info("\tsetting empty status")
         else:
-            LOG.info("\tsetting status to %s", status)
+            LOG.info("\tsetting status to %s (next step: %s)" %
+                     (status, expires))
         kc.tenants.update(tenant.id, status=status, expires=expires)
+
     tenant.status = status
     tenant.expires = expires
 
@@ -577,9 +744,13 @@ def send_email(tenant, status):
     if text is None:
         return
 
-    LOG.info('\tSending an email to %s', recipient)
-
     subject, text = text.split('----', 1)
+
+    if DRY_RUN:
+        LOG.info('\twould send email to %s: %s', recipient, subject.rstrip())
+    else:
+        LOG.info('\tsending email to %s: %s', recipient, subject.rstrip())
+
     do_email_send(subject, text, recipient)
 
 
@@ -590,11 +761,9 @@ def do_email_send(subject, text, recipient):
     msg['Reply-to'] = 'support@rc.nectar.org.au'
     msg['Subject'] = subject
 
-    s = smtplib.SMTP('smtp.unimelb.edu.au')
-
-    LOG.debug('%s', msg.as_string())
     if not DRY_RUN:
         try:
+            s = smtplib.SMTP('smtp.unimelb.edu.au')
             s.sendmail(msg['From'], [recipient], msg.as_string())
         except smtplib.SMTPRecipientsRefused as err:
             LOG.error('Error sending email: %s', str(err))
@@ -615,12 +784,12 @@ def set_admin(kc, tenants):
     """
     for tenant in tenants:
         if hasattr(tenant, 'status') and tenant.status == 'admin':
-            print tenant.id, "- tenant is already admin"
+            LOG.error("tenant %s is already admin" % tenant.id)
         else:
             if DRY_RUN:
-                print tenant.id, "- would set status admin (dry run)"
+                LOG.info("would set status admin for %s (dry run)" % tenant.id)
             else:
-                print tenant.id, "- setting status to admin"
+                LOG.info("setting status admin for %s" % tenant.id)
                 kc.tenants.update(tenant.id, status='admin', expires='')
 
 
