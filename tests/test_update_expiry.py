@@ -20,7 +20,7 @@ pytest_mock_fixtures = [
     'nectar_tools.update_expiry.main.suspend_tenant',
     'nectar_tools.update_expiry.main.notify_at_limit',
     'nectar_tools.update_expiry.main.lock_instance',
-    'nectar_tools.update_expiry.main.suspend_instance',
+    'nectar_tools.update_expiry.main.stop_instance',
     'nectar_tools.update_expiry.main.get_instances',
     'nectar_tools.update_expiry.main.do_email_send',
 ]
@@ -202,7 +202,7 @@ def test_suspend_expired_and_pending_suspension_tenant(tenant,
 
 def test_suspend_tenant(nova, keystone, tenant, now,
                         get_instances, set_nova_quota, set_status,
-                        suspend_instance, lock_instance, send_email):
+                        stop_instance, lock_instance, send_email):
     new_expires = '2014-02-01'  # 1 month from 'now'
     instances = ['1', '2']
     get_instances.return_value = instances
@@ -214,7 +214,7 @@ def test_suspend_tenant(nova, keystone, tenant, now,
                                       ram=0, instances=0, cores=0)
     get_instances.assert_called_with(nova, tenant.id)
     calls = [mock.call(instance) for instance in instances]
-    suspend_instance.assert_has_calls(calls)
+    stop_instance.assert_has_calls(calls)
     lock_instance.assert_has_calls(calls)
     set_status.assert_called_with(keystone, tenant, 'suspended',
                                   new_expires)
