@@ -52,6 +52,9 @@ def collect_args():
     parser.add_argument('-z', '--target-zone',
                         default=None,
                         help='Availability zone affected by outage')
+    parser.add_argument('-n', '--node',
+                            default=None,
+                            help='Only target instances from a single Host/Node')
     parser.add_argument('-o', '--only-affected', action='store_true',
                         default=False,
                         help='Only mail users with affected instances')
@@ -125,7 +128,7 @@ def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected):
         return False
 
     text, html = render_templates(subject, instances, start_ts, end_ts, tz,
-                                  zone, affected)
+                                  zone, affected, node)
 
     msg = 'User %s: sending email to %s => %s instances affected' % \
         (name, email, affected_instances)
@@ -145,7 +148,7 @@ def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected):
     return True
 
 
-def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
+def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected, node):
 
     duration = end_ts - start_ts
     days = duration.days
@@ -161,6 +164,7 @@ def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
          'days': days,
          'hours': hours,
          'tz': tz,
+         'node': node,
          'affected': affected})
     html = env.get_template('outage-notification.html.tmpl')
     html = html.render(
@@ -172,6 +176,7 @@ def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
          'days': days,
          'hours': hours,
          'tz': tz,
+         'node': node,
          'affected': affected})
 
     return text, html
@@ -251,31 +256,38 @@ def get_nova_client():
     return nc
 
 
-def get_servers(client, zone=None, inst_status=None):
+def get_servers(client, zone=None, inst_status=None, node=None):
     marker = None
-
-    while True:
-        opts = {'all_tenants': True}
-        if inst_status is not None:
-            opts['status'] = inst_status
-        if marker:
-            opts['marker'] = marker
-        response = client.servers.list(search_opts=opts)
-        if not response:
-            break
+    if node:
+        response = client.servers.list(search_opts={'all_tenants': 1, 'host': node})
         for server in response:
-            marker = server.id
-            server_az = server._info.get('OS-EXT-AZ:availability_zone') or ''
-            if zone and not server_az.lower() == zone.lower():
-                continue
             yield server
+    else:
+        while True:
+            opts = {'all_tenants': True}
+            if inst_status is not None:
+                opts['status'] = inst_status
+            if marker:
+                opts['marker'] = marker
+            response = client.servers.list(search_opts=opts)
+            if not response:
+                break
+            for server in response:
+                marker = server.id
+                server_az = server._info.get('OS-EXT-AZ:availability_zone') or ''
+                if zone and not server_az.lower() == zone.lower():
+                    continue
+                yield server
 
 
-def get_data(kc, nc, zone, inst_status, only_affected):
-
+def get_data(kc, nc, zone, inst_status, only_affected, node):
+    #import pdb; pdb.set_trace()
     print 'Gathering instance,',
 
-    servers = list(get_servers(nc, zone, inst_status))
+    if node:
+        print 'Searching instances on Node: ' + node
+    servers = list(get_servers(nc, zone, inst_status, node))
+
     print 'tenant,',
     tenants = kc.tenants.list()
     server_tenants = set([server.tenant_id for server in servers])
@@ -407,7 +419,7 @@ def main():
     if args.test:
         get_test_data(kc, nc)
     else:
-        get_data(kc, nc, zone, inst_status, args.only_affected)
+        get_data(kc, nc, zone, inst_status, args.only_affected, args.node)
 
     print "Gathering tenant information."
     proceed = False
