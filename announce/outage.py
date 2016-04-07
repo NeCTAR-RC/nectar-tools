@@ -27,17 +27,21 @@ global smtp_obj
 global smtp_msgs_per_conn
 global smtp_curr_msg_num
 global test_recipient
+global only_domain
 global tenant_data
 global total
 global user_data
+global only_instances
 smtp_server = None
 smtp_obj = None
 smtp_msgs_per_conn = None
 smtp_curr_msg_num = None
 test_recipient = None
+only_domain = None
 tenant_data = None
 total = None
 user_data = None
+only_instances = None
 
 
 def collect_args():
@@ -60,14 +64,14 @@ def collect_args():
                         help='Only consider instances with status')
     parser.add_argument('-t', '--test', action='store_true',
                         help='Use test data instead of all keystone tenants')
-    parser.add_argument('-tr', '--test_recipient',
+    parser.add_argument('-tr', '--test-recipient',
                         default=None,
                         help='Email address of user to use as a test \
                               recipient when running in test or dry-run mode')
-    parser.add_argument('-p', '--smtp_server',
+    parser.add_argument('-p', '--smtp-server',
                         default='127.0.0.1',
                         help='SMTP server to use, defaults to localhost')
-    parser.add_argument('-st', '--start_time', action='store',
+    parser.add_argument('-st', '--start-time', action='store',
                         type=get_datetime,
                         help='Outage start time (e.g. \'09:00 25-06-2015\')',
                         required=True)
@@ -87,6 +91,24 @@ def collect_args():
                         help='Skip mailing up to a given user. \
                              Useful in cases where the script has partially\
                              completed.')
+    parser.add_argument('--only-domain',
+                        required=False,
+                        default=None,
+                        help='Only send mail to users with this email domain. \
+                             Useful if messages have been blackholed or \
+                             marked as spam by local mail server/s.')
+    parser.add_argument('--only-instances',
+                        action='store_true',
+                        required=False,
+                        default=None,
+                        help='Only send mail for instances listed in the file \
+                        ./instances.txt')
+    parser.add_argument('--skip-html',
+                        action='store_true',
+                        required=False,
+                        default=None,
+                        help='Don\'t bother with html email attachment')
+
     return parser
 
 
@@ -94,7 +116,8 @@ def get_datetime(dt_string):
     return datetime.datetime.strptime(dt_string, '%H:%M %d-%m-%Y')
 
 
-def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected):
+def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected,
+        add_html=True):
     instances = user['instances']
     email = user['email']
     name = user['name']
@@ -123,9 +146,15 @@ def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected):
     if email_pattern.match(email) is None:
         print 'User %s: invalid email address => %s' % (name, email)
         return False
+    global only_domain
+    if only_domain is not None \
+            and only_domain.lower() not in email.split('@')[1].lower():
+        print 'User %s: domain %s doesn\'t match email address => %s' % (name,
+            only_domain, email)
+        return False
 
     text, html = render_templates(subject, instances, start_ts, end_ts, tz,
-                                  zone, affected)
+                                  zone, affected, add_html)
 
     msg = 'User %s: sending email to %s => %s instances affected' % \
         (name, email, affected_instances)
@@ -145,11 +174,13 @@ def mailout(user_id, user, start_ts, end_ts, tz, zone, dry_run, only_affected):
     return True
 
 
-def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
+def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected,
+        add_html):
 
     duration = end_ts - start_ts
     days = duration.days
     hours = duration.seconds//3600
+    html = None
 
     env = Environment(loader=FileSystemLoader('templates'))
     text = env.get_template('outage-notification.tmpl')
@@ -162,17 +193,18 @@ def render_templates(subject, instances, start_ts, end_ts, tz, zone, affected):
          'hours': hours,
          'tz': tz,
          'affected': affected})
-    html = env.get_template('outage-notification.html.tmpl')
-    html = html.render(
-        {'title': subject,
-         'instances': instances,
-         'zone': zone,
-         'start_ts': start_ts,
-         'end_ts': end_ts,
-         'days': days,
-         'hours': hours,
-         'tz': tz,
-         'affected': affected})
+    if add_html:
+        html = env.get_template('outage-notification.html.tmpl')
+        html = html.render(
+            {'title': subject,
+             'instances': instances,
+             'zone': zone,
+             'start_ts': start_ts,
+             'end_ts': end_ts,
+             'days': days,
+             'hours': hours,
+             'tz': tz,
+             'affected': affected})
 
     return text, html
 
@@ -186,7 +218,8 @@ def send_email(recipient, subject, text, html):
 
     msg = MIMEMultipart('alternative')
     msg.attach(MIMEText(text, 'plain', 'utf-8'))
-    msg.attach(MIMEText(html, 'html', 'utf-8'))
+    if html:
+        msg.attach(MIMEText(html, 'html', 'utf-8'))
 
     msg['From'] = 'NeCTAR Research Cloud <bounces@rc.nectar.org.au>'
     msg['To'] = recipient
@@ -253,7 +286,7 @@ def get_nova_client():
 
 def get_servers(client, zone=None, inst_status=None):
     marker = None
-
+    global only_instances
     while True:
         opts = {'all_tenants': True}
         if inst_status is not None:
@@ -267,6 +300,9 @@ def get_servers(client, zone=None, inst_status=None):
             marker = server.id
             server_az = server._info.get('OS-EXT-AZ:availability_zone') or ''
             if zone and not server_az.lower() == zone.lower():
+                continue
+            if only_instances is not None and \
+                    server.id not in only_instances:
                 continue
             yield server
 
@@ -380,9 +416,11 @@ def main():
     global smtp_msgs_per_conn
     global smtp_curr_msg_num
     global test_recipient
+    global only_domain
     global tenant_data
     global total
     global user_data
+    global only_instances
 
     smtp_obj = None
     smtp_msgs_per_conn = 100
@@ -399,9 +437,23 @@ def main():
     smtp_server = args.smtp_server
     inst_status = args.status
     test_recipient = args.test_recipient
+    only_domain = args.only_domain
+    only_instances = args.only_instances
 
     start_ts = args.start_time
     end_ts = start_ts + datetime.timedelta(hours=args.duration)
+
+    if only_instances is not None:
+        instances = []
+        try:
+            with open("instances.txt") as f:
+                for l in f.readlines():
+                    instances.extend(l.strip().split())
+        except IOError:
+            sys.stderr.write('Error reading/parsing instances.txt')
+            raise
+        only_instances = instances
+    print "Will only operate on these instances:\n%s" % str(only_instances)
 
     print "Listing instances."
     if args.test:
@@ -435,11 +487,13 @@ def main():
                     (uid, user['name'])
                 proceed = True
                 if mailout(uid, user, start_ts, end_ts, args.timezone, zone,
-                           args.no_dry_run, args.only_affected):
+                           args.no_dry_run, args.only_affected,
+                           not args.skip_html):
                     sent += 1
         else:
             if mailout(uid, user, start_ts, end_ts, args.timezone, zone,
-                       args.no_dry_run, args.only_affected):
+                       args.no_dry_run, args.only_affected,
+                       not args.skip_html):
                 sent += 1
 
     print 'Total instances affected in %s zone: %s' % (zone, total)
