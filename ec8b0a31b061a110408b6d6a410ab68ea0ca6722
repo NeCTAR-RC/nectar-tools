@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bad4c104_0b0a2521",
+        "filename": "announce/outage.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2016-04-07T07:43:09Z",
+      "side": 1,
+      "message": "This is also set up the top? Does it need to be set here too, (don\u0027t actually know how to use \"global variables\" so this may be intended)",
+      "range": {
+        "startLine": 149,
+        "startChar": 4,
+        "endLine": 149,
+        "endChar": 22
+      },
+      "revId": "ec8b0a31b061a110408b6d6a410ab68ea0ca6722",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
