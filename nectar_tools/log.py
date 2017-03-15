@@ -1,23 +1,25 @@
 import logging.config
 from os import path
 
-from nectar_tools.config import configurable, CONFIG
+from nectar_tools import config
+
+CONF = config.CONFIG
 
 
-@configurable('logging')
+@config.configurable('logging')
 def setup(filename=None, file_level='INFO', console_level='INFO',
           enabled_loggers=None, log_format=None, log_dir=None):
     if log_format is None:
         log_format = '%(asctime)s %(name)s %(levelname)s %(message)s'
     if enabled_loggers is None:
         enabled_loggers = ['nectar_tools']
-    if isinstance(enabled_loggers, basestring):
+    if isinstance(enabled_loggers, str):
         enabled_loggers = enabled_loggers.split(',')
 
-    if CONFIG.args.debug:
+    if CONF.debug:
         console_level = 'DEBUG'
         file_level = 'DEBUG'
-    if CONFIG.args.quiet:
+    if CONF.quiet:
         console_level = None
 
     config = {
@@ -64,5 +66,4 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
             'level': 'DEBUG',
             'propagate': False,
         }
-
     logging.config.dictConfig(config)
