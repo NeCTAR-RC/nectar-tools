@@ -2,46 +2,49 @@
 
 import os
 import sys
-import keystoneclient.v2_0.client as ksclient
-import novaclient.client as novaclient
-import cinderclient.client as cinderclient
+from keystoneclient import client as ksclient
+from novaclient import client as novaclient
+from cinderclient import client as cinderclient
 import glanceclient
 from keystoneclient.exceptions import AuthorizationFailure
-
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
+from keystoneclient.v3 import client
 
 from nectar_tools.config import configurable
 
 
 @configurable('openstack.client', env_prefix='OS')
-def get_keystone_client(username, password, tenant_name, auth_url):
-    kc = ksclient.Client(username=username,
-                         password=password,
-                         tenant_name=tenant_name,
-                         auth_url=auth_url)
-    return kc
+def get_session(username, password, tenant_name, auth_url):
+
+    auth = v3.Password(auth_url=auth_url,
+                       username=username,
+                       password=password,
+                       project_name=tenant_name,
+                       user_domain_id='default',
+                       project_domain_id='default')
+    return session.Session(auth=auth)
 
 
-@configurable('openstack.client', env_prefix='OS')
-def get_nova_client(username, password, tenant_name, auth_url):
-    nc = novaclient.Client(2,
-                           username,
-                           password,
-                           tenant_name,
-                           auth_url,
-                           service_type="compute")
-    return nc
+def get_keystone_client():
+    sess = get_session()
+    return client.Client(session=sess)
 
 
-@configurable('openstack.client', env_prefix='OS')
-def get_cinder_client(username, password, tenant_name, auth_url):
-    cc = cinderclient.Client('1',
-                             username,
-                             password,
-                             tenant_name,
-                             auth_url)
-    return cc
+def get_nova_client():
+    sess = get_session()
+    return novaclient.Client('2.1', session=session)
 
 
-def get_glance_client(glance_url, token):
-    gc = glanceclient.Client('1', glance_url, token=token)
-    return gc
+def get_cinder_client():
+    sess = get_session()
+    return cinderclient.Client('2', session=session)
+
+
+def get_glance_client():
+    sess = get_session()
+    return glanceclient.Client('2', session=session)
+
+
+def get_swift_client():
+    sess = get_session()

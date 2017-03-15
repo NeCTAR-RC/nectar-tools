@@ -27,6 +27,9 @@ pip-log.txt
 .tox
 nosetests.xml
 htmlcov
+.testrepository/*
+.eggs/*
+.venv/*
 
 # Translations
 *.mo

@@ -1,6 +1,4 @@
 pip
 flake8
-pytest
-pytest-mock
-mock
-freezegun
+testtools
+testrepository
