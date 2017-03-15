@@ -3,6 +3,8 @@ python-keystoneclient
 python-novaclient
 python-glanceclient
 python-cinderclient
+python-neutronclient
 jinja2
 enum34
 prettytable
+python-freshdesk
