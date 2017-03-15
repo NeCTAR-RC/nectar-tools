@@ -2,7 +2,7 @@ from nectar_tools.update_expiry import main as update_expiry
 
 import datetime
 from freezegun import freeze_time
-import mock
+from unittest import mock
 import pytest
 
 
