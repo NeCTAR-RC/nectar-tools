@@ -263,7 +263,7 @@ def process_tenant(kc, nc, tenant):
             archive_tenant(kc, nc, tenant)
             return True
     elif status == 'archiving':
-        LOG.debug('\tchecking archive status')
+        LOG.debug('Checking archive status')
         is_archive_successful(kc, nc, tenant)
         return True
     else:
@@ -271,21 +271,21 @@ def process_tenant(kc, nc, tenant):
             limit = check_cpu_usage(kc, nc, tenant)
             return notify(kc, nc, tenant, limit)
         except Exception as e:
-            LOG.error("\tfailed to get usage for tenant %s" % tenant.id)
-            LOG.error("\t%s" % e)
+            LOG.error("Failed to get usage for tenant %s" % tenant.id)
+            LOG.error("%s" % e)
 
 
 def get_next_step_date(tenant):
     # We use 'expires' for legacy reasons
     if not tenant.expires:
-        LOG.warning('\tNo "next step" date set')
+        LOG.warning('No "next step" date set')
         return
 
     try:
         expires = datetime.strptime(tenant.expires, EXPIRY_DATE_FORMAT)
         return expires
     except ValueError:
-        LOG.error('\tInvalid expires date: %s for tenant %s' %
+        LOG.error('Invalid expires date: %s for tenant %s' %
                   (tenant.expires, tenant.id))
         return None
 
@@ -293,10 +293,10 @@ def get_next_step_date(tenant):
 def tenant_at_next_step_date(tenant):
     expires = get_next_step_date(tenant)
     if expires and expires <= datetime.today():
-        LOG.debug('\tready for next step (%s)' % expires)
+        LOG.debug('Ready for next step (%s)' % expires)
         return True
     else:
-        LOG.debug('\tnot yet ready for next step (%s)' % expires)
+        LOG.debug('Not ready for next step (%s)' % expires)
     return False
 
 
@@ -307,7 +307,7 @@ def check_cpu_usage(kc, nc, tenant):
     usage = nc.usage.get(tenant.id, start, end)
     cpu_hours = getattr(usage, 'total_vcpus_usage', None)
 
-    LOG.debug("\tTotal VCPU hours: %s", cpu_hours)
+    LOG.debug("Total VCPU hours: %s", cpu_hours)
 
     if cpu_hours < limit * 0.8:
         return CPULimit.UNDER_LIMIT
