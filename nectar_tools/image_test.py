@@ -39,7 +39,7 @@ def main():
     for i in oneliners:
         result = shellout(i[-1])
         total_result += result
-        print ("%s returned %s" % (i[0], str(result)))
+        print("%s returned %s" % (i[0], str(result)))
     if total_result > 0:
         sys.exit(1)
 
