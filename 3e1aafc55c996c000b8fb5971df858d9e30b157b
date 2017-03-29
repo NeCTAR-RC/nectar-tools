@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ae8d1ca_1777c303",
+        "filename": "nectar_tools/auth.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2017-03-29T06:09:21Z",
+      "side": 1,
+      "message": "This reworking of the auth code could easily be a standalone change.",
+      "range": {
+        "startLine": 17,
+        "startChar": 4,
+        "endLine": 25,
+        "endChar": 37
+      },
+      "revId": "3e1aafc55c996c000b8fb5971df858d9e30b157b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_3774bffc",
+        "filename": "nectar_tools/config.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2017-03-29T06:09:21Z",
+      "side": 1,
+      "message": "This can also be split out.",
+      "range": {
+        "startLine": 45,
+        "startChar": 6,
+        "endLine": 48,
+        "endChar": 46
+      },
+      "revId": "3e1aafc55c996c000b8fb5971df858d9e30b157b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_57606b35",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2017-03-29T06:09:21Z",
+      "side": 1,
+      "message": "I\u0027d suggest consolidating this logic into one if self.dry_run branch and one else - it\u0027s confusing like this.",
+      "range": {
+        "startLine": 172,
+        "startChar": 12,
+        "endLine": 193,
+        "endChar": 62
+      },
+      "revId": "3e1aafc55c996c000b8fb5971df858d9e30b157b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_374bdfb1",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2017-03-29T06:09:21Z",
+      "side": 1,
+      "message": "Shouldn\u0027t these log the project ID?",
+      "range": {
+        "startLine": 179,
+        "startChar": 26,
+        "endLine": 179,
+        "endChar": 62
+      },
+      "revId": "3e1aafc55c996c000b8fb5971df858d9e30b157b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_57c78b12",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2017-03-29T06:09:21Z",
+      "side": 1,
+      "message": "\"Project archiving incomplete at scheduled next step, move on\"?",
+      "range": {
+        "startLine": 206,
+        "startChar": 27,
+        "endLine": 206,
+        "endChar": 75
+      },
+      "revId": "3e1aafc55c996c000b8fb5971df858d9e30b157b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_77cc8736",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 371,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2017-03-29T06:09:21Z",
+      "side": 1,
+      "message": "80%?",
+      "range": {
+        "startLine": 371,
+        "startChar": 22,
+        "endLine": 371,
+        "endChar": 39
+      },
+      "revId": "3e1aafc55c996c000b8fb5971df858d9e30b157b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_17e503a8",
+        "filename": "nectar_tools/expiry/templates/allocations/final-warning.tmpl",
+        "patchSetId": 10
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2017-03-29T06:09:21Z",
+      "side": 1,
+      "message": "Trailing whitespace",
+      "range": {
+        "startLine": 7,
+        "startChar": 61,
+        "endLine": 7,
+        "endChar": 65
+      },
+      "revId": "3e1aafc55c996c000b8fb5971df858d9e30b157b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_37e2ff9f",
+        "filename": "nectar_tools/image_test.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1000129
+      },
+      "writtenOn": "2017-03-29T06:09:21Z",
+      "side": 1,
+      "message": "Standalone change?",
+      "range": {
+        "startLine": 42,
+        "startChar": 8,
+        "endLine": 42,
+        "endChar": 53
+      },
+      "revId": "3e1aafc55c996c000b8fb5971df858d9e30b157b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
