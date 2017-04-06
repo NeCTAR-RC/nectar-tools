@@ -1,9 +1,9 @@
-from nectar_tools.update_expiry import main as update_expiry
-
 import datetime
 from freezegun import freeze_time
-import mock
 import pytest
+from unittest import mock
+
+from nectar_tools.update_expiry import main as update_expiry
 
 
 update_expiry.DRY_RUN = True
@@ -88,17 +88,17 @@ def test_non_personal_tenant_is_ignored(tenant):
     assert not should
 
 
-def test_tenant_at_next_step_date(tenant, now):
+def test_tenant_at_expiry_next_step_date(tenant, now):
     tenant.expires = '2013-12-31'
     with freeze_time(now):
-        expired = update_expiry.tenant_at_next_step_date(tenant)
+        expired = update_expiry.tenant_at_expiry_next_step_date(tenant)
     assert expired
 
 
 def test_tenant_is_not_expired(tenant, now):
     tenant.expires = '2014-01-02'
     with freeze_time(now):
-        expired = update_expiry.tenant_at_next_step_date(tenant)
+        expired = update_expiry.tenant_at_expiry_next_step_date(tenant)
     assert not expired
 
 

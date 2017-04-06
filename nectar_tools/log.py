@@ -66,4 +66,10 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
             'level': 'DEBUG',
             'propagate': False,
         }
+
+    config['loggers']['root'] = {
+        'handlers': handlers,
+        'level': 'DEBUG',
+        'propagate': False,
+    }
     logging.config.dictConfig(config)
