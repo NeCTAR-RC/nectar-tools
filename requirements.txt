@@ -4,6 +4,11 @@ python-novaclient
 python-glanceclient
 python-cinderclient
 python-neutronclient
+python-swiftclient
 jinja2
 enum34
 prettytable
+# Until https://github.com/sjkingo/python-freshdesk/pull/11
+# is merged use nectar copy
+# python-freshdesk
+git+https://github.com/NeCTAR-RC/python-freshdesk.git@outgoing-email#egg=python-freshdesk
