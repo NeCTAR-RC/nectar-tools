@@ -4,6 +4,8 @@ python-novaclient
 python-glanceclient
 python-cinderclient
 python-neutronclient
+python-swiftclient
 jinja2
 enum34
 prettytable
+python-freshdesk
