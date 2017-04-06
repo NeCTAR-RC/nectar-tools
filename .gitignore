@@ -20,13 +20,19 @@ lib64
 
 # Installer logs
 pip-log.txt
+logs/*
 
 # Unit test / coverage reports
-.coverage
+.coverage*
 .cache
 .tox
 nosetests.xml
 htmlcov
+.testrepository/*
+.eggs/*
+.venv/*
+cover/*
+coverage.xml
 
 # Translations
 *.mo
