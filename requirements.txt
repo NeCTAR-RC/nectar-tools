@@ -7,3 +7,4 @@ python-neutronclient
 jinja2
 enum34
 prettytable
+python-freshdesk
