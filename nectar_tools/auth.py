@@ -1,47 +1,56 @@
-#!/usr/bin/env python
+import logging
 
-import os
-import sys
-import keystoneclient.v2_0.client as ksclient
-import novaclient.client as novaclient
-import cinderclient.client as cinderclient
+from cinderclient import client as cinderclient
 import glanceclient
-from keystoneclient.exceptions import AuthorizationFailure
-
+from keystoneauth1 import loading
+from keystoneauth1 import session
+from keystoneclient.v3 import client
+from neutronclient.neutron import client as neutronclient
+from novaclient import client as novaclient
 
 from nectar_tools.config import configurable
 
 
-@configurable('openstack.client', env_prefix='OS')
-def get_keystone_client(username, password, tenant_name, auth_url):
-    kc = ksclient.Client(username=username,
-                         password=password,
-                         tenant_name=tenant_name,
-                         auth_url=auth_url)
-    return kc
+LOG = logging.getLogger(__name__)
 
 
 @configurable('openstack.client', env_prefix='OS')
-def get_nova_client(username, password, tenant_name, auth_url):
-    nc = novaclient.Client(2,
-                           username,
-                           password,
-                           tenant_name,
-                           auth_url,
-                           service_type="compute")
-    return nc
+def get_session(username, password, tenant_name, auth_url):
+    loader = loading.get_plugin_loader('password')
+    auth = loader.load_from_options(auth_url=auth_url,
+                                    username=username,
+                                    password=password,
+                                    project_name=tenant_name,
+                                    user_domain_id='default',
+                                    project_domain_id='default')
+    return session.Session(auth=auth)
 
 
-@configurable('openstack.client', env_prefix='OS')
-def get_cinder_client(username, password, tenant_name, auth_url):
-    cc = cinderclient.Client('1',
-                             username,
-                             password,
-                             tenant_name,
-                             auth_url)
-    return cc
+def get_keystone_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return client.Client(session=sess)
 
 
-def get_glance_client(glance_url, token):
-    gc = glanceclient.Client('1', glance_url, token=token)
-    return gc
+def get_nova_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return novaclient.Client('2.1', session=sess)
+
+
+def get_cinder_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return cinderclient.Client('2', session=sess)
+
+
+def get_glance_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return glanceclient.Client('2', session=sess)
+
+
+def get_neutron_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return neutronclient.Client('2.0', session=sess)
