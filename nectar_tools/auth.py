@@ -7,6 +7,7 @@ from keystoneauth1 import session
 from keystoneclient.v3 import client
 from neutronclient.neutron import client as neutronclient
 from novaclient import client as novaclient
+from swiftclient import client as swiftclient
 
 from nectar_tools.config import configurable
 
@@ -54,3 +55,16 @@ def get_neutron_client(sess=None):
     if not sess:
         sess = get_session()
     return neutronclient.Client('2.0', session=sess)
+
+
+def get_swift_client(sess=None, project_id=None):
+    if not sess:
+        sess = get_session()
+    os_opts = {}
+    if project_id:
+        endpoint = sess.get_endpoint(service_type='object-store')
+        auth_project = sess.get_project_id()
+        endpoint = endpoint.replace('AUTH_%s' % auth_project,
+                                    'AUTH_%s' % project_id)
+        os_opts['object_storage_url'] = '%s' % endpoint
+    return swiftclient.Connection(session=sess, os_options=os_opts)
