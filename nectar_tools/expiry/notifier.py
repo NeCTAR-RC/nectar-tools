@@ -112,7 +112,6 @@ class FreshDeskNotifier(Notifier):
                                             cc_emails=extra_recipients,
                                             description=text,
                                             extra_context=extra_context)
-            LOG.info("Created ticket %s", ticket_id)
             self._set_ticket_id(ticket_id)
 
             details = self.render_template(
@@ -150,11 +149,10 @@ class FreshDeskNotifier(Notifier):
 
     def _create_ticket(self, email, cc_emails, description, extra_context={}):
         if self.dry_run:
-            LOG.info('Would create ticket, requester=%s, cc=%s', email,
-                     cc_emails)
+            LOG.info('%s: Would create ticket, requester=%s, cc=%s',
+                     self.project.id, email, cc_emails)
             ticket_id = 'NEW-ID'
         else:
-            LOG.info('Creating new Freshdesk ticket')
             ticket = self.api.tickets.create_outbound_email(
                 subject=self.subject,
                 description=description,
@@ -164,20 +162,25 @@ class FreshDeskNotifier(Notifier):
                 cc_emails=cc_emails,
                 tags=['expiry'])
             ticket_id = ticket.id
+            LOG.info("%s: Created ticket %s, requester=%s, cc=%s",
+                     self.project.id, ticket_id, email, cc_emails)
 
         return ticket_id
 
     def _update_ticket(self, ticket_id, text, cc_emails=[]):
         if self.dry_run:
-            LOG.info("Would send reply to ticket %s", ticket_id)
+            LOG.info("%s: Would send reply to ticket %s", self.project.id,
+                     ticket_id)
         else:
-            LOG.info("Sending reply to ticket %s", ticket_id)
             self.api.comments.create_reply(ticket_id, text,
                                            cc_emails=cc_emails)
+            LOG.info("%s: Sent reply to ticket %s", self.project.id, ticket_id)
 
     def _add_note_to_ticket(self, ticket_id, text):
         if self.dry_run:
-            LOG.info("Would add private note to ticket %s", ticket_id)
+            LOG.info("%s: Would add private note to ticket %s",
+                     self.project.id, ticket_id)
         else:
-            LOG.info("Adding private note to ticket %s", ticket_id)
             self.api.comments.create_note(ticket_id, text)
+            LOG.info("%s: Added private note to ticket %s", self.project.id,
+                     ticket_id)

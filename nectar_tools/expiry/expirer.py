@@ -244,7 +244,7 @@ class AllocationExpirer(Expirer):
                 approved = self.allocation_api.get_last_approved_allocation(
                     self.project.id)
                 if approved:
-                    LOG.warn("%s: Allocation has old pending application, "
+                    LOG.debug("%s: Allocation has old pending application, "
                              "using last approved allocation", self.project.id)
                     LOG.debug("%s: Changing allocation from %s to %s",
                               self.project.id, allocation['id'],
