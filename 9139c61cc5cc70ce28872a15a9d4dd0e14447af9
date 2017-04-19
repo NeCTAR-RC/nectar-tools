@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_a8a4f057",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_e850b860",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 33
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_880c9496",
         "filename": "nectar_tools/expiry/archiver.py",
         "patchSetId": 16
@@ -36,6 +60,30 @@
       "writtenOn": "2017-04-12T06:45:10Z",
       "side": 1,
       "message": "as discussed, maybe using the name instances will be better here",
+      "range": {
+        "startLine": 47,
+        "startChar": 13,
+        "endLine": 47,
+        "endChar": 20
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_e8fef837",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_880c9496",
       "range": {
         "startLine": 47,
         "startChar": 13,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_08fc043e",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "This is just a safety check to be sure the metadata is on the image. Yes we add the metadata when the snapshot is created but that functionality is new so there could be old snapshots out there without it",
+      "parentUuid": "3ae8d1ca_885ad481",
+      "range": {
+        "startLine": 76,
+        "startChar": 16,
+        "endLine": 80,
+        "endChar": 70
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_e8227800",
         "filename": "nectar_tools/expiry/archiver.py",
         "patchSetId": 16
@@ -82,6 +154,30 @@
       "writtenOn": "2017-04-12T06:45:10Z",
       "side": 1,
       "message": "yes, see function for comments",
+      "range": {
+        "startLine": 128,
+        "startChar": 12,
+        "endLine": 128,
+        "endChar": 53
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_e88518ae",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_e8227800",
       "range": {
         "startLine": 128,
         "startChar": 12,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_c8013c3b",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_a81150ae",
+      "range": {
+        "startLine": 145,
+        "startChar": 8,
+        "endLine": 145,
+        "endChar": 19
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_c825bc0b",
         "filename": "nectar_tools/expiry/archiver.py",
         "patchSetId": 16
@@ -128,6 +248,30 @@
       "writtenOn": "2017-04-12T06:45:10Z",
       "side": 1,
       "message": "test for security \u003d 1 in the metadata?",
+      "range": {
+        "startLine": 258,
+        "startChar": 8,
+        "endLine": 258,
+        "endChar": 23
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_c8885cc9",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 258,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_c825bc0b",
       "range": {
         "startLine": 258,
         "startChar": 8,
@@ -186,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_a8edd08d",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "Done, was copied from old code, didn\u0027t realise how bad it was!",
+      "parentUuid": "3ae8d1ca_e83b5836",
+      "range": {
+        "startLine": 287,
+        "startChar": 8,
+        "endLine": 289,
+        "endChar": 65
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_c853fc6a",
         "filename": "nectar_tools/expiry/archiver.py",
         "patchSetId": 16
@@ -197,6 +365,30 @@
       "writtenOn": "2017-04-12T06:45:10Z",
       "side": 1,
       "message": "suggestion: rename to all_volumes() like NovaArchiver",
+      "range": {
+        "startLine": 316,
+        "startChar": 8,
+        "endLine": 316,
+        "endChar": 20
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_28f9c04d",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 316,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "Made it _all_instances",
+      "parentUuid": "3ae8d1ca_c853fc6a",
       "range": {
         "startLine": 316,
         "startChar": 8,
@@ -232,6 +424,30 @@
     },
     {
       "key": {
+        "uuid": "3ae8d1ca_48952ce3",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_c8f77c8b",
+      "range": {
+        "startLine": 264,
+        "startChar": 12,
+        "endLine": 264,
+        "endChar": 26
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "3ae8d1ca_a8031072",
         "filename": "nectar_tools/expiry/expiry_states.py",
         "patchSetId": 16
@@ -243,6 +459,30 @@
       "writtenOn": "2017-04-12T06:45:10Z",
       "side": 1,
       "message": "typo?",
+      "range": {
+        "startLine": 30,
+        "startChar": 4,
+        "endLine": 30,
+        "endChar": 12
+      },
+      "revId": "9139c61cc5cc70ce28872a15a9d4dd0e14447af9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_689ae815",
+        "filename": "nectar_tools/expiry/expiry_states.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-04-19T01:14:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "3ae8d1ca_a8031072",
       "range": {
         "startLine": 30,
         "startChar": 4,
