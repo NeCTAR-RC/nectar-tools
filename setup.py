@@ -29,7 +29,6 @@ setup(
                  'nectar_tools'},
     entry_points={
         'console_scripts': [
-            'nectar-project-expiry = nectar_tools.update_expiry.main:main',
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
             'nectar-allocation-expiry = nectar_tools.expiry.cmd.allocation_expirer:main',
         ],
