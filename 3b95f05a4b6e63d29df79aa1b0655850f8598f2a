@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ae8d1ca_0ececd5a",
+        "filename": "nectar_tools/expiry/exceptions.py",
+        "patchSetId": 23
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-04-19T04:39:53Z",
+      "side": 1,
+      "message": "Nuke this",
+      "range": {
+        "startLine": 18,
+        "startChar": 8,
+        "endLine": 18,
+        "endChar": 28
+      },
+      "revId": "3b95f05a4b6e63d29df79aa1b0655850f8598f2a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "3ae8d1ca_2edb891c",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 23
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-04-19T04:39:53Z",
+      "side": 1,
+      "message": "8 spaces?",
+      "range": {
+        "startLine": 121,
+        "startChar": 8,
+        "endLine": 121,
+        "endChar": 16
+      },
+      "revId": "3b95f05a4b6e63d29df79aa1b0655850f8598f2a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
