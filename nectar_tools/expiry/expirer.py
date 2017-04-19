@@ -234,7 +234,8 @@ class AllocationExpirer(Expirer):
         allocation_status = allocation['status']
 
         if allocation_status in (allocation_states.UPDATE_DECLINED,
-                                 allocation_states.UPDATE_PENDING):
+                                 allocation_states.UPDATE_PENDING,
+                                 allocation_states.DECLINED):
 
             two_months_ago = self.now - relativedelta(months=2)
             mod_time = datetime.datetime.strptime(
