@@ -234,7 +234,8 @@ class AllocationExpirer(Expirer):
         allocation_status = allocation['status']
 
         if allocation_status in (allocation_states.UPDATE_DECLINED,
-                                 allocation_states.UPDATE_PENDING):
+                                 allocation_states.UPDATE_PENDING,
+                                 allocation_states.DECLINED):
 
             two_months_ago = self.now - relativedelta(months=2)
             mod_time = datetime.datetime.strptime(
@@ -243,7 +244,7 @@ class AllocationExpirer(Expirer):
                 approved = self.allocation_api.get_last_approved_allocation(
                     self.project.id)
                 if approved:
-                    LOG.warn("%s: Allocation has old pending application, "
+                    LOG.warn("%s: Allocation has old unapproved application, "
                              "using last approved allocation", self.project.id)
                     LOG.debug("%s: Changing allocation from %s to %s",
                               self.project.id, allocation['id'],
