@@ -59,7 +59,7 @@ class Manager(object):
         return
 
     def process_projects(self):
-
+        LOG.info("Processing projects")
         self.pre_process_projects()
 
         limit = self.args.limit
@@ -82,7 +82,7 @@ class Manager(object):
 
                 if limit > 0 and processed >= limit:
                     break
-        print("Processed %s projects" % processed)
+        LOG.info("Processed %s projects" % processed)
         return processed
 
     def add_args(self):
