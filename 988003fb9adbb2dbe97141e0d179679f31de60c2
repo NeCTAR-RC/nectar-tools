@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3ae8d1ca_511a346f",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2017-04-20T03:18:18Z",
+      "side": 1,
+      "message": "did you mean to submit this as part of the change?",
+      "range": {
+        "startLine": 247,
+        "startChar": 24,
+        "endLine": 247,
+        "endChar": 29
+      },
+      "revId": "988003fb9adbb2dbe97141e0d179679f31de60c2",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
