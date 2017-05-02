@@ -327,6 +327,20 @@ class NovaArchiverTests(test.TestCase):
             na._lock_instance(instance)
             mock_servers.lock.assert_called_with(instance.id)
 
+    def test_unlock_instance(self):
+        na = archiver.NovaArchiver(project=PROJECT)
+        instance = fakes.FakeInstance(locked=True)
+        with mock.patch.object(na.n_client, 'servers') as mock_servers:
+            na._unlock_instance(instance)
+            mock_servers.unlock.assert_called_with(instance.id)
+
+    def test_unlock_instance_already_unlocked(self):
+        na = archiver.NovaArchiver(project=PROJECT)
+        instance = fakes.FakeInstance(locked=False)
+        with mock.patch.object(na.n_client, 'servers') as mock_servers:
+            na._unlock_instance(instance)
+            mock_servers.unlock.assert_not_called()
+
     def test_delete_instance(self):
         na = archiver.NovaArchiver(project=PROJECT)
         instance = fakes.FakeInstance()

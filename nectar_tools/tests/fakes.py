@@ -93,13 +93,15 @@ class FakeAllocationSession(object):
 class FakeInstance(object):
 
     def __init__(self, id='fake', status='ACTIVE', metadata={},
-                 task_state='', vm_state='ACTIVE', host='fakehost'):
+                 task_state='', vm_state='ACTIVE', host='fakehost', **kwargs):
         self.id = id
         self.status = status
         self.metadata = metadata
         setattr(self, 'OS-EXT-STS:task_state', task_state)
         setattr(self, 'OS-EXT-STS:vm_state', vm_state)
         setattr(self, 'OS-EXT-SRV-ATTR:host', host)
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
 
 class FakeImage(object):

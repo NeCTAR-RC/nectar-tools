@@ -258,6 +258,8 @@ class NovaArchiver(Archiver):
             LOG.info("%s: Locked instance %s", self.project.id, instance.id)
 
     def _unlock_instance(self, instance):
+        if not instance.locked:
+            return
         if self.dry_run:
             LOG.info("Instance %s would be unlocked", instance.id)
         else:
