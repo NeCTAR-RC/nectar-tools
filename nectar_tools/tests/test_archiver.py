@@ -418,7 +418,8 @@ class CinderArchiverTests(test.TestCase):
         volume = fakes.FakeVolume()
         with mock.patch.object(ca, 'c_client') as mock_cinder:
             ca._delete_volume(volume)
-            mock_cinder.volumes.delete.assert_called_once_with(volume.id)
+            mock_cinder.volumes.delete.assert_called_once_with(
+                volume.id, cascade=True)
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())

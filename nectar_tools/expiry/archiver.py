@@ -327,7 +327,7 @@ class CinderArchiver(Archiver):
             LOG.info("%s: Would delete volume: %s", self.project.id, volume.id)
         else:
             LOG.info("%s: Deleting volume: %s", self.project.id, volume.id)
-            self.c_client.volumes.delete(volume.id)
+            self.c_client.volumes.delete(volume.id, cascade=True)
 
 
 class NeutronBasicArchiver(Archiver):
