@@ -92,7 +92,7 @@ class NovaArchiver(Archiver):
                                         instances=0,
                                         cores=0,
                                         force=True)
-        LOG.info("%s: Zero nova quota", self.project.id)
+        LOG.debug("%s: Zero nova quota", self.project.id)
 
     def stop_resources(self):
         instances = self._all_instances()
@@ -304,7 +304,7 @@ class CinderArchiver(Archiver):
                                         volumes=0,
                                         gigabytes=0,
                                         snapshots=0)
-        LOG.info("%s: Zero cinder quota", self.project.id)
+        LOG.debug("%s: Zero cinder quota", self.project.id)
 
     def delete_resources(self, force=False):
         if not force:
@@ -349,7 +349,7 @@ class NeutronBasicArchiver(Archiver):
 
         if not self.dry_run:
             self.ne_client.update_quota(self.project.id, body)
-        LOG.info("%s: Zero neutron quota", self.project.id)
+        LOG.debug("%s: Zero neutron quota", self.project.id)
 
     def delete_resources(self, force=False):
         # Because we can't archive only delete when forced
@@ -464,7 +464,7 @@ class SwiftArchiver(Archiver):
         if not self.dry_run:
             self.s_client.post_account(
                 headers={SwiftArchiver.SWIFT_QUOTA_KEY: 0})
-        LOG.info("%s: Zero swift quota", self.project.id)
+        LOG.debug("%s: Zero swift quota", self.project.id)
 
     def delete_resources(self, force=False):
         if not force:
