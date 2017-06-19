@@ -407,7 +407,7 @@ class AllocationExpirer(Expirer):
 
     def _get_notification_context(self):
         managers = self._get_project_managers()
-        members = self._get_project_managers()
+        members = self._get_project_members()
         context = {'managers': managers,
                    'members': members,
                    'allocation': self.allocation}
