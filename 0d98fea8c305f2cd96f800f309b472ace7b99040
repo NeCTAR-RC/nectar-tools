@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f325060b",
+        "filename": "scripts/swift-stats.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-07-17T00:34:45Z",
+      "side": 1,
+      "message": "whitespace",
+      "range": {
+        "startLine": 30,
+        "startChar": 0,
+        "endLine": 30,
+        "endChar": 4
+      },
+      "revId": "0d98fea8c305f2cd96f800f309b472ace7b99040",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
