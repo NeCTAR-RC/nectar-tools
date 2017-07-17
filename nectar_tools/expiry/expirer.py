@@ -218,8 +218,7 @@ class AllocationExpirer(Expirer):
             allocation = self.allocation_api.get_current_allocation(
                 self.project.id)
         except exceptions.AllocationDoesNotExist:
-            status = self.get_status()
-            if status == expiry_states.ADMIN:
+            if self.is_ignored_project():
                 return
             LOG.warn("%s: Allocation can not be found", self.project.id)
             if self.force_no_allocation:
@@ -264,8 +263,6 @@ class AllocationExpirer(Expirer):
         return allocation
 
     def process(self):
-        if not self.should_process_project():
-            raise exceptions.InvalidProjectAllocation()
 
         expiry_status = self.get_status()
         expiry_next_step = self.get_next_step_date()
@@ -278,6 +275,9 @@ class AllocationExpirer(Expirer):
             LOG.info("%s: Force deleting project", self.project.id)
             self.delete_project()
             return True
+
+        if not self.should_process_project():
+            raise exceptions.InvalidProjectAllocation()
 
         if expiry_status == expiry_states.RENEWED:
             self.revert_expiry()
