@@ -34,7 +34,7 @@ class Manager(object):
         if self.args.project_id:
             project = self.k_client.projects.get(self.args.project_id)
             projects.append(project)
-        if not projects:
+        elif self.args.all or self.args.filename:
             projects = self.k_client.projects.list(enabled=True,
                                                    domain='default')
             if self.args.filename:
@@ -88,11 +88,12 @@ class Manager(object):
     def add_args(self):
         """Handle command-line options"""
         self.parser.description = 'Updates project expiry date'
+        project_group = self.parser.add_mutually_exclusive_group()
         self.parser.add_argument('-y', '--no-dry-run', action='store_true',
                             default=False,
                             help='Perform the actual actions, default is to \
                                  only show what would happen')
-        self.parser.add_argument('-f', '--filename',
+        project_group.add_argument('-f', '--filename',
                             type=argparse.FileType('r'),
                             help='File path with a list of project IDs, \
                                  one on each line')
@@ -104,7 +105,10 @@ class Manager(object):
                             type=int,
                             default=None,
                             help='Skip this many projects before processing.')
-        self.parser.add_argument('-p', '--project-id',
+        project_group.add_argument('--all', action='store_true',
+                            default=False,
+                            help='Run over all projects')
+        project_group.add_argument('-p', '--project-id',
                             help='Project ID to process')
         self.parser.add_argument('-s', '--status', action='store_true',
                             help='Report current status of each project.')
