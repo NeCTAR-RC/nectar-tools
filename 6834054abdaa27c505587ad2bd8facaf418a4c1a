@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b6b60c89",
+        "filename": "nectar_tools/expiry/cmd/base.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2017-07-18T08:25:48Z",
+      "side": 1,
+      "message": "not needed? action\u003d\u0027store_true\u0027 will default to False",
+      "range": {
+        "startLine": 109,
+        "startChar": 28,
+        "endLine": 109,
+        "endChar": 41
+      },
+      "revId": "6834054abdaa27c505587ad2bd8facaf418a4c1a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
