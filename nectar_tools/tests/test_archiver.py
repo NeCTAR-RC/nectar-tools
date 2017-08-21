@@ -429,15 +429,22 @@ class NeutronBasicArchiverTests(test.TestCase):
         na = archiver.NeutronBasicArchiver(project=PROJECT)
         with mock.patch.object(na, 'ne_client') as mock_neutron:
             na.zero_quota()
-            body = {'quota': {'floatingip': 0,
-                              'router': 0,
-                              'subnet': 0,
-                              'network': 0,
-                              'port': 0,
+            body = {'quota': {'port': 0,
                               'security_group': 0,
                               'security_group_rule': 0}
             }
             mock_neutron.update_quota.assert_called_with(PROJECT.id, body)
+
+    def test_reset_quota(self):
+        na = archiver.NeutronBasicArchiver(project=PROJECT)
+        with mock.patch.object(na, 'ne_client') as mock_neutron:
+            quota_data = {'quota': {
+                'router': 2, 'floatingip': 2, 'network': 2, 'subnet': 2}}
+            mock_neutron.show_quota.return_value = quota_data
+            na.reset_quota()
+            mock_neutron.delete_quota.assert_called_with(PROJECT.id)
+            mock_neutron.update_quota.assert_called_with(PROJECT.id,
+                                                         quota_data)
 
     def test_delete_neutron_resources(self):
         na = archiver.NeutronBasicArchiver(project=PROJECT)

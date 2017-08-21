@@ -513,38 +513,6 @@ class AllocationExpiryTests(test.TestCase):
             mock_update_project.assert_called_once_with(expiry_status='',
                                                         expiry_next_step='',
                                                         expiry_ticket_id=0)
-            mock_archiver.enable_resources.assert_not_called()
-
-    def test_revert_expiry_stopped(self, mock_allocations):
-        project = fakes.FakeProject(expiry_status=expiry_states.STOPPED,
-                                    expiry_next_step=BEFORE,
-                                    expiry_ticket_id='20')
-        ex = expirer.AllocationExpirer(project)
-
-        with test.nested(
-            mock.patch.object(ex, '_update_project'),
-            mock.patch.object(ex, 'archiver'),
-        ) as (mock_update_project, mock_archiver):
-            ex.revert_expiry()
-            mock_update_project.assert_called_once_with(expiry_status='',
-                                                        expiry_next_step='',
-                                                        expiry_ticket_id=0)
-            mock_archiver.enable_resources.assert_called_once_with()
-
-    def test_revert_expiry_archiving(self, mock_allocations):
-        project = fakes.FakeProject(expiry_status=expiry_states.ARCHIVING,
-                                    expiry_next_step=BEFORE,
-                                    expiry_ticket_id='20')
-        ex = expirer.AllocationExpirer(project)
-
-        with test.nested(
-            mock.patch.object(ex, '_update_project'),
-            mock.patch.object(ex, 'archiver'),
-        ) as (mock_update_project, mock_archiver):
-            ex.revert_expiry()
-            mock_update_project.assert_called_once_with(expiry_status='',
-                                                        expiry_next_step='',
-                                                        expiry_ticket_id=0)
             mock_archiver.enable_resources.assert_called_once_with()
 
     def test_send_warning(self, mock_allocations):
