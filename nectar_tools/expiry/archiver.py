@@ -5,6 +5,7 @@ import neutronclient
 from nectar_tools import auth
 
 
+EXPIRY_METADATA_KEY = 'expiry_locked'
 ARCHIVE_ATTEMPTS = 10
 LOG = logging.getLogger(__name__)
 
@@ -126,7 +127,8 @@ class NovaArchiver(Archiver):
         for instance in instances:
             # Don't unlock security locked instances
             security = instance.metadata.get('security_ticket')
-            if not security:
+            expiry_locked = instance.metadata.get(EXPIRY_METADATA_KEY)
+            if not security and expiry_locked:
                 self._unlock_instance(instance)
 
     def delete_archives(self):
@@ -260,6 +262,9 @@ class NovaArchiver(Archiver):
             LOG.info("Instance %s would be locked", instance.id)
         else:
             self.n_client.servers.lock(instance.id)
+            if instance.status != "ERROR":
+                self.n_client.servers.set_meta(instance.id,
+                                               {EXPIRY_METADATA_KEY: 'True'})
             LOG.info("%s: Locked instance %s", self.project.id, instance.id)
 
     def _unlock_instance(self, instance):
@@ -269,6 +274,8 @@ class NovaArchiver(Archiver):
             LOG.info("Instance %s would be unlocked", instance.id)
         else:
             self.n_client.servers.unlock(instance.id)
+            self.n_client.servers.delete_meta(instance.id,
+                                              [EXPIRY_METADATA_KEY])
             LOG.info("%s: Unlocked instance %s", self.project.id, instance.id)
 
     def _delete_instance(self, instance):
