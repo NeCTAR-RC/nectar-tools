@@ -2,7 +2,7 @@ import datetime
 import logging
 import requests
 
-from nectar_tools.expiry import exceptions
+from nectar_tools.allocations import exceptions
 
 
 LOG = logging.getLogger(__name__)

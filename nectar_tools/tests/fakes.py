@@ -1,6 +1,6 @@
 from unittest import mock
 
-from nectar_tools.expiry import exceptions
+from nectar_tools.allocations import exceptions
 
 
 ALLOCATIONS = {

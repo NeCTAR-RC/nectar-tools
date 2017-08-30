@@ -7,8 +7,9 @@ import re
 from nectar_tools import auth
 from nectar_tools import config
 
-from nectar_tools.expiry import allocation_states
-from nectar_tools.expiry import allocations
+from nectar_tools import allocations
+from nectar_tools.allocations import exceptions as allocation_exc
+from nectar_tools.allocations import states as allocation_states
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import exceptions
 from nectar_tools.expiry import expiry_states
@@ -217,7 +218,7 @@ class AllocationExpirer(Expirer):
         try:
             allocation = self.allocation_api.get_current_allocation(
                 self.project.id)
-        except exceptions.AllocationDoesNotExist:
+        except allocation_exc.AllocationDoesNotExist:
             if self.is_ignored_project():
                 return
             LOG.warn("%s: Allocation can not be found", self.project.id)
@@ -227,7 +228,7 @@ class AllocationExpirer(Expirer):
                               'start_date': '1970-01-01',
                               'end_date': '1970-01-01'}
             else:
-                raise exceptions.AllocationDoesNotExist(
+                raise allocation_exc.AllocationDoesNotExist(
                     project_id=self.project.id)
 
         allocation_status = allocation['status']

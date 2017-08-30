@@ -6,6 +6,7 @@ from unittest import mock
 from nectar_tools import config
 from nectar_tools import test
 
+from nectar_tools.allocations import exceptions as allocation_exc
 from nectar_tools.expiry import exceptions
 from nectar_tools.expiry import expirer
 from nectar_tools.expiry import expiry_states
@@ -271,7 +272,7 @@ class ExpiryTests(test.TestCase):
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.expiry.notifier.FreshDeskNotifier', new=mock.Mock())
-@mock.patch('nectar_tools.expiry.allocations.NectarAllocationSession',
+@mock.patch('nectar_tools.allocations.NectarAllocationSession',
             return_value=fakes.FakeAllocationSession(fakes.ALLOCATIONS))
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class AllocationExpiryTests(test.TestCase):
@@ -283,7 +284,7 @@ class AllocationExpiryTests(test.TestCase):
 
     def test_init_no_allocation(self, mock_allocations):
         project = fakes.FakeProject('no-allocation')
-        self.assertRaises(exceptions.AllocationDoesNotExist,
+        self.assertRaises(allocation_exc.AllocationDoesNotExist,
                           expirer.AllocationExpirer, project)
 
     def test_init_no_allocation_ignore(self, mock_allocations):
@@ -308,9 +309,9 @@ class AllocationExpiryTests(test.TestCase):
 
         with mock.patch.object(ex, 'allocation_api') as mock_api:
             mock_api.get_current_allocation.side_effect = \
-                exceptions.AllocationDoesNotExist(project_id=project.id)
+                allocation_exc.AllocationDoesNotExist(project_id=project.id)
 
-            self.assertRaises(exceptions.AllocationDoesNotExist,
+            self.assertRaises(allocation_exc.AllocationDoesNotExist,
                               ex.get_allocation)
 
     def test_get_allocation_no_allocation_force(self, mock_allocations):
@@ -319,7 +320,7 @@ class AllocationExpiryTests(test.TestCase):
 
         with mock.patch.object(ex, 'allocation_api') as mock_api:
             mock_api.get_current_allocation.side_effect = \
-                exceptions.AllocationDoesNotExist(project_id=project.id)
+                allocation_exc.AllocationDoesNotExist(project_id=project.id)
 
             output = ex.get_allocation()
             self.assertEqual('NO-ALLOCATION', output['id'])
