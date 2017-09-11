@@ -3,7 +3,7 @@ from unittest import mock
 from nectar_tools import config
 from nectar_tools import test
 
-from nectar_tools.expiry import notifier
+from nectar_tools import notifier
 
 from nectar_tools.tests import fakes
 
