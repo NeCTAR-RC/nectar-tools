@@ -13,7 +13,7 @@ from nectar_tools.allocations import states as allocation_states
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import exceptions
 from nectar_tools.expiry import expiry_states
-from nectar_tools.expiry import notifier as expiry_notifier
+from nectar_tools import notifier as expiry_notifier
 
 
 CONF = config.CONFIG
