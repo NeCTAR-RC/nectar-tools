@@ -8,6 +8,7 @@ from keystoneclient.v3 import client
 from neutronclient.neutron import client as neutronclient
 from novaclient import client as novaclient
 from swiftclient import client as swiftclient
+from troveclient import client as troveclient
 
 from nectar_tools.config import configurable
 
@@ -55,6 +56,12 @@ def get_neutron_client(sess=None):
     if not sess:
         sess = get_session()
     return neutronclient.Client('2.0', session=sess)
+
+
+def get_trove_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return troveclient.Client('1.0', session=sess)
 
 
 def get_swift_client(sess=None, project_id=None):
