@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_f2ca45a0",
+        "filename": "nectar_tools/allocations/__init__.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-09-14T23:18:19Z",
+      "side": 1,
+      "message": "Should be in the allocations module",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 60
+      },
+      "revId": "b3382f14a0919dd28d1a6cff24edb8762e5a7283",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_d2d54944",
+        "filename": "nectar_tools/allocations/__init__.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-09-14T23:18:19Z",
+      "side": 1,
+      "message": "make this nicer with args",
+      "range": {
+        "startLine": 50,
+        "startChar": 20,
+        "endLine": 50,
+        "endChar": 32
+      },
+      "revId": "b3382f14a0919dd28d1a6cff24edb8762e5a7283",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b2d0bd54",
+        "filename": "nectar_tools/allocations/__init__.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-09-14T23:18:19Z",
+      "side": 1,
+      "message": "Use mapping for this",
+      "range": {
+        "startLine": 71,
+        "startChar": 74,
+        "endLine": 71,
+        "endChar": 77
+      },
+      "revId": "b3382f14a0919dd28d1a6cff24edb8762e5a7283",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_12d0914f",
+        "filename": "nectar_tools/provisioning/cmd/provision.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-09-14T23:18:19Z",
+      "side": 1,
+      "message": "ws",
+      "range": {
+        "startLine": 20,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 8
+      },
+      "revId": "b3382f14a0919dd28d1a6cff24edb8762e5a7283",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_32c4ad91",
+        "filename": "nectar_tools/provisioning/provisioner.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-09-14T23:18:19Z",
+      "side": 1,
+      "message": "ws",
+      "range": {
+        "startLine": 42,
+        "startChar": 0,
+        "endLine": 42,
+        "endChar": 8
+      },
+      "revId": "b3382f14a0919dd28d1a6cff24edb8762e5a7283",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_52c1397f",
+        "filename": "nectar_tools/provisioning/provisioner.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-09-14T23:18:19Z",
+      "side": 1,
+      "message": "wonder if it\u0027s worth having a method specifically for parsing and normalising project names?",
+      "range": {
+        "startLine": 50,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 21
+      },
+      "revId": "b3382f14a0919dd28d1a6cff24edb8762e5a7283",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_72be3501",
+        "filename": "nectar_tools/provisioning/provisioner.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-09-14T23:18:19Z",
+      "side": 1,
+      "message": "database.resource",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 51
+      },
+      "revId": "b3382f14a0919dd28d1a6cff24edb8762e5a7283",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_92bbc10d",
+        "filename": "nectar_tools/provisioning/provisioner.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-09-14T23:18:19Z",
+      "side": 1,
+      "message": "ws",
+      "range": {
+        "startLine": 133,
+        "startChar": 0,
+        "endLine": 133,
+        "endChar": 4
+      },
+      "revId": "b3382f14a0919dd28d1a6cff24edb8762e5a7283",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1ae5cdf2_b237ddaf",
+        "filename": "nectar_tools/provisioning/provisioner.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2017-09-14T23:18:19Z",
+      "side": 1,
+      "message": "ws",
+      "range": {
+        "startLine": 239,
+        "startChar": 0,
+        "endLine": 239,
+        "endChar": 8
+      },
+      "revId": "b3382f14a0919dd28d1a6cff24edb8762e5a7283",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
