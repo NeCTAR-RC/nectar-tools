@@ -5,7 +5,7 @@ import prettytable
 from nectar_tools import cmd_base
 from nectar_tools import config
 
-from nectar_tools.expiry import exceptions
+from nectar_tools import exceptions
 from nectar_tools.expiry import expiry_states
 
 
@@ -16,7 +16,7 @@ LOG = logging.getLogger(__name__)
 class ExpiryCmd(cmd_base.CmdBase):
 
     def __init__(self):
-        super(ExpiryCmd, self).__init__()
+        super(ExpiryCmd, self).__init__(log_filename='expiry.log')
 
         projects = []
         if self.args.project_id:
@@ -100,7 +100,7 @@ class ExpiryCmd(cmd_base.CmdBase):
                             help='Mark a list of projects as admins')
         self.parser.add_argument('--action-state', action='store',
                             default=None,
-                                 help='Only process projects in this state')
+                            help='Only process projects in this state')
         self.parser.add_argument('--force-delete', action='store_true',
                             help="Delete a project no matter what state it's \
                                  in")

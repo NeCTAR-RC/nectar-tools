@@ -8,12 +8,11 @@ from nectar_tools import auth
 from nectar_tools import config
 
 from nectar_tools import allocations
-from nectar_tools.allocations import exceptions as allocation_exc
 from nectar_tools.allocations import states as allocation_states
+from nectar_tools import exceptions
 from nectar_tools.expiry import archiver
-from nectar_tools.expiry import exceptions
 from nectar_tools.expiry import expiry_states
-from nectar_tools import notifier as expiry_notifier
+from nectar_tools.expiry import notifier as expiry_notifier
 
 
 CONF = config.CONFIG
@@ -74,13 +73,13 @@ class Expirer(object):
 
     def _get_project_managers(self):
         if self.managers is None:
-            role = CONF.expiry.manager_role_id
+            role = CONF.keystone.manager_role_id
             self.managers = self._get_users_by_role(role)
         return self.managers
 
     def _get_project_members(self):
         if self.members is None:
-            role = CONF.expiry.member_role_id
+            role = CONF.keystone.member_role_id
             self.members = self._get_users_by_role(role)
         return self.members
 
@@ -197,7 +196,7 @@ class AllocationExpirer(Expirer):
                  disable_project=False):
         archivers = ['nova', 'cinder', 'neutron', 'glance', 'swift']
 
-        notifier = expiry_notifier.FreshDeskNotifier(
+        notifier = expiry_notifier.ExpiryNotifier(
             project=project, template_dir='allocations',
             group_id=CONF.freshdesk.allocation_group,
             subject="Nectar Project Allocation Renewal - %s" % project.name,
@@ -217,21 +216,24 @@ class AllocationExpirer(Expirer):
     def get_allocation(self):
         try:
             allocation = self.allocation_api.get_current_allocation(
-                self.project.id)
-        except allocation_exc.AllocationDoesNotExist:
+                project_id=self.project.id)
+        except exceptions.AllocationDoesNotExist:
             if self.is_ignored_project():
                 return
             LOG.warn("%s: Allocation can not be found", self.project.id)
             if self.force_no_allocation:
-                allocation = {'id': 'NO-ALLOCATION',
-                              'status': allocation_states.APPROVED,
-                              'start_date': '1970-01-01',
-                              'end_date': '1970-01-01'}
+                allocation = allocations.Allocation(
+                    None,
+                    {'id': 'NO-ALLOCATION',
+                     'status': allocation_states.APPROVED,
+                     'start_date': '1970-01-01',
+                     'end_date': '1970-01-01'},
+                    None)
             else:
-                raise allocation_exc.AllocationDoesNotExist(
+                raise exceptions.AllocationDoesNotExist(
                     project_id=self.project.id)
 
-        allocation_status = allocation['status']
+        allocation_status = allocation.status
 
         if allocation_status in (allocation_states.UPDATE_DECLINED,
                                  allocation_states.UPDATE_PENDING,
@@ -239,26 +241,26 @@ class AllocationExpirer(Expirer):
 
             two_months_ago = self.now - relativedelta(months=2)
             mod_time = datetime.datetime.strptime(
-                allocation['modified_time'], DATETIME_FORMAT)
+                allocation.modified_time, DATETIME_FORMAT)
             if mod_time < two_months_ago:
                 approved = self.allocation_api.get_last_approved_allocation(
-                    self.project.id)
+                    project_id=self.project.id)
                 if approved:
                     LOG.debug("%s: Allocation has old unapproved application, "
                               "using last approved allocation",
                               self.project.id)
                     LOG.debug("%s: Changing allocation from %s to %s",
-                              self.project.id, allocation['id'],
-                              approved['id'])
+                              self.project.id, allocation.id,
+                              approved.id)
                     allocation = approved
 
-        allocation_status = allocation['status']
+        allocation_status = allocation.status
         allocation_start = datetime.datetime.strptime(
-            allocation['start_date'], DATE_FORMAT)
+            allocation.start_date, DATE_FORMAT)
         allocation_end = datetime.datetime.strptime(
-            allocation['end_date'], DATE_FORMAT)
+            allocation.end_date, DATE_FORMAT)
         LOG.debug("%s: Allocation id=%s, status='%s', start=%s, end=%s",
-                  self.project.id, allocation['id'],
+                  self.project.id, allocation.id,
                   allocation_states.STATES[allocation_status],
                   allocation_start.date(), allocation_end.date())
         return allocation
@@ -328,9 +330,9 @@ class AllocationExpirer(Expirer):
     def allocation_ready_for_warning(self):
 
         allocation_start = datetime.datetime.strptime(
-            self.allocation['start_date'], DATE_FORMAT)
+            self.allocation.start_date, DATE_FORMAT)
         allocation_end = datetime.datetime.strptime(
-            self.allocation['end_date'], DATE_FORMAT)
+            self.allocation.end_date, DATE_FORMAT)
 
         allocation_days = (allocation_end - allocation_start).days
         warning_date = allocation_start + datetime.timedelta(
@@ -342,11 +344,19 @@ class AllocationExpirer(Expirer):
         return warning_date < self.now
 
     def revert_expiry(self):
+        status = self.get_status()
+        if status == expiry_states.ACTIVE:
+            return
+
         LOG.info("%s: Allocation has been renewed, reverting expiry",
                  self.project.id)
 
-        self.archiver.reset_quota()
-        self.archiver.enable_resources()
+        if status in [expiry_states.STOPPED, expiry_states.RENEWED]:
+            self.archiver.enable_resources()
+
+        if status in [expiry_states.STOPPED, expiry_states.RESTRICTED,
+                      expiry_states.RENEWED]:
+            self.archiver.reset_quota()
 
         self.notifier.finish(message="Allocation has been renewed")
 
@@ -370,12 +380,12 @@ class AllocationExpirer(Expirer):
         if self.get_status() == expiry_states.RENEWED:
             return True
 
-        allocation_status = self.allocation['status']
+        allocation_status = self.allocation.status
         if allocation_status == allocation_states.APPROVED:
             return True
         elif allocation_status == allocation_states.UPDATE_PENDING:
             LOG.debug("%s: Skipping, allocation is pending modified=%s",
-                      self.project.id, self.allocation['modified_time'])
+                      self.project.id, self.allocation.modified_time)
             return False
         else:
             LOG.error("%s: Can't process allocation, state='%s'",
@@ -386,8 +396,8 @@ class AllocationExpirer(Expirer):
         return True
 
     def _get_recipients(self):
-        owner_email = self.allocation['contact_email'].lower()
-        approver_email = self.allocation['approver_email'].lower()
+        owner_email = self.allocation.contact_email.lower()
+        approver_email = self.allocation.approver_email.lower()
         managers = self._get_project_managers()
 
         manager_emails = []
@@ -450,7 +460,7 @@ class PTExpirer(Expirer):
     def __init__(self, project, ks_session=None, dry_run=False,
                  disable_project=False, force_delete=False):
         archivers = ['nova', 'neutron_basic', 'swift']
-        notifier = expiry_notifier.FreshDeskNotifier(
+        notifier = expiry_notifier.ExpiryNotifier(
             project=project, template_dir='pts',
             group_id=CONF.freshdesk.pt_group,
             subject="Nectar Project Trial Expiry - %s" % project.name,

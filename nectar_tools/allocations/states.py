@@ -10,8 +10,6 @@ UPDATE_PENDING = 'X'
 
 UPDATE_DECLINED = 'J'
 
-PROVISIONED = 'P'
-
 LEGACY = 'L'
 
 LEGACY_APPROVED = 'M'
@@ -26,7 +24,6 @@ STATES = {
     DECLINED: 'Declined',
     UPDATE_PENDING: 'Update Pending',
     UPDATE_DECLINED: 'Update Declined',
-    PROVISIONED: 'Provisioned',
     LEGACY: 'Legacy',
     LEGACY_APPROVED: 'Legacy Approved',
     LEGACY_REJECTED: 'Legacy Rejected',
