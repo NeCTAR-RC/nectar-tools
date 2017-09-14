@@ -2,9 +2,8 @@ import argparse
 import logging
 import prettytable
 
-from nectar_tools import auth
+from nectar_tools import cmd_base
 from nectar_tools import config
-from nectar_tools import log
 
 from nectar_tools.expiry import exceptions
 from nectar_tools.expiry import expiry_states
@@ -14,21 +13,10 @@ CONFIG = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 
-class Manager(object):
+class ExpiryCmd(cmd_base.CmdBase):
 
     def __init__(self):
-        self.parser = CONFIG.get_parser()
-        self.add_args()
-        self.args = CONFIG.parse()
-
-        log.setup()
-
-        self.dry_run = True
-        if self.args.no_dry_run:
-            self.dry_run = False
-
-        self.session = auth.get_session()
-        self.k_client = auth.get_keystone_client(self.session)
+        super(ExpiryCmd, self).__init__()
 
         projects = []
         if self.args.project_id:
@@ -87,11 +75,9 @@ class Manager(object):
 
     def add_args(self):
         """Handle command-line options"""
+        super(ExpiryCmd, self).add_args()
         self.parser.description = 'Updates project expiry date'
         project_group = self.parser.add_mutually_exclusive_group()
-        self.parser.add_argument('-y', '--no-dry-run', action='store_true',
-                            help='Perform the actual actions, default is to \
-                                 only show what would happen')
         project_group.add_argument('-f', '--filename',
                             type=argparse.FileType('r'),
                             help='File path with a list of project IDs, \
