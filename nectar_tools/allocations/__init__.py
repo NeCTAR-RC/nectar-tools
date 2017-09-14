@@ -9,7 +9,7 @@ LOG = logging.getLogger(__name__)
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 
-class NectarAllocationSession(requests.Session):
+class AllocationManager(requests.Session):
     """Class to encapsulate the rest api endpoint with a requests session.
 
     """

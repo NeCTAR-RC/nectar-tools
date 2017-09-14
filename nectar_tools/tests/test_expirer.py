@@ -272,8 +272,8 @@ class ExpiryTests(test.TestCase):
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.notifier.FreshDeskNotifier', new=mock.Mock())
-@mock.patch('nectar_tools.allocations.NectarAllocationSession',
-            return_value=fakes.FakeAllocationSession(fakes.ALLOCATIONS))
+@mock.patch('nectar_tools.allocations.AllocationManager',
+            return_value=fakes.FakeAllocationManager(fakes.ALLOCATIONS))
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class AllocationExpiryTests(test.TestCase):
 
