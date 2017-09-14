@@ -31,6 +31,7 @@ setup(
         'console_scripts': [
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
             'nectar-allocation-expiry = nectar_tools.expiry.cmd.allocation_expirer:main',
+            'nectar-allocation-provisioner = nectar_tools.provisioning.cmd.provision:main',
         ],
     },
     include_package_data=True,
