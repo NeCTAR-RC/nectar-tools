@@ -71,16 +71,18 @@ MEMBERS = [mock.Mock(id='member1',
 
 class FakeProject(object):
 
-    def __init__(self, project_id='dummy', name='MyProject', **kwargs):
+    def __init__(self, project_id='dummy', name='MyProject',
+                 domain_id='default', **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
         self.id = project_id
         self.name = name
+        self.domain_id = domain_id
 
 
 class FakeAllocationManager(object):
 
-    def __init__(self, allocations):
+    def __init__(self, allocations=None):
         self.allocations = ALLOCATIONS
 
     def get_current_allocation(self, project_id='dummy'):
@@ -128,3 +130,94 @@ class FakeVolume(object):
 
     def get(self, key, default=None):
         return getattr(self, key, default)
+
+
+FAKE_ALLOCATION = {
+    "quotas": [
+        {
+            "id": 1,
+            "allocation": 1,
+            "resource": "volume",
+            "zone": "melbourne",
+            "requested_quota": 30,
+            "quota": 30,
+            "units": "GB"
+        },
+        {
+            "id": 2,
+            "allocation": 1,
+            "resource": "volume",
+            "zone": "monash",
+            "requested_quota": 100,
+            "quota": 100,
+            "units": "GB"
+        },
+        {
+            "id": 3,
+            "allocation": 1,
+            "resource": "object",
+            "zone": "nectar",
+            "requested_quota": 100,
+            "quota": 100,
+            "units": "GB"
+        },
+        {
+            "id": 4,
+            "allocation": 1,
+            "resource": "database_instances",
+            "zone": "nectar",
+            "requested_quota": 1,
+            "quota": 2,
+            "units": "Servers"
+        },
+        {
+            "id": 5,
+            "allocation": 1,
+            "resource": "database_volumes",
+            "zone": "nectar",
+            "requested_quota": 20,
+            "quota": 100,
+            "units": "GB"
+        },
+    ],
+    "id": 1,
+    "parent_request": None,
+    "status": "A",
+    "status_explanation": "",
+    "created_by": "0bdf024c921848c4b74d9e69af9edf08",
+    "submit_date": "2015-02-26",
+    "modified_time": "2015-03-11T23:50:51Z",
+    "tenant_name": "Samtest2",
+    "project_name": "blahdfdfdfg",
+    "contact_email": "john@example.com",
+    "start_date": "2015-02-26",
+    "end_date": "2015-08-25",
+    "estimated_project_duration": 1,
+    "convert_trial_project": False,
+    "primary_instance_type": "S",
+    "instances": 2,
+    "cores": 2,
+    "core_hours": 100,
+    "instance_quota": 2,
+    "ram_quota": 8,
+    "core_quota": 2,
+    "approver_email": "bob@bob.com",
+    "volume_zone": "melbourne",
+    "object_storage_zone": "melbourne",
+    "use_case": "dsdsds",
+    "usage_patterns": "dsdsd",
+    "allocation_home": "national",
+    "geographic_requirements": "dssd",
+    "tenant_uuid": "0e36fd26f4784e76a17ae2fb144d4e0a",
+    "estimated_number_users": 1,
+    "field_of_research_1": "010101",
+    "for_percentage_1": 100,
+    "field_of_research_2": None,
+    "for_percentage_2": 0,
+    "field_of_research_3": None,
+    "for_percentage_3": 0,
+    "nectar_support": "",
+    "ncris_support": "",
+    "funding_national_percent": 100,
+    "funding_node": None
+}
