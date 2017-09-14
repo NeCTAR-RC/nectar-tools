@@ -206,7 +206,7 @@ class AllocationExpirer(Expirer):
         super(AllocationExpirer, self).__init__(
             project, archivers, notifier, ks_session, dry_run, disable_project)
 
-        self.allocation_api = allocations.NectarAllocationSession(
+        self.allocation_api = allocations.AllocationManager(
             CONF.allocations.api_url,
             CONF.allocations.username,
             CONF.allocations.password)

@@ -78,7 +78,7 @@ class FakeProject(object):
         self.name = name
 
 
-class FakeAllocationSession(object):
+class FakeAllocationManager(object):
 
     def __init__(self, allocations):
         self.allocations = ALLOCATIONS
