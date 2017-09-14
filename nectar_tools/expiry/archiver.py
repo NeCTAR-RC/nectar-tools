@@ -168,7 +168,7 @@ class NovaArchiver(Archiver):
         # Increment the archive attempt counter
         attempts = int(instance.metadata.get('archive_attempts', 0))
         if attempts >= ARCHIVE_ATTEMPTS:
-            LOG.error('Limit reached for archive attempts of instance %s',
+            LOG.debug('Limit reached for archive attempts of instance %s',
                       instance.id)
             return
 
@@ -509,7 +509,11 @@ class SwiftArchiver(Archiver):
             if not self.dry_run:
                 LOG.info("%s: Deleting object %s/%s", self.project.id,
                          container['name'], obj['name'])
-                self.s_client.delete_object(container['name'], obj['name'])
+                try:
+                    self.s_client.delete_object(container['name'], obj['name'])
+                except Exception:
+                    LOG.info("%s: Failed to delete object %s/%s",
+                             self.project.id, container['name'], obj['name'])
             else:
                 LOG.info("%s: Would delete object %s/%s", self.project.id,
                          container['name'], obj['name'])

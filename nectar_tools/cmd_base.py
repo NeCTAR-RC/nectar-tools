@@ -8,12 +8,12 @@ CONFIG = config.CONFIG
 
 class CmdBase(object):
 
-    def __init__(self):
+    def __init__(self, log_filename=None):
         self.parser = CONFIG.get_parser()
         self.add_args()
         self.args = CONFIG.parse()
 
-        log.setup()
+        log.setup(filename=log_filename)
 
         self.dry_run = True
         if self.args.no_dry_run:

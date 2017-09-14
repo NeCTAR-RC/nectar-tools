@@ -1,0 +1,29 @@
+Hi,
+<br />
+<br />
+{% block message %}{% endblock message %}
+<br />
+<br />
+{% if allocation.approver_comment %}Approver comment:
+{{ allocation.approver_comment|safe }}{% endif %}
+<br />
+Allocation ID: {{ allocation.id }}
+<br />
+Project Name: {{ project.name }}
+<br />
+Description: {{ project.description }}
+<br />
+Expires: {{ allocation.end_date }}
+<br />
+<br />
+{{ report }}
+<br />
+<br />
+For hints on the next steps to access these resources, add users and launch
+instancess, please visit
+https://support.ehelp.edu.au/support/solutions/articles/6000055378-welcome
+<br />
+<br />
+Kind Regards,
+<br />
+Nectar Research Cloud Team.
