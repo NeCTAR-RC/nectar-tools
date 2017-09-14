@@ -9,7 +9,7 @@ from nectar_tools.expiry import expirer
 LOG = logging.getLogger(__name__)
 
 
-class PTManager(base.Manager):
+class PTExpiryCmd(base.ExpiryCmd):
 
     @staticmethod
     def valid_project(project):
@@ -39,11 +39,11 @@ class PTManager(base.Manager):
 
 
 def main():
-    manager = PTManager()
-    if manager.args.status:
-        manager.print_status()
+    cmd = PTExpiryCmd()
+    if cmd.args.status:
+        cmd.print_status()
         return
-    manager.process_projects()
+    cmd.process_projects()
 
 
 if __name__ == '__main__':
