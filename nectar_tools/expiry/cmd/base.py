@@ -100,7 +100,7 @@ class ExpiryCmd(cmd_base.CmdBase):
                             help='Mark a list of projects as admins')
         self.parser.add_argument('--action-state', action='store',
                             default=None,
-                                 help='Only process projects in this state')
+                            help='Only process projects in this state')
         self.parser.add_argument('--force-delete', action='store_true',
                             help="Delete a project no matter what state it's \
                                  in")

@@ -1,6 +1,7 @@
 pip
 flake8
 testtools
+testfixtures
 testrepository
 freezegun
 pytest
