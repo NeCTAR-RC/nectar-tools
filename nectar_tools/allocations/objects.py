@@ -318,6 +318,7 @@ class Allocation(object):
             return
 
         client = auth.get_nova_client(self.ks_session)
+        client.quotas.delete(tenant_id=self.project_id)
         client.quotas.update(tenant_id=self.project_id, **allocated_quota)
         LOG.info("%s: Set Nova Quota %s", self.id, allocated_quota)
 
