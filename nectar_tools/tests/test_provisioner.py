@@ -365,6 +365,8 @@ class ProvisionerTests(test.TestCase):
         allocation = allocations.Allocation(manager, data, None)
 
         allocation.set_nova_quota()
+        nova_client.quotas.delete.assert_called_once_with(
+            tenant_id=allocation.project_id)
         nova_client.quotas.update.assert_called_once_with(
             tenant_id=allocation.project_id,
             cores=allocation.core_quota,
