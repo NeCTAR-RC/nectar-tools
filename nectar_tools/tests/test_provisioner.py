@@ -385,10 +385,13 @@ class ProvisionerTests(test.TestCase):
             tenant_id=allocation.project_id,
             gigabytes=130,
             volumes=130,
+            snapshots=130,
             gigabytes_melbourne=30,
             gigabytes_monash=100,
             volumes_melbourne=30,
-            volumes_monash=100)
+            volumes_monash=100,
+            snapshots_melbourne=30,
+            snapshots_monash=100)
 
     @mock.patch('nectar_tools.auth.get_swift_client')
     def test_set_swift_quota(self, mock_swift):

@@ -336,9 +336,11 @@ class Allocation(object):
         for quota in quotas:
             kwargs["volumes_%s" % (quota.zone)] = quota.quota
             kwargs["gigabytes_%s" % (quota.zone)] = quota.quota
+            kwargs["snapshots_%s" % (quota.zone)] = quota.quota
             total += quota.quota
         kwargs['volumes'] = total
         kwargs['gigabytes'] = total
+        kwargs['snapshots'] = total
         return kwargs
 
     def set_cinder_quota(self):
