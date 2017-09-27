@@ -176,9 +176,12 @@ class Allocation(object):
                 "User's default project is not a pt- project")
 
         if self.noop:
-            LOG.info("%s: Would convert PT %s", self.id, old_pt.name)
+            LOG.info("%s: Would create new PT %s", self.id, old_pt.name)
+            LOG.info("%s: Would update %s to be %s", self.id, old_pt.name,
+                     self.tenant_name)
             return
-        new_pt = self.k_client.projects.create(name=old_pt.name,
+        new_pt_tmp_name = "%s_copy" % old_pt.name
+        new_pt = self.k_client.projects.create(name=new_pt_tmp_name,
                                                domain=old_pt.domain_id,
                                                description=old_pt.description)
 
@@ -196,7 +199,7 @@ class Allocation(object):
             expiry_ticket_id=0,
             expiry_updated_at=''
         )
-
+        self.k_client.projects.update(new_pt, name=old_pt.name)
         self.update(project_id=project.id)
 
         nova_archiver = archiver.NovaArchiver(project, self.ks_session)

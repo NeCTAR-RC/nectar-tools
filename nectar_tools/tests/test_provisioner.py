@@ -283,8 +283,9 @@ class ProvisionerTests(test.TestCase):
             mock_archiver.return_value = archiver
             allocation.convert_trial()
 
+            new_pt_tmp_name = "%s_copy" % old_pt.name
             mock_keystone.projects.create.assert_called_once_with(
-                name=old_pt.name,
+                name=new_pt_tmp_name,
                 domain=old_pt.domain_id,
                 description=old_pt.description)
 
@@ -292,16 +293,20 @@ class ProvisionerTests(test.TestCase):
                 manager,
                 default_project=mock_keystone.projects.create.return_value)
 
-            mock_keystone.projects.update.assert_called_once_with(
-                old_pt.id,
-                name=allocation.tenant_name,
-                description=allocation.project_name,
-                status='',
-                expiry_next_step='',
-                expiry_status='',
-                expiry_ticket_id=0,
-                expiry_updated_at=''
-            )
+            calls = [
+                mock.call(old_pt.id,
+                          name=allocation.tenant_name,
+                          description=allocation.project_name,
+                          status='',
+                        expiry_next_step='',
+                          expiry_status='',
+                          expiry_ticket_id=0,
+                          expiry_updated_at=''),
+                mock.call(mock_keystone.projects.create.return_value,
+                          name=old_pt.name
+                      )
+            ]
+            mock_keystone.projects.update.assert_has_calls(calls)
 
             archiver.enable_resources.assert_called_once_with()
 
