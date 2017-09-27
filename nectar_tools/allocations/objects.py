@@ -289,7 +289,8 @@ class Allocation(object):
             except KeyError:
                 pretty_resource = resource
             if resource not in exclude and \
-               not resource.startswith('cinder.volumes'):
+               not (resource.startswith('cinder.volumes') or
+                    resource.startswith('cinder.snapshots')):
                 table.add_row([pretty_resource, current_quota, allocated,
                                diff])
         if html:
