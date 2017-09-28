@@ -338,6 +338,8 @@ class Allocation(object):
         total = 0
 
         quotas = self.get_quota('volume')
+        if not quotas:
+            return {}
         for quota in quotas:
             kwargs["volumes_%s" % (quota.zone)] = quota.quota
             kwargs["gigabytes_%s" % (quota.zone)] = quota.quota
@@ -350,14 +352,15 @@ class Allocation(object):
 
     def set_cinder_quota(self):
         allocated_quota = self.get_allocated_cinder_quota()
-        if self.noop:
+        if self.noop and allocated_quota:
             LOG.info("%s: Would set cinder quota to %s", self.id,
                      allocated_quota)
             return
         client = auth.get_cinder_client(self.ks_session)
         client.quotas.delete(tenant_id=self.project_id)
-        client.quotas.update(tenant_id=self.project_id, **allocated_quota)
-        LOG.info("%s: Set Cinder Quota %s", self.id, allocated_quota)
+        if allocated_quota:
+            client.quotas.update(tenant_id=self.project_id, **allocated_quota)
+            LOG.info("%s: Set Cinder Quota %s", self.id, allocated_quota)
 
     def get_current_swift_quota(self):
         if not self.project_id:
