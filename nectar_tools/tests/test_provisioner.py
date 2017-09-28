@@ -97,9 +97,9 @@ class ProvisionerTests(test.TestCase):
         data = fakes.ALLOCATION_RESPONSE
         allocation = allocations.Allocation(manager, data, None)
         allocation.project_id = None
-        allocation.tenant_name = None
+        allocation.project_name = None
         allocation.convert_trial_project = False
-        allocation.project_name = 'My Project.is__great'
+        allocation.project_description = 'My Project.is__great'
 
         with test.nested(
             mock.patch.object(allocation, 'k_client'),
@@ -128,9 +128,9 @@ class ProvisionerTests(test.TestCase):
         data = fakes.ALLOCATION_RESPONSE
         allocation = allocations.Allocation(manager, data, None)
         allocation.project_id = None
-        allocation.tenant_name = None
+        allocation.project_name = None
         allocation.convert_trial_project = False
-        allocation.project_name = 'My Project.is__great'
+        allocation.project_description = 'My Project.is__great'
 
         with test.nested(
             mock.patch.object(allocation, 'k_client'),
@@ -153,7 +153,7 @@ class ProvisionerTests(test.TestCase):
         data = fakes.ALLOCATION_RESPONSE
         allocation = allocations.Allocation(manager, data, None)
         allocation.project_id = None
-        allocation.tenant_name = None
+        allocation.project_name = None
         allocation.convert_trial_project = True
 
         with test.nested(
@@ -203,9 +203,9 @@ class ProvisionerTests(test.TestCase):
             project = allocation.create_project()
 
             mock_keystone.projects.create.assert_called_once_with(
-                name=allocation.tenant_name,
+                name=allocation.project_name,
                 domain='default',
-                description=allocation.project_name,
+                description=allocation.project_description,
                 allocation_id=allocation.id,
                 expires=allocation.end_date
             )
@@ -295,8 +295,8 @@ class ProvisionerTests(test.TestCase):
 
             calls = [
                 mock.call(old_pt.id,
-                          name=allocation.tenant_name,
-                          description=allocation.project_name,
+                          name=allocation.project_name,
+                          description=allocation.project_description,
                           status='',
                         expiry_next_step='',
                           expiry_status='',
