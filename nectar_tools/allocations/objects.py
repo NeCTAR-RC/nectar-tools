@@ -60,7 +60,7 @@ class Allocation(object):
         if not project:
             # New allocation
             try:
-                self.k_client.projects.find(name=self.tenant_name)
+                self.k_client.projects.find(name=self.project_name)
             except keystone_exc.NotFound as exc:
                 pass
             else:
@@ -100,11 +100,12 @@ class Allocation(object):
                      self.id, domain)
             return None
 
-        project = self.k_client.projects.create(name=self.tenant_name,
-                                                domain=domain,
-                                                description=self.project_name,
-                                                allocation_id=self.id,
-                                                expires=self.end_date)
+        project = self.k_client.projects.create(
+            name=self.project_name,
+            domain=domain,
+            description=self.project_description,
+            allocation_id=self.id,
+            expires=self.end_date)
         LOG.info("%s: Created new keystone project %s", self.id, project.id)
         self.update(project_id=project.id)
         return project
@@ -178,7 +179,7 @@ class Allocation(object):
         if self.noop:
             LOG.info("%s: Would create new PT %s", self.id, old_pt.name)
             LOG.info("%s: Would update %s to be %s", self.id, old_pt.name,
-                     self.tenant_name)
+                     self.project_name)
             return
         new_pt_tmp_name = "%s_copy" % old_pt.name
         new_pt = self.k_client.projects.create(name=new_pt_tmp_name,
@@ -191,8 +192,8 @@ class Allocation(object):
         # Reset status in case their pt- is pending suspension.
         project = self.k_client.projects.update(
             old_pt.id,
-            name=self.tenant_name,
-            description=self.project_name,
+            name=self.project_name,
+            description=self.project_description,
             status='',
             expiry_next_step='',
             expiry_status='',
