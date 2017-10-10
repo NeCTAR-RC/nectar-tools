@@ -212,10 +212,7 @@ class Allocation(object):
         if self.service_quotas is None:
             service_types = {}
             for quota in self.quotas:
-                try:
-                    st, resource = quota.resource.split('.')
-                except ValueError:
-                    st = quota.resource
+                st, resource = quota.resource.split('.')
                 if st in service_types:
                     service_types[st].append(quota)
                 else:
@@ -435,3 +432,40 @@ class Allocation(object):
         client = auth.get_trove_client(self.ks_session)
         client.quota.update(self.project_id, allocated_quota)
         LOG.info("%s: Set Trove Quota: %s", self.id, allocated_quota)
+
+    def get_current_manila_quota(self):
+        if not self.project_id:
+            return {}
+        client = auth.get_manila_client(self.ks_session)
+        quotas = client.quotas.get(self.project_id)._info
+        for share_type in client.share_types.list():
+            type_quotas = client.quotas.get(self.project_id,
+                                           share_type=share_type.id)
+            type_quotas = {k: v + '_%s' % share_type.name
+                           for k, v in type_quota._info.items()}
+            quotas.update(type_quotas)
+        return quotas
+
+    def get_allocated_manila_quota(self):
+        kwargs = {}
+        kwargs = {'shares': 0, 'gigabytes': 0,
+                  'snapshots': 0, 'snapshot_gigabytes': 0}
+
+        quotas = self.get_quota('share')
+        for quota in quotas:
+            quota_resource = quota.resource.split('.')[1]
+            kwargs["%s_%s" % (quota_resource, quota.zone)] = quota.quota
+            kwargs[quota_resource] += quota.quota
+            
+        return kwargs
+
+    def set_manila_quota(self):
+        allocated_quota = self.get_allocated_manila_quota()
+        if self.noop:
+            LOG.info("%s: Would set manila quota to %s", self.id,
+                     allocated_quota)
+            return
+        client = auth.get_manila_client(self.ks_session)
+        client.quotas.delete(tenant_id=self.project_id)
+        client.quotas.update(tenant_id=self.project_id, **allocated_quota)
+        LOG.info("%s: Set Manila Quota %s", self.id, allocated_quota)
