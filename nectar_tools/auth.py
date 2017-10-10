@@ -6,6 +6,7 @@ from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client
 from neutronclient.neutron import client as neutronclient
+from manilaclient import client as manilaclient
 from novaclient import client as novaclient
 from swiftclient import client as swiftclient
 from troveclient import client as troveclient
@@ -44,6 +45,12 @@ def get_cinder_client(sess=None):
     if not sess:
         sess = get_session()
     return cinderclient.Client('2', session=sess)
+
+
+def get_manila_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return manilaclient.Client('2.40', session=sess)
 
 
 def get_glance_client(sess=None):
