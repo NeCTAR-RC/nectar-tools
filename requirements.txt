@@ -6,6 +6,7 @@ python-cinderclient
 python-neutronclient
 python-swiftclient
 python-troveclient
+python-manilaclient
 jinja2
 enum34
 prettytable
