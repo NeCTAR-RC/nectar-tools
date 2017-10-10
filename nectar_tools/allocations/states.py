@@ -16,6 +16,7 @@ LEGACY_APPROVED = 'M'
 
 LEGACY_REJECTED = 'O'
 
+DELETED = 'D'
 
 STATES = {
     NEW: 'New',
@@ -27,4 +28,5 @@ STATES = {
     LEGACY: 'Legacy',
     LEGACY_APPROVED: 'Legacy Approved',
     LEGACY_REJECTED: 'Legacy Rejected',
+    DELETED: 'Deleted',
 }
