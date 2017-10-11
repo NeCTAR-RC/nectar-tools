@@ -229,9 +229,16 @@ class Allocation(object):
         self.set_cinder_quota()
         self.set_swift_quota()
         self.set_trove_quota()
+        self.set_manila_quota()
 
-    def quota_report(self, show_current=True, exclude=['cinder.gigabytes'],
-                     html=False):
+    def quota_report(self, show_current=True, html=False):
+
+        exclude = ['cinder.gigabytes',
+                   'manila.gigabytes',
+                   'manila.shares',
+                   'manila.snapshots',
+                   'manila.snapshot_gigabytes'
+               ]
         resource_map = {
             'nova.instances': 'Instances',
             'nova.cores': 'VCPUs',
@@ -248,6 +255,14 @@ class Allocation(object):
             'cinder.gigabytes_tasmania': "Volume storage Tasmania (GB)",
             'cinder.gigabytes_NCI': "Volume storage NCI (GB)",
             'cinder.gigabytes_pawsey': "Volume storage Pawsey (GB)",
+            'manila.gigabytes_QRIScloud-GPFS': \
+                'Shared Filesystem Storage QRIScloud (GB)',
+            'manila.snapshot_gigabytes_QRIScloud-GPFS': \
+                'Shared Filesystem Snapshot Storage QRIScloud (GB)',
+            'manila.snapshots_QRIScloud-GPFS': \
+                'Shared Filesystem Snapshots QRIScloud',
+            'manila.shares_QRIScloud-GPFS':
+                'Shared Filesystem Shares QRIScloud',
         }
         current = collections.OrderedDict()
         allocated = collections.OrderedDict()
@@ -261,11 +276,13 @@ class Allocation(object):
             _prefix_dict(self.get_current_cinder_quota(), 'cinder', current)
             _prefix_dict(self.get_current_swift_quota(), 'swift', current)
             _prefix_dict(self.get_current_trove_quota(), 'trove', current)
+            _prefix_dict(self.get_current_manila_quota(), 'manila', current)
 
         _prefix_dict(self.get_allocated_nova_quota(), 'nova', allocated)
         _prefix_dict(self.get_allocated_cinder_quota(), 'cinder', allocated)
         _prefix_dict(self.get_allocated_swift_quota(), 'swift', allocated)
         _prefix_dict(self.get_allocated_trove_quota(), 'trove', allocated)
+        _prefix_dict(self.get_allocated_manila_quota(), 'manila', allocated)
 
         table = prettytable.PrettyTable(
             ["Resource", "Current", "Allocated", "Diff"])
@@ -441,8 +458,8 @@ class Allocation(object):
         for share_type in client.share_types.list():
             type_quotas = client.quotas.get(self.project_id,
                                            share_type=share_type.id)
-            type_quotas = {k: v + '_%s' % share_type.name
-                           for k, v in type_quota._info.items()}
+            type_quotas = {k + '_%s' % share_type.name: v
+                           for k, v in type_quotas._info.items()}
             quotas.update(type_quotas)
         return quotas
 
@@ -456,7 +473,6 @@ class Allocation(object):
             quota_resource = quota.resource.split('.')[1]
             kwargs["%s_%s" % (quota_resource, quota.zone)] = quota.quota
             kwargs[quota_resource] += quota.quota
-            
         return kwargs
 
     def set_manila_quota(self):
@@ -467,5 +483,19 @@ class Allocation(object):
             return
         client = auth.get_manila_client(self.ks_session)
         client.quotas.delete(tenant_id=self.project_id)
+        for share_type in client.share_types.list():
+            client.quotas.delete(tenant_id=self.project_id,
+                                 share_type=share_type.id)
+            type_quotas = {}
+            resources = ['shares', 'gigabytes',
+                         'snapshots', 'snapshot_gigabytes']
+            for resource in resources:
+                type_quotas[resource] = allocated_quota.pop(
+                    '%s_%s' % (resource, share_type.name))
+            client.quotas.update(tenant_id=self.project_id,
+                                 share_type=share_type.id, **type_quotas)
+            LOG.info("%s: Set Manila Quota for %s to %s", self.id,
+                     share_type.name, type_quotas)
+
         client.quotas.update(tenant_id=self.project_id, **allocated_quota)
-        LOG.info("%s: Set Manila Quota %s", self.id, allocated_quota)
+        LOG.info("%s: Set Global Manila Quota %s", self.id, allocated_quota)
