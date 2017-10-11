@@ -1,3 +1,5 @@
+import logging
+
 from nectar_tools import allocations
 from nectar_tools import cmd_base
 from nectar_tools import config
@@ -6,6 +8,7 @@ from nectar_tools.allocations import states
 
 
 CONF = config.CONFIG
+LOG = logging.getLogger(__name__)
 
 
 class ProvisionCmd(cmd_base.CmdBase):
@@ -33,7 +36,10 @@ class ProvisionCmd(cmd_base.CmdBase):
         allocations = self.manager.get_allocations(status=states.APPROVED,
                                                    provisioned=False)
         for allocation in allocations:
-            self.provision_allocation(allocation.id)
+            try:
+                self.provision_allocation(allocation.id)
+            except Exception as e:
+                LOG.exception(e)
 
     def provision_allocation(self, allocation_id):
         allocation = self._get_allocation(allocation_id)
