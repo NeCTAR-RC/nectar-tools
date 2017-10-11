@@ -183,8 +183,8 @@ class NovaArchiver(Archiver):
                          instance.status)
                 self._delete_instance(instance)
                 return
-            LOG.warn("%s: Can't snapshot %s due to instance status %s",
-                     self.project.id, instance.id, instance.status)
+            LOG.debug("%s: Can't snapshot %s due to instance status %s",
+                      self.project.id, instance.id, instance.status)
             return
 
         if instance.status == 'DELETED' or task_state == 'deleting':
@@ -202,7 +202,7 @@ class NovaArchiver(Archiver):
         if task_state in ['suspending', 'image_snapshot_pending',
                           'image_snapshot', 'image_pending_upload',
                           'image_uploading', 'powering-off', 'powering-on']:
-            LOG.error("%s: Can't snapshot %s due to task_state %s",
+            LOG.debug("%s: Can't snapshot %s due to task_state %s",
                       self.project.id, instance.id, task_state)
             return
 
