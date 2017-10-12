@@ -200,6 +200,26 @@ ALLOCATION_RESPONSE = {
             "zone": "monash",
             "quota": 50,
         },
+        {
+            "resource": "network.network",
+            "zone": "nectar",
+            "quota": 2,
+        },
+        {
+            "resource": "network.floatingip",
+            "zone": "nectar",
+            "quota": 1,
+        },
+        {
+            "resource": "network.router",
+            "zone": "nectar",
+            "quota": 2,
+        },
+        {
+            "resource": "network.loadbalancer",
+            "zone": "nectar",
+            "quota": 2,
+        },
     ],
     "id": 1,
     "parent_request": None,
