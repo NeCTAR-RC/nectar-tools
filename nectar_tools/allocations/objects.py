@@ -1,6 +1,7 @@
 import collections
 from keystoneauth1 import exceptions as keystone_exc
 import logging
+import neutronclient
 import prettytable
 
 from nectar_tools import allocations
@@ -227,6 +228,7 @@ class Allocation(object):
     def set_quota(self):
         self.set_nova_quota()
         self.set_cinder_quota()
+        self.set_neutron_quota()
         self.set_swift_quota()
         self.set_trove_quota()
         self.set_manila_quota()
@@ -234,10 +236,11 @@ class Allocation(object):
     def quota_report(self, show_current=True, html=False):
 
         exclude = ['cinder.gigabytes',
+                   'neutron.subnet',
                    'manila.gigabytes',
                    'manila.shares',
                    'manila.snapshots',
-                   'manila.snapshot_gigabytes'
+                   'manila.snapshot_gigabytes',
                ]
         resource_map = {
             'nova.instances': 'Instances',
@@ -255,6 +258,10 @@ class Allocation(object):
             'cinder.gigabytes_tasmania': "Volume storage Tasmania (GB)",
             'cinder.gigabytes_NCI': "Volume storage NCI (GB)",
             'cinder.gigabytes_pawsey': "Volume storage Pawsey (GB)",
+            'neutron.network': "Networks",
+            'neutron.router': "Routers",
+            'neutron.floatingip': "Floating IPs",
+            'neutron.loadbalancer': "Load Balancers",
             'manila.gigabytes_QRIScloud-GPFS':
                 'Shared Filesystem Storage QRIScloud (GB)',
             'manila.snapshot_gigabytes_QRIScloud-GPFS':
@@ -275,12 +282,14 @@ class Allocation(object):
             _prefix_dict(self.get_current_nova_quota(), 'nova', current)
             _prefix_dict(self.get_current_cinder_quota(), 'cinder', current)
             _prefix_dict(self.get_current_swift_quota(), 'swift', current)
+            _prefix_dict(self.get_current_neutron_quota(), 'neutron', current)
             _prefix_dict(self.get_current_trove_quota(), 'trove', current)
             _prefix_dict(self.get_current_manila_quota(), 'manila', current)
 
         _prefix_dict(self.get_allocated_nova_quota(), 'nova', allocated)
         _prefix_dict(self.get_allocated_cinder_quota(), 'cinder', allocated)
         _prefix_dict(self.get_allocated_swift_quota(), 'swift', allocated)
+        _prefix_dict(self.get_allocated_neutron_quota(), 'neutron', allocated)
         _prefix_dict(self.get_allocated_trove_quota(), 'trove', allocated)
         _prefix_dict(self.get_allocated_manila_quota(), 'manila', allocated)
 
@@ -509,3 +518,39 @@ class Allocation(object):
                          share_type.name, type_quotas)
                 client.quotas.update(tenant_id=self.project_id,
                                      share_type=share_type.id, **type_quotas)
+
+    def get_current_neutron_quota(self):
+        if not self.project_id:
+            return {}
+        client = auth.get_neutron_client(self.ks_session)
+        return client.show_quota(self.project_id)['quota']
+
+    def get_allocated_neutron_quota(self):
+        quotas = self.get_quota('network')
+        if not quotas:
+            return {}
+        kwargs = {}
+        for quota in quotas:
+            quota_resource = quota.resource.split('.')[1]
+            kwargs[quota_resource] = quota.quota
+        if 'network' in kwargs:
+            kwargs['subnet'] = kwargs['network']
+        return kwargs
+
+    def set_neutron_quota(self):
+        allocated_quota = self.get_allocated_neutron_quota()
+        if self.noop:
+            LOG.info("%s: Would set Neutron Quota: %s", self.id,
+                     allocated_quota)
+            return
+
+        allocated_quota['subnet'] = allocated_quota['network']
+        body = {'quota': allocated_quota}
+
+        client = auth.get_neutron_client(self.ks_session)
+        try:
+            client.delete_quota(self.project_id)
+        except neutronclient.common.exceptions.NotFound:
+            pass
+        client.update_quota(self.project_id, body)
+        LOG.info("%s: Set Neutron Quota: %s", self.id, allocated_quota)
