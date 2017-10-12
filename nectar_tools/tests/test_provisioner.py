@@ -455,3 +455,19 @@ class ProvisionerTests(test.TestCase):
         ]
         manila_client.quotas.delete.assert_has_calls(delete_calls)
         manila_client.quotas.update.assert_has_calls(update_calls)
+
+    @mock.patch('nectar_tools.auth.get_neutron_client')
+    def test_set_neutron_quota(self, mock_neutron):
+        neutron_client = mock.Mock()
+        mock_neutron.return_value = neutron_client
+        manager = fakes.FakeAllocationManager()
+        data = fakes.ALLOCATION_RESPONSE
+        allocation = allocations.Allocation(manager, data, None)
+        allocation.set_neutron_quota()
+
+        neutron_client.delete_quota.assert_called_once_with(
+            allocation.project_id)
+        body = {'quota': {'floatingip': 1, 'network': 2, 'subnet': 2,
+                          'router': 2, 'loadbalancer': 2}}
+        neutron_client.update_quota.assert_called_once_with(
+            allocation.project_id, body)
