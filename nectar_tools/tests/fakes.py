@@ -170,6 +170,36 @@ ALLOCATION_RESPONSE = {
             "zone": "nectar",
             "quota": 100,
         },
+        {
+            "resource": "share.shares",
+            "zone": "qld",
+            "quota": 5,
+        },
+        {
+            "resource": "share.gigabytes",
+            "zone": "qld",
+            "quota": 100,
+        },
+        {
+            "resource": "share.snapshots",
+            "zone": "qld",
+            "quota": 5,
+        },
+        {
+            "resource": "share.snapshot_gigabytes",
+            "zone": "qld",
+            "quota": 100,
+        },
+                {
+            "resource": "share.shares",
+            "zone": "monash",
+            "quota": 6,
+        },
+        {
+            "resource": "share.gigabytes",
+            "zone": "monash",
+            "quota": 50,
+        },
     ],
     "id": 1,
     "parent_request": None,
