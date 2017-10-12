@@ -424,3 +424,35 @@ class ProvisionerTests(test.TestCase):
         trove_client.quota.update.assert_called_once_with(
             allocation.project_id, {'instances': 2,
                                     'volumes': 100})
+
+    @mock.patch('nectar_tools.auth.get_manila_client')
+    def test_set_manila_quota(self, mock_manila):
+        manila_client = mock.Mock()
+        mock_manila.return_value = manila_client
+        monash = mock.Mock(id='id-monash')
+        monash.name = 'monash'
+        qld = mock.Mock(id='id-qld')
+        qld.name = 'qld'
+        manila_client.share_types.list.return_value = [monash, qld]
+        manager = fakes.FakeAllocationManager()
+        data = fakes.ALLOCATION_RESPONSE
+        allocation = allocations.Allocation(manager, data, None)
+        allocation.set_manila_quota()
+
+        delete_calls = [
+            mock.call(tenant_id=allocation.project_id),
+            mock.call(tenant_id=allocation.project_id, share_type=monash.id),
+            mock.call(tenant_id=allocation.project_id, share_type=qld.id),
+        ]
+        update_calls = [
+            mock.call(tenant_id=allocation.project_id,
+                      shares=11, gigabytes=150,
+                      snapshots=5, snapshot_gigabytes=100),
+            mock.call(tenant_id=allocation.project_id, share_type=monash.id,
+                      shares=6, gigabytes=50),
+            mock.call(tenant_id=allocation.project_id, share_type=qld.id,
+                      shares=5, gigabytes=100,
+                      snapshots=5, snapshot_gigabytes=100),
+        ]
+        manila_client.quotas.delete.assert_has_calls(delete_calls)
+        manila_client.quotas.update.assert_has_calls(update_calls)
