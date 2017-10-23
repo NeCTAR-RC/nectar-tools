@@ -1,7 +1,5 @@
 import logging
 
-import neutronclient
-
 from nectar_tools import auth
 
 
@@ -352,28 +350,18 @@ class NeutronBasicArchiver(Archiver):
     def zero_quota(self):
         body = {'quota': {'port': 0,
                           'security_group': 0,
-                          'security_group_rule': 0}
+                          'security_group_rule': 0,
+                          'floatingip': 0,
+                          'router': 0,
+                          'network': 0,
+                          'subnet': 0,
+                          'loadbalancer': 0,
+                      }
         }
 
         if not self.dry_run:
             self.ne_client.update_quota(self.project.id, body)
         LOG.debug("%s: Zero neutron quota", self.project.id)
-
-    def reset_quota(self):
-        current_quota = self.ne_client.show_quota(self.project.id)['quota']
-        body = {'quota': {'floatingip': current_quota['floatingip'],
-                          'router': current_quota['router'],
-                          'subnet': current_quota['subnet'],
-                          'network': current_quota['network']}
-            }
-        try:
-            self.ne_client.delete_quota(self.project.id)
-        except neutronclient.common.exceptions.NotFound:
-            pass
-
-        if not self.dry_run:
-            self.ne_client.update_quota(self.project.id, body)
-        LOG.debug("%s: Reset neutron quota", self.project.id)
 
     def delete_resources(self, force=False):
         # Because we can't archive only delete when forced
