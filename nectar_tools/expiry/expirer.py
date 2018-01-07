@@ -165,7 +165,10 @@ class Expirer(object):
         LOG.info("%s: Deleting project", self.project.id)
         self.archiver.delete_resources(force=True)
         self.archiver.delete_archives()
-        self.notifier.finish(message="Project deleted")
+        try:
+            self.notifier.finish(message="Project deleted")
+        except Exception:
+            pass
         today = self.now.strftime(DATE_FORMAT)
         self._update_project(expiry_status=expiry_states.DELETED,
                              expiry_next_step='',
@@ -358,7 +361,10 @@ class AllocationExpirer(Expirer):
                       expiry_states.RENEWED]:
             self.archiver.reset_quota()
 
-        self.notifier.finish(message="Allocation has been renewed")
+        try:
+            self.notifier.finish(message="Allocation has been renewed")
+        except Exception:
+            pass
 
         update = {}
         if self.project.expiry_status:
