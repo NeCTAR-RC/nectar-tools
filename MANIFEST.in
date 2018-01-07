@@ -4,6 +4,7 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 include requirements.txt
+include nectar_tools/tests/nectar-tools.conf
 
 recursive-include tests *
 recursive-include nectar_tools *.py *.tmpl
