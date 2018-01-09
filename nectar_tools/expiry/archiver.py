@@ -329,6 +329,9 @@ class CinderArchiver(Archiver):
             opts = {'all_tenants': True,
                     'project_id': self.project.id}
             volumes = self.c_client.volumes.list(search_opts=opts)
+            volumes = [v for v in volumes if
+                       getattr(v, 'os-vol-tenant-attr:tenant_id') ==
+                       self.project.id]
             self.volumes = volumes
         return self.volumes
 
