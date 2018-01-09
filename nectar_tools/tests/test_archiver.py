@@ -417,7 +417,9 @@ class CinderArchiverTests(test.TestCase):
     def test_all_volumes(self):
         ca = archiver.CinderArchiver(project=PROJECT)
         volume1 = fakes.FakeVolume()
+        setattr(volume1, 'os-vol-tenant-attr:tenant_id', PROJECT.id)
         volume2 = fakes.FakeVolume(id='fake2')
+        setattr(volume2, 'os-vol-tenant-attr:tenant_id', PROJECT.id)
         volumes = [volume1, volume2]
         with mock.patch.object(ca, 'c_client') as mock_cinder:
             mock_cinder.volumes.list.return_value = volumes
@@ -426,6 +428,21 @@ class CinderArchiverTests(test.TestCase):
             mock_cinder.volumes.list.assert_called_with(search_opts=opts)
             self.assertEqual(volumes, output)
             self.assertEqual(volumes, ca.volumes)
+
+    def test_all_volumes_bug_1742313(self):
+        ca = archiver.CinderArchiver(project=PROJECT)
+        volume1 = fakes.FakeVolume()
+        setattr(volume1, 'os-vol-tenant-attr:tenant_id', PROJECT.id)
+        volume2 = fakes.FakeVolume(id='fake2')
+        setattr(volume2, 'os-vol-tenant-attr:tenant_id', 'bogus-id')
+        volumes = [volume1, volume2]
+        with mock.patch.object(ca, 'c_client') as mock_cinder:
+            mock_cinder.volumes.list.return_value = volumes
+            output = ca._all_volumes()
+            opts = {'all_tenants': True, 'project_id': PROJECT.id}
+            mock_cinder.volumes.list.assert_called_with(search_opts=opts)
+            self.assertEqual([volume1]), output)
+            self.assertEqual([volume1], ca.volumes)
 
     def test_delete_volume(self):
         ca = archiver.CinderArchiver(project=PROJECT)
