@@ -10,7 +10,4 @@ python-manilaclient
 jinja2
 prettytable
 requests!=2.12.2,!=2.13.0,>=2.10.0
-# Until https://github.com/sjkingo/python-freshdesk/pull/11
-# is merged use nectar copy
-# python-freshdesk
-git+https://github.com/NeCTAR-RC/python-freshdesk.git@outgoing-email#egg=python-freshdesk
+python-freshdesk
