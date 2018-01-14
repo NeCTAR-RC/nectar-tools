@@ -453,6 +453,11 @@ class GlanceArchiver(Archiver):
         LOG.debug("%s: Found %s images", self.project.id, len(images))
 
         for image in images:
+            if image.protected:
+                LOG.warn("%s: Can't delete protected image %s",
+                         self.project.id, image.id)
+                continue
+
             if image.visibility == 'private':
                 if not self.dry_run:
                     LOG.info("%s: Deleting image %s", self.project.id,
