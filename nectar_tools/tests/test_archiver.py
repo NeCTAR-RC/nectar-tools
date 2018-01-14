@@ -523,7 +523,8 @@ class GlanceArchiverTests(test.TestCase):
         ga = archiver.GlanceArchiver(project=PROJECT)
         image1 = fakes.FakeImage(visibility='private')
         image2 = fakes.FakeImage(visibility='public')
-        images = [image1, image2]
+        image3 = fakes.FakeImage(visibility='private', protected=True)
+        images = [image1, image2, image3]
         with mock.patch.object(ga, 'g_client') as mock_glance:
             mock_glance.images.list.return_value = images
 

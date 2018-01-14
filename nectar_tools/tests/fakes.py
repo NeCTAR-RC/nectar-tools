@@ -120,10 +120,11 @@ class FakeInstance(object):
 class FakeImage(object):
 
     def __init__(self, id='fake', name='fake_archive', status='active',
-                 **kwargs):
+                 protected=False, **kwargs):
         self.id = id
         self.name = name
         self.status = status
+        self.protected = protected
         for k, v in kwargs.items():
             setattr(self, k, v)
 
