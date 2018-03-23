@@ -1,4 +1,7 @@
 import logging
+import re
+
+from designateclient import exceptions as designate_exc
 
 from nectar_tools import auth
 
@@ -13,6 +16,7 @@ class Archiver(object):
     def __init__(self, project, ks_session=None, dry_run=False):
         self.k_client = auth.get_keystone_client(ks_session)
         self.g_client = auth.get_glance_client(ks_session)
+        self.d_client = auth.get_designate_client(ks_session)
         self.dry_run = dry_run
         self.project = project
         self.ks_session = ks_session
@@ -39,6 +43,9 @@ class Archiver(object):
         raise NotImplementedError
 
     def enable_resources(self):
+        raise NotImplementedError
+
+    def create_resources(self):
         raise NotImplementedError
 
 
@@ -522,6 +529,68 @@ class SwiftArchiver(Archiver):
                      container['name'])
 
 
+class DesignateArchiver(Archiver):
+
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super(DesignateArchiver, self).__init__(project, ks_session, dry_run)
+        self.d_client = auth.get_designate_client(
+            sudo_project_id=self.project.id)
+        self.zones = None
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+
+        zones = self.d_client.zones.list()
+        for zone in zones:
+            self._delete_zone(zone)
+
+    def _delete_zone(self, zone):
+        if self.dry_run:
+            LOG.info("%s: Would delete zone: %s", self.project.id, zone.id)
+        else:
+            LOG.info("%s: Deleting zone: %s", self.project.id, zone.id)
+            self.d_client.zones.delete(zone['id'])
+
+    def _clean_zone_name(self, name):
+        name = name.lower()
+        name = name.replace('_', '-')
+        name = re.sub('[^a-z0-9]+', '', name)[:62]
+        return name
+
+    def create_resources(self):
+        zone_name = self._clean_zone_name(self.project.id)
+
+        try:
+            self.d_client.zones.get(zone_name)
+        except designate_exc.NotFound:
+            self._create_zone(zone_name)
+
+    def _create_zone(self, name):
+        name = self._clean_zone_name(name)
+        if self.dry_run:
+            LOG.info("%s: Would create designate zone %s", self.project.id,
+                     name)
+        else:
+            admin_d_client = auth.get_designate_client()  # admin for create
+
+            LOG.info("%s: Creating new zone %s", self.project.id, name)
+            zone = admin_d_client.zones.create(
+                name, email='support@rc.nectar.org.au')
+
+            LOG.info("%s: Transferring zone %s to project", self.project.id,
+                     zone['name'])
+            create_req = admin_d_client.zone_transfers.create_request(
+                name, self.project.id)
+            accept_req = self.d_client.zone_transfers.accept_request(
+                create_req['id'], create_req['key'])
+
+            if accept_req['status'] == 'COMPLETE':
+                LOG.info("%s: Zone %s transfer to project %s is complete",
+                         self.project.id, zone['name'], self.project.id)
+            return zone
+
+
 class ResourceArchiver(object):
 
     def __init__(self, project, archivers, ks_session=None, dry_run=False):
@@ -538,6 +607,8 @@ class ResourceArchiver(object):
             enabled.append(GlanceArchiver(project, ks_session, dry_run))
         if 'swift' in archivers:
             enabled.append(SwiftArchiver(project, ks_session, dry_run))
+        if 'designate' in archivers:
+            enabled.append(DesignateArchiver(project, ks_session, dry_run))
         self.archivers = enabled
 
     def is_archive_successful(self):
@@ -590,6 +661,13 @@ class ResourceArchiver(object):
                 continue
 
     def enable_resources(self):
+        for archiver in self.archivers:
+            try:
+                archiver.enable_resources()
+            except NotImplementedError:
+                continue
+
+    def create_resources(self):
         for archiver in self.archivers:
             try:
                 archiver.enable_resources()

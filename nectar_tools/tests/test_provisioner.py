@@ -40,12 +40,17 @@ class ProvisionerTests(test.TestCase):
             mock.patch.object(allocation, 'notify_provisioned'),
             mock.patch.object(allocation, 'update'),
             mock.patch.object(allocation, 'revert_expiry'),
-        ) as (mock_keystone, mock_update_project, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert):
+            mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
+        ) as (mock_keystone, mock_update_project, mock_quota,
+              mock_report, mock_notify, mock_update, mock_revert,
+              mock_designate):
             project = fakes.FakeProject()
             mock_update_project.return_value = project
+            designate_archiver = mock.Mock()
+            mock_designate.return_value = designate_archiver
             allocation.provision()
             mock_update_project.assert_called_once_with()
+            mock_designate.create_resources.called_once_with()
             mock_quota.assert_called_once_with()
             mock_report.assert_called_once_with(html=True, show_current=True)
             mock_notify.assert_called_once_with(False, project,
@@ -109,13 +114,17 @@ class ProvisionerTests(test.TestCase):
             mock.patch.object(allocation, 'notify_provisioned'),
             mock.patch.object(allocation, 'update'),
             mock.patch.object(allocation, 'revert_expiry'),
-        ) as (mock_keystone, mock_create, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert):
+            mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
+        ) as (mock_keystone, mock_create, mock_quota, mock_report, mock_notify,
+              mock_update, mock_revert, mock_designate):
             project = fakes.FakeProject()
             mock_create.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
+            designate_archiver = mock.Mock()
+            mock_designate.return_value = designate_archiver
             allocation.provision()
             mock_create.assert_called_once_with()
+            mock_designate.create_resources.called_once_with()
             mock_quota.assert_called_once_with()
             mock_report.assert_called_once_with(html=True, show_current=False)
             mock_notify.assert_called_once_with(True, project,
@@ -164,13 +173,17 @@ class ProvisionerTests(test.TestCase):
             mock.patch.object(allocation, 'notify_provisioned'),
             mock.patch.object(allocation, 'update'),
             mock.patch.object(allocation, 'revert_expiry'),
+            mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_convert, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert):
+              mock_notify, mock_update, mock_revert, mock_designate):
             project = fakes.FakeProject()
             mock_convert.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
+            designate_archiver = mock.Mock()
+            mock_designate.return_value = designate_archiver
             allocation.provision()
             mock_convert.assert_called_once_with()
+            mock_designate.create_resources.called_once_with()
             mock_quota.assert_called_once_with()
             mock_report.assert_called_once_with(html=True, show_current=False)
             mock_notify.assert_called_once_with(True, project,
