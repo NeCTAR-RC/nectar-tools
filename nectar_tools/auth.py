@@ -1,6 +1,7 @@
 import logging
 
 from cinderclient import client as cinderclient
+from designateclient import client as designateclient
 import glanceclient
 from keystoneauth1 import loading
 from keystoneauth1 import session
@@ -69,6 +70,13 @@ def get_trove_client(sess=None):
     if not sess:
         sess = get_session()
     return troveclient.Client('1.0', session=sess)
+
+
+def get_designate_client(sess=None, project_id=None):
+    if not sess:
+        sess = get_session()
+    return designateclient.Client('2', session=sess,
+                                  sudo_project_id=project_id)
 
 
 def get_swift_client(sess=None, project_id=None):
