@@ -33,12 +33,15 @@ class ProvisionerTests(test.TestCase):
             mock.patch.object(self.manager, 'notify_provisioned'),
             mock.patch.object(self.manager, 'update_allocation'),
             mock.patch.object(self.manager, 'revert_expiry'),
+            mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_update_project, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert):
+              mock_notify, mock_update, mock_revert, mock_designate):
             project = fakes.FakeProject()
             mock_update_project.return_value = project
+            mock_designate.return_value = mock.Mock()
             self.manager.provision(self.allocation)
             mock_update_project.assert_called_once_with(self.allocation)
+            mock_designate.create_resources.called_once_with()
             mock_quota.assert_called_once_with(self.allocation)
             mock_report.assert_called_once_with(self.allocation, html=True,
                                                 show_current=True)
@@ -96,13 +99,16 @@ class ProvisionerTests(test.TestCase):
             mock.patch.object(self.manager, 'notify_provisioned'),
             mock.patch.object(self.manager, 'update_allocation'),
             mock.patch.object(self.manager, 'revert_expiry'),
+            mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_create, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert):
+              mock_notify, mock_update, mock_revert, mock_designate):
             project = fakes.FakeProject()
             mock_create.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
+            mock_designate.return_value = mock.Mock()
             self.manager.provision(self.allocation)
             mock_create.assert_called_once_with(self.allocation)
+            mock_designate.create_resources.called_once_with()
             mock_quota.assert_called_once_with(self.allocation)
             mock_report.assert_called_once_with(self.allocation, html=True,
                                                 show_current=False)
@@ -147,13 +153,16 @@ class ProvisionerTests(test.TestCase):
             mock.patch.object(self.manager, 'notify_provisioned'),
             mock.patch.object(self.manager, 'update_allocation'),
             mock.patch.object(self.manager, 'revert_expiry'),
+            mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_convert, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert):
+              mock_notify, mock_update, mock_revert, mock_designate):
             project = fakes.FakeProject()
             mock_convert.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
+            mock_designate.return_value = mock.Mock()
             self.manager.provision(self.allocation)
             mock_convert.assert_called_once_with(self.allocation)
+            mock_designate.create_resources.called_once_with()
             mock_quota.assert_called_once_with(self.allocation)
             mock_report.assert_called_once_with(self.allocation, html=True,
                                                 show_current=False)
