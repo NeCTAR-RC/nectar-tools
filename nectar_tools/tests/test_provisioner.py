@@ -34,14 +34,15 @@ class ProvisionerTests(test.TestCase):
 
         with test.nested(
             mock.patch.object(allocation, 'k_client'),
+            mock.patch.object(allocation, 'd_client'),
             mock.patch.object(allocation, 'update_project'),
             mock.patch.object(allocation, 'set_quota'),
             mock.patch.object(allocation, 'quota_report'),
             mock.patch.object(allocation, 'notify_provisioned'),
             mock.patch.object(allocation, 'update'),
             mock.patch.object(allocation, 'revert_expiry'),
-        ) as (mock_keystone, mock_update_project, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert):
+        ) as (mock_keystone, mock_designate, mock_update_project, mock_quota,
+              mock_report, mock_notify, mock_update, mock_revert):
             project = fakes.FakeProject()
             mock_update_project.return_value = project
             allocation.provision()
@@ -61,9 +62,10 @@ class ProvisionerTests(test.TestCase):
 
         with test.nested(
             mock.patch.object(allocation, 'k_client'),
+            mock.patch.object(allocation, 'd_client'),
             mock.patch.object(allocation, 'set_quota'),
             mock.patch.object(allocation, 'notify_provisioned'),
-        ) as (mock_keystone, mock_quota, mock_notify):
+        ) as (mock_keystone, mock_designate, mock_quota, mock_notify):
             mock_keystone.projects.get.side_effect = \
              keystone_exc.http.NotFound()
             with testfixtures.ShouldRaise(
@@ -80,9 +82,10 @@ class ProvisionerTests(test.TestCase):
 
         with test.nested(
             mock.patch.object(allocation, 'k_client'),
+            mock.patch.object(allocation, 'd_client'),
             mock.patch.object(allocation, 'set_quota'),
             mock.patch.object(allocation, 'notify_provisioned'),
-        ) as (mock_keystone, mock_quota, mock_notify):
+        ) as (mock_keystone, mock_designate, mock_quota, mock_notify):
             mock_keystone.projects.get.side_effect = \
              keystone_exc.http.NotFound()
             with testfixtures.ShouldRaise(
@@ -103,14 +106,15 @@ class ProvisionerTests(test.TestCase):
 
         with test.nested(
             mock.patch.object(allocation, 'k_client'),
+            mock.patch.object(allocation, 'd_client'),
             mock.patch.object(allocation, 'create_project'),
             mock.patch.object(allocation, 'set_quota'),
             mock.patch.object(allocation, 'quota_report'),
             mock.patch.object(allocation, 'notify_provisioned'),
             mock.patch.object(allocation, 'update'),
             mock.patch.object(allocation, 'revert_expiry'),
-        ) as (mock_keystone, mock_create, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert):
+        ) as (mock_keystone, mock_designate, mock_create, mock_quota,
+              mock_report, mock_notify, mock_update, mock_revert):
             project = fakes.FakeProject()
             mock_create.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
@@ -134,10 +138,11 @@ class ProvisionerTests(test.TestCase):
 
         with test.nested(
             mock.patch.object(allocation, 'k_client'),
+            mock.patch.object(allocation, 'd_client'),
             mock.patch.object(allocation, 'create_project'),
             mock.patch.object(allocation, 'set_quota'),
             mock.patch.object(allocation, 'notify_provisioned'),
-        ) as (mock_keystone, mock_create, mock_quota,
+        ) as (mock_keystone, mock_designate, mock_create, mock_quota,
               mock_notify):
             with testfixtures.ShouldRaise(
                 exceptions.InvalidProjectAllocation(
@@ -158,14 +163,15 @@ class ProvisionerTests(test.TestCase):
 
         with test.nested(
             mock.patch.object(allocation, 'k_client'),
+            mock.patch.object(allocation, 'd_client'),
             mock.patch.object(allocation, 'convert_trial'),
             mock.patch.object(allocation, 'set_quota'),
             mock.patch.object(allocation, 'quota_report'),
             mock.patch.object(allocation, 'notify_provisioned'),
             mock.patch.object(allocation, 'update'),
             mock.patch.object(allocation, 'revert_expiry'),
-        ) as (mock_keystone, mock_convert, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert):
+        ) as (mock_keystone, mock_designate, mock_convert, mock_quota,
+              mock_report, mock_notify, mock_update, mock_revert):
             project = fakes.FakeProject()
             mock_convert.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
@@ -223,6 +229,41 @@ class ProvisionerTests(test.TestCase):
                 allocation.project_id,
                 allocation_id=allocation.id,
                 expires=allocation.end_date)
+
+    def test_get_zone_name(self):
+        manager = fakes.FakeAllocationManager()
+        data = fakes.ALLOCATION_RESPONSE
+        allocation = allocations.Allocation(manager, data, None)
+
+        for pname, zname in fakes.ZONE_SANITISING:
+            zone_name = allocation._get_zone_name(pname)
+            self.assertEqual(zone_name, zname)
+
+    def test_create_zone(self):
+        manager = fakes.FakeAllocationManager()
+        data = fakes.ALLOCATION_RESPONSE
+        allocation = allocations.Allocation(manager, data, None)
+        project = fakes.FakeProject()
+
+        with test.nested(
+            mock.patch.object(allocation, 'd_client'),
+            mock.patch.object(allocation, 'update')
+        ) as (mock_designate, mock_update):
+            mock_designate.zone_transfers.create_request.return_value = \
+                fakes.ZONE_CREATE_TRANSFER
+            mock_designate.zone_transfers.accept_request.return_value = \
+                fakes.ZONE_ACCEPT_TRANSFER
+            allocation.create_zone(project)
+            mock_designate.zones.create.assert_called_once_with(
+                'myproject.test.com.',
+                email='support@rc.nectar.org.au'
+            )
+            mock_designate.zone_transfers.create_request.\
+                assert_called_once_with('myproject.test.com.', project.id)
+
+            mock_designate.zone_transfers.accept_request.\
+                assert_called_once_with(fakes.ZONE_CREATE_TRANSFER['id'],
+                                        fakes.ZONE_CREATE_TRANSFER['key'])
 
     def test_grant_owner_roles(self):
         manager = fakes.FakeAllocationManager()
