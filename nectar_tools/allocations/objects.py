@@ -1,8 +1,9 @@
 import collections
-from keystoneauth1 import exceptions as keystone_exc
 import logging
 import neutronclient
 import prettytable
+
+from keystoneauth1 import exceptions as keystone_exc
 
 from nectar_tools import allocations
 from nectar_tools.allocations import states
@@ -78,6 +79,10 @@ class Allocation(object):
         else:
             project = self.update_project()
             is_new_project = False
+
+        designate_archiver = archiver.DesignateArchiver(
+            project, self.ks_session, dry_run=self.noop)
+        designate_archiver.create_resources()
 
         report = self.quota_report(html=True, show_current=not is_new_project)
         self.set_quota()
