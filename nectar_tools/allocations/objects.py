@@ -1,8 +1,10 @@
 import collections
-from keystoneauth1 import exceptions as keystone_exc
 import logging
 import neutronclient
 import prettytable
+
+from designateclient import exceptions as designate_exc
+from keystoneauth1 import exceptions as keystone_exc
 
 from nectar_tools import allocations
 from nectar_tools import auth
@@ -31,6 +33,7 @@ class Allocation(object):
     def __init__(self, manager, data, ks_session, noop=False):
         self.ks_session = ks_session
         self.k_client = auth.get_keystone_client(ks_session)
+        self.d_client = auth.get_designate_client(ks_session)
         self.quotas = []
         self.service_quotas = None
         self.manager = manager
@@ -54,15 +57,15 @@ class Allocation(object):
         if self.project_id:
             try:
                 project = self.k_client.projects.get(self.project_id)
-            except keystone_exc.NotFound as exc:
+            except keystone_exc.NotFound:
                 raise exceptions.InvalidProjectAllocation(
-                    "Existing project not found") from exc
+                    "Existing project not found")
         is_new_project = True
         if not project:
             # New allocation
             try:
                 self.k_client.projects.find(name=self.project_name)
-            except keystone_exc.NotFound as exc:
+            except keystone_exc.NotFound:
                 pass
             else:
                 raise exceptions.InvalidProjectAllocation(
@@ -76,6 +79,17 @@ class Allocation(object):
         else:
             project = self.update_project()
             is_new_project = False
+
+        zone = None
+        zone_name = self._get_zone_name(project.name)
+        try:
+            self.d_client.session.sudo_project_id = project.id
+            zone = self.d_client.zones.get(zone_name)
+            LOG.info("%s: Zone %s exists", self.id, zone['name'])
+        except designate_exc.NotFound:
+            self.d_client.session.sudo_project_id = None
+            zone = self.create_zone(project)
+            LOG.info("%s: Zone %s created", self.id, zone['name'])
 
         report = self.quota_report(html=True, show_current=not is_new_project)
         self.set_quota()
@@ -114,9 +128,9 @@ class Allocation(object):
     def _grant_owner_roles(self, project):
         try:
             manager = self.k_client.users.find(name=self.contact_email)
-        except keystone_exc.NotFound as exc:
+        except keystone_exc.NotFound:
             raise exceptions.InvalidProjectAllocation(
-                "Can't find keystone user for manager'") from exc
+                "Can't find keystone user for manager'")
 
         if self.noop:
             LOG.info("%s: Would grant manager and member roles to %s", self.id,
@@ -143,6 +157,41 @@ class Allocation(object):
                                                 expires=self.end_date)
         return project
 
+    def _get_zone_name(self, project_name):
+        domain = CONF.designate.user_domain
+        if not domain.endswith('.'):
+            domain = '%s.' % domain
+        # dns name restrictions
+        label = project_name.replace('_', '-').lower()[:62]
+        zone_name = '%s.%s' % (label, domain)
+        return zone_name
+
+    def create_zone(self, project):
+        zone_name = self._get_zone_name(project.name)
+
+        if self.noop:
+            LOG.info("%s: Would create designate zone %s", self.id,
+                     zone_name)
+            return None
+
+        self.d_client.session.sudo_project_id = None
+        zone = self.d_client.zones.create(zone_name,
+                                          email='support@rc.nectar.org.au')
+        LOG.info("%s: Created new zone %s", self.id, zone['name'])
+        LOG.info("%s: Transferring zone %s to project %s",
+                 self.id, zone['name'], project.id)
+
+        create_req = self.d_client.zone_transfers.create_request(
+            zone_name, project.id)
+
+        self.d_client.session.sudo_project_id = project.id
+        accept_req = self.d_client.zone_transfers.accept_request(
+            create_req['id'], create_req['key'])
+        if accept_req['status'] == 'COMPLETE':
+            LOG.info("%s: Zone %s transfer to project %s is complete",
+                     self.id, zone['name'], project.id)
+        return zone
+
     def update(self, **kwargs):
         if self.noop:
             LOG.info("%s: Would update allocation %s", self.id, kwargs)
@@ -168,9 +217,9 @@ class Allocation(object):
         LOG.info("%s: Converting project trial", self.id)
         try:
             manager = self.k_client.users.find(name=self.contact_email)
-        except keystone_exc.NotFound as exc:
+        except keystone_exc.NotFound:
             raise exceptions.InvalidProjectAllocation(
-                "User for manager not found") from exc
+                "User for manager not found")
 
         old_pt = self.k_client.projects.get(manager.default_project_id)
         if not old_pt.name.startswith('pt-'):

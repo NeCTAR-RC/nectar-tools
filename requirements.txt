@@ -1,4 +1,5 @@
 python-dateutil
+python-designateclient
 python-keystoneclient
 python-novaclient
 python-glanceclient
