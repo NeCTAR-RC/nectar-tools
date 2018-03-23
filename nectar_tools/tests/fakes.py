@@ -264,3 +264,24 @@ ALLOCATION_RESPONSE = {
     "funding_node": None,
     "provisioned": False
 }
+
+ZONE_SANITISING = [
+    ('MyProject', 'myproject.test.com.'),
+    ('My_Project_Name', 'my-project-name.test.com.'),
+    ('MyProjectMyProjectMyProjectMyProjectMyProjectMyProjectMyProjectMyProject', 'myprojectmyprojectmyprojectmyprojectmyprojectmyprojectmyprojec.test.com.'), # noqa
+]
+
+ZONE = {
+    'id': '391eb5c5-2ed5-46c4-be53-faeee6a9fd01',
+    'name': 'myproject.test.com.',
+}
+
+ZONE_CREATE_TRANSFER = {
+    'id': '5997b0d0-2e05-4346-af51-55534d1b533a',
+    'key': 't9lNRIiuXbyT',
+}
+
+ZONE_ACCEPT_TRANSFER = {
+    'id': '32985174-7e25-4ac9-88a1-c1f6d55b5410',
+    'status': 'COMPLETE',
+}
