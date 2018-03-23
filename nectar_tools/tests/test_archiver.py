@@ -1,10 +1,13 @@
 from unittest import mock
 
+from designateclient import exceptions as designate_exc
+
+from nectar_tools import config
 from nectar_tools.expiry import archiver
 from nectar_tools import test
 from nectar_tools.tests import fakes
 
-
+CONF = config.CONFIG
 PROJECT = fakes.FakeProject('active')
 
 
@@ -587,6 +590,84 @@ class SwiftArchiverTests(test.TestCase):
             mock_swift.delete_object.assert_has_calls(delete_calls)
             mock_swift.delete_container.assert_called_once_with(
                 container['name'])
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class DesignateArchiverTests(test.TestCase):
+
+    def test_delete_resources(self):
+        da = archiver.DesignateArchiver(project=PROJECT)
+        with test.nested(
+            mock.patch.object(da, 'd_client'),
+            mock.patch.object(da, '_delete_zone'),
+        ) as (mock_designate, mock_delete):
+            da.delete_resources()
+            mock_delete.assert_not_called()
+
+    def test_delete_resources_force(self):
+        da = archiver.DesignateArchiver(project=PROJECT)
+        zone1 = fakes.FakeZone(id='fake1')
+        zone2 = fakes.FakeZone(id='fake2')
+        zones = [zone1, zone2]
+        with test.nested(
+            mock.patch.object(da, 'd_client'),
+            mock.patch.object(da, '_delete_zone'),
+        ) as (mock_designate, mock_delete):
+            mock_designate.zones.list.return_value = zones
+            da.delete_resources(force=True)
+            mock_designate.zones.list.assert_called_once_with()
+            mock_delete.assert_has_calls([mock.call(zone1),
+                                          mock.call(zone2)])
+            self.assertEqual(mock_delete.call_count, 2)
+
+    def test_clean_zone_name(self):
+        da = archiver.DesignateArchiver(project=PROJECT)
+        for pname, zname in fakes.ZONE_SANITISING:
+            zone_name = da._clean_zone_name(pname)
+            self.assertEqual(zone_name, zname)
+
+    def test_create_resources(self):
+        da = archiver.DesignateArchiver(project=PROJECT)
+        with test.nested(
+            mock.patch.object(da, 'd_client'),
+            mock.patch.object(da, '_create_zone'),
+        ) as (mock_designate, mock_create):
+            mock_designate.zones.get.side_effect = designate_exc.NotFound()
+            da.create_resources()
+            mock_create.called_once_with()
+
+    def test_create_resources_exists(self):
+        da = archiver.DesignateArchiver(project=PROJECT)
+        with test.nested(
+            mock.patch.object(da, 'd_client'),
+            mock.patch.object(da, '_create_zone'),
+        ) as (mock_designate, mock_create):
+            mock_designate.zones.get.return_value = fakes.FakeZone()
+            mock_create.assert_not_called()
+
+    def test_create_zone(self):
+        da = archiver.DesignateArchiver(project=PROJECT)
+        with test.nested(
+            mock.patch.object(da, 'd_client'),
+            mock.patch.object(da, '_clean_zone_name'),
+        ) as (mock_designate, mock_clean_zone_name):
+            mock_clean_zone_name.return_value = fakes.ZONE['name']
+            mock_designate.zone_transfers.create_request.return_value = \
+                fakes.ZONE_CREATE_TRANSFER
+            mock_designate.zone_transfers.accept_request.return_value = \
+                fakes.ZONE_ACCEPT_TRANSFER
+
+            da._create_zone(fakes.ZONE['name'])
+
+            mock_designate.zones.create.assert_called_once_with(
+                'myproject.example.com.', email=CONF.designate.zone_email)
+
+            mock_designate.zone_transfers.create_request.\
+                assert_called_once_with(fakes.ZONE['name'], PROJECT.id)
+
+            mock_designate.zone_transfers.accept_request.\
+                assert_called_once_with(fakes.ZONE_CREATE_TRANSFER['id'],
+                                        fakes.ZONE_CREATE_TRANSFER['key'])
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
