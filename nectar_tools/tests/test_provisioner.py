@@ -374,9 +374,46 @@ class ProvisionerTests(test.TestCase):
             tenant_id=allocation.project_id)
         nova_client.quotas.update.assert_called_once_with(
             tenant_id=allocation.project_id,
-            cores=allocation.core_quota,
-            instances=allocation.instance_quota,
-            ram=allocation.core_quota * 4096)
+            cores=4,
+            instances=2,
+            ram=4 * 1024)
+
+    @mock.patch('nectar_tools.auth.get_nova_client')
+    def test_set_nova_quota_no_ram(self, mock_get_nova):
+        nova_client = mock.Mock()
+        mock_get_nova.return_value = nova_client
+        manager = fakes.FakeAllocationManager()
+        data = fakes.ALLOCATION_RESPONSE
+        allocation = allocations.Allocation(manager, data, None)
+        del(data['quotas'][2])
+
+        allocation.set_nova_quota()
+        nova_client.quotas.delete.assert_called_once_with(
+            tenant_id=allocation.project_id)
+        nova_client.quotas.update.assert_called_once_with(
+            tenant_id=allocation.project_id,
+            cores=4,
+            instances=2,
+            ram=4 * 1024)
+
+    @mock.patch('nectar_tools.auth.get_nova_client')
+    def test_set_nova_quota_ram_set(self, mock_get_nova):
+        nova_client = mock.Mock()
+        mock_get_nova.return_value = nova_client
+        manager = fakes.FakeAllocationManager()
+        data = fakes.ALLOCATION_RESPONSE
+        # override and set ram quota to 2
+        data['quotas'][2]['quota'] = 2
+        allocation = allocations.Allocation(manager, data, None)
+
+        allocation.set_nova_quota()
+        nova_client.quotas.delete.assert_called_once_with(
+            tenant_id=allocation.project_id)
+        nova_client.quotas.update.assert_called_once_with(
+            tenant_id=allocation.project_id,
+            cores=4,
+            instances=2,
+            ram=2048)
 
     @mock.patch('nectar_tools.auth.get_cinder_client')
     def test_set_cinder_quota(self, mock_cinder):
