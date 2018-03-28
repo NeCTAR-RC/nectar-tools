@@ -245,7 +245,7 @@ class Allocation(object):
         resource_map = {
             'nova.instances': 'Instances',
             'nova.cores': 'VCPUs',
-            'nova.ram': 'RAM (MB)',
+            'nova.ram': 'RAM (GB)',
             'swift.object': 'Object store (GB)',
             'trove.volumes': 'Database storage (GB)',
             'trove.instances': 'Database instances',
@@ -334,8 +334,16 @@ class Allocation(object):
         return current._info
 
     def get_allocated_nova_quota(self):
-        return {'ram': self.core_quota * 4096, 'cores': self.core_quota,
-                'instances': self.instance_quota}
+        quotas = self.get_quota('compute')
+        if not quotas:
+            return {}
+        kwargs = {}
+        for quota in quotas:
+            quota_resource = quota.resource.split('.')[1]
+            kwargs[quota_resource] = quota.quota
+        if 'ram' not in kwargs or int(kwargs['ram']) == 0:
+            kwargs['ram'] = kwargs['cores']
+        return kwargs
 
     def set_nova_quota(self):
         allocated_quota = self.get_allocated_nova_quota()
@@ -347,6 +355,7 @@ class Allocation(object):
 
         client = auth.get_nova_client(self.ks_session)
         client.quotas.delete(tenant_id=self.project_id)
+        allocated_quota['ram'] = int(allocated_quota['ram']) * 1024
         client.quotas.update(tenant_id=self.project_id, **allocated_quota)
         LOG.info("%s: Set Nova Quota %s", self.id, allocated_quota)
 
