@@ -147,12 +147,27 @@ class FakeVolume(object):
 ALLOCATION_RESPONSE = {
     "quotas": [
         {
-            "resource": "volume.volume",
+            "resource": "compute.instances",
+            "zone": "nectar",
+            "quota": 2,
+        },
+        {
+            "resource": "compute.cores",
+            "zone": "nectar",
+            "quota": 4,
+        },
+        {
+            "resource": "compute.ram",
+            "zone": "nectar",
+            "quota": 0,
+        },
+        {
+            "resource": "volume.gigabytes",
             "zone": "melbourne",
             "quota": 30,
         },
         {
-            "resource": "volume.volume",
+            "resource": "volume.gigabytes",
             "zone": "monash",
             "quota": 100,
         },
@@ -236,16 +251,7 @@ ALLOCATION_RESPONSE = {
     "end_date": "2015-08-25",
     "estimated_project_duration": 1,
     "convert_trial_project": False,
-    "primary_instance_type": "S",
-    "instances": 2,
-    "cores": 2,
-    "core_hours": 100,
-    "instance_quota": 2,
-    "ram_quota": 8,
-    "core_quota": 2,
     "approver_email": "bob@bob.com",
-    "volume_zone": "melbourne",
-    "object_storage_zone": "melbourne",
     "use_case": "dsdsds",
     "usage_patterns": "dsdsd",
     "allocation_home": "national",
