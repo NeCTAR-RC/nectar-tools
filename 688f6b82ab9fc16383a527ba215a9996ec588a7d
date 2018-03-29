@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f57f5dbb_d3613f07",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 597,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-03-29T02:22:07Z",
+      "side": 1,
+      "message": "error?",
+      "range": {
+        "startLine": 597,
+        "startChar": 20,
+        "endLine": 597,
+        "endChar": 27
+      },
+      "revId": "688f6b82ab9fc16383a527ba215a9996ec588a7d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
