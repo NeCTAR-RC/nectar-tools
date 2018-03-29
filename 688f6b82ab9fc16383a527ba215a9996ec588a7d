@@ -22,6 +22,30 @@
       "revId": "688f6b82ab9fc16383a527ba215a9996ec588a7d",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "cf02ea9d_7cbbbfb6",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 597,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2018-03-29T02:46:47Z",
+      "side": 1,
+      "message": "yep. I\u0027ll fix it.\n\nShould I return an exception here?",
+      "parentUuid": "f57f5dbb_d3613f07",
+      "range": {
+        "startLine": 597,
+        "startChar": 20,
+        "endLine": 597,
+        "endChar": 27
+      },
+      "revId": "688f6b82ab9fc16383a527ba215a9996ec588a7d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
