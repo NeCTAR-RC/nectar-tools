@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "07a6d999_e169d947",
+        "filename": "nectar_tools/auth.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-03-29T00:00:31Z",
+      "side": 1,
+      "message": "maybe just call this project_id to keep it the same as how the get_swift_client method works?",
+      "range": {
+        "startLine": 75,
+        "startChar": 36,
+        "endLine": 75,
+        "endChar": 51
+      },
+      "revId": "ee249595bf5cb768a47c4bb8db2556be0f71888c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "2529e3e5_17333a56",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-03-29T00:00:31Z",
+      "side": 1,
+      "message": "doesn\u0027t look like this needs to be here",
+      "range": {
+        "startLine": 19,
+        "startChar": 8,
+        "endLine": 19,
+        "endChar": 61
+      },
+      "revId": "ee249595bf5cb768a47c4bb8db2556be0f71888c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3ebee88_7dff6079",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 562,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-03-29T00:00:31Z",
+      "side": 1,
+      "message": "should this be the project name?",
+      "range": {
+        "startLine": 562,
+        "startChar": 55,
+        "endLine": 562,
+        "endChar": 57
+      },
+      "revId": "ee249595bf5cb768a47c4bb8db2556be0f71888c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "ac69b2eb_547463de",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-03-29T00:00:31Z",
+      "side": 1,
+      "message": "maybe log a warning after this in the case of the zone already existing",
+      "range": {
+        "startLine": 565,
+        "startChar": 12,
+        "endLine": 565,
+        "endChar": 46
+      },
+      "revId": "ee249595bf5cb768a47c4bb8db2556be0f71888c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "dbba4992_a1f57112",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-03-29T00:00:31Z",
+      "side": 1,
+      "message": "debug",
+      "range": {
+        "startLine": 577,
+        "startChar": 16,
+        "endLine": 577,
+        "endChar": 20
+      },
+      "revId": "ee249595bf5cb768a47c4bb8db2556be0f71888c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "6d7c7a23_ca87287a",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 579,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-03-29T00:00:31Z",
+      "side": 1,
+      "message": "should be a config option",
+      "range": {
+        "startLine": 579,
+        "startChar": 28,
+        "endLine": 579,
+        "endChar": 54
+      },
+      "revId": "ee249595bf5cb768a47c4bb8db2556be0f71888c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "c2a38f01_b990c419",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 581,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-03-29T00:00:31Z",
+      "side": 1,
+      "message": "debug",
+      "range": {
+        "startLine": 581,
+        "startChar": 16,
+        "endLine": 581,
+        "endChar": 20
+      },
+      "revId": "ee249595bf5cb768a47c4bb8db2556be0f71888c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "904c4e59_a872b9c7",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 588,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-03-29T00:00:31Z",
+      "side": 1,
+      "message": "what if its not complete?",
+      "range": {
+        "startLine": 588,
+        "startChar": 12,
+        "endLine": 588,
+        "endChar": 50
+      },
+      "revId": "ee249595bf5cb768a47c4bb8db2556be0f71888c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
