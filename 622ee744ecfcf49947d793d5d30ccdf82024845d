@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9b471bf9_f6da30a0",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2018-04-11T04:42:19Z",
+      "side": 1,
+      "message": "I find it weird to use an except for such purpose, this way prevents you from catching exceptions thrown by _create_zone in the future. Not possible to just if-else based on output of zones.get(zone_name)?",
+      "range": {
+        "startLine": 575,
+        "startChar": 0,
+        "endLine": 576,
+        "endChar": 44
+      },
+      "revId": "622ee744ecfcf49947d793d5d30ccdf82024845d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "aac0d975_7ff5defc",
+        "filename": "nectar_tools/tests/nectar-tools.conf",
+        "patchSetId": 10
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2018-04-11T04:42:19Z",
+      "side": 1,
+      "message": "NIT: I understand this will never be used in production, but I think we should still use example.com for tests",
+      "range": {
+        "startLine": 24,
+        "startChar": 14,
+        "endLine": 24,
+        "endChar": 18
+      },
+      "revId": "622ee744ecfcf49947d793d5d30ccdf82024845d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
