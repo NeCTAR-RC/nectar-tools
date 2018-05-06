@@ -102,6 +102,9 @@ class FakeAllocationManager(object):
         except KeyError:
             raise exceptions.AllocationDoesNotExist(project_id=project_id)
 
+    def update_allocation(self, allocation_id, **kwargs):
+        return
+
 
 class FakeInstance(object):
 

@@ -464,6 +464,10 @@ class AllocationExpirer(Expirer):
         self._update_project(expiry_status=expiry_states.STOPPED,
                              expiry_next_step=one_month)
 
+    def delete_project(self):
+        super(AllocationExpirer, self).delete_project()
+        self.allocation.update(status=allocation_states.DELETED)
+
 
 class PTExpirer(Expirer):
 
