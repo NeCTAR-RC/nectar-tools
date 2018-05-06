@@ -644,6 +644,18 @@ class AllocationExpiryTests(test.TestCase):
                               'manager2@example.org', 'member1@example.org'],
                              cc)
 
+    def test_delete_project(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+
+        with test.nested(
+            mock.patch.object(ex, 'allocation'),
+            mock.patch('nectar_tools.expiry.expirer.Expirer.delete_project'),
+        ) as (mock_allocation, mock_parent_delete):
+            ex.delete_project()
+            mock_parent_delete.assert_called_once_with()
+            mock_allocation.update.assert_called_once_with(status='D')
+
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
