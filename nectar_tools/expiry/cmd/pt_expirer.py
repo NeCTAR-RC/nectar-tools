@@ -15,6 +15,12 @@ class PTExpiryCmd(base.ExpiryCmd):
     def valid_project(project):
         return expirer.PT_RE.match(project.name)
 
+    def add_args(self):
+        """Handle command-line options"""
+        super(AllocationExpiryCmd, self).add_args()
+        self.parser.add_argument('--disable-project', action='store_true',
+                            help="Also disable project in keystone")
+
     def get_expirer(self, project):
         return expirer.PTExpirer(project=project,
                                  ks_session=self.session,

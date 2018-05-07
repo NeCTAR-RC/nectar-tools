@@ -22,7 +22,7 @@ class AllocationExpiryCmd(base.ExpiryCmd):
             project=project,
             ks_session=self.session,
             dry_run=self.dry_run,
-            disable_project=self.args.disable_project,
+            disable_project=True,
             force_no_allocation=self.args.ignore_no_allocation,
             force_delete=self.args.force_delete)
 
