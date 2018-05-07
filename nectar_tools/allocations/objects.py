@@ -147,6 +147,7 @@ class Allocation(object):
         if self.noop:
             LOG.info("%s: Would update allocation %s", self.id, kwargs)
             return
+        LOG.debug("%s: Updating allocation %s", self.id, kwargs)
         self.manager.update_allocation(self.id, **kwargs)
         for k, v in kwargs.items():
             setattr(self, k, v)

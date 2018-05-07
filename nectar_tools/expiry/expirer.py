@@ -211,7 +211,8 @@ class AllocationExpirer(Expirer):
         self.allocation_api = allocations.AllocationManager(
             CONF.allocations.api_url,
             CONF.allocations.username,
-            CONF.allocations.password)
+            CONF.allocations.password,
+            noop=self.dry_run)
         self.force_no_allocation = force_no_allocation
         self.force_delete = force_delete
         self.allocation = self.get_allocation()
