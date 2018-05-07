@@ -104,8 +104,6 @@ class ExpiryCmd(cmd_base.CmdBase):
         self.parser.add_argument('--force-delete', action='store_true',
                             help="Delete a project no matter what state it's \
                                  in")
-        self.parser.add_argument('--disable-project', action='store_true',
-                            help="Also disable project in keystone")
 
     @staticmethod
     def read_file(project_file=False):
