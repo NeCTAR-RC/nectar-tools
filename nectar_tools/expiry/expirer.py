@@ -196,7 +196,7 @@ class AllocationExpirer(Expirer):
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  force_no_allocation=False, force_delete=False,
-                 disable_project=False):
+                 disable_project=True):
         archivers = ['nova', 'cinder', 'neutron', 'glance', 'swift']
 
         notifier = expiry_notifier.ExpiryNotifier(
