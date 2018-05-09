@@ -160,12 +160,13 @@ class Allocation(object):
 
     def delete(self):
         if self.noop:
-            LOG.info("%s: Would delete allocation %s", self.id)
+            LOG.info("%s: Would delete allocation", self.id)
             return
-        LOG.debug("%s: Deleting allocation %s", self.id)
+        LOG.debug("%s: Deleting allocation", self.id)
         self.manager.update_allocation(self.id, status=states.DELETED)
         if self.parent_request:
-            LOG.debug("%s: Deleting parent allocation %s", self.parent_request)
+            LOG.debug("%s: Deleting parent allocation %s", self.id,
+                      self.parent_request)
             self.manager.update_allocation(self.parent_request,
                                            status=states.DELETED)
 
