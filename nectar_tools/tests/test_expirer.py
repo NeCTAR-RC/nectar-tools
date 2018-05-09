@@ -654,7 +654,7 @@ class AllocationExpiryTests(test.TestCase):
         ) as (mock_allocation, mock_parent_delete):
             ex.delete_project()
             mock_parent_delete.assert_called_once_with()
-            mock_allocation.update.assert_called_once_with(status='D')
+            mock_allocation.delete.assert_called_once_with()
 
 
 @freeze_time("2017-01-01")
