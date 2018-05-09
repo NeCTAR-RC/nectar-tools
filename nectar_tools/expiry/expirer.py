@@ -467,7 +467,7 @@ class AllocationExpirer(Expirer):
 
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()
-        self.allocation.update(status=allocation_states.DELETED)
+        self.allocation.delete()
 
 
 class PTExpirer(Expirer):

@@ -11,6 +11,8 @@ from nectar_tools import exceptions
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expirer
 from nectar_tools.provisioning import notifier as provisioning_notifier
+from nectar_tools.allocations import states
+
 
 CONF = config.CONFIG
 LOG = logging.getLogger(__name__)
@@ -147,10 +149,25 @@ class Allocation(object):
         if self.noop:
             LOG.info("%s: Would update allocation %s", self.id, kwargs)
             return
+        # Handle special case where allocation updated to deleted state
+        if kwargs == {'status': 'D'}:
+            return self.delete()
+
         LOG.debug("%s: Updating allocation %s", self.id, kwargs)
         self.manager.update_allocation(self.id, **kwargs)
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def delete(self):
+        if self.noop:
+            LOG.info("%s: Would delete allocation %s", self.id, kwargs)
+            return
+        self.manager.update_allocation(self.id, status=states.DELETED)
+        if self.parent_request:
+            self.manager.update_allocation(self.parent_request,
+                                           status=states.DELETED)
+
+        self.status = states.DELETED
 
     def notify_provisioned(self, is_new_project, project, report):
         if self.noop:
