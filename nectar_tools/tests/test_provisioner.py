@@ -2,8 +2,9 @@ import testfixtures
 from unittest import mock
 
 from keystoneauth1 import exceptions as keystone_exc
+from nectarallocationclient.v1 import allocations
 
-from nectar_tools import allocations
+from nectar_tools.provisioning import manager
 from nectar_tools import config
 from nectar_tools import exceptions
 from nectar_tools import test
@@ -18,222 +19,194 @@ CONF = config.CONFIG
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ProvisionerTests(test.TestCase):
 
-    def test_init(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-
-        self.assertEqual(allocation.project_id, data['project_id'])
-        self.assertEqual(len(allocation.quotas), len(data['quotas']))
-        self.assertIsInstance(allocation.quotas[0], allocations.Quota)
+    def setUp(self, *args, **kwargs):
+        super(ProvisionerTests, self).setUp(*args, **kwargs)
+        self.allocation = fakes.FAKE_ALLOCATION
+        self.manager = manager.ProvisioningManager(ks_session=mock.Mock())
 
     def test_provision(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-
         with test.nested(
-            mock.patch.object(allocation, 'k_client'),
-            mock.patch.object(allocation, 'update_project'),
-            mock.patch.object(allocation, 'set_quota'),
-            mock.patch.object(allocation, 'quota_report'),
-            mock.patch.object(allocation, 'notify_provisioned'),
-            mock.patch.object(allocation, 'update'),
-            mock.patch.object(allocation, 'revert_expiry'),
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'update_project'),
+            mock.patch.object(self.manager, 'set_quota'),
+            mock.patch.object(self.manager, 'quota_report'),
+            mock.patch.object(self.manager, 'notify_provisioned'),
+            mock.patch.object(self.manager, 'update_allocation'),
+            mock.patch.object(self.manager, 'revert_expiry'),
         ) as (mock_keystone, mock_update_project, mock_quota, mock_report,
               mock_notify, mock_update, mock_revert):
             project = fakes.FakeProject()
             mock_update_project.return_value = project
-            allocation.provision()
-            mock_update_project.assert_called_once_with()
-            mock_quota.assert_called_once_with()
-            mock_report.assert_called_once_with(html=True, show_current=True)
-            mock_notify.assert_called_once_with(False, project,
+            self.manager.provision(self.allocation)
+            mock_update_project.assert_called_once_with(self.allocation)
+            mock_quota.assert_called_once_with(self.allocation)
+            mock_report.assert_called_once_with(self.allocation, html=True, show_current=True)
+            mock_notify.assert_called_once_with(self.allocation, False, project,
                                                 mock_report.return_value)
-            mock_update.assert_called_once_with(provisioned=True)
+            mock_update.assert_called_once_with(self.allocation, provisioned=True)
             mock_revert.assert_called_once_with(project=project)
 
     def test_provision_already_provisioned(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-        allocation.provisioned = True
+        self.allocation.provisioned = True
 
         with test.nested(
-            mock.patch.object(allocation, 'k_client'),
-            mock.patch.object(allocation, 'set_quota'),
-            mock.patch.object(allocation, 'notify_provisioned'),
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'set_quota'),
+            mock.patch.object(self.manager, 'notify_provisioned'),
         ) as (mock_keystone, mock_quota, mock_notify):
             mock_keystone.projects.get.side_effect = \
              keystone_exc.http.NotFound()
             with testfixtures.ShouldRaise(
                 exceptions.InvalidProjectAllocation(
                     "Allocation already provisioned")):
-                allocation.provision()
+                self.manager.provision(self.allocation)
             mock_quota.assert_not_called()
             mock_notify.assert_not_called()
 
     def test_provision_project_not_found(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
 
         with test.nested(
-            mock.patch.object(allocation, 'k_client'),
-            mock.patch.object(allocation, 'set_quota'),
-            mock.patch.object(allocation, 'notify_provisioned'),
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'set_quota'),
+            mock.patch.object(self.manager, 'notify_provisioned'),
         ) as (mock_keystone, mock_quota, mock_notify):
             mock_keystone.projects.get.side_effect = \
              keystone_exc.http.NotFound()
             with testfixtures.ShouldRaise(
                 exceptions.InvalidProjectAllocation(
                     "Existing project not found")):
-                allocation.provision()
+                self.manager.provision(self.allocation)
             mock_quota.assert_not_called()
             mock_notify.assert_not_called()
 
-    def test_provision_new(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-        allocation.project_id = None
-        allocation.project_name = None
-        allocation.convert_trial_project = False
-        allocation.project_description = 'My Project.is__great'
+    def test_provision_new(self):        
+        self.allocation.project_id = None
+        self.allocation.project_name = None
+        self.allocation.convert_trial_project = False
+        self.allocation.project_description = 'My Project.is__great'
 
         with test.nested(
-            mock.patch.object(allocation, 'k_client'),
-            mock.patch.object(allocation, 'create_project'),
-            mock.patch.object(allocation, 'set_quota'),
-            mock.patch.object(allocation, 'quota_report'),
-            mock.patch.object(allocation, 'notify_provisioned'),
-            mock.patch.object(allocation, 'update'),
-            mock.patch.object(allocation, 'revert_expiry'),
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'create_project'),
+            mock.patch.object(self.manager, 'set_quota'),
+            mock.patch.object(self.manager, 'quota_report'),
+            mock.patch.object(self.manager, 'notify_provisioned'),
+            mock.patch.object(self.manager, 'update_allocation'),
+            mock.patch.object(self.manager, 'revert_expiry'),
         ) as (mock_keystone, mock_create, mock_quota, mock_report,
               mock_notify, mock_update, mock_revert):
             project = fakes.FakeProject()
             mock_create.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
-            allocation.provision()
-            mock_create.assert_called_once_with()
-            mock_quota.assert_called_once_with()
-            mock_report.assert_called_once_with(html=True, show_current=False)
-            mock_notify.assert_called_once_with(True, project,
+            self.manager.provision(self.allocation)
+            mock_create.assert_called_once_with(self.allocation)
+            mock_quota.assert_called_once_with(self.allocation)
+            mock_report.assert_called_once_with(self.allocation, html=True, show_current=False)
+            mock_notify.assert_called_once_with(self.allocation, True, project,
                                                 mock_report.return_value)
-            mock_update.assert_called_once_with(provisioned=True)
+            mock_update.assert_called_once_with(self.allocation, provisioned=True)
             mock_revert.assert_not_called()
 
     def test_provision_new_duplicate_name(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-        allocation.project_id = None
-        allocation.project_name = None
-        allocation.convert_trial_project = False
-        allocation.project_description = 'My Project.is__great'
+        self.allocation.project_id = None
+        self.allocation.project_name = None
+        self.allocation.convert_trial_project = False
+        self.allocation.project_description = 'My Project.is__great'
 
         with test.nested(
-            mock.patch.object(allocation, 'k_client'),
-            mock.patch.object(allocation, 'create_project'),
-            mock.patch.object(allocation, 'set_quota'),
-            mock.patch.object(allocation, 'notify_provisioned'),
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'create_project'),
+            mock.patch.object(self.manager, 'set_quota'),
+            mock.patch.object(self.manager, 'notify_provisioned'),
         ) as (mock_keystone, mock_create, mock_quota,
               mock_notify):
             with testfixtures.ShouldRaise(
                 exceptions.InvalidProjectAllocation(
                 "Project already exists")):
-                allocation.provision()
+                self.manager.provision(self.allocation)
 
             mock_create.assert_not_called()
             mock_quota.assert_not_called()
             mock_notify.assert_not_called()
 
     def test_provision_convert_pt(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-        allocation.project_id = None
-        allocation.project_name = None
-        allocation.convert_trial_project = True
+        self.allocation.project_id = None
+        self.allocation.project_name = None
+        self.allocation.convert_trial_project = True
 
         with test.nested(
-            mock.patch.object(allocation, 'k_client'),
-            mock.patch.object(allocation, 'convert_trial'),
-            mock.patch.object(allocation, 'set_quota'),
-            mock.patch.object(allocation, 'quota_report'),
-            mock.patch.object(allocation, 'notify_provisioned'),
-            mock.patch.object(allocation, 'update'),
-            mock.patch.object(allocation, 'revert_expiry'),
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'convert_trial'),
+            mock.patch.object(self.manager, 'set_quota'),
+            mock.patch.object(self.manager, 'quota_report'),
+            mock.patch.object(self.manager, 'notify_provisioned'),
+            mock.patch.object(self.manager, 'update_allocation'),
+            mock.patch.object(self.manager, 'revert_expiry'),
         ) as (mock_keystone, mock_convert, mock_quota, mock_report,
               mock_notify, mock_update, mock_revert):
             project = fakes.FakeProject()
             mock_convert.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
-            allocation.provision()
-            mock_convert.assert_called_once_with()
-            mock_quota.assert_called_once_with()
-            mock_report.assert_called_once_with(html=True, show_current=False)
-            mock_notify.assert_called_once_with(True, project,
+            self.manager.provision(self.allocation)
+            mock_convert.assert_called_once_with(self.allocation)
+            mock_quota.assert_called_once_with(self.allocation)
+            mock_report.assert_called_once_with(self.allocation, html=True, show_current=False)
+            mock_notify.assert_called_once_with(self.allocation, True, project,
                                                 mock_report.return_value)
-            mock_update.assert_called_once_with(provisioned=True)
+            mock_update.assert_called_once_with(self.allocation, provisioned=True)
             mock_revert.assert_not_called()
 
     @mock.patch('nectar_tools.expiry.expirer.AllocationExpirer')
     def test_revert_expiry(self, mock_expirer):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
         project = fakes.FakeProject()
-        allocation.revert_expiry(project)
-        mock_expirer.assert_called_once_with(project, allocation.ks_session,
+        self.manager.revert_expiry(project)
+        mock_expirer.assert_called_once_with(project, self.manager.ks_session,
                                              dry_run=False)
         mock_expirer.return_value.revert_expiry.assert_called_once_with()
 
-    def test_create_project(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
+    def test_update_allocation(self):
+        new_allocation = 'foo'
+        with mock.patch.object(self.allocation, 'update') as mock_update:
+            mock_update.return_value = new_allocation
+            allocation = self.manager.update_allocation(
+                self.allocation, provisioned=True)
+            mock_update.assert_called_once_with(provisioned=True)
+            self.assertEqual(new_allocation, allocation)
 
+    def test_create_project(self):
         with test.nested(
-            mock.patch.object(allocation, 'k_client'),
-            mock.patch.object(allocation, 'update')
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'update_allocation')
         ) as (mock_keystone, mock_update):
             mock_keystone.projects.create.return_value = fakes.FakeProject()
 
-            project = allocation.create_project()
+            project = self.manager.create_project(self.allocation)
 
             mock_keystone.projects.create.assert_called_once_with(
-                name=allocation.project_name,
+                name=self.allocation.project_name,
                 domain='default',
-                description=allocation.project_description,
-                allocation_id=allocation.id,
-                expires=allocation.end_date
+                description=self.allocation.project_description,
+                allocation_id=self.allocation.id,
+                expires=self.allocation.end_date
             )
-            mock_update.assert_called_once_with(project_id=project.id)
+            mock_update.assert_called_once_with(self.allocation, project_id=project.id)
 
     def test_update_project(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-
-        with mock.patch.object(allocation, 'k_client') as mock_keystone:
-            allocation.update_project()
+        with mock.patch.object(self.manager, 'k_client') as mock_keystone:
+            self.manager.update_project(self.allocation)
 
             mock_keystone.projects.update.assert_called_once_with(
-                allocation.project_id,
-                allocation_id=allocation.id,
-                expires=allocation.end_date)
+                self.allocation.project_id,
+                allocation_id=self.allocation.id,
+                expires=self.allocation.end_date)
 
     def test_grant_owner_roles(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
         project = fakes.FakeProject()
 
-        with mock.patch.object(allocation, 'k_client') as mock_keystone:
+        with mock.patch.object(self.manager, 'k_client') as mock_keystone:
             manager = mock.Mock()
             mock_keystone.users.find.return_value = manager
-            allocation._grant_owner_roles(project)
+            self.manager._grant_owner_roles(self.allocation, project)
 
             role_calls = [mock.call(CONF.keystone.manager_role_id,
                                     project=project, user=manager),
@@ -241,36 +214,19 @@ class ProvisionerTests(test.TestCase):
                                     project=project, user=manager)]
             mock_keystone.roles.grant.assert_has_calls(role_calls)
 
-    def test_update(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-
-        with mock.patch.object(allocation, 'manager') as mock_manager:
-            allocation.update(foo='bar')
-            mock_manager.update_allocation.assert_called_once_with(
-                allocation.id, foo='bar')
-
     @mock.patch("nectar_tools.provisioning.notifier.ProvisioningNotifier")
-    def test_notify_provisioned(self, mock_notifier_class):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
+    def test_notify_provisioned(self, mock_notifier_class):        
         mock_notifier = mock.Mock()
         mock_notifier_class.return_value = mock_notifier
-        allocation.notify_provisioned(True, None, report='bar')
+        self.manager.notify_provisioned(self.allocation, True, None, report='bar')
         mock_notifier.send_message.assert_called_once_with(
-            'new', allocation.contact_email,
-            extra_context={'allocation': allocation, 'report': 'bar'})
+            'new', self.allocation.contact_email,
+            extra_context={'allocation': self.allocation, 'report': 'bar'})
 
     def test_convert_trial(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-
         with test.nested(
-            mock.patch.object(allocation, 'k_client'),
-            mock.patch.object(allocation, 'update'),
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'update_allocation'),
             mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
         ) as (mock_keystone, mock_update, mock_archiver):
             old_pt = fakes.FakeProject(name='pt-123', description='abc')
@@ -281,7 +237,7 @@ class ProvisionerTests(test.TestCase):
             mock_keystone.projects.update.return_value = project
             archiver = mock.Mock()
             mock_archiver.return_value = archiver
-            allocation.convert_trial()
+            self.manager.convert_trial(self.allocation)
 
             new_pt_tmp_name = "%s_copy" % old_pt.name
             mock_keystone.projects.create.assert_called_once_with(
@@ -295,8 +251,8 @@ class ProvisionerTests(test.TestCase):
 
             calls = [
                 mock.call(old_pt.id,
-                          name=allocation.project_name,
-                          description=allocation.project_description,
+                          name=self.allocation.project_name,
+                          description=self.allocation.project_description,
                           status='',
                         expiry_next_step='',
                           expiry_status='',
@@ -311,85 +267,72 @@ class ProvisionerTests(test.TestCase):
             archiver.enable_resources.assert_called_once_with()
 
     def test_convert_trial_no_user(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-
-        with mock.patch.object(allocation, 'k_client') as mock_keystone:
+        with mock.patch.object(self.manager, 'k_client') as mock_keystone:
             mock_keystone.users.find.side_effect = keystone_exc.NotFound()
             with testfixtures.ShouldRaise(exceptions.InvalidProjectAllocation):
-                allocation.convert_trial()
+                self.manager.convert_trial(self.allocation)
 
     def test_convert_trial_non_pt(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-
         with test.nested(
-            mock.patch.object(allocation, 'k_client'),
-            mock.patch.object(allocation, 'update')
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'update_allocation')
         ) as (mock_keystone, mock_update):
             old_pt = fakes.FakeProject(name='notpt')
             mock_keystone.projects.get.return_value = old_pt
             with testfixtures.ShouldRaise(exceptions.InvalidProjectAllocation):
-                allocation.convert_trial()
-
-    def test_get_quotas(self):
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-
-        quotas = allocation.get_quota('object')
-        self.assertEqual(100, quotas[0].quota)
-
-        quotas = allocation.get_quota('volume')
-        self.assertEqual(2, len(quotas))
-
-    def test_quota_report(self):
-        pass
+                self.manager.convert_trial(self.allocation)
 
     @mock.patch('nectar_tools.auth.get_nova_client')
     def test_get_current_nova_quota(self, mock_get_nova):
         nova_client = mock.Mock()
-        mock_get_nova.return_value = nova_client
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
+        mock_get_nova.return_value = nova_client        
         quota = {'instance': 30, 'ram': 1, 'cores': 33}
         quota_response = mock.Mock(_info=quota)
         nova_client.quotas.get.return_value = quota_response
-        current = allocation.get_current_nova_quota()
+
+        current = self.manager.get_current_nova_quota(self.allocation)
         self.assertEqual(quota, current)
 
     @mock.patch('nectar_tools.auth.get_nova_client')
-    def test_set_nova_quota(self, mock_get_nova):
+    def test_set_nova_quota_no_ram(self, mock_get_nova):
         nova_client = mock.Mock()
         mock_get_nova.return_value = nova_client
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
 
-        allocation.set_nova_quota()
+        self.manager.set_nova_quota(self.allocation)
         nova_client.quotas.delete.assert_called_once_with(
-            tenant_id=allocation.project_id)
+            tenant_id=self.allocation.project_id)
         nova_client.quotas.update.assert_called_once_with(
-            tenant_id=allocation.project_id,
-            cores=allocation.core_quota,
-            instances=allocation.instance_quota,
-            ram=allocation.core_quota * 4096)
+            tenant_id=self.allocation.project_id,
+            cores=4,
+            instances=2,
+            ram=4 * 1024)
+
+    @mock.patch('nectar_tools.auth.get_nova_client')
+    def test_set_nova_quota_ram_set(self, mock_get_nova):
+        nova_client = mock.Mock()
+        mock_get_nova.return_value = nova_client
+        # override and set ram quota to 2
+        self.allocation.quotas[2].quota = 2
+
+        self.manager.set_nova_quota(self.allocation)
+        nova_client.quotas.delete.assert_called_once_with(
+            tenant_id=self.allocation.project_id)
+        nova_client.quotas.update.assert_called_once_with(
+            tenant_id=self.allocation.project_id,
+            cores=4,
+            instances=2,
+            ram=2048)
 
     @mock.patch('nectar_tools.auth.get_cinder_client')
     def test_set_cinder_quota(self, mock_cinder):
         cinder_client = mock.Mock()
         mock_cinder.return_value = cinder_client
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-        allocation.set_cinder_quota()
+        
+        self.manager.set_cinder_quota(self.allocation)
         cinder_client.quotas.delete.assert_called_once_with(
-            tenant_id=allocation.project_id)
+            tenant_id=self.allocation.project_id)
         cinder_client.quotas.update.assert_called_once_with(
-            tenant_id=allocation.project_id,
+            tenant_id=self.allocation.project_id,
             gigabytes=130,
             volumes=130,
             snapshots=130,
@@ -404,10 +347,8 @@ class ProvisionerTests(test.TestCase):
     def test_set_swift_quota(self, mock_swift):
         swift_client = mock.Mock()
         mock_swift.return_value = swift_client
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-        allocation.set_swift_quota()
+        
+        self.manager.set_swift_quota(self.allocation)
         quota = 100 * 1024 * 1024 * 1024
         swift_client.post_account.assert_called_once_with(
             headers={'x-account-meta-quota-bytes': quota})
@@ -416,13 +357,11 @@ class ProvisionerTests(test.TestCase):
     def test_set_trove_quota(self, mock_trove):
         trove_client = mock.Mock()
         mock_trove.return_value = trove_client
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-        allocation.set_trove_quota()
+
+        self.manager.set_trove_quota(self.allocation)
 
         trove_client.quota.update.assert_called_once_with(
-            allocation.project_id, {'instances': 2,
+            self.allocation.project_id, {'instances': 2,
                                     'volumes': 100})
 
     @mock.patch('nectar_tools.auth.get_manila_client')
@@ -434,23 +373,21 @@ class ProvisionerTests(test.TestCase):
         qld = mock.Mock(id='id-qld')
         qld.name = 'qld'
         manila_client.share_types.list.return_value = [monash, qld]
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-        allocation.set_manila_quota()
+        
+        self.manager.set_manila_quota(self.allocation)
 
         delete_calls = [
-            mock.call(tenant_id=allocation.project_id),
-            mock.call(tenant_id=allocation.project_id, share_type=monash.id),
-            mock.call(tenant_id=allocation.project_id, share_type=qld.id),
+            mock.call(tenant_id=self.allocation.project_id),
+            mock.call(tenant_id=self.allocation.project_id, share_type=monash.id),
+            mock.call(tenant_id=self.allocation.project_id, share_type=qld.id),
         ]
         update_calls = [
-            mock.call(tenant_id=allocation.project_id,
+            mock.call(tenant_id=self.allocation.project_id,
                       shares=11, gigabytes=150,
                       snapshots=5, snapshot_gigabytes=100),
-            mock.call(tenant_id=allocation.project_id, share_type=monash.id,
+            mock.call(tenant_id=self.allocation.project_id, share_type=monash.id,
                       shares=6, gigabytes=50),
-            mock.call(tenant_id=allocation.project_id, share_type=qld.id,
+            mock.call(tenant_id=self.allocation.project_id, share_type=qld.id,
                       shares=5, gigabytes=100,
                       snapshots=5, snapshot_gigabytes=100),
         ]
@@ -461,14 +398,12 @@ class ProvisionerTests(test.TestCase):
     def test_set_neutron_quota(self, mock_neutron):
         neutron_client = mock.Mock()
         mock_neutron.return_value = neutron_client
-        manager = fakes.FakeAllocationManager()
-        data = fakes.ALLOCATION_RESPONSE
-        allocation = allocations.Allocation(manager, data, None)
-        allocation.set_neutron_quota()
+        
+        self.manager.set_neutron_quota(self.allocation)
 
         neutron_client.delete_quota.assert_called_once_with(
-            allocation.project_id)
+            self.allocation.project_id)
         body = {'quota': {'floatingip': 1, 'network': 2, 'subnet': 2,
                           'router': 2, 'loadbalancer': 2}}
         neutron_client.update_quota.assert_called_once_with(
-            allocation.project_id, body)
+            self.allocation.project_id, body)

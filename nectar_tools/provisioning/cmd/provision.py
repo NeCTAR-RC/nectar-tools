@@ -1,10 +1,10 @@
 import logging
 
-from nectar_tools import allocations
+from nectarallocationclient import states
+
+from nectar_tools.provisioning import manager
 from nectar_tools import cmd_base
 from nectar_tools import config
-
-from nectar_tools.allocations import states
 
 
 CONF = config.CONFIG
@@ -15,26 +15,19 @@ class ProvisionCmd(cmd_base.CmdBase):
 
     def __init__(self):
         super(ProvisionCmd, self).__init__(log_filename='provisioning.log')
-
-        noop = self.dry_run
-        self.manager = allocations.AllocationManager(
-            CONF.allocations.api_url,
-            CONF.allocations.username,
-            CONF.allocations.password,
-            self.session,
-            noop)
+        self.manager = manager.ProvisioningManager(self.session, self.dry_run)
 
     def _get_allocation(self, allocation_id):
-        allocation = self.manager.get_allocation(allocation_id)
+        allocation = self.manager.client.allocations.get(allocation_id)
 
         if allocation.status != states.APPROVED:
-            allocation = self.manager.get_last_approved_allocation(
+            allocation = self.manager.client.allocations.get_last_approved(
                 parent_request_id=allocation_id)
         return allocation
 
     def provision_all_pending(self):
-        allocations = self.manager.get_allocations(status=states.APPROVED,
-                                                   provisioned=False)
+        allocations = self.manager.client.allocations.list(status=states.APPROVED,
+                                                           provisioned=False)
         for allocation in allocations:
             try:
                 self.provision_allocation(allocation.id)
@@ -43,11 +36,11 @@ class ProvisionCmd(cmd_base.CmdBase):
 
     def provision_allocation(self, allocation_id):
         allocation = self._get_allocation(allocation_id)
-        allocation.provision()
+        self.manager.provision(allocation)
 
     def allocation_report(self, allocation_id):
         allocation = self._get_allocation(allocation_id)
-        allocation.quota_report()
+        self.manager.quota_report(allocation)
 
     def add_args(self):
         """Handle command-line options"""
