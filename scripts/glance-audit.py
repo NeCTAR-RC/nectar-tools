@@ -10,10 +10,12 @@ uses.
 
 """
 import argparse
-import swiftclient
-import glanceclient as glance_client
-from keystoneclient.v2_0 import client as ks_client
-from keystoneclient.exceptions import AuthorizationFailure
+from swiftclient import client as swiftclient
+#import swiftclient
+import glanceclient
+from keystoneauth1 import loading
+from keystoneauth1 import session
+from keystoneclient.v3 import client
 import os
 import sys
 import httplib
@@ -21,11 +23,43 @@ import httplib
 SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
 
-def get_swift_connection():
-    auth_username = os.environ.get('OS_USERNAME')
-    auth_password = os.environ.get('OS_PASSWORD')
-    auth_tenant = os.environ.get('OS_TENANT_NAME')
+def get_session():
+    username = os.environ.get('OS_USERNAME')
+    password = os.environ.get('OS_PASSWORD')
+    project_name = os.environ.get('OS_PROJECT_NAME')
     auth_url = os.environ.get('OS_AUTH_URL')
+
+    loader = loading.get_plugin_loader('password')
+    auth = loader.load_from_options(auth_url=auth_url,
+                                    username=username,
+                                    password=password,
+                                    project_name=project_name,
+                                    user_domain_id='default',
+                                    project_domain_id='default')
+
+    return session.Session(auth=auth)
+
+
+def get_swift_client(sess=None, project_id=None):
+    if not sess:
+        sess = get_session()
+    os_opts = {}
+    if project_id:
+        endpoint = sess.get_endpoint(service_type='object-store')
+        auth_project = sess.get_project_id()
+        endpoint = endpoint.replace('AUTH_%s' % auth_project,
+                                    'AUTH_%s' % project_id)
+        os_opts['object_storage_url'] = '%s' % endpoint
+    return swiftclient.Connection(session=sess, os_options=os_opts)
+
+
+def get_glance_client(sess=None, endpoint=None):
+    if not sess:
+        sess = get_session()
+    return glanceclient.Client('2', session=sess, endpoint=endpoint)
+
+
+def get_swift_connection():
 
     return swiftclient.Connection(
         auth_url, auth_username, auth_password,
@@ -99,42 +133,13 @@ def shotgun_segments(connection, container, image_id):
         segment += 1
 
 
-def get_keystone_client():
-
-    auth_username = os.environ.get('OS_USERNAME')
-    auth_password = os.environ.get('OS_PASSWORD')
-    auth_tenant = os.environ.get('OS_TENANT_NAME')
-    auth_url = os.environ.get('OS_AUTH_URL')
-    try:
-        kc = ks_client.Client(username=auth_username,
-                              password=auth_password,
-                              tenant_name=auth_tenant,
-                              auth_url=auth_url)
-    except AuthorizationFailure as e:
-        print e
-        print 'Authorization failed, have you sourced your openrc?'
-        sys.exit(1)
-    return kc
-
-
-def get_glance_client(kc, api_version=2, endpoint=None):
-    if endpoint is None:
-        image_endpoint = kc.service_catalog.url_for(service_type='image')
-        image_endpoint = image_endpoint.replace('v1', '')
-    else:
-        image_endpoint = endpoint
-    gc = glance_client.Client(api_version, image_endpoint, token=kc.auth_token)
-    return gc
-
-
-def delete_image_set(gc, image_set, container, noop=True):
+def delete_image_set(gc, connection, image_set, container, noop=True):
     bytes_deleted = 0
-    connection = get_swift_connection()
     for image_id in image_set:
         delete = False
         try:
             image = gc.images.get(image_id)
-            if image.deleted or image.status == 'killed':
+            if image.status == 'killed':
                 delete = True
             else:
                 print "Skipping active image %s" % image_id
@@ -142,7 +147,7 @@ def delete_image_set(gc, image_set, container, noop=True):
                 print "Created: %s, Updated %s" % (image.created_at,
                                                    image.updated_at)
 
-        except glance_client.exc.HTTPNotFound:
+        except glanceclient.exc.HTTPNotFound:
             delete = True
         if delete:
             size = delete_swift_image(connection, container,
@@ -186,6 +191,8 @@ def collect_args():
     parser.add_argument('-i', '--image-endpoint', action='store',
                         default=None, required=False,
                         help="Override image endpoint")
+    parser.add_argument('-p', '--glance-project-id', action='store',
+                        help="Glance project ID")
     return parser.parse_args()
 
 
@@ -197,19 +204,23 @@ if __name__ == '__main__':
         print "Running for realsies!!"
     else:
         print "Running Audit in noop mode, use -f to actually delete things"
-    kc = get_keystone_client()
-    connection = get_swift_connection()
-    image_endpoint = args.image_endpoint
-    gc = get_glance_client(kc, endpoint=image_endpoint)
-    gc1 = get_glance_client(kc, api_version=1, endpoint=image_endpoint)
 
-    s_glance = get_swift_objects(connection, 'glance')
+    glance_project_id = args.glance_project_id
+    session = get_session()
+    connection = get_swift_client(session, project_id=glance_project_id)
+    gc = get_glance_client(session, endpoint=args.image_endpoint)
+
+    try:
+        s_glance = get_swift_objects(connection, 'glance')
+    except:
+        s_glance = set([])
     s_images = get_swift_objects(connection, 'images')
     print "Swift: Found %s images in glance container" % len(s_glance)
     print "Swift: Found %s images in images container" % len(s_images)
     g_glance = set()
     g_images = set()
-    images = list(gc.images.list(is_public=None))
+
+    images = gc.images.list(is_public=None)
     for image in images:
         try:
             url = image.direct_url
@@ -227,9 +238,10 @@ if __name__ == '__main__':
     print "Glance: Found %s images in images container" % len(g_images)
     print
     print "Deleting all orphaned swift data"
-    bytes_deleted1 = delete_image_set(gc1, s_images - g_images,
+    bytes_deleted1 = delete_image_set(gc, connection, s_images - g_images,
                                       'images', noop=noop)
-    bytes_deleted2 = delete_image_set(gc1, s_glance - g_glance,
+
+    bytes_deleted2 = delete_image_set(gc, connection, s_glance - g_glance,
                                       'glance', noop=noop)
     total_size = (bytes_deleted1 + bytes_deleted2) / 1024 / 1024 / 1024
     print "Total size deleted %sGB" % total_size
