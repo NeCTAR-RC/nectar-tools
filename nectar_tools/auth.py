@@ -6,6 +6,7 @@ from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client
 from manilaclient import client as manilaclient
+from nectarallocationclient import client as allocationclient
 from neutronclient.neutron import client as neutronclient
 from novaclient import client as novaclient
 from swiftclient import client as swiftclient
@@ -33,6 +34,11 @@ def get_keystone_client(sess=None):
     if not sess:
         sess = get_session()
     return client.Client(session=sess)
+
+def get_allocation_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return allocationclient.Client(1, session=sess)
 
 
 def get_nova_client(sess=None):

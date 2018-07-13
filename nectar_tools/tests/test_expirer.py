@@ -3,10 +3,12 @@ from dateutil.relativedelta import relativedelta
 from freezegun import freeze_time
 from unittest import mock
 
+from nectarallocationclient import exceptions as allocation_exceptions
+
 from nectar_tools import config
+from nectar_tools import exceptions
 from nectar_tools import test
 
-from nectar_tools import exceptions
 from nectar_tools.expiry import expirer
 from nectar_tools.expiry import expiry_states
 
@@ -272,8 +274,7 @@ class ExpiryTests(test.TestCase):
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
             new=mock.Mock())
-@mock.patch('nectar_tools.allocations.AllocationManager',
-            new=fakes.FakeAllocationManager)
+@mock.patch('nectarallocationclient.v1.allocations.AllocationManager', new=fakes.FakeAllocationManager)
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class AllocationExpiryTests(test.TestCase):
 
@@ -296,12 +297,12 @@ class AllocationExpiryTests(test.TestCase):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
         mock_allocations = fakes.FakeAllocationManager()
-        active = mock_allocations.get_current_allocation('active')
+        active = mock_allocations.get_current('active')
 
-        with mock.patch.object(ex, 'allocation_api') as mock_api:
-            mock_api.get_current_allocation.return_value = active
+        with mock.patch.object(ex, 'a_client') as mock_api:
+            mock_api.allocations.get_current.return_value = active
             output = ex.get_allocation()
-            mock_api.get_current_allocation.assert_called_once_with(
+            mock_api.allocations.get_current.assert_called_once_with(
                 project_id=project.id)
             self.assertEqual(active, output)
 
@@ -309,9 +310,9 @@ class AllocationExpiryTests(test.TestCase):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
 
-        with mock.patch.object(ex, 'allocation_api') as mock_api:
-            mock_api.get_current_allocation.side_effect = \
-                exceptions.AllocationDoesNotExist(project_id=project.id)
+        with mock.patch.object(ex, 'a_client') as mock_api:
+            mock_api.allocations.get_current.side_effect = \
+                allocation_exceptions.AllocationDoesNotExist()
 
             self.assertRaises(exceptions.AllocationDoesNotExist,
                               ex.get_allocation)
@@ -320,9 +321,9 @@ class AllocationExpiryTests(test.TestCase):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project, force_no_allocation=True)
 
-        with mock.patch.object(ex, 'allocation_api') as mock_api:
-            mock_api.get_current_allocation.side_effect = \
-                exceptions.AllocationDoesNotExist(project_id=project.id)
+        with mock.patch.object(ex, 'a_client') as mock_api:
+            mock_api.allocations.get_current.side_effect = \
+                allocation_exceptions.AllocationDoesNotExist()
 
             output = ex.get_allocation()
             self.assertEqual('NO-ALLOCATION', output.id)
@@ -332,14 +333,14 @@ class AllocationExpiryTests(test.TestCase):
         ex = expirer.AllocationExpirer(project)
 
         mock_allocations = fakes.FakeAllocationManager()
-        pending2 = mock_allocations.get_current_allocation('pending2')
-        active = mock_allocations.get_current_allocation('active')
+        pending2 = mock_allocations.get_current('pending2')
+        active = mock_allocations.get_current('active')
 
-        with mock.patch.object(ex, 'allocation_api') as mock_api:
-            mock_api.get_current_allocation.return_value = pending2
-            mock_api.get_last_approved_allocation.return_value = active
+        with mock.patch.object(ex, 'a_client') as mock_api:
+            mock_api.allocations.get_current.return_value = pending2
+            mock_api.allocations.get_last_approved.return_value = active
             output = ex.get_allocation()
-            mock_api.get_current_allocation.assert_called_once_with(
+            mock_api.allocations.get_current.assert_called_once_with(
                 project_id=project.id)
             self.assertEqual(pending2, output)
 
@@ -348,14 +349,14 @@ class AllocationExpiryTests(test.TestCase):
         ex = expirer.AllocationExpirer(project)
 
         mock_allocations = fakes.FakeAllocationManager()
-        pending1 = mock_allocations.get_current_allocation('pending1')
-        active = mock_allocations.get_current_allocation('active')
+        pending1 = mock_allocations.get_current('pending1')
+        active = mock_allocations.get_current('active')
 
-        with mock.patch.object(ex, 'allocation_api') as mock_api:
-            mock_api.get_current_allocation.return_value = pending1
-            mock_api.get_last_approved_allocation.return_value = active
+        with mock.patch.object(ex, 'a_client') as mock_api:
+            mock_api.allocations.get_current.return_value = pending1
+            mock_api.allocations.get_last_approved.return_value = active
             output = ex.get_allocation()
-            mock_api.get_current_allocation.assert_called_once_with(
+            mock_api.allocations.get_current.assert_called_once_with(
                 project_id=project.id)
             self.assertEqual(active, output)
 
@@ -465,16 +466,16 @@ class AllocationExpiryTests(test.TestCase):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
         mock_allocations = fakes.FakeAllocationManager()
-        ex.allocation = mock_allocations.get_current_allocation('active')
+        ex.allocation = mock_allocations.get_current('active')
         self.assertFalse(ex.allocation_ready_for_warning())
 
-        ex.allocation = mock_allocations.get_current_allocation('expired')
+        ex.allocation = mock_allocations.get_current('expired')
         self.assertTrue(ex.allocation_ready_for_warning())
 
-        ex.allocation = mock_allocations.get_current_allocation('warning1')
+        ex.allocation = mock_allocations.get_current('warning1')
         self.assertTrue(ex.allocation_ready_for_warning())
 
-        ex.allocation = mock_allocations.get_current_allocation('warning2')
+        ex.allocation = mock_allocations.get_current('warning2')
         self.assertTrue(ex.allocation_ready_for_warning())
 
     def test_should_process_project(self):
@@ -489,17 +490,17 @@ class AllocationExpiryTests(test.TestCase):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
         mock_allocations = fakes.FakeAllocationManager()
-        ex.allocation = mock_allocations.get_current_allocation('active')
+        ex.allocation = mock_allocations.get_current('active')
         self.assertTrue(ex.should_process_project())
 
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
-        ex.allocation = mock_allocations.get_current_allocation('pending1')
+        ex.allocation = mock_allocations.get_current('pending1')
         self.assertFalse(ex.should_process_project())
 
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
-        ex.allocation = mock_allocations.get_current_allocation('active')
+        ex.allocation = mock_allocations.get_current('active')
 
         with mock.patch.object(ex, 'is_ignored_project') as mock_ignore:
             mock_ignore.return_value = True

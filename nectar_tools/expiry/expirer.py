@@ -4,11 +4,12 @@ import enum
 import logging
 import re
 
+from nectarallocationclient import states as allocation_states
+from nectarallocationclient import exceptions as allocation_exceptions
+from nectarallocationclient.v1 import allocations
+
 from nectar_tools import auth
 from nectar_tools import config
-
-from nectar_tools import allocations
-from nectar_tools.allocations import states as allocation_states
 from nectar_tools import exceptions
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expiry_states
@@ -208,20 +209,16 @@ class AllocationExpirer(Expirer):
         super(AllocationExpirer, self).__init__(
             project, archivers, notifier, ks_session, dry_run, disable_project)
 
-        self.allocation_api = allocations.AllocationManager(
-            CONF.allocations.api_url,
-            CONF.allocations.username,
-            CONF.allocations.password,
-            noop=self.dry_run)
+        self.a_client = auth.get_allocation_client(ks_session)
         self.force_no_allocation = force_no_allocation
         self.force_delete = force_delete
         self.allocation = self.get_allocation()
 
     def get_allocation(self):
         try:
-            allocation = self.allocation_api.get_current_allocation(
+            allocation = self.a_client.allocations.get_current(
                 project_id=self.project.id)
-        except exceptions.AllocationDoesNotExist:
+        except allocation_exceptions.AllocationDoesNotExist:
             if self.is_ignored_project():
                 return
             LOG.warn("%s: Allocation can not be found", self.project.id)
@@ -230,6 +227,7 @@ class AllocationExpirer(Expirer):
                     None,
                     {'id': 'NO-ALLOCATION',
                      'status': allocation_states.APPROVED,
+                     'quotas': [],
                      'start_date': '1970-01-01',
                      'end_date': '1970-01-01'},
                     None)
@@ -247,7 +245,7 @@ class AllocationExpirer(Expirer):
             mod_time = datetime.datetime.strptime(
                 allocation.modified_time, DATETIME_FORMAT)
             if mod_time < six_months_ago:
-                approved = self.allocation_api.get_last_approved_allocation(
+                approved = self.a_client.allocations.get_last_approved(
                     project_id=self.project.id)
                 if approved:
                     LOG.debug("%s: Allocation has old unapproved application, "
