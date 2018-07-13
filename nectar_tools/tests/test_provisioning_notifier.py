@@ -22,18 +22,23 @@ class ProvisioningNotifierTests(test.TestCase):
         self.assertEqual(int(CONF.freshdesk.provisioning_group), n.group_id)
         self.assertEqual('provisioning', n.template_dir)
         self.assertEqual("Nectar Allocation Provisioned", n.subject)
-        manager = fakes.FakeAllocationManager()
-        allocation = manager.get_current_allocation()
-        with mock.patch.object(n, '_create_ticket') as mock_create:
+        allocation = mock.Mock()
+
+        with test.nested(
+                mock.patch.object(n, 'render_template'),
+                mock.patch.object(n, '_create_ticket'),
+        ) as (mock_render, mock_create):
+            mock_render.return_value = 'text'
             n.send_message(stage, 'owner@fake.org',
                            extra_context={'allocation': allocation},
                            extra_recipients=['manager1@fake.org',
                                              'manager2@fake.org'])
+            mock_render.assert_called_once_with(template,
+                                                {'allocation': allocation})
             mock_create.assert_called_with(
                 email='owner@fake.org',
                 cc_emails=['manager1@fake.org', 'manager2@fake.org'],
-                description=n.render_template(template,
-                                              {'allocation': allocation}),
+                description='text',
                 extra_context={'allocation': allocation},
                 tags=['allocations'])
 
