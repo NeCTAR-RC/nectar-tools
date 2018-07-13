@@ -1,7 +1,7 @@
 from unittest import mock
 
-from nectar_tools import allocations
-from nectar_tools import exceptions
+from nectarallocationclient import exceptions as allocation_exceptions
+from nectarallocationclient.v1 import allocations
 
 
 ALLOCATIONS = {
@@ -11,6 +11,7 @@ ALLOCATIONS = {
               'start_date': '2015-01-01',
               'end_date': '2016-01-01',
               'modified_time': '2015-01-02T10:10:10Z',
+              'quotas': [],
               'contact_email': 'fake@fake.org',
               'approver_email': 'approver@fake.org'},
     'warning1': {'id': 2,
@@ -19,6 +20,7 @@ ALLOCATIONS = {
                  'start_date': '2015-01-01',
                  'end_date': '2017-01-01',
                  'modified_time': '2015-01-02T10:10:10Z',
+                 'quotas': [],
                  'contact_email': 'fake@fake.org'},
     'warning2': {'id': 3,
                  'project_id': 'warning2',
@@ -26,6 +28,7 @@ ALLOCATIONS = {
                  'start_date': '2016-12-15',
                  'end_date': '2017-01-05',
                  'modified_time': '2016-01-02T10:10:10Z',
+                 'quotas': [],
                  'contact_email': 'fake@fake.org'},
     'active': {'id': 4,
                'project_id': 'active',
@@ -33,6 +36,7 @@ ALLOCATIONS = {
                'start_date': '2015-01-01',
                'end_date': '2018-01-01',
                'modified_time': '2015-01-02T10:10:10Z',
+               'quotas': [],
                'contact_email': 'fake@fake.org'},
     'pending1': {'id': 6,
                  'project_id': 'pending1',
@@ -40,6 +44,7 @@ ALLOCATIONS = {
                  'start_date': '2016-01-01',
                  'end_date': '2016-07-01',
                  'modified_time': '2016-01-02T10:10:10Z',
+                 'quotas': [],
                  'contact_email': 'fake@fake.org'},
     'pending2': {'id': 7,
                  'project_id': 'pending2',
@@ -47,6 +52,7 @@ ALLOCATIONS = {
                  'start_date': '2016-01-01',
                  'end_date': '2017-07-01',
                  'modified_time': '2016-12-02T10:10:10Z',
+                 'quotas': [],
                  'contact_email': 'fake@fake.org'},
     'expired': {'id': 10,
                 'project_id': 'expired',
@@ -54,6 +60,7 @@ ALLOCATIONS = {
                 'start_date': '2015-01-01',
                 'end_date': '2016-07-01',
                 'modified_time': '2015-01-02T10:10:10Z',
+                'quotas': [],
                 'contact_email': 'fake@fake.org'},
 }
 
@@ -91,18 +98,17 @@ class FakeProject(object):
 
 class FakeAllocationManager(object):
 
-    def __init__(self, url=None, username=None, password=None,
-                 ks_session=None, *args, **kwargs):
-        self.allocations = ALLOCATIONS
+    def __init__(self, *args, **kwargs):
+        self.allocation_cache = ALLOCATIONS
 
-    def get_current_allocation(self, project_id='dummy'):
+    def get_current(self, project_id='dummy'):
         try:
-            data = self.allocations[project_id]
-            return allocations.Allocation(self, data, None)
+            data = self.allocation_cache[project_id]
+            return allocations.Allocation(self, data)
         except KeyError:
-            raise exceptions.AllocationDoesNotExist(project_id=project_id)
+            raise allocation_exceptions.AllocationDoesNotExist()
 
-    def update_allocation(self, allocation_id, **kwargs):
+    def update(self, allocation_id, **kwargs):
         return
 
 
@@ -150,12 +156,27 @@ class FakeVolume(object):
 ALLOCATION_RESPONSE = {
     "quotas": [
         {
-            "resource": "volume.volume",
+            "resource": "compute.instances",
+            "zone": "nectar",
+            "quota": 2,
+        },
+        {
+            "resource": "compute.cores",
+            "zone": "nectar",
+            "quota": 4,
+        },
+        {
+            "resource": "compute.ram",
+            "zone": "nectar",
+            "quota": 0,
+        },
+        {
+            "resource": "volume.gigabytes",
             "zone": "melbourne",
             "quota": 30,
         },
         {
-            "resource": "volume.volume",
+            "resource": "volume.gigabytes",
             "zone": "monash",
             "quota": 100,
         },
@@ -239,16 +260,7 @@ ALLOCATION_RESPONSE = {
     "end_date": "2015-08-25",
     "estimated_project_duration": 1,
     "convert_trial_project": False,
-    "primary_instance_type": "S",
-    "instances": 2,
-    "cores": 2,
-    "core_hours": 100,
-    "instance_quota": 2,
-    "ram_quota": 8,
-    "core_quota": 2,
     "approver_email": "bob@bob.com",
-    "volume_zone": "melbourne",
-    "object_storage_zone": "melbourne",
     "use_case": "dsdsds",
     "usage_patterns": "dsdsd",
     "allocation_home": "national",
@@ -267,3 +279,5 @@ ALLOCATION_RESPONSE = {
     "funding_node": None,
     "provisioned": False
 }
+
+FAKE_ALLOCATION = allocations.Allocation(mock.Mock(), ALLOCATION_RESPONSE)
