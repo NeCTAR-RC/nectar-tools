@@ -78,7 +78,7 @@ class ProvisioningManager(object):
     def update_allocation(self, allocation, **kwargs):
         if self.noop:
             LOG.info("%s: Would update allocation %s", allocation.id, kwargs)
-            return
+            return allocation
 
         LOG.debug("%s: Updating allocation %s", allocation.id, kwargs)
         return allocation.update(**kwargs)
