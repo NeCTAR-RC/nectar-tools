@@ -429,6 +429,8 @@ class NeutronArchiver(NeutronBasicArchiver):
                   len(routers))
 
         for router in routers:
+            body = {'router': {'routes': None}}
+            self.ne_client.update_router(router['id'], body)
             interfaces = self.ne_client.list_ports(
                 device_id=router['id'],
                 device_owner='network:router_interface')['ports']
