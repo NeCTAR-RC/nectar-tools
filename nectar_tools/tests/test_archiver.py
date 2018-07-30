@@ -502,6 +502,9 @@ class NeutronArchiverTests(test.TestCase):
             mock_neutron.list_ports.return_value = {'ports': ports}
             na._delete_routers()
 
+            mock_neutron.update_router.assert_called_once_with(
+                router1['id'], {'router': {'routes': None}})
+
             mock_neutron.list_routers.assert_called_once_with(
                 tenant_id=PROJECT.id)
 
