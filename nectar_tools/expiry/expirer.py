@@ -465,7 +465,11 @@ class AllocationExpirer(Expirer):
 
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()
-        self.allocation.delete()
+        LOG.info("%s: Deleting allocation", self.allocation.id)
+        if self.dry_run:
+            LOG.info("%s: Would delete allocation", self.allocation.id)
+        else:
+            self.allocation.delete()
 
 
 class PTExpirer(Expirer):
