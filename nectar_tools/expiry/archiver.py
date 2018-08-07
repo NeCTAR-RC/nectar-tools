@@ -407,13 +407,18 @@ class NeutronArchiver(NeutronBasicArchiver):
         # Because we can't archive only delete when forced
         if not force:
             return []
+
+        self._delete_routers()
+
+        self._delete_neutron_resources('ports',
+                                       self.ne_client.list_ports,
+                                       self.ne_client.delete_port)
+
         super(NeutronArchiver, self).delete_resources(force=force)
 
         self._delete_neutron_resources('floatingips',
                                        self.ne_client.list_floatingips,
                                        self.ne_client.delete_floatingip)
-
-        self._delete_routers()
 
         self._delete_neutron_resources('subnets',
                                        self.ne_client.list_subnets,
