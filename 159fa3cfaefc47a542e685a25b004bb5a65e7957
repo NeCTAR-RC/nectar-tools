@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "27d83920_3a28f757",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 451,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-08-09T05:04:34Z",
+      "side": 1,
+      "message": "should make_next_step_date return it in this format so we don\u0027t need to convert all the time?",
+      "range": {
+        "startLine": 451,
+        "startChar": 48,
+        "endLine": 451,
+        "endChar": 70
+      },
+      "revId": "159fa3cfaefc47a542e685a25b004bb5a65e7957",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eed40a31_71e2a017",
+        "filename": "nectar_tools/templates/allocations/archived.tmpl",
+        "patchSetId": 1
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-08-09T05:04:34Z",
+      "side": 1,
+      "message": "and has now",
+      "range": {
+        "startLine": 10,
+        "startChar": 57,
+        "endLine": 10,
+        "endChar": 64
+      },
+      "revId": "159fa3cfaefc47a542e685a25b004bb5a65e7957",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
