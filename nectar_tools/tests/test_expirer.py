@@ -234,6 +234,38 @@ class ExpiryTests(test.TestCase):
             mock_next.return_value = None
             self.assertTrue(ex.at_next_step())
 
+    def test_set_project_archived(self):
+        project = fakes.FakeProject()
+        ex = expirer.Expirer(project, archivers='fake', notifier='fake')
+        with mock.patch.object(ex, '_update_project') as mock_update:
+            ex.set_project_archived()
+            mock_update.assert_called_with(
+                expiry_status=expiry_states.ARCHIVED)
+
+    @freeze_time('2018-02-01')
+    def test_make_next_step_date_feb_1(self):
+        project = fakes.FakeProject()
+        ex = expirer.Expirer(project, archivers='fake', notifier='fake')
+        assert ex.make_next_step_date() == '2018-02-15'
+
+    @freeze_time('2018-12-14')
+    def test_make_next_step_date_dec_14(self):
+        project = fakes.FakeProject()
+        ex = expirer.Expirer(project, archivers='fake', notifier='fake')
+        assert ex.make_next_step_date() == '2018-12-28'
+
+    @freeze_time('2018-12-15')
+    def test_make_next_step_date_dec_15(self):
+        project = fakes.FakeProject()
+        ex = expirer.Expirer(project, archivers='fake', notifier='fake')
+        assert ex.make_next_step_date() == '2019-01-14'
+
+    @freeze_time('2019-01-31')
+    def test_make_next_step_date_jan_31(self):
+        project = fakes.FakeProject()
+        ex = expirer.Expirer(project, archivers='fake', notifier='fake')
+        assert ex.make_next_step_date() == '2019-03-02'
+
     def test_delete_project(self):
         project = fakes.FakeProject()
         ex = expirer.Expirer(project, archivers='fake', notifier='fake')
@@ -440,10 +472,9 @@ class AllocationExpiryTests(test.TestCase):
                                     expiry_next_step=BEFORE)
         ex = expirer.AllocationExpirer(project)
 
-        with mock.patch.object(ex, '_update_project') as mock_update:
+        with mock.patch.object(ex, 'set_project_archived') as mock_arch_proj:
             self.assertTrue(ex.process())
-            mock_update.assert_called_with(
-                expiry_status=expiry_states.ARCHIVED)
+            mock_arch_proj.assert_called_with()
 
     def test_process_archived(self):
         project = fakes.FakeProject(expiry_status=expiry_states.ARCHIVED,
@@ -581,18 +612,17 @@ class AllocationExpiryTests(test.TestCase):
     def test_send_warning(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
-        one_month = (datetime.datetime.now() +
-                     datetime.timedelta(days=30)).strftime(expirer.DATE_FORMAT)
+        expiry_date = ex.make_next_step_date()
         with test.nested(
             mock.patch.object(ex, '_send_notification'),
             mock.patch.object(ex, '_update_project'),
         ) as (mock_notification, mock_update_project):
             ex.send_warning()
             mock_update_project.assert_called_with(
-                expiry_next_step=one_month,
+                expiry_next_step=expiry_date,
                 expiry_status=expiry_states.WARNING)
             mock_notification.assert_called_with('first', extra_context={
-                'expiry_date': one_month})
+                'expiry_date': expiry_date})
 
     def test_restrict_project(self):
         project = fakes.FakeProject()
@@ -828,7 +858,7 @@ class PTExpiryTests(test.TestCase):
     def test_notify_at_limit(self, mock_session):
         project = FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
-        new_expiry = datetime.datetime.now() + relativedelta(months=1)
+        new_expiry = datetime.datetime.now() + relativedelta(days=30)
         new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
 
         with test.nested(
@@ -847,7 +877,7 @@ class PTExpiryTests(test.TestCase):
         project = FakeProjectWithOwner(expiry_status='pending suspension',
                               expiry_next_step='2014-01-01')
         ex = expirer.PTExpirer(project)
-        new_expiry = datetime.datetime.now() + relativedelta(months=1)
+        new_expiry = datetime.datetime.now() + relativedelta(days=30)
         new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
 
         with test.nested(
