@@ -25,6 +25,8 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
             tmpl = 'second-warning.tmpl'
         elif stage == 'final':
             tmpl = 'final-warning.tmpl'
+        elif stage == 'archived':
+            tmpl = 'archived.tmpl'
         text = self.render_template(tmpl, extra_context)
 
         ticket_id = self._get_ticket_id()
