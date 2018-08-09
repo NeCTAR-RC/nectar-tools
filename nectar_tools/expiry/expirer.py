@@ -96,7 +96,7 @@ class Expirer(object):
         LOG.debug("%s: Checking archive status", self.project.id)
         if self.archiver.is_archive_successful():
             LOG.info("%s: Archive successful", self.project.id)
-            self._update_project(expiry_status=expiry_states.ARCHIVED)
+            self.set_project_archived()
         else:
             LOG.debug("%s: Retrying archiving", self.project.id)
             self.archive_project()
@@ -161,6 +161,17 @@ class Expirer(object):
             LOG.debug('%s: Not yet ready for next step (%s)',
                       self.project.id, next_step)
             return False
+
+    def set_project_archived(self):
+        self._update_project(expiry_status=expiry_states.ARCHIVED)
+
+    def make_next_step_date(self):
+        # If date within 15 December and 31 January, allow 1 month
+        if (self.now.month == 12 and self.now.day >= 15) or \
+            self.now.month == 1:
+            return self.now + relativedelta(months=1)
+        else:
+            return self.now + relativedelta(weeks=2)
 
     def delete_project(self):
         LOG.info("%s: Deleting project", self.project.id)
@@ -315,7 +326,7 @@ class AllocationExpirer(Expirer):
             if self.at_next_step():
                 LOG.debug("%s: Archiving longer than next step, move on",
                           self.project.id)
-                self._update_project(expiry_status=expiry_states.ARCHIVED)
+                self.set_project_archived()
             else:
                 self.check_archiving_status()
             return True
@@ -437,31 +448,32 @@ class AllocationExpirer(Expirer):
 
     def send_warning(self):
         LOG.info("%s: Sending warning", self.project.id)
-        one_month = (self.now +
-                     datetime.timedelta(days=30)).strftime(DATE_FORMAT)
+        expiry_date = self.make_next_step_date().strftime(DATE_FORMAT)
 
         self._update_project(expiry_status=expiry_states.WARNING,
-                             expiry_next_step=one_month)
+                             expiry_next_step=expiry_date)
         self._send_notification(
-            'first', extra_context={'expiry_date': one_month})
+            'first', extra_context={'expiry_date': expiry_date})
 
     def restrict_project(self):
         LOG.info("%s: Restricting project", self.project.id)
         self.archiver.zero_quota()
 
-        one_month = (self.now + datetime.timedelta(days=30)).strftime(
-            DATE_FORMAT)
+        expiry_date = self.make_next_step_date().strftime(DATE_FORMAT)
         self._update_project(expiry_status=expiry_states.RESTRICTED,
-                             expiry_next_step=one_month)
+                             expiry_next_step=expiry_date)
         self._send_notification('final')
 
     def stop_project(self):
         LOG.info("%s: Stopping project", self.project.id)
         self.archiver.stop_resources()
-        one_month = (self.now + datetime.timedelta(days=30)).strftime(
-            DATE_FORMAT)
+        expiry_date = self.make_next_step_date().strftime(DATE_FORMAT)
         self._update_project(expiry_status=expiry_states.STOPPED,
-                             expiry_next_step=one_month)
+                             expiry_next_step=expiry_date)
+
+    def set_project_archived(self):
+        super(AllocationExpirer, self).set_project_archived()
+        self._send_notification('archived')
 
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()
@@ -526,7 +538,7 @@ class PTExpirer(Expirer):
             if self.at_next_step():
                 LOG.debug("%s: Archiving longer than next step, move on",
                           self.project.id)
-                self._update_project(expiry_status=expiry_states.ARCHIVED)
+                self.set_project_archived()
             else:
                 self.check_archiving_status()
             return True
@@ -584,7 +596,7 @@ class PTExpirer(Expirer):
         LOG.info("%s: Usage is over 80%% - setting status to quota warning",
                  self.project.id)
         self._send_notification('first')
-        # 18 days minium time for 2 cores usage 80% -> 100%
+        # 18 days minimum time for 2 cores usage 80% -> 100%
         next_step = (self.now + relativedelta(days=18)).strftime(DATE_FORMAT)
         self._update_project(expiry_status=expiry_states.QUOTA_WARNING,
                              expiry_next_step=next_step)
@@ -598,10 +610,10 @@ class PTExpirer(Expirer):
         LOG.info("%s: Usage is over 100%%, setting status to "
                  "pending suspension", self.project.id)
         self.archiver.zero_quota()
-        new_expiry = self.now + relativedelta(months=1)
-        new_expiry = new_expiry.strftime(DATE_FORMAT)
+
+        expiry_date = self.make_next_step_date().strftime(DATE_FORMAT)
         self._update_project(expiry_status=expiry_states.PENDING_SUSPENSION,
-                             expiry_next_step=new_expiry)
+                             expiry_next_step=expiry_date)
         self._send_notification('second')
         return True
 
@@ -616,10 +628,10 @@ class PTExpirer(Expirer):
 
         self.archiver.zero_quota()
         self.archiver.stop_resources()
-        new_expiry = self.now + relativedelta(months=1)
-        new_expiry = new_expiry.strftime(DATE_FORMAT)
+
+        expiry_date = self.make_next_step_date().strftime(DATE_FORMAT)
         self._update_project(expiry_status=expiry_states.SUSPENDED,
-                             expiry_next_step=new_expiry)
+                             expiry_next_step=expiry_date)
         self._send_notification('final')
         return True
 
