@@ -581,18 +581,17 @@ class AllocationExpiryTests(test.TestCase):
     def test_send_warning(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
-        one_month = (datetime.datetime.now() +
-                     datetime.timedelta(days=30)).strftime(expirer.DATE_FORMAT)
+        expiry_date = ex.make_next_step_date()
         with test.nested(
             mock.patch.object(ex, '_send_notification'),
             mock.patch.object(ex, '_update_project'),
         ) as (mock_notification, mock_update_project):
             ex.send_warning()
             mock_update_project.assert_called_with(
-                expiry_next_step=one_month,
+                expiry_next_step=expiry_date,
                 expiry_status=expiry_states.WARNING)
             mock_notification.assert_called_with('first', extra_context={
-                'expiry_date': one_month})
+                'expiry_date': expiry_date})
 
     def test_restrict_project(self):
         project = fakes.FakeProject()
@@ -828,7 +827,7 @@ class PTExpiryTests(test.TestCase):
     def test_notify_at_limit(self, mock_session):
         project = FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
-        new_expiry = datetime.datetime.now() + relativedelta(months=1)
+        new_expiry = datetime.datetime.now() + relativedelta(days=30)
         new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
 
         with test.nested(
@@ -847,7 +846,7 @@ class PTExpiryTests(test.TestCase):
         project = FakeProjectWithOwner(expiry_status='pending suspension',
                               expiry_next_step='2014-01-01')
         ex = expirer.PTExpirer(project)
-        new_expiry = datetime.datetime.now() + relativedelta(months=1)
+        new_expiry = datetime.datetime.now() + relativedelta(days=30)
         new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
 
         with test.nested(
