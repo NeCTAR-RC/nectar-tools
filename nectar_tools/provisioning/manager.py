@@ -317,11 +317,12 @@ class ProvisioningManager(object):
             return {}
         client = auth.get_nova_client(self.ks_session)
         current = client.quotas.get(allocation.project_id)
-        return current._info
+        quotas = current._info
+        quotas['ram'] = quotas['ram'] / 1024
+        return quotas
 
     def set_nova_quota(self, allocation):
         allocated_quota = allocation.get_allocated_nova_quota()
-
         if self.noop:
             LOG.info("%s: Would set nova quota to %s", allocation.id,
                      allocated_quota)
