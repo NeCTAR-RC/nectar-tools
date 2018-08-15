@@ -323,7 +323,7 @@ class ProvisionerTests(test.TestCase):
             tenant_id=self.allocation.project_id,
             cores=4,
             instances=2,
-            ram=4 * 1024)
+            ram=4 * 4 * 1024)
 
     @mock.patch('nectar_tools.auth.get_nova_client')
     def test_set_nova_quota_ram_set(self, mock_get_nova):
