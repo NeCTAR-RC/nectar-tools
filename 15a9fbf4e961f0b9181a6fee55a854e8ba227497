@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cd40ba5a_11d743d4",
+        "filename": "nectar_tools/tests/test_provisioner.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-08-15T05:25:28Z",
+      "side": 1,
+      "message": "should these be quota[\u0027cores\u0027] etc. to prove that the quota values from allocation are the ones sent to nova?",
+      "range": {
+        "startLine": 321,
+        "startChar": 34,
+        "endLine": 321,
+        "endChar": 35
+      },
+      "revId": "15a9fbf4e961f0b9181a6fee55a854e8ba227497",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
