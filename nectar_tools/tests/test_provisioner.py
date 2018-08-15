@@ -311,19 +311,25 @@ class ProvisionerTests(test.TestCase):
         current = self.manager.get_current_nova_quota(self.allocation)
         self.assertEqual(quota, current)
 
-    @mock.patch('nectar_tools.auth.get_nova_client')
-    def test_set_nova_quota_no_ram(self, mock_get_nova):
-        nova_client = mock.Mock()
-        mock_get_nova.return_value = nova_client
-
-        self.manager.set_nova_quota(self.allocation)
-        nova_client.quotas.delete.assert_called_once_with(
-            tenant_id=self.allocation.project_id)
-        nova_client.quotas.update.assert_called_once_with(
-            tenant_id=self.allocation.project_id,
-            cores=4,
-            instances=2,
-            ram=4 * 1024)
+    def test_set_nova_quota_no_ram(self):
+        with test.nested(
+            mock.patch.object(self.allocation, 'get_allocated_nova_quota'),
+            mock.patch('nectar_tools.auth.get_nova_client')
+        ) as (mock_alloc_nova_quota, mock_get_nova):
+            nova_client = mock.Mock()
+            mock_get_nova.return_value = nova_client
+            quota = {'instances': self.allocation.quotas[0].quota,
+                     'cores': self.allocation.quotas[1].quota,
+                     'ram': 16}
+            mock_alloc_nova_quota.return_value = quota
+            self.manager.set_nova_quota(self.allocation)
+            nova_client.quotas.delete.assert_called_once_with(
+                tenant_id=self.allocation.project_id)
+            nova_client.quotas.update.assert_called_once_with(
+                tenant_id=self.allocation.project_id,
+                cores=quota['cores'],
+                instances=quota['instances'],
+                ram=quota['ram'])
 
     @mock.patch('nectar_tools.auth.get_nova_client')
     def test_set_nova_quota_ram_set(self, mock_get_nova):
