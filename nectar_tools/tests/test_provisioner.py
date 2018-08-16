@@ -36,6 +36,7 @@ class ProvisionerTests(test.TestCase):
             mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_update_project, mock_quota, mock_report,
               mock_notify, mock_update, mock_revert, mock_designate):
+            mock_update.return_value = self.allocation
             project = fakes.FakeProject()
             mock_update_project.return_value = project
             mock_designate.return_value = mock.Mock()
@@ -102,6 +103,7 @@ class ProvisionerTests(test.TestCase):
             mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_create, mock_quota, mock_report,
               mock_notify, mock_update, mock_revert, mock_designate):
+            mock_update.return_value = self.allocation
             project = fakes.FakeProject()
             mock_create.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
@@ -114,8 +116,9 @@ class ProvisionerTests(test.TestCase):
                                                 show_current=False)
             mock_notify.assert_called_once_with(self.allocation, True, project,
                                                 mock_report.return_value)
-            mock_update.assert_called_once_with(self.allocation,
-                                                provisioned=True)
+            update_calls = [mock.call(self.allocation, project_id=project.id),
+                            mock.call(self.allocation, provisioned=True)]
+            mock_update.assert_has_calls(update_calls)
             mock_revert.assert_not_called()
 
     def test_provision_new_duplicate_name(self):
@@ -156,6 +159,7 @@ class ProvisionerTests(test.TestCase):
             mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_convert, mock_quota, mock_report,
               mock_notify, mock_update, mock_revert, mock_designate):
+            mock_update.return_value = self.allocation
             project = fakes.FakeProject()
             mock_convert.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
@@ -168,8 +172,9 @@ class ProvisionerTests(test.TestCase):
                                                 show_current=False)
             mock_notify.assert_called_once_with(self.allocation, True, project,
                                                 mock_report.return_value)
-            mock_update.assert_called_once_with(self.allocation,
-                                                provisioned=True)
+            update_calls = [mock.call(self.allocation, project_id=project.id),
+                            mock.call(self.allocation, provisioned=True)]
+            mock_update.assert_has_calls(update_calls)
             mock_revert.assert_not_called()
 
     @mock.patch('nectar_tools.expiry.expirer.AllocationExpirer')
@@ -182,22 +187,22 @@ class ProvisionerTests(test.TestCase):
 
     def test_update_allocation(self):
         new_allocation = 'foo'
-        with mock.patch.object(self.allocation, 'update') as mock_update:
-            mock_update.return_value = new_allocation
+        with test.nested(
+                mock.patch.object(self.allocation, 'update'),
+                mock.patch.object(self.allocation, 'manager')
+        ) as (mock_update, mock_manager):
+            mock_manager.get.return_value = new_allocation
             allocation = self.manager.update_allocation(
                 self.allocation, provisioned=True)
             mock_update.assert_called_once_with(provisioned=True)
             self.assertEqual(new_allocation, allocation)
 
     def test_create_project(self):
-        with test.nested(
-            mock.patch.object(self.manager, 'k_client'),
-            mock.patch.object(self.manager, 'update_allocation')
-        ) as (mock_keystone, mock_update):
-            mock_keystone.projects.create.return_value = fakes.FakeProject()
+        with mock.patch.object(self.manager, 'k_client') as mock_keystone:
+            fake_project = fakes.FakeProject()
+            mock_keystone.projects.create.return_value = fake_project
 
             project = self.manager.create_project(self.allocation)
-
             mock_keystone.projects.create.assert_called_once_with(
                 name=self.allocation.project_name,
                 domain='default',
@@ -205,8 +210,7 @@ class ProvisionerTests(test.TestCase):
                 allocation_id=self.allocation.id,
                 expires=self.allocation.end_date
             )
-            mock_update.assert_called_once_with(self.allocation,
-                                                project_id=project.id)
+            self.assertEqual(fake_project, project)
 
     def test_update_project(self):
         with mock.patch.object(self.manager, 'k_client') as mock_keystone:
@@ -244,9 +248,8 @@ class ProvisionerTests(test.TestCase):
     def test_convert_trial(self):
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
-            mock.patch.object(self.manager, 'update_allocation'),
             mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
-        ) as (mock_keystone, mock_update, mock_archiver):
+        ) as (mock_keystone, mock_archiver):
             old_pt = fakes.FakeProject(name='pt-123', description='abc')
             project = fakes.FakeProject(id='123')
             manager = mock.Mock()
