@@ -54,6 +54,8 @@ class ProvisioningManager(object):
                 project = self.convert_trial(allocation)
             else:
                 project = self.create_project(allocation)
+            allocation = self.update_allocation(allocation,
+                                                project_id=project.id)
             self._grant_owner_roles(allocation, project)
         else:
             project = self.update_project(allocation)
@@ -85,7 +87,9 @@ class ProvisioningManager(object):
             return allocation
 
         LOG.debug("%s: Updating allocation %s", allocation.id, kwargs)
-        return allocation.update(**kwargs)
+        allocation.update(**kwargs)
+        # Get a fresh copy of object
+        return allocation.manager.get(allocation.id)
 
     def create_project(self, allocation):
         domain_mappings = collections.defaultdict(lambda: 'default')
@@ -104,7 +108,6 @@ class ProvisioningManager(object):
             expires=allocation.end_date)
         LOG.info("%s: Created new keystone project %s", allocation.id,
                  project.id)
-        self.update_allocation(allocation, project_id=project.id)
         return project
 
     def update_project(self, allocation):
@@ -192,7 +195,6 @@ class ProvisioningManager(object):
             expiry_updated_at=''
         )
         self.k_client.projects.update(new_pt, name=old_pt.name)
-        allocation.update(project_id=project.id)
 
         nova_archiver = archiver.NovaArchiver(project, self.ks_session)
         nova_archiver.enable_resources()
