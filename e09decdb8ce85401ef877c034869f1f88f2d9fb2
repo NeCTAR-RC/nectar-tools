@@ -22,6 +22,29 @@
       "revId": "e09decdb8ce85401ef877c034869f1f88f2d9fb2",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "576de32a_21eaf431",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-08-17T04:48:31Z",
+      "side": 1,
+      "message": "should be an allocationexpirer",
+      "range": {
+        "startLine": 629,
+        "startChar": 21,
+        "endLine": 629,
+        "endChar": 28
+      },
+      "revId": "e09decdb8ce85401ef877c034869f1f88f2d9fb2",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
