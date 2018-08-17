@@ -624,6 +624,30 @@ class AllocationExpiryTests(test.TestCase):
             mock_notification.assert_called_with('first', extra_context={
                 'expiry_date': expiry_date})
 
+    def test_send_notification(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, '_get_notification_context',
+                              return_value={'foo': 'bar'}),
+            mock.patch.object(ex, '_get_recipients',
+                              return_value=('owner@fake.org',
+                                            ['manager1@fake.org']))
+        ) as (mock_notifier, mock_context, mock_recipients):
+            expected_context = {'foo': 'bar', 'foo2': 'bar2'}
+            ex._send_notification('fakestage', {'foo2': 'bar2'})
+            mock_notifier.send_message.assert_called_with(
+                'fakestage', 'owner@fake.org', extra_context=expected_context,
+                extra_recipients=['manager1@fake.org'])
+
+    def test_send_notification_no_allocation_ignore(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project, force_no_allocation=True)
+        with mock.patch.object(ex, 'notifier') as mock_notifier:
+            ex._send_notification('fakestage', {'foo2': 'bar2'})
+            mock_notifier.send_message.assert_not_called()
+
     def test_restrict_project(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)

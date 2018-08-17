@@ -456,6 +456,14 @@ class AllocationExpirer(Expirer):
         self._send_notification(
             'first', extra_context={'expiry_date': expiry_date})
 
+    def _send_notification(self, stage, extra_context={}):
+        if self.force_no_allocation:
+            LOG.info("%s: Skipping notification due to force no "
+                        "allocation being set", self.project.id)
+        else:
+            super(AllocationExpirer, self)._send_notification(
+                stage, extra_context)
+
     def restrict_project(self):
         LOG.info("%s: Restricting project", self.project.id)
         self.archiver.zero_quota()
