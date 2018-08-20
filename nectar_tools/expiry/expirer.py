@@ -490,7 +490,8 @@ class AllocationExpirer(Expirer):
         if self.dry_run:
             LOG.info("%s: Would delete allocation", self.allocation.id)
         else:
-            self.allocation.delete()
+            if self.allocation.manager:
+                self.allocation.delete()
 
 
 class PTExpirer(Expirer):
