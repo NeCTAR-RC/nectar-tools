@@ -43,6 +43,10 @@ class ProvisionCmd(cmd_base.CmdBase):
         allocation = self._get_allocation(allocation_id)
         self.manager.quota_report(allocation)
 
+    def set_quota(self, allocation_id):
+        allocation = self._get_allocation(allocation_id)
+        self.manager.set_quota(allocation)
+
     def add_args(self):
         """Handle command-line options"""
         super(ProvisionCmd, self).add_args()
@@ -54,6 +58,8 @@ class ProvisionCmd(cmd_base.CmdBase):
                             help='Allocation ID to process')
         self.parser.add_argument('-r', '--report', action='store_true',
                             help='Report current quota')
+        self.parser.add_argument('-s', '--set-quota', action='store_true',
+                            help='Only set quota')
 
 
 def main():
@@ -63,6 +69,8 @@ def main():
         return
     if cmd.args.report:
         cmd.allocation_report(cmd.args.allocation_id)
+    elif cmd.args.set_quota:
+        cmd.set_quota(cmd.args.allocation_id)
     else:
         cmd.provision_allocation(cmd.args.allocation_id)
 
