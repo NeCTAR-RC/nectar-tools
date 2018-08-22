@@ -648,6 +648,13 @@ class AllocationExpiryTests(test.TestCase):
             ex._send_notification('fakestage', {'foo2': 'bar2'})
             mock_notifier.send_message.assert_not_called()
 
+    def test_send_notification_allocation_disabled_notifications(self):
+        project = fakes.FakeProject('no-notifications')
+        ex = expirer.AllocationExpirer(project)
+        with mock.patch.object(ex, 'notifier') as mock_notifier:
+            ex._send_notification('fakestage', {'foo2': 'bar2'})
+            mock_notifier.send_message.assert_not_called()
+
     def test_restrict_project(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
