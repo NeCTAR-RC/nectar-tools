@@ -277,7 +277,8 @@ ALLOCATION_RESPONSE = {
     "ncris_support": "",
     "funding_national_percent": 100,
     "funding_node": None,
-    "provisioned": False
+    "provisioned": False,
+    "notifications": True,
 }
 
 

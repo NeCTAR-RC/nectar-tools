@@ -141,6 +141,9 @@ class ProvisioningManager(object):
         LOG.info("%s: Add member role to %s", allocation.id, manager.name)
 
     def notify_provisioned(self, allocation, is_new_project, project, report):
+        if not allocation.notifications:
+            LOG.info("%s: Noifications disabled, skipping", allocation.id)
+            return
         if self.noop:
             LOG.info("%s: Would notify %s", allocation.id,
                      allocation.contact_email)
