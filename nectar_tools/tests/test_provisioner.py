@@ -218,6 +218,8 @@ class ProvisionerTests(test.TestCase):
 
             mock_keystone.projects.update.assert_called_once_with(
                 self.allocation.project_id,
+                name=self.allocation.project_name,
+                description=self.allocation.project_description,
                 allocation_id=self.allocation.id,
                 expires=self.allocation.end_date)
 
@@ -244,6 +246,15 @@ class ProvisionerTests(test.TestCase):
         mock_notifier.send_message.assert_called_once_with(
             'new', self.allocation.contact_email,
             extra_context={'allocation': self.allocation, 'report': 'bar'})
+
+    @mock.patch("nectar_tools.provisioning.notifier.ProvisioningNotifier")
+    def test_notify_provisioned_disabled(self, mock_notifier_class):
+        mock_notifier = mock.Mock()
+        mock_notifier_class.return_value = mock_notifier
+        self.allocation.notifications = False
+        self.manager.notify_provisioned(self.allocation, True, None,
+                                        report='bar')
+        mock_notifier.send_message.assert_not_called()
 
     def test_convert_trial(self):
         with test.nested(

@@ -457,6 +457,8 @@ class AllocationExpirer(Expirer):
             'first', extra_context={'expiry_date': expiry_date})
 
     def _send_notification(self, stage, extra_context={}):
+        if not self.allocation.notifications:
+            return
         if self.force_no_allocation:
             LOG.info("%s: Skipping notification due to force no "
                         "allocation being set", self.project.id)

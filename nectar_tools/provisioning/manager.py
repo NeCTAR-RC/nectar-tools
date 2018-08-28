@@ -117,9 +117,12 @@ class ProvisioningManager(object):
             return self.k_client.projects.get(allocation.project_id)
         LOG.info("%s: Updating keystone project %s", allocation.id,
                  allocation.project_id)
-        project = self.k_client.projects.update(allocation.project_id,
-                                                allocation_id=allocation.id,
-                                                expires=allocation.end_date)
+        project = self.k_client.projects.update(
+            allocation.project_id,
+            name=allocation.project_name,
+            description=allocation.project_description,
+            allocation_id=allocation.id,
+            expires=allocation.end_date)
         return project
 
     def _grant_owner_roles(self, allocation, project):
@@ -144,6 +147,9 @@ class ProvisioningManager(object):
         LOG.info("%s: Add member role to %s", allocation.id, manager.name)
 
     def notify_provisioned(self, allocation, is_new_project, project, report):
+        if not allocation.notifications:
+            LOG.info("%s: Noifications disabled, skipping", allocation.id)
+            return
         if self.noop:
             LOG.info("%s: Would notify %s", allocation.id,
                      allocation.contact_email)

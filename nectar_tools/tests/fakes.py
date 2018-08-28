@@ -13,7 +13,18 @@ ALLOCATIONS = {
               'modified_time': '2015-01-02T10:10:10Z',
               'quotas': [],
               'contact_email': 'fake@fake.org',
-              'approver_email': 'approver@fake.org'},
+              'approver_email': 'approver@fake.org',
+              'notifications': True},
+    'no-notifications': {'id': 1,
+                         'project_id': 'dummy',
+                         'status': 'A',
+                         'start_date': '2015-01-01',
+                         'end_date': '2016-01-01',
+                         'modified_time': '2015-01-02T10:10:10Z',
+                         'quotas': [],
+                         'contact_email': 'fake@fake.org',
+                         'approver_email': 'approver@fake.org',
+                         'notifications': False},
     'warning1': {'id': 2,
                  'project_id': 'warning1',
                  'status': 'A',
@@ -277,7 +288,8 @@ ALLOCATION_RESPONSE = {
     "ncris_support": "",
     "funding_national_percent": 100,
     "funding_node": None,
-    "provisioned": False
+    "provisioned": False,
+    "notifications": True,
 }
 
 
