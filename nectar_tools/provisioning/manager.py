@@ -115,6 +115,8 @@ class ProvisioningManager(object):
         LOG.info("%s: Updating keystone project %s", allocation.id,
                  allocation.project_id)
         project = self.k_client.projects.update(allocation.project_id,
+                                                name=allocation.project_name,
+                                                description=allocation.project_description,
                                                 allocation_id=allocation.id,
                                                 expires=allocation.end_date)
         return project

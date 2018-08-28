@@ -214,6 +214,8 @@ class ProvisionerTests(test.TestCase):
 
             mock_keystone.projects.update.assert_called_once_with(
                 self.allocation.project_id,
+                name=self.allocation.project_name,
+                description=self.allocation.project_description,
                 allocation_id=self.allocation.id,
                 expires=self.allocation.end_date)
 
