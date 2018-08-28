@@ -114,9 +114,12 @@ class ProvisioningManager(object):
             return self.k_client.projects.get(allocation.project_id)
         LOG.info("%s: Updating keystone project %s", allocation.id,
                  allocation.project_id)
-        project = self.k_client.projects.update(allocation.project_id,
-                                                allocation_id=allocation.id,
-                                                expires=allocation.end_date)
+        project = self.k_client.projects.update(
+            allocation.project_id,
+            name=allocation.project_name,
+            description=allocation.project_description,
+            allocation_id=allocation.id,
+            expires=allocation.end_date)
         return project
 
     def _grant_owner_roles(self, allocation, project):
