@@ -314,8 +314,7 @@ class PTExpiryTests(test.TestCase):
         keystone_calls = self.get_keystone_calls(expiry_states.RESTRICTED)
 
         nova_calls = [
-            mock.call.quotas.update(cores=0, instances=0, ram=0,
-                                    tenant_id=self.project.id, force=True)
+            mock.call.quotas.delete(tenant_id=self.project.id)
         ]
         neutron_quota = {'quota': {'port': 0,
                                    'security_group': 0,
