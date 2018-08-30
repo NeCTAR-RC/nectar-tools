@@ -331,17 +331,17 @@ class ProvisioningManager(object):
 
     def set_nova_quota(self, allocation):
         allocated_quota = allocation.get_allocated_nova_quota()
-        if self.noop:
+        if self.noop and allocated_quota:
             LOG.info("%s: Would set nova quota to %s", allocation.id,
                      allocated_quota)
             return
-
-        client = auth.get_nova_client(self.ks_session)
-        client.quotas.delete(tenant_id=allocation.project_id)
-        allocated_quota['ram'] = int(allocated_quota['ram']) * 1024
-        client.quotas.update(tenant_id=allocation.project_id,
-                             **allocated_quota)
-        LOG.info("%s: Set Nova Quota %s", allocation.id, allocated_quota)
+        if allocated_quota:
+            client = auth.get_nova_client(self.ks_session)
+            client.quotas.delete(tenant_id=allocation.project_id)
+            allocated_quota['ram'] = int(allocated_quota['ram']) * 1024
+            client.quotas.update(tenant_id=allocation.project_id,
+                                 **allocated_quota)
+            LOG.info("%s: Set Nova Quota %s", allocation.id, allocated_quota)
 
     def get_current_cinder_quota(self, allocation):
         if not allocation.project_id:
