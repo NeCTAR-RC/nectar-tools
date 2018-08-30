@@ -407,9 +407,9 @@ class ProvisioningManager(object):
             LOG.info("%s: Would set nova quota to %s", allocation.id,
                      allocated_quota)
             return
+        client = auth.get_nova_client(self.ks_session)
+        client.quotas.delete(tenant_id=allocation.project_id)
         if allocated_quota:
-            client = auth.get_nova_client(self.ks_session)
-            client.quotas.delete(tenant_id=allocation.project_id)
             allocated_quota['ram'] = int(allocated_quota['ram']) * 1024
             client.quotas.update(tenant_id=allocation.project_id,
                                  force=True, **allocated_quota)
