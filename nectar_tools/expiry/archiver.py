@@ -187,11 +187,7 @@ class NovaArchiver(Archiver):
 
     def zero_quota(self):
         if not self.dry_run:
-            self.n_client.quotas.update(tenant_id=self.project.id,
-                                        ram=0,
-                                        instances=0,
-                                        cores=0,
-                                        force=True)
+            self.n_client.quotas.delete(tenant_id=self.project.id)
         LOG.debug("%s: Zero nova quota", self.project.id)
 
     def stop_resources(self):

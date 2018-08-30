@@ -21,9 +21,7 @@ class NovaArchiverTests(test.TestCase):
         na = archiver.NovaArchiver(PROJECT)
         with mock.patch.object(na.n_client, 'quotas') as mock_quotas:
             na.zero_quota()
-            mock_quotas.update.assert_called_with(tenant_id=PROJECT.id,
-                                                  cores=0, ram=0, instances=0,
-                                                  force=True)
+            mock_quotas.delete.assert_called_with(tenant_id=PROJECT.id)
 
     def test_is_archive_successful_no_instances(self):
         na = archiver.NovaArchiver(PROJECT)
