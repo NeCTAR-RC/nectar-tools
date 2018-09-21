@@ -227,7 +227,7 @@ class ProvisioningManager(object):
         resource_map = {
             'nova.instances': 'Instances',
             'nova.cores': 'VCPUs',
-            'nova.ram': 'RAM (MB)',
+            'nova.ram': 'RAM (GB)',
             'swift.object': 'Object store (GB)',
             'trove.volumes': 'Database storage (GB)',
             'trove.instances': 'Database instances',
