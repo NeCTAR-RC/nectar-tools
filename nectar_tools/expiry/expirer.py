@@ -341,8 +341,8 @@ class AllocationExpirer(Expirer):
         else:
             LOG.error("%s: Invalid status %s", self.project.id, expiry_status)
 
-    def allocation_ready_for_warning(self):
 
+    def make_warning_date(self):
         allocation_start = datetime.datetime.strptime(
             self.allocation.start_date, DATE_FORMAT)
         allocation_end = datetime.datetime.strptime(
@@ -355,6 +355,10 @@ class AllocationExpirer(Expirer):
         if warning_date < month_out:
             warning_date = month_out
 
+        return warning_date
+
+    def allocation_ready_for_warning(self):
+        warning_date = self.make_warning_date()
         return warning_date < self.now
 
     def revert_expiry(self):
@@ -449,8 +453,9 @@ class AllocationExpirer(Expirer):
 
     def send_warning(self):
         LOG.info("%s: Sending warning", self.project.id)
-        expiry_date = self.make_next_step_date()
-
+        # Need minimum notice time, not necessarily actual end date
+        warning_date = self.make_warning_date()
+        expiry_date = warning_date.strftime(DATE_FORMAT)
         self._update_project(expiry_status=expiry_states.WARNING,
                              expiry_next_step=expiry_date)
         self._send_notification(
