@@ -612,7 +612,8 @@ class AllocationExpiryTests(test.TestCase):
     def test_send_warning(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
-        expiry_date = ex.make_next_step_date()
+        allocation = ex.get_allocation()
+        expiry_date = allocation.end_date
         with test.nested(
             mock.patch.object(ex, '_send_notification'),
             mock.patch.object(ex, '_update_project'),

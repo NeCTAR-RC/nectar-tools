@@ -449,8 +449,7 @@ class AllocationExpirer(Expirer):
 
     def send_warning(self):
         LOG.info("%s: Sending warning", self.project.id)
-        expiry_date = self.make_next_step_date()
-
+        expiry_date = self.allocation.end_date
         self._update_project(expiry_status=expiry_states.WARNING,
                              expiry_next_step=expiry_date)
         self._send_notification(
