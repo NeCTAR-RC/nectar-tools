@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0bd9646a_8a6efaa8",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 344,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-09-25T07:41:49Z",
+      "side": 1,
+      "message": "would prefer if this was get_warning_date as it doesn\u0027t make something",
+      "range": {
+        "startLine": 344,
+        "startChar": 8,
+        "endLine": 344,
+        "endChar": 12
+      },
+      "revId": "ab8d91b180e7a107df6168a9315a532b60e22941",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
