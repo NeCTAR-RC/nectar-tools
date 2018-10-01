@@ -359,6 +359,65 @@ class ProvisionerTests(test.TestCase):
             instances=2,
             ram=2048)
 
+    def test_set_nova_quota_with_flavors(self):
+        with test.nested(
+                mock.patch.object(self.allocation, 'get_allocated_nova_quota'),
+                mock.patch('nectar_tools.auth.get_nova_client'),
+                mock.patch.object(self.manager, 'flavor_grant'),
+        ) as (mock_get_allocated, mock_get_nova, mock_flavor_grant):
+            nova_client = mock.Mock()
+            mock_get_nova.return_value = nova_client
+            quota = {'instances': 2, 'ram': 16, 'cores': 4,
+                     'flavor:compute': 1, 'flavor:m2': 1}
+            mock_get_allocated.return_value = quota
+            self.manager.set_nova_quota(self.allocation)
+            flavor_calls = [mock.call(self.allocation, 'compute'),
+                            mock.call(self.allocation, 'm2')]
+            mock_flavor_grant.assert_has_calls(flavor_calls)
+            nova_client.quotas.delete.assert_called_once_with(
+                tenant_id=self.allocation.project_id)
+            nova_client.quotas.update.assert_called_once_with(
+                tenant_id=self.allocation.project_id,
+                cores=quota['cores'],
+                instances=quota['instances'],
+                ram=quota['ram'])
+
+    @mock.patch('nectar_tools.auth.get_nova_client')
+    def test_flavor_grant(self, mock_get_nova):
+        nova_client = mock.Mock()
+        mock_get_nova.return_value = nova_client
+
+        def good_get_keys():
+            return {'flavor_class:name': 'compute'}
+
+        def bad_get_keys():
+            return {'flavor_class:name': 'standard'}
+
+        def none_get_keys():
+            return {'foo': 'bar'}
+
+        small = mock.Mock(get_keys=good_get_keys)
+        small.name = 'c3.small'
+        medium = mock.Mock(get_keys=good_get_keys)
+        medium.name = 'c3.medium'
+        large = mock.Mock(get_keys=good_get_keys)
+        large.name = 'c3.large'
+        other = mock.Mock(get_keys=bad_get_keys)
+        other.name = 'c1.small'
+        no_prefix = mock.Mock(get_keys=none_get_keys)
+        no_prefix.name = 'custom-flavor'
+        all_flavors = [small, medium, large, other, no_prefix]
+
+        nova_client.flavors.list.return_value = all_flavors
+
+        self.manager.flavor_grant(self.allocation, 'compute')
+        calls = [mock.call(small, self.allocation.project_id),
+                 mock.call(medium, self.allocation.project_id),
+                 mock.call(large, self.allocation.project_id),
+        ]
+        nova_client.flavor_access.add_tenant_access.assert_has_calls(
+            calls)
+
     @mock.patch('nectar_tools.auth.get_cinder_client')
     def test_set_cinder_quota(self, mock_cinder):
         cinder_client = mock.Mock()
