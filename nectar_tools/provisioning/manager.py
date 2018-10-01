@@ -331,6 +331,15 @@ class ProvisioningManager(object):
 
     def set_nova_quota(self, allocation):
         allocated_quota = allocation.get_allocated_nova_quota()
+        flavor_classes = []
+        for quota in list(allocated_quota):
+            if quota.startswith('flavor:'):
+                flavor_classes.append(quota.split(':')[1])
+                allocated_quota.pop(quota)
+
+        for flavor_class in flavor_classes:
+            self.flavor_grant(allocation, flavor_class)
+
         if self.noop and allocated_quota:
             LOG.info("%s: Would set nova quota to %s", allocation.id,
                      allocated_quota)
@@ -342,6 +351,22 @@ class ProvisioningManager(object):
             client.quotas.update(tenant_id=allocation.project_id,
                                  **allocated_quota)
             LOG.info("%s: Set Nova Quota %s", allocation.id, allocated_quota)
+
+    def flavor_grant(self, allocation, flavor_class):
+        if self.noop:
+            LOG.info("%s: Would grant access to %s flavors", allocation.id,
+                     flavor_class)
+            return
+        client = auth.get_nova_client(self.ks_session)
+        flavors = client.flavors.list(is_public=None)
+        for flavor in flavors:
+            try:
+                prefix = flavor.name.split('.')[0]
+            except IndexError:
+                continue
+            if prefix == flavor_class:
+                client.flavor_access.add_tenant_access(
+                    flavor, allocation.project_id)
 
     def get_current_cinder_quota(self, allocation):
         if not allocation.project_id:
