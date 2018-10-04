@@ -2,6 +2,7 @@ import testfixtures
 from unittest import mock
 
 from keystoneauth1 import exceptions as keystone_exc
+import novaclient
 
 from nectar_tools import config
 from nectar_tools import exceptions
@@ -373,7 +374,8 @@ class ProvisionerTests(test.TestCase):
             self.manager.set_nova_quota(self.allocation)
             flavor_calls = [mock.call(self.allocation, 'compute'),
                             mock.call(self.allocation, 'm2')]
-            mock_flavor_grant.assert_has_calls(flavor_calls)
+
+            mock_flavor_grant.assert_has_calls(flavor_calls, any_order=True)
             nova_client.quotas.delete.assert_called_once_with(
                 tenant_id=self.allocation.project_id)
             nova_client.quotas.update.assert_called_once_with(
@@ -417,6 +419,23 @@ class ProvisionerTests(test.TestCase):
         ]
         nova_client.flavor_access.add_tenant_access.assert_has_calls(
             calls)
+
+    @mock.patch('nectar_tools.auth.get_nova_client')
+    def test_flavor_grant_exists(self, mock_get_nova):
+        nova_client = mock.Mock()
+        mock_get_nova.return_value = nova_client
+
+        def good_get_keys():
+            return {'flavor_class:name': 'compute'}
+
+        small = mock.Mock(get_keys=good_get_keys)
+        small.name = 'c3.small'
+        all_flavors = [small]
+
+        nova_client.flavors.list.return_value = all_flavors
+        nova_client.flavor_access.add_tenant_access.side_effect = \
+                                novaclient.exceptions.Conflict(code=409)
+        self.manager.flavor_grant(self.allocation, 'compute')
 
     @mock.patch('nectar_tools.auth.get_cinder_client')
     def test_set_cinder_quota(self, mock_cinder):
