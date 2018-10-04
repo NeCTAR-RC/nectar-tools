@@ -2,6 +2,7 @@ import collections
 from keystoneauth1 import exceptions as keystone_exc
 import logging
 import neutronclient
+import novaclient
 import prettytable
 
 from nectarallocationclient import client
@@ -54,8 +55,9 @@ class ProvisioningManager(object):
                 project = self.convert_trial(allocation)
             else:
                 project = self.create_project(allocation)
-            allocation = self.update_allocation(allocation,
-                                                project_id=project.id)
+            if not self.noop:
+                allocation = self.update_allocation(allocation,
+                                                    project_id=project.id)
             self._grant_owner_roles(allocation, project)
         else:
             project = self.update_project(allocation)
@@ -223,6 +225,8 @@ class ProvisioningManager(object):
                    'manila.shares',
                    'manila.snapshots',
                    'manila.snapshot_gigabytes',
+                   'nova.flavor:compute-v3',
+                   'nova.flavor:memory-v3',
                ]
         resource_map = {
             'nova.instances': 'Instances',
@@ -339,7 +343,6 @@ class ProvisioningManager(object):
 
         for flavor_class in flavor_classes:
             self.flavor_grant(allocation, flavor_class)
-
         if self.noop and allocated_quota:
             LOG.info("%s: Would set nova quota to %s", allocation.id,
                      allocated_quota)
@@ -362,8 +365,14 @@ class ProvisioningManager(object):
         for flavor in flavors:
             fc = flavor.get_keys().get('flavor_class:name')
             if fc == flavor_class:
-                client.flavor_access.add_tenant_access(
-                    flavor, allocation.project_id)
+                try:
+                    client.flavor_access.add_tenant_access(
+                        flavor, allocation.project_id)
+                    LOG.info("%s: Granted access to flavor %s", allocation.id,
+                             flavor.name)
+                except novaclient.exceptions.Conflict:
+                    LOG.info("%s: Already has access to flavor %s",
+                             allocation.id, flavor.name)
 
     def get_current_cinder_quota(self, allocation):
         if not allocation.project_id:
