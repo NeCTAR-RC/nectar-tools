@@ -494,6 +494,27 @@ class AllocationExpiryTests(test.TestCase):
             self.assertTrue(ex.process())
             mock_delete.assert_called_with()
 
+    def test_get_notice_period_days(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+        mock_allocations = fakes.FakeAllocationManager()
+
+        ex.allocation = mock_allocations.get_current('active')
+        days = ex.get_notice_period_days()
+        self.assertEqual(days, 30)
+
+        ex.allocation = mock_allocations.get_current('expired')
+        days = ex.get_notice_period_days()
+        self.assertEqual(days, 30)
+
+        ex.allocation = mock_allocations.get_current('warning1')
+        days = ex.get_notice_period_days()
+        self.assertEqual(days, 30)
+
+        ex.allocation = mock_allocations.get_current('warning2')
+        days = ex.get_notice_period_days()
+        self.assertEqual(days, 3)
+
     def test_get_warning_date(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
@@ -513,7 +534,7 @@ class AllocationExpiryTests(test.TestCase):
 
         ex.allocation = mock_allocations.get_current('warning2')
         warning_date = ex.get_warning_date().strftime(expirer.DATE_FORMAT)
-        self.assertEqual(warning_date, '2016-12-31')
+        self.assertEqual(warning_date, '2016-12-29')
 
     def test_allocation_ready_for_warning(self):
         project = fakes.FakeProject()

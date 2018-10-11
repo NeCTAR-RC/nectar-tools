@@ -37,7 +37,7 @@ ALLOCATIONS = {
                  'project_id': 'warning2',
                  'status': 'A',
                  'start_date': '2016-12-15',
-                 'end_date': '2017-01-05',
+                 'end_date': '2017-01-01',
                  'modified_time': '2016-01-02T10:10:10Z',
                  'quotas': [],
                  'contact_email': 'fake@fake.org'},

@@ -341,20 +341,30 @@ class AllocationExpirer(Expirer):
         else:
             LOG.error("%s: Invalid status %s", self.project.id, expiry_status)
 
-    def get_warning_date(self):
+    def get_notice_period_days(self):
+        """Get notice period in days.
+
+        The notice period is either 30 days, or the number of days from 80% of
+        the length of the allocation until the end -- whichever is shorter.
+        """
         allocation_start = datetime.datetime.strptime(
             self.allocation.start_date, DATE_FORMAT)
         allocation_end = datetime.datetime.strptime(
             self.allocation.end_date, DATE_FORMAT)
 
         allocation_days = (allocation_end - allocation_start).days
-        warning_date = allocation_start + datetime.timedelta(
-            days=allocation_days * 0.8)
-        month_out = allocation_end - datetime.timedelta(days=30)
-        if warning_date < month_out:
-            warning_date = month_out
+        notice_days = int(allocation_days - (allocation_days * 0.8))
 
-        return warning_date
+        if notice_days > 30:
+            return 30
+
+        return notice_days
+
+    def get_warning_date(self):
+        notice_period = self.get_notice_period_days()
+        allocation_end = datetime.datetime.strptime(
+            self.allocation.end_date, DATE_FORMAT)
+        return allocation_end - datetime.timedelta(days=notice_period)
 
     def allocation_ready_for_warning(self):
         warning_date = self.get_warning_date()
