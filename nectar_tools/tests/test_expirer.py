@@ -598,7 +598,7 @@ class AllocationExpiryTests(test.TestCase):
                                                         expiry_next_step='',
                                                         expiry_ticket_id=0)
             mock_archiver.reset_quota.assert_not_called()
-            mock_archiver.enable_resources.assert_not_called()
+            mock_archiver.enable_resources.assert_called_once_with()
 
     def test_revert_expiry_restricted(self):
         project = fakes.FakeProject(expiry_status=expiry_states.RESTRICTED,
@@ -615,7 +615,7 @@ class AllocationExpiryTests(test.TestCase):
                                                         expiry_next_step='',
                                                         expiry_ticket_id=0)
             mock_archiver.reset_quota.assert_called_once_with()
-            mock_archiver.enable_resources.assert_not_called()
+            mock_archiver.enable_resources.assert_called_once_with()
 
     def test_revert_expiry_stopped(self):
         project = fakes.FakeProject(expiry_status=expiry_states.STOPPED,

@@ -378,8 +378,7 @@ class AllocationExpirer(Expirer):
         LOG.info("%s: Allocation has been renewed, reverting expiry",
                  self.project.id)
 
-        if status in [expiry_states.STOPPED, expiry_states.RENEWED]:
-            self.archiver.enable_resources()
+        self.archiver.enable_resources()
 
         if status in [expiry_states.STOPPED, expiry_states.RESTRICTED,
                       expiry_states.RENEWED]:
