@@ -461,13 +461,22 @@ class AllocationExpirer(Expirer):
 
     def send_warning(self):
         LOG.info("%s: Sending warning", self.project.id)
+        expiry_date = datetime.datetime.strptime(
+            self.allocation.end_date, DATE_FORMAT)
+
         # Need minimum notice time, not necessarily actual end date
-        warning_date = self.get_warning_date()
-        expiry_date = warning_date.strftime(DATE_FORMAT)
+        notice_period = self.get_notice_period_days()
+        next_step_date = self.now + datetime.timedelta(days=notice_period)
+
+        if expiry_date > next_step_date:
+            next_step_date = expiry_date
+
+        next_step_date = next_step_date.strftime(DATE_FORMAT)
+
         self._update_project(expiry_status=expiry_states.WARNING,
-                             expiry_next_step=expiry_date)
+                             expiry_next_step=next_step_date)
         self._send_notification(
-            'first', extra_context={'expiry_date': expiry_date})
+            'first', extra_context={'expiry_date': self.allocation.end_date})
 
     def _send_notification(self, stage, extra_context={}):
         if not self.allocation.notifications:
