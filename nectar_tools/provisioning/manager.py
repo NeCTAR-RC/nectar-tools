@@ -203,6 +203,9 @@ class ProvisioningManager(object):
             expiry_updated_at=''
         )
         self.k_client.projects.update(new_pt, name=old_pt.name)
+        self.k_client.roles.grant(CONF.keystone.member_role_id,
+                                  project=new_pt,
+                                  user=manager)
 
         nova_archiver = archiver.NovaArchiver(project, self.ks_session)
         nova_archiver.enable_resources()
