@@ -33,6 +33,9 @@ class FakeProjectWithOwner(object):
         self.name = name
         self.owner = owner
 
+    def to_dict(self):
+        return self.__dict__
+
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
@@ -271,10 +274,11 @@ class ExpiryTests(test.TestCase):
         ex = expirer.Expirer(project, archivers='fake', notifier='fake')
         today = datetime.datetime.now().strftime(expirer.DATE_FORMAT)
         with test.nested(
-            mock.patch.object(ex, '_update_project'),
-            mock.patch.object(ex, 'archiver'),
-            mock.patch.object(ex, 'notifier'),
-        ) as (mock_update_project, mock_archiver, mock_notifier):
+                mock.patch.object(ex, '_update_project'),
+                mock.patch.object(ex, 'archiver'),
+                mock.patch.object(ex, 'notifier'),
+                mock.patch.object(ex, 'send_event'),
+        ) as (mock_update_project, mock_archiver, mock_notifier, mock_event):
 
             ex.delete_project()
             mock_archiver.delete_resources.assert_called_once_with(force=True)
@@ -284,6 +288,7 @@ class ExpiryTests(test.TestCase):
                 expiry_status=expiry_states.DELETED,
                 expiry_next_step='',
                 expiry_deleted_at=today)
+            mock_event.assert_called_once_with('delete')
 
     def test_send_notification(self):
         project = fakes.FakeProject()
@@ -301,6 +306,15 @@ class ExpiryTests(test.TestCase):
             mock_notifier.send_message.assert_called_with(
                 'fakestage', 'owner@fake.org', extra_context=expected_context,
                 extra_recipients=['manager1@fake.org'])
+
+    @mock.patch('nectar_tools.expiry.expirer.oslo_messaging')
+    def test_send_event(self, mock_oslo_messaging):
+        mock_notifier = mock.Mock()
+        mock_oslo_messaging.Notifier.return_value = mock_notifier
+        project = fakes.FakeProject()
+        ex = expirer.Expirer(project, archivers='fake', notifier='fake')
+        ex._send_event('foo', 'bar')
+        mock_notifier.audit.assert_called_once_with(mock.ANY, 'foo', 'bar')
 
 
 @freeze_time("2017-01-01")
@@ -662,13 +676,17 @@ class AllocationExpiryTests(test.TestCase):
         with test.nested(
             mock.patch.object(ex, '_send_notification'),
             mock.patch.object(ex, '_update_project'),
-        ) as (mock_notification, mock_update_project):
+            mock.patch.object(ex, 'send_event'),
+        ) as (mock_notification, mock_update_project, mock_event):
             ex.send_warning()
             mock_update_project.assert_called_with(
                 expiry_next_step=next_step_date,
                 expiry_status=expiry_states.WARNING)
-            mock_notification.assert_called_with('first', extra_context={
-                'expiry_date': ex.allocation.end_date})
+            extra_context = {'expiry_date': ex.allocation.end_date}
+            mock_notification.assert_called_with('first',
+                                                 extra_context=extra_context)
+            mock_event.assert_called_once_with('warning',
+                                               extra_context=extra_context)
 
     @freeze_time('2018-02-01')
     def test_send_warning_late(self):
@@ -681,13 +699,26 @@ class AllocationExpiryTests(test.TestCase):
         with test.nested(
             mock.patch.object(ex, '_send_notification'),
             mock.patch.object(ex, '_update_project'),
-        ) as (mock_notification, mock_update_project):
+            mock.patch.object(ex, 'send_event'),
+        ) as (mock_notification, mock_update_project, mock_event):
             ex.send_warning()
             mock_update_project.assert_called_with(
                 expiry_next_step=next_step_date,
                 expiry_status=expiry_states.WARNING)
-            mock_notification.assert_called_with('first', extra_context={
-                'expiry_date': ex.allocation.end_date})
+            extra_context = {'expiry_date': ex.allocation.end_date}
+            mock_notification.assert_called_with('first',
+                                                 extra_context=extra_context)
+            mock_event.assert_called_once_with('warning',
+                                               extra_context=extra_context)
+
+    def test_send_event(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+        with mock.patch.object(ex, '_send_event') as mock_send:
+            ex.send_event('foo', {'uni': 'melb'})
+            payload = {'allocation': ex.allocation.to_dict(),
+                       'uni': 'melb'}
+            mock_send.assert_called_once_with('expiry.allocation.foo', payload)
 
     def test_send_notification(self):
         project = fakes.FakeProject()
@@ -731,7 +762,9 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, '_send_notification'),
             mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, 'archiver'),
-        ) as (mock_notification, mock_update_project, mock_archiver):
+            mock.patch.object(ex, 'send_event'),
+        ) as (mock_notification, mock_update_project, mock_archiver,
+              mock_event):
 
             ex.restrict_project()
             mock_update_project.assert_called_with(expiry_next_step=one_month,
@@ -739,6 +772,7 @@ class AllocationExpiryTests(test.TestCase):
 
             mock_archiver.zero_quota.assert_called_once_with()
             mock_notification.assert_called_with('final')
+            mock_event.assert_called_once_with('restrict')
 
     def test_stop_project(self):
         project = fakes.FakeProject()
@@ -750,7 +784,8 @@ class AllocationExpiryTests(test.TestCase):
         with test.nested(
             mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, 'archiver'),
-        ) as (mock_update_project, mock_archiver):
+            mock.patch.object(ex, 'send_event'),
+        ) as (mock_update_project, mock_archiver, mock_event):
 
             ex.stop_project()
             mock_update_project.assert_called_with(
@@ -758,6 +793,7 @@ class AllocationExpiryTests(test.TestCase):
                 expiry_status=expiry_states.STOPPED)
 
             mock_archiver.stop_resources.assert_called_once_with()
+            mock_event.assert_called_once_with('stop')
 
     def test_get_recipients(self):
         project = fakes.FakeProject()
@@ -782,10 +818,12 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, '_send_notification'),
             mock.patch('nectar_tools.expiry.expirer.Expirer.'
                        'set_project_archived'),
-        ) as (mock_send_notification, mock_parent_set_proj_arch):
+            mock.patch.object(ex, 'send_event'),
+        ) as (mock_send_notification, mock_parent_set_proj_arch, mock_event):
             ex.set_project_archived()
             mock_parent_set_proj_arch.assert_called_once_with()
             mock_send_notification.assert_called_once_with('archived')
+            mock_event.assert_called_once_with('archived')
 
     def test_delete_project(self):
         project = fakes.FakeProject()
@@ -957,9 +995,11 @@ class PTExpiryTests(test.TestCase):
         with test.nested(
             mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, '_send_notification'),
-        ) as (mock_update_project, mock_notification):
+            mock.patch.object(ex, 'send_event'),
+        ) as (mock_update_project, mock_notification, mock_event):
             ex.notify_near_limit()
             mock_notification.assert_called_with('first')
+            mock_event.assert_called_once_with('first-warning')
             next_step = datetime.datetime.now() + relativedelta(days=18)
             next_step = next_step.strftime(expirer.DATE_FORMAT)
             mock_update_project.assert_called_with(
@@ -973,12 +1013,15 @@ class PTExpiryTests(test.TestCase):
         new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
 
         with test.nested(
-            mock.patch.object(ex, '_update_project'),
-            mock.patch.object(ex, '_send_notification'),
-            mock.patch.object(ex, 'archiver')
-        ) as (mock_update_project, mock_notification, mock_archiver):
+                mock.patch.object(ex, '_update_project'),
+                mock.patch.object(ex, '_send_notification'),
+                mock.patch.object(ex, 'archiver'),
+                mock.patch.object(ex, 'send_event'),
+        ) as (mock_update_project, mock_notification, mock_archiver,
+              mock_event):
             ex.notify_at_limit()
             mock_notification.assert_called_with('second')
+            mock_event.assert_called_once_with('second-warning')
             mock_update_project.assert_called_with(
                 expiry_status='pending suspension',
                 expiry_next_step=new_expiry)
@@ -992,14 +1035,26 @@ class PTExpiryTests(test.TestCase):
         new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
 
         with test.nested(
-            mock.patch.object(ex, '_update_project'),
-            mock.patch.object(ex, '_send_notification'),
-            mock.patch.object(ex, 'archiver')
-        ) as (mock_update_project, mock_notification, mock_archiver):
+                mock.patch.object(ex, '_update_project'),
+                mock.patch.object(ex, '_send_notification'),
+                mock.patch.object(ex, 'archiver'),
+                mock.patch.object(ex, 'send_event'),
+        ) as (mock_update_project, mock_notification, mock_archiver,
+              mock_event):
             ex.notify_over_limit()
             mock_notification.assert_called_with('final')
+            mock_event.assert_called_once_with('suspended')
             mock_update_project.assert_called_with(
                 expiry_status='suspended',
                 expiry_next_step=new_expiry)
             mock_archiver.zero_quota.assert_called_with()
             mock_archiver.stop_resources.assert_called_with()
+
+    def test_send_event(self, mock_session):
+        project = fakes.FakeProject()
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, '_send_event') as mock_send:
+            ex.send_event('foo', {'uni': 'melb'})
+            payload = {'project': project.to_dict(),
+                       'uni': 'melb'}
+            mock_send.assert_called_once_with('expiry.pt.foo', payload)

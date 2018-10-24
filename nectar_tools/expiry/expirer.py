@@ -2,6 +2,8 @@ import datetime
 from dateutil.relativedelta import relativedelta
 import enum
 import logging
+from oslo_context import context
+import oslo_messaging
 import re
 
 from nectarallocationclient import exceptions as allocation_exceptions
@@ -18,6 +20,8 @@ from nectar_tools.expiry import notifier as expiry_notifier
 
 CONF = config.CONFIG
 LOG = logging.getLogger(__name__)
+OSLO_CONF = config.OSLO_CONF
+OSLO_CONTEXT = context.RequestContext()
 
 DATE_FORMAT = '%Y-%m-%d'
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
@@ -190,6 +194,7 @@ class Expirer(object):
         if self.disable_project:
             LOG.info("%s: Disabling project", self.project.id)
             self._update_project(enabled=False)
+        self.send_event('delete')
 
     def _get_notification_context(self):
         return {}
@@ -203,6 +208,17 @@ class Expirer(object):
         recipient, extras = self._get_recipients()
         self.notifier.send_message(stage, recipient, extra_context=context,
                                    extra_recipients=extras)
+
+    def send_event(self, event, extra_context={}):
+        return
+
+    def _send_event(self, event_type, payload):
+        if self.dry_run:
+            LOG.info('%s: Would send event %s' % (self.project.id, event_type))
+            return
+        transport = oslo_messaging.get_notification_transport(OSLO_CONF)
+        notifier = oslo_messaging.Notifier(transport, 'expiry')
+        notifier.audit(OSLO_CONTEXT, event_type, payload)
 
 
 class AllocationExpirer(Expirer):
@@ -475,8 +491,15 @@ class AllocationExpirer(Expirer):
 
         self._update_project(expiry_status=expiry_states.WARNING,
                              expiry_next_step=next_step_date)
-        self._send_notification(
-            'first', extra_context={'expiry_date': self.allocation.end_date})
+        extra_context = {'expiry_date': self.allocation.end_date}
+        self._send_notification('first', extra_context=extra_context)
+        self.send_event('warning', extra_context=extra_context)
+
+    def send_event(self, event, extra_context={}):
+        event_type = 'expiry.allocation.%s' % event
+        event_notification = {'allocation': self.allocation.to_dict()}
+        event_notification.update(extra_context)
+        self._send_event(event_type, event_notification)
 
     def _send_notification(self, stage, extra_context={}):
         if not self.allocation.notifications:
@@ -496,6 +519,7 @@ class AllocationExpirer(Expirer):
         self._update_project(expiry_status=expiry_states.RESTRICTED,
                              expiry_next_step=expiry_date)
         self._send_notification('final')
+        self.send_event('restrict')
 
     def stop_project(self):
         LOG.info("%s: Stopping project", self.project.id)
@@ -503,10 +527,12 @@ class AllocationExpirer(Expirer):
         expiry_date = self.make_next_step_date()
         self._update_project(expiry_status=expiry_states.STOPPED,
                              expiry_next_step=expiry_date)
+        self.send_event('stop')
 
     def set_project_archived(self):
         super(AllocationExpirer, self).set_project_archived()
         self._send_notification('archived')
+        self.send_event('archived')
 
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()
@@ -633,6 +659,7 @@ class PTExpirer(Expirer):
         LOG.info("%s: Usage is over 80%% - setting status to quota warning",
                  self.project.id)
         self._send_notification('first')
+        self.send_event('first-warning')
         # 18 days minimum time for 2 cores usage 80% -> 100%
         next_step = (self.now + relativedelta(days=18)).strftime(DATE_FORMAT)
         self._update_project(expiry_status=expiry_states.QUOTA_WARNING,
@@ -652,6 +679,7 @@ class PTExpirer(Expirer):
         self._update_project(expiry_status=expiry_states.PENDING_SUSPENSION,
                              expiry_next_step=expiry_date)
         self._send_notification('second')
+        self.send_event('second-warning')
         return True
 
     def notify_over_limit(self):
@@ -670,6 +698,7 @@ class PTExpirer(Expirer):
         self._update_project(expiry_status=expiry_states.SUSPENDED,
                              expiry_next_step=expiry_date)
         self._send_notification('final')
+        self.send_event('suspended')
         return True
 
     def _get_recipients(self):
@@ -677,3 +706,9 @@ class PTExpirer(Expirer):
 
     def _get_notification_context(self):
         return {}
+
+    def send_event(self, event, extra_context={}):
+        event_type = 'expiry.pt.%s' % event
+        event_notification = {'project': self.project.to_dict()}
+        event_notification.update(extra_context)
+        self._send_event(event_type, event_notification)

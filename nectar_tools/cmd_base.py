@@ -4,6 +4,7 @@ from nectar_tools import log
 
 
 CONFIG = config.CONFIG
+OSLO_CONF = config.OSLO_CONF
 
 
 class CmdBase(object):
@@ -14,6 +15,8 @@ class CmdBase(object):
         self.args = CONFIG.parse()
 
         log.setup(filename=log_filename)
+
+        OSLO_CONF([], default_config_files=[self.args.config])
 
         self.dry_run = True
         if self.args.no_dry_run:

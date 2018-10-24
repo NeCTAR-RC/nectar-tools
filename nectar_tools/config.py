@@ -5,6 +5,8 @@ import inspect
 import os
 import sys
 
+from oslo_config import cfg
+
 
 class AttrDict(dict):
     def __getattr__(self, attr):
@@ -53,6 +55,7 @@ class Config(AttrDict):
 
 
 CONFIG = Config()
+OSLO_CONF = cfg.CONF
 
 
 def configurable(config_section, env_prefix=None):
