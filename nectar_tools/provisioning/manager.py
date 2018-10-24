@@ -45,7 +45,7 @@ class ProvisioningManager(object):
             # New allocation
             try:
                 self.k_client.projects.find(name=allocation.project_name)
-            except keystone_exc.NotFound as exc:
+            except keystone_exc.NotFound:
                 pass
             else:
                 raise exceptions.InvalidProjectAllocation(
@@ -314,8 +314,8 @@ class ProvisioningManager(object):
             except KeyError:
                 pretty_resource = resource
             if resource not in exclude and \
-               not (resource.startswith('cinder.volumes') or
-                    resource.startswith('cinder.snapshots')):
+               not (resource.startswith('cinder.volumes')
+                    or resource.startswith('cinder.snapshots')):
                 table.add_row([pretty_resource, current_quota, allocated,
                                diff])
         if html:

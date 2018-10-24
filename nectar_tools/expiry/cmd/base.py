@@ -65,7 +65,7 @@ class ExpiryCmd(cmd_base.CmdBase):
                             processed += 1
                     except exceptions.InvalidProject:
                         pass
-                    except Exception as e:
+                    except Exception:
                         LOG.exception('Exception processing project %s', p.id)
 
                 if limit > 0 and processed >= limit:

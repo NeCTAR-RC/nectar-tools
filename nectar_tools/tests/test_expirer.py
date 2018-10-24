@@ -137,9 +137,9 @@ class ExpiryTests(test.TestCase):
         ) as (mock_update_project, mock_archiver):
             ex.archive_project()
             mock_archiver.archive_resources.assert_called_once_with()
-            expiry_next_step = (datetime.datetime.now() +
-                                datetime.timedelta(days=90)).strftime(
-                                    expirer.DATE_FORMAT)
+            expiry_next_step = (datetime.datetime.now()
+                                + datetime.timedelta(days=90)).strftime(
+                                expirer.DATE_FORMAT)
             mock_update_project.assert_called_with(
                 expiry_status=expiry_states.ARCHIVING,
                 expiry_next_step=expiry_next_step)
@@ -723,8 +723,9 @@ class AllocationExpiryTests(test.TestCase):
     def test_restrict_project(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
-        one_month = (datetime.datetime.now() +
-                     datetime.timedelta(days=30)).strftime(expirer.DATE_FORMAT)
+        one_month = (datetime.datetime.now()
+                     + datetime.timedelta(days=30)).strftime(
+                         expirer.DATE_FORMAT)
 
         with test.nested(
             mock.patch.object(ex, '_send_notification'),
@@ -742,8 +743,9 @@ class AllocationExpiryTests(test.TestCase):
     def test_stop_project(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
-        one_month = (datetime.datetime.now() +
-                     datetime.timedelta(days=30)).strftime(expirer.DATE_FORMAT)
+        one_month = (datetime.datetime.now()
+                     + datetime.timedelta(days=30)).strftime(
+                         expirer.DATE_FORMAT)
 
         with test.nested(
             mock.patch.object(ex, '_update_project'),

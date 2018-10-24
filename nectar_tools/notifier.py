@@ -22,7 +22,7 @@ class Notifier(object):
 
     def send_message(self, stage, owner, extra_context={},
                      extra_recipients=[]):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def finish(self):
         """Called when expiry is finsh
