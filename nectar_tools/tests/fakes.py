@@ -106,6 +106,9 @@ class FakeProject(object):
         self.domain_id = domain_id
         self.enabled = True
 
+    def to_dict(self):
+        return self.__dict__
+
 
 class FakeAllocationManager(object):
 

@@ -12,3 +12,5 @@ jinja2
 prettytable
 python-freshdesk
 nectarallocationclient
+oslo.messaging
+oslo.context
