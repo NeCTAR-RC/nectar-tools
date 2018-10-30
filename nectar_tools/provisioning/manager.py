@@ -96,7 +96,7 @@ class ProvisioningManager(object):
     def create_project(self, allocation):
         domain_mappings = collections.defaultdict(lambda: 'default')
         domain_mappings['auckland'] = 'b38a521521d844e49daf98571fa8a153'
-        domain = domain_mappings[allocation.funding_node]
+        domain = domain_mappings[allocation.allocation_home]
         if self.noop:
             LOG.info("%s: Would create new keystone project in domain %s",
                      allocation.id, domain)

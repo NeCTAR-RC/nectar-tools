@@ -277,6 +277,7 @@ ALLOCATION_RESPONSE = {
     "approver_email": "bob@bob.com",
     "use_case": "dsdsds",
     "usage_patterns": "dsdsd",
+    "requested_allocation_home": "unassigned",
     "allocation_home": "national",
     "geographic_requirements": "dssd",
     "project_id": "0e36fd26f4784e76a17ae2fb144d4e0a",
@@ -289,8 +290,6 @@ ALLOCATION_RESPONSE = {
     "for_percentage_3": 0,
     "nectar_support": "",
     "ncris_support": "",
-    "funding_national_percent": 100,
-    "funding_node": None,
     "provisioned": False,
     "notifications": True,
 }
