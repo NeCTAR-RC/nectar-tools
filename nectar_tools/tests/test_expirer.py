@@ -101,6 +101,21 @@ class ExpiryTests(test.TestCase):
                 expiry_next_step='2016-02-02',
                 expiry_updated_at=today)
 
+    def test_update_image(self):
+        project = fakes.FakeProject()
+        image = fakes.FakeImage()
+        ex = expirer.Expirer(project, archivers='fake', notifier='fake',
+                             extra={'image': image})
+        today = datetime.datetime.now().strftime(expirer.DATE_FORMAT)
+        with mock.patch.object(
+            ex.g_client.images, 'update') as mock_glance_update:
+            ex._update_image(nectar_expiry_next_step='2016-02-02',
+                             nectar_expiry_status='blah')
+            mock_glance_update.assert_called_with(
+                image.id, nectar_expiry_status='blah',
+                nectar_expiry_next_step='2016-02-02',
+                nectar_expiry_updated_at=today)
+
     def test_check_archiving_status_success(self):
         project = fakes.FakeProject()
         ex = expirer.Expirer(project, archivers='fake', notifier='fake')

@@ -40,7 +40,7 @@ class CPULimit(enum.Enum):
 class Expirer(object):
 
     def __init__(self, project, archivers, notifier, ks_session=None,
-                 dry_run=False, disable_project=False):
+                 dry_run=False, disable_project=False, extra={}):
         self.k_client = auth.get_keystone_client(ks_session)
         self.project = project
         self.project_set_defaults()
@@ -48,10 +48,15 @@ class Expirer(object):
         self.ks_session = ks_session
         self.now = datetime.datetime.now()
         self.disable_project = disable_project
+        if extra and 'image' in extra:
+            self.image = extra['image']
+            self.image_set_defaults()
+            self.g_client = auth.get_glance_client(ks_session)
         self.archiver = archiver.ResourceArchiver(project=project,
                                                   archivers=archivers,
                                                   ks_session=ks_session,
-                                                  dry_run=dry_run)
+                                                  dry_run=dry_run,
+                                                  extra=extra)
         self.notifier = notifier
         self.managers = None
         self.members = None
@@ -64,6 +69,14 @@ class Expirer(object):
         self.project.expiry_ticket_id = getattr(self.project,
                                                 'expiry_ticket_id', 0)
 
+    def image_set_defaults(self):
+        self.image.owner = getattr(self.image, 'owner', None)
+        self.image.expiry_status = getattr(self.image, 'nectar_expiry_status', '')
+        self.image.expiry_next_step = getattr(self.image,
+                                              'nectar_expiry_next_step', '')
+        self.image.expiry_ticket_id = getattr(self.image,
+                                              'nectar_expiry_ticket_id', 0)
+
     def _update_project(self, **kwargs):
         today = self.now.strftime(DATE_FORMAT)
         kwargs.update({'expiry_updated_at': today})
@@ -74,6 +87,18 @@ class Expirer(object):
         if 'expiry_next_step' in kwargs.keys():
             self.project.expiry_next_step = kwargs['expiry_next_step']
         msg = '%s: Updating %s' % (self.project.id, kwargs)
+        LOG.debug(msg)
+
+    def _update_image(self, **kwargs):
+        today = self.now.strftime(DATE_FORMAT)
+        kwargs.update({'nectar_expiry_updated_at': today})
+        if not self.dry_run:
+            self.g_client.images.update(self.image.id, **kwargs)
+        if 'nectar_expiry_status' in kwargs.keys():
+            self.image.expiry_status = kwargs['nectar_expiry_status']
+        if 'nectar_expiry_next_step' in kwargs.keys():
+            self.image.expiry_next_step = kwargs['nectar_expiry_next_step']
+        msg = '%s: Updating %s' % (self.image.id, kwargs)
         LOG.debug(msg)
 
     def _get_project_managers(self):
