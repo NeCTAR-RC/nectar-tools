@@ -38,43 +38,25 @@ class CPULimit(enum.Enum):
 
 
 class Expirer(object):
-
-    def __init__(self, project, archivers, notifier, ks_session=None,
-                 dry_run=False, disable_project=False):
+    def __init__(self, resources, archivers, notifier, ks_session=None,
+                 dry_run=False):
         self.k_client = auth.get_keystone_client(ks_session)
-        self.project = project
-        self.project_set_defaults()
         self.dry_run = dry_run
         self.ks_session = ks_session
         self.now = datetime.datetime.now()
-        self.disable_project = disable_project
-        self.archiver = archiver.ResourceArchiver(project=project,
-                                                  archivers=archivers,
-                                                  ks_session=ks_session,
-                                                  dry_run=dry_run)
         self.notifier = notifier
         self.managers = None
         self.members = None
+        for res_type, res in resources.items():
+            setattr(self, res_type, res)
+        if not hasattr(self, 'project'):
+            project = self._get_project_from_other_res(resources)
+            setattr(self, 'project', project)
 
-    def project_set_defaults(self):
-        self.project.owner = getattr(self.project, 'owner', None)
-        self.project.expiry_status = getattr(self.project, 'expiry_status', '')
-        self.project.expiry_next_step = getattr(self.project,
-                                                'expiry_next_step', '')
-        self.project.expiry_ticket_id = getattr(self.project,
-                                                'expiry_ticket_id', 0)
-
-    def _update_project(self, **kwargs):
-        today = self.now.strftime(DATE_FORMAT)
-        kwargs.update({'expiry_updated_at': today})
-        if not self.dry_run:
-            self.k_client.projects.update(self.project.id, **kwargs)
-        if 'expiry_status' in kwargs.keys():
-            self.project.expiry_status = kwargs['expiry_status']
-        if 'expiry_next_step' in kwargs.keys():
-            self.project.expiry_next_step = kwargs['expiry_next_step']
-        msg = '%s: Updating %s' % (self.project.id, kwargs)
-        LOG.debug(msg)
+        self.archiver = archiver.ResourceArchiver(project=self.project,
+                                                  archivers=archivers,
+                                                  ks_session=ks_session,
+                                                  dry_run=dry_run)
 
     def _get_project_managers(self):
         if self.managers is None:
@@ -96,6 +78,69 @@ class Expirer(object):
             users.append(self.k_client.users.get(member.user['id']))
         return users
 
+    def _get_project_from_other_res(self, resources):
+        # TODO(rocky): get the project object from other resources
+        pass
+
+    def _get_notification_context(self):
+        return {}
+
+    def _get_recipients(self):
+        return (None, [])
+
+    def _send_notification(self, stage, extra_context={}):
+        context = self._get_notification_context()
+        context.update(extra_context)
+        recipient, extras = self._get_recipients()
+        self.notifier.send_message(stage, recipient, extra_context=context,
+                                   extra_recipients=extras)
+
+    def send_event(self, event, extra_context={}):
+        return
+
+    def _send_event(self, event_type, payload):
+        if self.dry_run:
+            LOG.info('%s: Would send event %s' % (self.project.id, event_type))
+            return
+        transport = oslo_messaging.get_notification_transport(OSLO_CONF)
+        notifier = oslo_messaging.Notifier(transport, 'expiry')
+        notifier.audit(OSLO_CONTEXT, event_type, payload)
+
+    def delete_resources(self):
+        resources = self.archiver.delete_resources()
+        return resources
+
+
+class ProjectExpirer(Expirer):
+
+    def __init__(self, project, archivers, notifier, ks_session=None,
+                 dry_run=False, disable_project=False):
+        resources = {'project': project}
+        super(ProjectExpirer, self).__init__(
+            resources, archivers, notifier, ks_session=None, dry_run=False)
+        self.project_set_defaults()
+        self.disable_project = disable_project
+
+    def project_set_defaults(self):
+        self.project.owner = getattr(self.project, 'owner', None)
+        self.project.expiry_status = getattr(self.project, 'expiry_status', '')
+        self.project.expiry_next_step = getattr(self.project,
+                                                'expiry_next_step', '')
+        self.project.expiry_ticket_id = getattr(self.project,
+                                                'expiry_ticket_id', 0)
+
+    def _update_project(self, **kwargs):
+        today = self.now.strftime(DATE_FORMAT)
+        kwargs.update({'expiry_updated_at': today})
+        if not self.dry_run:
+            self.k_client.projects.update(self.project.id, **kwargs)
+        if 'expiry_status' in kwargs.keys():
+            self.project.expiry_status = kwargs['expiry_status']
+        if 'expiry_next_step' in kwargs.keys():
+            self.project.expiry_next_step = kwargs['expiry_next_step']
+        msg = '%s: Updating %s' % (self.project.id, kwargs)
+        LOG.debug(msg)
+
     def check_archiving_status(self):
         LOG.debug("%s: Checking archive status", self.project.id)
         if self.archiver.is_archive_successful():
@@ -115,10 +160,6 @@ class Expirer(object):
                                  expiry_next_step=three_months)
 
         self.archiver.archive_resources()
-
-    def delete_resources(self):
-        resources = self.archiver.delete_resources()
-        return resources
 
     def get_status(self):
         status = self.project.expiry_status
@@ -196,32 +237,8 @@ class Expirer(object):
             self._update_project(enabled=False)
         self.send_event('delete')
 
-    def _get_notification_context(self):
-        return {}
 
-    def _get_recipients(self):
-        return (None, [])
-
-    def _send_notification(self, stage, extra_context={}):
-        context = self._get_notification_context()
-        context.update(extra_context)
-        recipient, extras = self._get_recipients()
-        self.notifier.send_message(stage, recipient, extra_context=context,
-                                   extra_recipients=extras)
-
-    def send_event(self, event, extra_context={}):
-        return
-
-    def _send_event(self, event_type, payload):
-        if self.dry_run:
-            LOG.info('%s: Would send event %s' % (self.project.id, event_type))
-            return
-        transport = oslo_messaging.get_notification_transport(OSLO_CONF)
-        notifier = oslo_messaging.Notifier(transport, 'expiry')
-        notifier.audit(OSLO_CONTEXT, event_type, payload)
-
-
-class AllocationExpirer(Expirer):
+class AllocationExpirer(ProjectExpirer):
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  force_no_allocation=False, force_delete=False,
@@ -543,7 +560,7 @@ class AllocationExpirer(Expirer):
             self.allocation.delete()
 
 
-class PTExpirer(Expirer):
+class PTExpirer(ProjectExpirer):
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  disable_project=False, force_delete=False):
