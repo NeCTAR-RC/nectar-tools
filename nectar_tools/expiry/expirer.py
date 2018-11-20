@@ -117,7 +117,7 @@ class ProjectExpirer(Expirer):
                  dry_run=False, disable_project=False):
         resources = {'project': project}
         super(ProjectExpirer, self).__init__(
-            resources, archivers, notifier, ks_session=None, dry_run=False)
+            resources, archivers, notifier, ks_session, dry_run)
         self.project_set_defaults()
         self.disable_project = disable_project
 
