@@ -15,12 +15,13 @@ LOG = logging.getLogger(__name__)
 
 class Archiver(object):
 
-    def __init__(self, project, ks_session=None, dry_run=False):
+    def __init__(self, resources, ks_session=None, dry_run=False):
         self.k_client = auth.get_keystone_client(ks_session)
         self.g_client = auth.get_glance_client(ks_session)
         self.dry_run = dry_run
-        self.project = project
         self.ks_session = ks_session
+        for res_type, res in resources.items():
+            setattr(self, res_type, res)
 
     def is_archive_successful(self):
         return True
@@ -52,8 +53,8 @@ class Archiver(object):
 
 class NovaArchiver(Archiver):
 
-    def __init__(self, project, ks_session=None, dry_run=False):
-        super(NovaArchiver, self).__init__(project, ks_session, dry_run)
+    def __init__(self, resources, ks_session=None, dry_run=False):
+        super(NovaArchiver, self).__init__(resources, ks_session, dry_run)
         self.n_client = auth.get_nova_client(self.ks_session)
         self.images = None
         self.instances = None
@@ -311,8 +312,8 @@ class NovaArchiver(Archiver):
 
 class CinderArchiver(Archiver):
 
-    def __init__(self, project, ks_session=None, dry_run=False):
-        super(CinderArchiver, self).__init__(project, ks_session, dry_run)
+    def __init__(self, resources, ks_session=None, dry_run=False):
+        super(CinderArchiver, self).__init__(resources, ks_session, dry_run)
         self.c_client = auth.get_cinder_client()
         self.volumes = None
 
@@ -353,8 +354,8 @@ class CinderArchiver(Archiver):
 
 class NeutronBasicArchiver(Archiver):
 
-    def __init__(self, project, ks_session=None, dry_run=False):
-        super(NeutronBasicArchiver, self).__init__(project, ks_session,
+    def __init__(self, resources, ks_session=None, dry_run=False):
+        super(NeutronBasicArchiver, self).__init__(resources, ks_session,
                                                    dry_run)
         self.ne_client = auth.get_neutron_client()
 
@@ -454,8 +455,8 @@ class NeutronArchiver(NeutronBasicArchiver):
 
 class GlanceArchiver(Archiver):
 
-    def __init__(self, project, ks_session=None, dry_run=False):
-        super(GlanceArchiver, self).__init__(project, ks_session, dry_run)
+    def __init__(self, resources, ks_session=None, dry_run=False):
+        super(GlanceArchiver, self).__init__(resources, ks_session, dry_run)
         self.g_client = auth.get_glance_client(ks_session)
 
     def delete_resources(self, force=False):
@@ -490,10 +491,10 @@ class SwiftArchiver(Archiver):
 
     SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
-    def __init__(self, project, ks_session=None, dry_run=False):
-        super(SwiftArchiver, self).__init__(project, ks_session, dry_run)
+    def __init__(self, resources, ks_session=None, dry_run=False):
+        super(SwiftArchiver, self).__init__(resources, ks_session, dry_run)
         self.s_client = auth.get_swift_client(ks_session,
-                                              project_id=project.id)
+                                              project_id=self.project.id)
 
     def zero_quota(self):
         if not self.dry_run:
@@ -539,10 +540,11 @@ class SwiftArchiver(Archiver):
 
 class DesignateArchiver(Archiver):
 
-    def __init__(self, project, ks_session=None, dry_run=False):
-        super(DesignateArchiver, self).__init__(project, ks_session, dry_run)
+    def __init__(self, resources, ks_session=None, dry_run=False):
+        super(DesignateArchiver, self).__init__(resources, ks_session, dry_run)
         if not dry_run:
-            self.d_client = auth.get_designate_client(project_id=project.id)
+            self.d_client = auth.get_designate_client(
+                project_id=self.project.id)
 
     def delete_resources(self, force=False):
         if not force:
@@ -611,24 +613,71 @@ class DesignateArchiver(Archiver):
                           accept_req['status'])
 
 
+class ImageArchiver(Archiver):
+
+    def __init__(self, resources, ks_session=None, dry_run=False):
+        super(ImageArchiver, self).__init__(resources, ks_session, dry_run)
+
+    def delete_resource(self, force=False):
+        if not force:
+            return
+
+        LOG.debug("Found image %s in project %s",
+                  self.image.id, self.project.id)
+
+        if self.image.protected:
+            LOG.warn("Can't delete protected image %s", self.image.id)
+            return
+        if self.image.visibility == 'private':
+            if not self.dry_run:
+                LOG.info("Deleting image %s", self.image.id)
+                self.g_client.images.delete(self.image.id)
+            else:
+                LOG.info("Would delete image %s", self.image.id)
+        else:
+            LOG.warn("Can't delete image %s visibility=%s",
+                     self.image.id, self.image.visibility)
+
+    def restrict_resource(self):
+        LOG.debug("Found image %s", self.image.id)
+        if self.image.protected:
+            LOG.warn("Can't restrict protected image %s", self.image.id)
+            return
+        else:
+            if self.image.visibility != 'private':
+                if not self.dry_run:
+                    LOG.info("Making image %s private", self.image.id)
+                    self.g_client.images.update(visibility='private')
+                else:
+                    LOG.info("Would make image %s private", self.image.id)
+            else:
+                LOG.info("Image %s was already private", self.image.id)
+
+
 class ResourceArchiver(object):
 
-    def __init__(self, project, archivers, ks_session=None, dry_run=False):
+    def __init__(self, resources, archivers, ks_session=None, dry_run=False):
         enabled = []
+        # project scope archiver
         if 'nova' in archivers:
-            enabled.append(NovaArchiver(project, ks_session, dry_run))
+            enabled.append(NovaArchiver(resources, ks_session, dry_run))
         if 'cinder' in archivers:
-            enabled.append(CinderArchiver(project, ks_session, dry_run))
+            enabled.append(CinderArchiver(resources, ks_session, dry_run))
         if 'neutron_basic' in archivers:
-            enabled.append(NeutronBasicArchiver(project, ks_session, dry_run))
+            enabled.append(NeutronBasicArchiver(resources, ks_session,
+                                                dry_run))
         if 'neutron' in archivers:
-            enabled.append(NeutronArchiver(project, ks_session, dry_run))
+            enabled.append(NeutronArchiver(resources, ks_session, dry_run))
         if 'glance' in archivers:
-            enabled.append(GlanceArchiver(project, ks_session, dry_run))
+            enabled.append(GlanceArchiver(resources, ks_session, dry_run))
         if 'swift' in archivers:
-            enabled.append(SwiftArchiver(project, ks_session, dry_run))
+            enabled.append(SwiftArchiver(resources, ks_session, dry_run))
         if 'designate' in archivers:
-            enabled.append(DesignateArchiver(project, ks_session, dry_run))
+            enabled.append(DesignateArchiver(resources, ks_session, dry_run))
+        # individual resource archiver
+        if 'image' in archivers:
+            enabled.append(ImageArchiver(resources, ks_session, dry_run))
+
         self.archivers = enabled
 
     def is_archive_successful(self):
