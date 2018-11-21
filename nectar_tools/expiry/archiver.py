@@ -611,24 +611,85 @@ class DesignateArchiver(Archiver):
                           accept_req['status'])
 
 
+class ImageArchiver(object):
+
+    def __init__(self, image, ks_session=None, dry_run=False):
+        self.k_client = auth.get_keystone_client(ks_session)
+        self.g_client = auth.get_glance_client(ks_session)
+        self.ks_session = ks_session
+        self.dry_run = dry_run
+        self.image = image
+
+    def delete_resource(self, force=False):
+        if not force:
+            return
+
+        project = self.k_client.projects.get(self.image.owner)
+        LOG.debug("Found image %s in project %s",
+                  self.image.id, project.id)
+
+        if self.image.protected:
+            LOG.warn("Can't delete protected image %s", self.image.id)
+            return
+        if self.image.visibility == 'private':
+            if not self.dry_run:
+                LOG.info("Deleting image %s", self.image.id)
+                self.g_client.images.delete(self.image.id)
+            else:
+                LOG.info("Would delete image %s", self.image.id)
+        else:
+            LOG.warn("Can't delete image %s visibility=%s",
+                     self.image.id, self.image.visibility)
+
+    def restrict_resource(self):
+        LOG.debug("Found image %s", self.image.id)
+        if self.image.protected:
+            LOG.warn("Can't restrict protected image %s", self.image.id)
+            return
+        else:
+            if self.image.visibility != 'private':
+                if not self.dry_run:
+                    LOG.info("Making image %s private", self.image.id)
+                    self.g_client.images.update(visibility='private')
+                else:
+                    LOG.info("Would make image %s private", self.image.id)
+            else:
+                LOG.info("Image %s was already private", self.image.id)
+
+
 class ResourceArchiver(object):
 
-    def __init__(self, project, archivers, ks_session=None, dry_run=False):
+    def __init__(self, resources, archivers, ks_session=None, dry_run=False):
         enabled = []
-        if 'nova' in archivers:
-            enabled.append(NovaArchiver(project, ks_session, dry_run))
-        if 'cinder' in archivers:
-            enabled.append(CinderArchiver(project, ks_session, dry_run))
-        if 'neutron_basic' in archivers:
-            enabled.append(NeutronBasicArchiver(project, ks_session, dry_run))
-        if 'neutron' in archivers:
-            enabled.append(NeutronArchiver(project, ks_session, dry_run))
-        if 'glance' in archivers:
-            enabled.append(GlanceArchiver(project, ks_session, dry_run))
-        if 'swift' in archivers:
-            enabled.append(SwiftArchiver(project, ks_session, dry_run))
-        if 'designate' in archivers:
-            enabled.append(DesignateArchiver(project, ks_session, dry_run))
+        if 'project' in resources.keys():
+            # project scope archiver
+            if 'nova' in archivers:
+                enabled.append(NovaArchiver(resources['project'],
+                                            ks_session, dry_run))
+            if 'cinder' in archivers:
+                enabled.append(CinderArchiver(resources['project'],
+                                              ks_session, dry_run))
+            if 'neutron_basic' in archivers:
+                enabled.append(NeutronBasicArchiver(resources['project'],
+                                                    ks_session, dry_run))
+            if 'neutron' in archivers:
+                enabled.append(NeutronArchiver(resources['project'],
+                                               ks_session, dry_run))
+            if 'glance' in archivers:
+                enabled.append(GlanceArchiver(resources['project'],
+                                              ks_session, dry_run))
+            if 'swift' in archivers:
+                enabled.append(SwiftArchiver(resources['project'],
+                                             ks_session, dry_run))
+            if 'designate' in archivers:
+                enabled.append(DesignateArchiver(resources['project'],
+                                                 ks_session, dry_run))
+        if 'image' in resources.keys():
+            # individual resource archiver
+            if 'image' in archivers:
+                enabled.append(ImageArchiver(resources['image'],
+                                             ks_session, dry_run))
+
         self.archivers = enabled
 
     def is_archive_successful(self):

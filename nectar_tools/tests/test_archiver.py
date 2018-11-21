@@ -9,6 +9,10 @@ from nectar_tools.tests import fakes
 
 CONF = config.CONFIG
 PROJECT = fakes.FakeProject('active')
+IMAGE = fakes.FakeImage()
+
+RESOURCES = {'project': PROJECT,
+             'image': IMAGE}
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
@@ -674,11 +678,52 @@ class DesignateArchiverTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class ImageArchiverTests(test.TestCase):
+
+    def test_delete_resource(self):
+        image = fakes.FakeImage(visibility='private')
+        ia = archiver.ImageArchiver(image=image)
+        with test.nested(
+            mock.patch.object(ia.k_client, 'projects'),
+            mock.patch.object(ia.g_client, 'images'),
+        ) as (mock_keystone, mock_image):
+            ia.delete_resource(force=True)
+            mock_keystone.get.assert_called_once_with(image.owner)
+            mock_image.delete.assert_called_once_with(image.id)
+
+    def test_delete_resource_not_ready(self):
+        image = fakes.FakeImage(visibility='public')
+        ia = archiver.ImageArchiver(image=image)
+        with test.nested(
+            mock.patch.object(ia.k_client, 'projects'),
+            mock.patch.object(ia.g_client, 'images'),
+        ) as (mock_keystone, mock_image):
+            ia.delete_resource(force=True)
+            mock_keystone.get.assert_called_once_with(image.owner)
+            mock_image.delete.assert_not_called()
+
+    def test_restrict_resource(self):
+        image = fakes.FakeImage(visibility='public')
+        ia = archiver.ImageArchiver(image=image)
+        with mock.patch.object(ia.g_client, 'images') as mock_image:
+            ia.restrict_resource()
+            mock_image.update.assert_called_once_with(visibility='private')
+
+    def test_restrict_resource_not_ready(self):
+        image = fakes.FakeImage(visibility='private')
+        ia = archiver.ImageArchiver(image=image)
+        with mock.patch.object(ia.g_client, 'images') as mock_image:
+            ia.restrict_resource()
+            mock_image.update.assert_not_called()
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ResourcerArchiverTests(test.TestCase):
 
     def test_init(self):
-        ra = archiver.ResourceArchiver(project=PROJECT,
-                                       archivers=['nova', 'cinder'])
-        self.assertEqual(2, len(ra.archivers))
+        ra = archiver.ResourceArchiver(resources=RESOURCES,
+                                       archivers=['nova', 'cinder', 'image'])
+        self.assertEqual(3, len(ra.archivers))
         self.assertIs(archiver.NovaArchiver, type(ra.archivers[0]))
         self.assertIs(archiver.CinderArchiver, type(ra.archivers[1]))
+        self.assertIs(archiver.ImageArchiver, type(ra.archivers[2]))
