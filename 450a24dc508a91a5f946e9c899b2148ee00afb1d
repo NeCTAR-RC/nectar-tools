@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2f652fe8_de97393a",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 614,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-11-21T05:53:07Z",
+      "side": 1,
+      "message": "I feel this could inherit from the Archiver class?",
+      "range": {
+        "startLine": 614,
+        "startChar": 20,
+        "endLine": 614,
+        "endChar": 26
+      },
+      "revId": "450a24dc508a91a5f946e9c899b2148ee00afb1d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
