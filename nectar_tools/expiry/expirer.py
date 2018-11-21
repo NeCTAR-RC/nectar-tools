@@ -53,7 +53,7 @@ class Expirer(object):
             project = self._get_project_from_other_res(resources)
             setattr(self, 'project', project)
 
-        self.archiver = archiver.ResourceArchiver(project=self.project,
+        self.archiver = archiver.ResourceArchiver(resources=resources,
                                                   archivers=archivers,
                                                   ks_session=ks_session,
                                                   dry_run=dry_run)
