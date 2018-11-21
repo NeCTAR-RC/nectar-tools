@@ -53,7 +53,7 @@ class Expirer(object):
             project = self._get_project_from_other_res(resources)
             setattr(self, 'project', project)
 
-        self.archiver = archiver.ResourceArchiver(project=self.project,
+        self.archiver = archiver.ResourceArchiver(resources=resources,
                                                   archivers=archivers,
                                                   ks_session=ks_session,
                                                   dry_run=dry_run)
@@ -243,7 +243,7 @@ class AllocationExpirer(ProjectExpirer):
     def __init__(self, project, ks_session=None, dry_run=False,
                  force_no_allocation=False, force_delete=False,
                  disable_project=True):
-        archivers = ['nova', 'cinder', 'neutron', 'glance', 'swift']
+        archivers = ['nova', 'cinder', 'neutron', 'projectimages', 'swift']
 
         notifier = expiry_notifier.ExpiryNotifier(
             project=project, template_dir='allocations',
