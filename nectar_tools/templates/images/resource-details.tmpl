@@ -1,0 +1,60 @@
+Image expiry for image <b>{{ image.name }}</b> ({{ image.id }})
+<br />
+<br />
+{% if image %}
+<b>Image Details:</b><br />
+Name: {{ image.name }}<br />
+Status: {{ image.status }}<br />
+Size: {{ image.size }}<br />
+Created: {{ image.created_at }}<br />
+Visibility: {{ image.visibility }}<br />
+Project ID: {{ image.owner }}<br />
+Expiry Date: {{ image.expiry_next_step }}<br />
+Expiry Status: {{ image.expiry_status }}<br />
+<br />
+<br />
+{% endif %}
+
+<b>Managers</b>
+<table>
+<thead>
+<tr>
+<td><i>Username</i></td>
+<td><i>Full Name</i></td>
+<td><i>Email</i></td>
+</tr>
+</thead>
+<tbody>
+{% for manager in managers %}
+<tr>
+<td>{{ manager.name }}</td>
+<td>{{ manager.full_name }}</td>
+<td>{{ manager.email }}</td>
+</tr>
+{% else %}
+<tr><td>No Managers</td><td></td><td></td></tr>
+{% endfor %}
+</tbody>
+</table>
+
+<b>Members</b>
+<table>
+<thead>
+<tr>
+<td><i>Username</i></td>
+<td><i>Full Name</i></td>
+<td><i>Email</i></td>
+</tr>
+</thead>
+<tbody>
+{% for member in members %}
+<tr>
+<td>{{ member.name }}</td>
+<td>{{ member.full_name }}</td>
+<td>{{ member.email }}</td>
+</tr>
+{% else %}
+<tr><td>No Members</td><td></td><td></td></tr>
+{% endfor %}
+</tbody>
+</table>
