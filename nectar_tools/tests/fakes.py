@@ -142,7 +142,7 @@ class FakeInstance(object):
 
 class FakeImage(object):
 
-    def __init__(self, id='fake', name='fake_archive', status='active',
+    def __init__(self, id='fake', name='MyImage', status='active',
                  protected=False, owner='fake_owner', **kwargs):
         self.id = id
         self.name = name
