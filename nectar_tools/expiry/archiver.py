@@ -748,9 +748,9 @@ class ResourceArchiver(object):
             except NotImplementedError:
                 continue
 
-    def restrict_resources(self):
+    def restrict_resources(self, force=False):
         for archiver in self.archivers:
             try:
-                archiver.restrict_resources()
+                archiver.restrict_resources(force=force)
             except NotImplementedError:
                 continue

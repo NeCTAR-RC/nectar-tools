@@ -7,12 +7,12 @@ CONF = config.CONFIG
 
 class ProvisioningNotifier(notifier.FreshDeskNotifier):
 
-    def __init__(self, project, noop=False):
+    def __init__(self, resource_type, resource, noop=False):
         group_id = CONF.freshdesk.provisioning_group
         subject = 'Nectar Allocation Provisioned'
         template_dir = 'provisioning'
         super(ProvisioningNotifier, self).__init__(
-            project, template_dir, group_id, subject, noop)
+            resource_type, resource, template_dir, group_id, subject, noop)
 
     def send_message(self, stage, owner, extra_context={},
                      extra_recipients=[]):

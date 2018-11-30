@@ -14,8 +14,10 @@ LOG = logging.getLogger(__name__)
 
 class Notifier(object):
 
-    def __init__(self, project, template_dir, subject, dry_run=False):
-        self.project = project
+    def __init__(self, resource_type, resource, template_dir, subject,
+                 dry_run=False):
+        self.resource = resource
+        self.resource_type = resource_type
         self.dry_run = dry_run
         self.template_dir = template_dir
         self.subject = subject
@@ -42,7 +44,7 @@ class Notifier(object):
             LOG.error('Template "%s" not found. Looked in %s',
                       tmpl, template_dir)
             return None
-        context = {'project': self.project}
+        context = {self.resource_type: self.resource}
         context.update(extra_context)
         template = template.render(context)
         return template
@@ -50,10 +52,10 @@ class Notifier(object):
 
 class FreshDeskNotifier(Notifier):
 
-    def __init__(self, project, template_dir, group_id, subject,
-                 dry_run=False):
+    def __init__(self, resource_type, resource, template_dir, group_id,
+                 subject, dry_run=False):
         super(FreshDeskNotifier, self).__init__(
-            project, template_dir, subject, dry_run)
+            resource_type, resource, template_dir, subject, dry_run)
 
         self.api = fd_api.API(CONF.freshdesk.domain, CONF.freshdesk.key)
         self.group_id = int(group_id)
@@ -62,7 +64,7 @@ class FreshDeskNotifier(Notifier):
                        tags=[]):
         if self.dry_run:
             LOG.info('%s: Would create ticket, requester=%s, cc=%s',
-                     self.project.id, email, cc_emails)
+                     self.resource.id, email, cc_emails)
             ticket_id = 'NEW-ID'
         else:
             ticket = self.api.tickets.create_outbound_email(
@@ -75,26 +77,27 @@ class FreshDeskNotifier(Notifier):
                 tags=tags)
             ticket_id = ticket.id
             LOG.info("%s: Created ticket %s, requester=%s, cc=%s",
-                     self.project.id, ticket_id, email, cc_emails)
+                     self.resource.id, ticket_id, email, cc_emails)
 
         return ticket_id
 
     def _update_ticket(self, ticket_id, text, cc_emails=[]):
         if self.dry_run:
-            LOG.info("%s: Would send reply to ticket %s", self.project.id,
+            LOG.info("%s: Would send reply to ticket %s", self.resource.id,
                      ticket_id)
         else:
             self.api.comments.create_reply(ticket_id, text,
                                            cc_emails=cc_emails)
-            LOG.info("%s: Sent reply to ticket %s", self.project.id, ticket_id)
+            LOG.info("%s: Sent reply to ticket %s",
+                     self.resource.id, ticket_id)
 
     def _add_note_to_ticket(self, ticket_id, text):
         if self.dry_run:
             LOG.info("%s: Would add private note to ticket %s",
-                     self.project.id, ticket_id)
+                     self.resource.id, ticket_id)
         else:
             self.api.comments.create_note(ticket_id, text)
-            LOG.info("%s: Added private note to ticket %s", self.project.id,
+            LOG.info("%s: Added private note to ticket %s", self.resource.id,
                      ticket_id)
 
 
