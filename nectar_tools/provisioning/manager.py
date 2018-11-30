@@ -163,7 +163,8 @@ class ProvisioningManager(object):
             notification = 'new'
         else:
             notification = 'update'
-        notifier = provisioning_notifier.ProvisioningNotifier(project)
+        notifier = provisioning_notifier.ProvisioningNotifier(
+            "project", project)
         extra_context = {'allocation': allocation, 'report': report}
         notifier.send_message(notification, allocation.contact_email,
                               extra_context=extra_context)
