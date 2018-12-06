@@ -343,6 +343,7 @@ class ProvisionerTests(test.TestCase):
                 tenant_id=self.allocation.project_id)
             nova_client.quotas.update.assert_called_once_with(
                 tenant_id=self.allocation.project_id,
+                force=True,
                 cores=quota['cores'],
                 instances=quota['instances'],
                 ram=quota['ram'])
@@ -359,6 +360,7 @@ class ProvisionerTests(test.TestCase):
             tenant_id=self.allocation.project_id)
         nova_client.quotas.update.assert_called_once_with(
             tenant_id=self.allocation.project_id,
+            force=True,
             cores=4,
             instances=2,
             ram=2048)
@@ -383,6 +385,7 @@ class ProvisionerTests(test.TestCase):
                 tenant_id=self.allocation.project_id)
             nova_client.quotas.update.assert_called_once_with(
                 tenant_id=self.allocation.project_id,
+                force=True,
                 cores=quota['cores'],
                 instances=quota['instances'],
                 ram=quota['ram'])

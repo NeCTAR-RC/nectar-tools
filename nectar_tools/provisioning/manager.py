@@ -355,7 +355,7 @@ class ProvisioningManager(object):
             client.quotas.delete(tenant_id=allocation.project_id)
             allocated_quota['ram'] = int(allocated_quota['ram']) * 1024
             client.quotas.update(tenant_id=allocation.project_id,
-                                 **allocated_quota)
+                                 force=True, **allocated_quota)
             LOG.info("%s: Set Nova Quota %s", allocation.id, allocated_quota)
 
     def flavor_grant(self, allocation, flavor_class):
