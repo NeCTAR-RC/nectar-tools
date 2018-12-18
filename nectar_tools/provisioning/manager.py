@@ -21,8 +21,10 @@ LOG = logging.getLogger(__name__)
 
 class ProvisioningManager(object):
 
-    def __init__(self, ks_session=None, noop=False,
-                 *args, **kwargs):
+    def __init__(self, ks_session=None, noop=False, force=False,
+                 no_notify=False, *args, **kwargs):
+        self.force = force
+        self.no_notify = no_notify
         self.noop = noop
         self.ks_session = ks_session
         self.client = client.Client(1, session=ks_session)
@@ -30,8 +32,9 @@ class ProvisioningManager(object):
 
     def provision(self, allocation):
         if allocation.provisioned:
-            raise exceptions.InvalidProjectAllocation(
-                "Allocation already provisioned")
+            if not self.force:
+                raise exceptions.InvalidProjectAllocation(
+                    "Allocation already provisioned")
         LOG.info("%s: Provisioning %s", allocation.id, allocation.project_name)
         project = None
         if allocation.project_id:
@@ -149,7 +152,7 @@ class ProvisioningManager(object):
         LOG.info("%s: Add member role to %s", allocation.id, manager.name)
 
     def notify_provisioned(self, allocation, is_new_project, project, report):
-        if not allocation.notifications:
+        if not allocation.notifications or self.no_notify:
             LOG.info("%s: Noifications disabled, skipping", allocation.id)
             return
         if self.noop:
