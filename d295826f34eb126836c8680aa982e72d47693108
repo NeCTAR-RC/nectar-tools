@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "024da04e_9dbec386",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 616,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2018-12-24T00:22:30Z",
+      "side": 1,
+      "message": "I feel like this is a bit confusing with GlanceArchiver and ImageArchiver. Maybe it should be ImageArchiver and ProjectImagesArchiver.\n\nThey could prob also subclass each other and then use the same method to delete to avoid duplication",
+      "range": {
+        "startLine": 616,
+        "startChar": 6,
+        "endLine": 616,
+        "endChar": 19
+      },
+      "revId": "d295826f34eb126836c8680aa982e72d47693108",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
