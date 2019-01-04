@@ -9,7 +9,7 @@ from nectar_tools.expiry import expirer
 LOG = logging.getLogger(__name__)
 
 
-class PTExpiryCmd(base.ExpiryCmd):
+class PTExpiryCmd(base.ProjectExpiryCmd):
 
     @staticmethod
     def valid_project(project):

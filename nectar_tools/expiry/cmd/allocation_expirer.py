@@ -4,7 +4,7 @@ from nectar_tools.expiry.cmd import base
 from nectar_tools.expiry import expirer
 
 
-class AllocationExpiryCmd(base.ExpiryCmd):
+class AllocationExpiryCmd(base.ProjectExpiryCmd):
 
     @staticmethod
     def valid_project(project):
