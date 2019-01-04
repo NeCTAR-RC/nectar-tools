@@ -130,9 +130,9 @@ class ExpiryTests(test.TestCase):
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
-class ProjectExpiryTests(test.TestCase):
+class ProjectExpirerTests(test.TestCase):
     def setUp(self):
-        super(ProjectExpiryTests, self).setUp()
+        super(ProjectExpirerTests, self).setUp()
 
     def test_update_project(self):
         project = fakes.FakeProject()
