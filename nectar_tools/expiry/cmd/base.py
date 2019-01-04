@@ -13,10 +13,10 @@ CONFIG = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 
-class ExpiryCmd(cmd_base.CmdBase):
+class ProjectExpiryBaseCmd(cmd_base.CmdBase):
 
     def __init__(self):
-        super(ExpiryCmd, self).__init__(log_filename='expiry.log')
+        super(ProjectExpiryBaseCmd, self).__init__(log_filename='expiry.log')
 
         projects = []
         if self.args.project_id:
@@ -75,7 +75,7 @@ class ExpiryCmd(cmd_base.CmdBase):
 
     def add_args(self):
         """Handle command-line options"""
-        super(ExpiryCmd, self).add_args()
+        super(ProjectExpiryBaseCmd, self).add_args()
         self.parser.description = 'Updates project expiry date'
         project_group = self.parser.add_mutually_exclusive_group()
         project_group.add_argument('-f', '--filename',
