@@ -561,7 +561,7 @@ class DesignateArchiver(Archiver):
 
     def _clean_zone_name(self, name):
         name = name.lower()
-        name = name.replace('_', '-')
+        name = name.replace('_', '-').rstrip('-')
         name = re.sub('[^a-z0-9-]+', '', name)[:62]
         return name
 
