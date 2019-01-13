@@ -561,8 +561,11 @@ class DesignateArchiver(Archiver):
 
     def _clean_zone_name(self, name):
         name = name.lower()
-        name = name.replace('_', '-')
-        name = re.sub('[^a-z0-9-]+', '', name)[:62]
+        name = name.replace('_', '-')  # convert all underscores to dashes
+        name = re.sub(r'[^a-z0-9-]+', '', name)  # only alpha-numeric & dashes
+        name = re.sub(r'^[^a-z0-9]', '', name)  # no leading dash
+        name = name[:62]  # limit to 62 chars
+        name = re.sub(r'[^a-z0-9]$', '', name)  # no trailing dash
         return name
 
     def create_resources(self):
@@ -570,7 +573,7 @@ class DesignateArchiver(Archiver):
             if self.project:
                 LOG.info("%s: Would create designate zone", self.project.id)
             else:
-                LOG.info("Would create designate zone for project"),
+                LOG.info("Would create designate zone for project")
         else:
             sub_name = self._clean_zone_name(self.project.name)
             zone_name = "%s.%s" % (sub_name, CONF.designate.user_domain)
