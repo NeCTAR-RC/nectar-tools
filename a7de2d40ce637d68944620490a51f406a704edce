@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bbf306f6_a60f69fc",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 566,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-01-14T23:15:27Z",
+      "side": 1,
+      "message": "looks this can only remove the first one leading dash",
+      "range": {
+        "startLine": 566,
+        "startChar": 15,
+        "endLine": 566,
+        "endChar": 46
+      },
+      "revId": "a7de2d40ce637d68944620490a51f406a704edce",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e3b7cd64_a1598be2",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 568,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-01-14T23:15:27Z",
+      "side": 1,
+      "message": "same as above",
+      "range": {
+        "startLine": 568,
+        "startChar": 15,
+        "endLine": 568,
+        "endChar": 46
+      },
+      "revId": "a7de2d40ce637d68944620490a51f406a704edce",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    }
+  ]
+}
