@@ -47,6 +47,15 @@ class Expirer(object):
         self.notifier = notifier
         self.managers = None
         self.members = None
+
+        transport = oslo_messaging.get_notification_transport(OSLO_CONF)
+        self.event_notifier = oslo_messaging.Notifier(transport, 'expiry')
+        target = oslo_messaging.Target(exchange='openstack',
+                                       topic='notifications')
+        for queue in CONF.events.notifier_queues.split(','):
+            transport._driver.listen_for_notifications([(target, 'audit')],
+                                                       queue, 1, 1)
+
         for res_type, res in resources.items():
             setattr(self, res_type, res)
         if not hasattr(self, 'project'):
@@ -102,9 +111,7 @@ class Expirer(object):
         if self.dry_run:
             LOG.info('%s: Would send event %s' % (self.project.id, event_type))
             return
-        transport = oslo_messaging.get_notification_transport(OSLO_CONF)
-        notifier = oslo_messaging.Notifier(transport, 'expiry')
-        notifier.audit(OSLO_CONTEXT, event_type, payload)
+        self.event_notifier.audit(OSLO_CONTEXT, event_type, payload)
 
     def delete_resources(self):
         resources = self.archiver.delete_resources()
