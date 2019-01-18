@@ -10,7 +10,8 @@ filename = os.path.realpath(os.path.join(
 
 CONF = config.CONFIG
 CONF.read(filename)
-
+OSLO_CONF = config.OSLO_CONF
+OSLO_CONF([], default_config_files=[filename])
 
 @contextlib.contextmanager
 def nested(*contexts):
