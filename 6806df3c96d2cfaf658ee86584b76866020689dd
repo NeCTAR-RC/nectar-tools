@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "c235e6d4_a387700d",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-01-21T23:05:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "1ef4eeb5_61912c92",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 33
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "e265cd1a_0b5a82e6",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-01-21T23:05:55Z",
+      "side": 1,
+      "message": "It is from the init() of base class `Archiver`, because `ImageArchiver` needs image id in its `resources` argument. It is set through\n\nfor res_type, res in resources.items():\n    setattr(self, res_type, res)\n\nMaybe I will add more comments to make it clearer",
+      "parentUuid": "275dab39_43bc64b5",
+      "range": {
+        "startLine": 66,
+        "startChar": 21,
+        "endLine": 66,
+        "endChar": 33
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "af90b721_aba010bf",
         "filename": "nectar_tools/expiry/archiver.py",
         "patchSetId": 7
@@ -68,6 +116,30 @@
       "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "47014551_7548caa6",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-01-21T23:05:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "af90b721_aba010bf",
+      "range": {
+        "startLine": 92,
+        "startChar": 21,
+        "endLine": 92,
+        "endChar": 33
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "88fe1f5f_df50c798",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-01-21T23:05:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "fcfbc942_f23c2ded",
+      "range": {
+        "startLine": 515,
+        "startChar": 0,
+        "endLine": 517,
+        "endChar": 43
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "aac9265f_1b6ea199",
         "filename": "nectar_tools/expiry/archiver.py",
         "patchSetId": 7
@@ -114,6 +210,30 @@
       "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6bd0c543_2ff3e187",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-01-21T23:05:55Z",
+      "side": 1,
+      "message": "Ack",
+      "parentUuid": "aac9265f_1b6ea199",
+      "range": {
+        "startLine": 587,
+        "startChar": 27,
+        "endLine": 587,
+        "endChar": 42
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
