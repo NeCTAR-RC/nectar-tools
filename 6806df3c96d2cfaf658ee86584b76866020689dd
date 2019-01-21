@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ef4eeb5_61912c92",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-01-21T03:47:22Z",
+      "side": 1,
+      "message": "instead of doing something like this have a method in here that is called delete_images(images)\n\nand then both the imagearchiver and projectimagearchiver can call this method with what ever images they want. This just makes it a bit simpler eg.\n\nclass ImageArchiver\n  def delete_images(images):\n       # do deletes\n  def delete_resources( ):\n      images \u003d ...\n      delete_images(images)\n\nclass ProjectImageArchiver:\n  def delete_resources( ):\n      images \u003d ....\n       delete_images(images)\n\nMake sense?",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 33
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "275dab39_43bc64b5",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-01-21T03:47:22Z",
+      "side": 1,
+      "message": "where is self.image set?",
+      "range": {
+        "startLine": 66,
+        "startChar": 21,
+        "endLine": 66,
+        "endChar": 33
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "af90b721_aba010bf",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-01-21T03:47:22Z",
+      "side": 1,
+      "message": "same here",
+      "range": {
+        "startLine": 92,
+        "startChar": 21,
+        "endLine": 92,
+        "endChar": 33
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fcfbc942_f23c2ded",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-01-21T03:47:22Z",
+      "side": 1,
+      "message": "this doesn\u0027t look like it\u0027s needed if it\u0027s just doing the super?",
+      "range": {
+        "startLine": 515,
+        "startChar": 0,
+        "endLine": 517,
+        "endChar": 43
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "aac9265f_1b6ea199",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-01-21T03:47:22Z",
+      "side": 1,
+      "message": "where is this set? (mentioned in a few places",
+      "range": {
+        "startLine": 587,
+        "startChar": 27,
+        "endLine": 587,
+        "endChar": 42
+      },
+      "revId": "6806df3c96d2cfaf658ee86584b76866020689dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
