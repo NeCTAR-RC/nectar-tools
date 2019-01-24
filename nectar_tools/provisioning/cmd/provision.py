@@ -53,17 +53,26 @@ class ProvisionCmd(cmd_base.CmdBase):
         self.parser.description = 'Provision Allocations'
         project_group = self.parser.add_mutually_exclusive_group()
         project_group.add_argument('--all', action='store_true',
-                            help='Run over all pending allocations')
+                                   help='Run over all pending allocations')
         project_group.add_argument('-a', '--allocation-id',
-                            help='Allocation ID to process')
+                                   help='Allocation ID to process')
         self.parser.add_argument('-r', '--report', action='store_true',
-                            help='Report current quota')
+                                 help='Report current quota')
         self.parser.add_argument('-s', '--set-quota', action='store_true',
-                            help='Only set quota')
+                                 help='Only set quota')
+        self.parser.add_argument('-f', '--force', action='store_true',
+                                 help='Force processing of allocation')
+        self.parser.add_argument('-n', '--no-notify', action='store_true',
+                                 help='Don\'t notify the user')
 
 
 def main():
     cmd = ProvisionCmd()
+    if cmd.args.force:
+        cmd.manager.force = True
+    if cmd.args.no_notify:
+        cmd.manager.no_notify = True
+
     if cmd.args.all:
         cmd.provision_all_pending()
         return

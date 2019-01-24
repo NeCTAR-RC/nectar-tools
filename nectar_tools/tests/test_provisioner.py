@@ -71,6 +71,27 @@ class ProvisionerTests(test.TestCase):
             mock_quota.assert_not_called()
             mock_notify.assert_not_called()
 
+    def test_provision_force(self):
+        self.manager.force = True
+        self.allocation.provisioned = True
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'update_project'),
+            mock.patch.object(self.manager, 'set_quota'),
+            mock.patch.object(self.manager, 'quota_report'),
+            mock.patch.object(self.manager, 'notify_provisioned'),
+            mock.patch.object(self.manager, 'update_allocation'),
+            mock.patch.object(self.manager, 'revert_expiry'),
+            mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
+        ) as (mock_keystone, mock_update_project, mock_quota, mock_report,
+              mock_notify, mock_update, mock_revert, mock_designate):
+            mock_update.return_value = self.allocation
+            project = fakes.FakeProject()
+            mock_update_project.return_value = project
+            mock_designate.return_value = mock.Mock()
+            self.manager.provision(self.allocation)
+            mock_update_project.assert_called_once_with(self.allocation)
+
     def test_provision_project_not_found(self):
 
         with test.nested(
@@ -249,10 +270,19 @@ class ProvisionerTests(test.TestCase):
             extra_context={'allocation': self.allocation, 'report': 'bar'})
 
     @mock.patch("nectar_tools.provisioning.notifier.ProvisioningNotifier")
-    def test_notify_provisioned_disabled(self, mock_notifier_class):
+    def test_notify_provisioned_disabled_allocation(self, mock_notifier_class):
         mock_notifier = mock.Mock()
         mock_notifier_class.return_value = mock_notifier
         self.allocation.notifications = False
+        self.manager.notify_provisioned(self.allocation, True, None,
+                                        report='bar')
+        mock_notifier.send_message.assert_not_called()
+
+    @mock.patch("nectar_tools.provisioning.notifier.ProvisioningNotifier")
+    def test_notify_provisioned_disabled_setting(self, mock_notifier_class):
+        mock_notifier = mock.Mock()
+        mock_notifier_class.return_value = mock_notifier
+        self.manager.no_notify = True
         self.manager.notify_provisioned(self.allocation, True, None,
                                         report='bar')
         mock_notifier.send_message.assert_not_called()
