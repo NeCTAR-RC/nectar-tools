@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b3852b7d_9f168779",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-01-24T00:10:37Z",
+      "side": 1,
+      "message": "get rid of this logic and just to what it needs to do for this archiver and don\u0027t call super in the child class",
+      "range": {
+        "startLine": 103,
+        "startChar": 6,
+        "endLine": 109,
+        "endChar": 37
+      },
+      "revId": "6d9b51226d3b977db5f651c2c78c29009f45f7dc",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4c6d218c_51df1be6",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-01-24T00:10:37Z",
+      "side": 1,
+      "message": "don\u0027t call super, just call delete_image",
+      "revId": "6d9b51226d3b977db5f651c2c78c29009f45f7dc",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff8efabc_bdfb42a3",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-01-24T00:10:37Z",
+      "side": 1,
+      "message": "don\u0027t call super, just call restrict_image",
+      "range": {
+        "startLine": 539,
+        "startChar": 8,
+        "endLine": 539,
+        "endChar": 74
+      },
+      "revId": "6d9b51226d3b977db5f651c2c78c29009f45f7dc",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
