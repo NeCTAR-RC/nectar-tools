@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e36ea60_ddebb894",
+        "filename": "nectar_tools/expiry/notifier.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-02-06T21:42:41Z",
+      "side": 1,
+      "message": "Need to add tests for this functionality",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 61
+      },
+      "revId": "e800493407a754027a7b1d956224db69135a91ae",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0d3b52f6_f567632e",
+        "filename": "nectar_tools/expiry/notifier.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-02-06T21:42:41Z",
+      "side": 1,
+      "message": "this won\u0027t work for an image as it is nectar_expiry_ticket_id",
+      "range": {
+        "startLine": 79,
+        "startChar": 12,
+        "endLine": 79,
+        "endChar": 69
+      },
+      "revId": "e800493407a754027a7b1d956224db69135a91ae",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "869188c8_0972a9ca",
+        "filename": "nectar_tools/templates/images/archived.tmpl",
+        "patchSetId": 5
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-02-06T21:42:41Z",
+      "side": 1,
+      "message": "This needs some rewording, will draft something up",
+      "range": {
+        "startLine": 3,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 6
+      },
+      "revId": "e800493407a754027a7b1d956224db69135a91ae",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2aa2f6b8_72da9094",
+        "filename": "nectar_tools/templates/images/first-warning.tmpl",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-02-06T21:42:41Z",
+      "side": 1,
+      "message": "also needs some change",
+      "range": {
+        "startLine": 1,
+        "startChar": 1,
+        "endLine": 33,
+        "endChar": 26
+      },
+      "revId": "e800493407a754027a7b1d956224db69135a91ae",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
