@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e02a463a_a45846c2",
+        "filename": "nectar_tools/tests/test_provisioning_notifier.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-02-11T23:14:11Z",
+      "side": 1,
+      "message": "please no camelCase, change to something like project_name",
+      "range": {
+        "startLine": 24,
+        "startChar": 8,
+        "endLine": 24,
+        "endChar": 16
+      },
+      "revId": "54053d84c6c263c0237d3c89aad60919fe70c01c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
