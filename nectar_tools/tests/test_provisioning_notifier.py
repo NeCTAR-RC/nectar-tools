@@ -21,7 +21,8 @@ class ProvisioningNotifierTests(test.TestCase):
 
         self.assertEqual(int(CONF.freshdesk.provisioning_group), n.group_id)
         self.assertEqual('provisioning', n.template_dir)
-        self.assertEqual("Nectar Allocation Provisioned", n.subject)
+        expected_subject = "Nectar Allocation Provisioned: {}".format(PROJECT.name)
+        self.assertEqual(expected_subject, n.subject)
         allocation = mock.Mock()
 
         with test.nested(
