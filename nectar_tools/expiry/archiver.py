@@ -87,7 +87,7 @@ class ImageArchiver(Archiver):
                 if not self.dry_run:
                     LOG.info("Making image %s private", image.id)
                     self.g_client.images.update(
-                        image.id, {'visibility': 'private'})
+                        image.id, visibility='private')
                 else:
                     LOG.info("Would make image %s private", image.id)
             else:

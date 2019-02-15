@@ -721,7 +721,7 @@ class ImageArchiverTests(test.TestCase):
         with mock.patch.object(ia, 'g_client') as mock_image:
             ia._restrict_image(image)
             mock_image.images.update.assert_called_once_with(
-                image.id, {'visibility': 'private'})
+                image.id, visibility='private')
 
     def test_restrict_image_not_private(self):
         image = fakes.FakeImage(visibility='private', owner='123')
