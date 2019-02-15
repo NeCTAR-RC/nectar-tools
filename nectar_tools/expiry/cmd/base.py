@@ -106,15 +106,6 @@ class ProjectExpiryBaseCmd(cmd_base.CmdBase):
                                  in")
 
     @staticmethod
-    def read_file(project_file=False):
-        """Get a list of UUIDs from a file.
-
-        Can be project or user IDs
-        """
-        data = project_file.read()
-        return data.split('\n')
-
-    @staticmethod
     def project_set_defaults(project):
         project.owner = getattr(project, 'owner', None)
         project.expiry_status = getattr(project, 'expiry_status', None)
@@ -136,3 +127,116 @@ class ProjectExpiryBaseCmd(cmd_base.CmdBase):
                     LOG.debug("setting status admin for %s", project.id)
                     self.k_client.projects.update(
                         project.id, expiry_status=expiry_states.ADMIN)
+
+
+class ImageExpiryBaseCmd(cmd_base.CmdBase):
+    def __init__(self):
+        super(ImageExpiryBaseCmd, self).__init__(
+            log_filename='image_expiry.log')
+
+        images = []
+        if self.args.image_id:
+            image = self.g_client.images.get(self.args.image_id)
+            images.append(image)
+        elif self.args.all or self.args.filename:
+            for visibility in ['public', 'shared', 'community']:
+                shared_images = self.g_client.images.list(
+                    filters = {'visibility': visibility})
+                images.extend(shared_images)
+
+            if self.args.filename:
+                wanted_images = self.read_file(self.args.filename)
+                images = [i for i in images if i.id in wanted_images]
+            images.sort(key=lambda image: image.name)
+
+            filters = {'visibility': 'private',
+                       'nectar_expiry_status': 'RESTRICTED'}
+            private_images = self.g_client.images.list(filters = filters)
+            images.extend(list(private_images))
+        else:
+            LOG.error("Need to provide image id(s) or use option --all")
+        self.images = images
+
+    def print_status(self):
+        pt = prettytable.PrettyTable(['Name', 'Image ID', 'Status',
+                                      'Expiry date', 'Ticket ID'])
+        for image in self.images:
+            if self.valid_image(image):
+                self.image_set_defaults(image)
+                pt.add_row([image.name, image.id,
+                            image.expiry_status, image.expiry_next_step,
+                            image.expiry_ticket_id])
+        print(pt)
+
+    @staticmethod
+    def image_set_defaults(image):
+        image.expiry_status = getattr(
+            image, 'nectar_expiry_status', None)
+        image.expiry_next_step = getattr(
+            image, 'nectar_expiry_next_step', None)
+        image.expiry_ticket_id = getattr(
+            image, 'nectar_expiry_ticket_id', None)
+
+    def add_args(self):
+        super(ImageExpiryBaseCmd, self).add_args()
+        self.parser.description = 'Updates non-private image expiry date'
+        image_group = self.parser.add_mutually_exclusive_group()
+        image_group.add_argument('-f', '--filename',
+                                 type=argparse.FileType('r'),
+                                 help='File path with a list of image IDs, \
+                                 one on each line')
+        image_group.add_argument('-i', '--image-id',
+                                 help='Image ID to process')
+        image_group.add_argument('--all', action='store_true',
+                                 help='Run over all images')
+        self.parser.add_argument('-l', '--limit',
+                                 type=int,
+                                 default=0,
+                                 help='Only process this many \
+                                 eligible images.')
+        self.parser.add_argument('-o', '--offset',
+                                 type=int,
+                                 default=None,
+                                 help='Skip this many images \
+                                 before processing.')
+        self.parser.add_argument('-s', '--status', action='store_true',
+                                 help='Report current status of each image.')
+        self.parser.add_argument('--action-state', action='store',
+                                 default=None,
+                                 help='Only process images in this state')
+        self.parser.add_argument('--force-expire', action='store_true',
+                                 help="Expire an image no matter what state it's \
+                                 in")
+        self.parser.add_argument('--force-delete', action='store_true',
+                                 help="Delete an image no matter what state it's \
+                                 in")
+
+    def pre_process_images(self):
+        return
+
+    def process_images(self):
+        LOG.info("Processing images")
+        self.pre_process_images()
+
+        limit = self.args.limit
+        offset = self.args.offset
+        offset_count = 0
+        processed = 0
+
+        for image in self.images:
+            if not self.is_protected_image(image):
+                offset_count += 1
+                if offset is None or offset_count > offset:
+                    try:
+                        ex = self.get_expirer(image)
+                        if ex.process():
+                            processed += 1
+                    except exceptions.InvalidImage:
+                        pass
+                    except Exception:
+                        LOG.exception('Exception processing Image %s',
+                                      image.id)
+                if limit > 0 and processed >= limit:
+                    break
+        LOG.info("Processed %s images", processed)
+        return processed

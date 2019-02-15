@@ -19,3 +19,7 @@ class AllocationDoesNotExist(Exception):
 
 class NoUsageError(Exception):
     pass
+
+
+class InvalidImage(Exception):
+    pass

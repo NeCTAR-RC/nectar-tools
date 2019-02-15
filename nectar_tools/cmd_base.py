@@ -24,8 +24,18 @@ class CmdBase(object):
 
         self.session = auth.get_session()
         self.k_client = auth.get_keystone_client(self.session)
+        self.g_client = auth.get_glance_client(self.session)
 
     def add_args(self):
         self.parser.add_argument('-y', '--no-dry-run', action='store_true',
                         help='Perform the actual actions, default is to \
                               only show what would happen')
+
+    @staticmethod
+    def read_file(uuid_file=False):
+        """Get a list of UUIDs from a file.
+
+        Can be project or user or image IDs
+        """
+        data = uuid_file.read()
+        return data.split('\n')
