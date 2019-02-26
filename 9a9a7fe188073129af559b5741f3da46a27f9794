@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e2edb936_2a314306",
+        "filename": "scripts/midocheck/midocheck/client.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-02-26T04:04:03Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 97,
+        "startChar": 0,
+        "endLine": 111,
+        "endChar": 53
+      },
+      "revId": "9a9a7fe188073129af559b5741f3da46a27f9794",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
