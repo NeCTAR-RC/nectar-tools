@@ -41,8 +41,13 @@ class ProvisionerTests(test.TestCase):
             project = fakes.FakeProject()
             mock_update_project.return_value = project
             mock_designate.return_value = mock.Mock()
+
             self.manager.provision(self.allocation)
             mock_update_project.assert_called_once_with(self.allocation)
+            mock_designate.assert_called_with(
+                {'project': project},
+                self.manager.ks_session,
+                dry_run=self.manager.noop)
             mock_designate.create_resources.called_once_with()
             mock_quota.assert_called_once_with(self.allocation)
             mock_report.assert_called_once_with(self.allocation, html=True,
