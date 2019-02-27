@@ -24,7 +24,7 @@ class ProjectExpiryBaseCmd(cmd_base.CmdBase):
             projects.append(project)
         elif self.args.all or self.args.filename:
             projects = self.k_client.projects.list(enabled=True,
-                                                   domain='default')
+                                                   domain=self.args.domain)
             if self.args.filename:
                 wanted_projects = self.read_file(self.args.filename)
 
@@ -94,6 +94,8 @@ class ProjectExpiryBaseCmd(cmd_base.CmdBase):
                             help='Run over all projects')
         project_group.add_argument('-p', '--project-id',
                             help='Project ID to process')
+        self.parser.add_argument('--domain', default='default',
+                            help='Project domain.')
         self.parser.add_argument('-s', '--status', action='store_true',
                             help='Report current status of each project.')
         self.parser.add_argument('-a', '--set-admin', action='store_true',
