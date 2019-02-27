@@ -210,7 +210,8 @@ class ProvisioningManager(object):
                                   project=new_pt,
                                   user=manager)
 
-        nova_archiver = archiver.NovaArchiver(project, self.ks_session)
+        nova_archiver = archiver.NovaArchiver(
+            {'project': project}, self.ks_session)
         nova_archiver.enable_resources()
 
         return project

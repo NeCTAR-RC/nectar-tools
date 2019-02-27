@@ -303,6 +303,7 @@ class ProvisionerTests(test.TestCase):
             mock_keystone.users.find.return_value = manager
             mock_keystone.projects.get.return_value = old_pt
             mock_keystone.projects.create.return_value = project
+            mock_keystone.projects.update.return_value = project
             archiver = mock.Mock()
             mock_archiver.return_value = archiver
             self.manager.convert_trial(self.allocation)
@@ -335,6 +336,8 @@ class ProvisionerTests(test.TestCase):
                 CONF.keystone.member_role_id,
                 project=project,
                 user=manager)
+            mock_archiver.assert_called_with(
+                {'project': project}, self.manager.ks_session)
             archiver.enable_resources.assert_called_once_with()
 
     def test_convert_trial_no_user(self):
