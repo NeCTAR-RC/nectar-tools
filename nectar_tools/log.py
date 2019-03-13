@@ -8,7 +8,8 @@ CONF = config.CONFIG
 
 @config.configurable('logging')
 def setup(filename=None, file_level='INFO', console_level='INFO',
-          enabled_loggers=None, log_format=None, log_dir=None):
+          enabled_loggers=None, log_format=None, log_dir=None,
+          use_syslog=False):
     if log_format is None:
         log_format = '%(asctime)s %(name)s %(levelname)s %(message)s'
     if enabled_loggers is None:
@@ -21,6 +22,8 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
         file_level = 'DEBUG'
     if CONF.args.quiet:
         console_level = None
+    if CONF.args.use_syslog:
+        use_syslog = True
 
     config = {
         'version': 1,
@@ -45,15 +48,24 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
                 'formatter': 'simple',
                 'filename': filename,
             },
+            'syslog': {
+                'level': file_level,
+                'class': 'logging.handlers.SysLogHandler',
+                'formatter': 'simple',
+                'address': '/dev/log',
+            },
         },
     }
-    handlers = ['console', 'file', 'null']
+    handlers = ['console', 'file', 'null', 'syslog']
     if log_dir and filename:
         config['handlers']['file']['filename'] = path.join(log_dir, filename)
     else:
         del config['handlers']['file']
         handlers.remove('file')
 
+    if not use_syslog:
+        del config['handlers']['syslog']
+        handlers.remove('syslog')
     # Disable console logging if it's not used.
     if not console_level:
         del config['handlers']['console']

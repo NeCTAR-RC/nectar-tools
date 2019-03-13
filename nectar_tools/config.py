@@ -26,6 +26,9 @@ class Config(AttrDict):
                             help='Show debug logging.')
         parser.add_argument('-q', '--quiet', action='store_true',
                             help="Don't print anything on the console.")
+        parser.add_argument('--use_syslog', action='store_true',
+                            default=False,
+                            help="Log to syslog.")
         self._parser = parser
         self._parsed_args = None
 
