@@ -22,8 +22,8 @@ setup(
     description=('A collection of useful tools for operating the '
                  'NeCTAR Research Cloud'),
     long_description=readme + '\n\n' + history,
-    author='Kieran Spear',
-    author_email='kispear@gmail.com',
+    author='Sam Morrison',
+    author_email='sorrison@gmail.com',
     url='https://github.com/NeCTAR-RC/nectar-tools',
     packages=[
         'nectar_tools',
@@ -35,6 +35,8 @@ setup(
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
             'nectar-allocation-expiry = nectar_tools.expiry.cmd.allocation_expirer:main',
             'nectar-allocation-provisioner = nectar_tools.provisioning.cmd.provision:main',
+            'nectar-pt-audit = nectar_tools.audit.cmd.pt:main',
+            'nectar-allocation-audit = nectar_tools.audit.cmd.allocation:main',
         ],
     },
     include_package_data=True,
