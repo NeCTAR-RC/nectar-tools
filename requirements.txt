@@ -3,6 +3,7 @@ python-designateclient
 python-keystoneclient
 python-novaclient
 python-glanceclient
+python-gnocchiclient
 python-cinderclient
 python-neutronclient
 python-swiftclient
