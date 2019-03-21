@@ -3,6 +3,7 @@ import logging
 from cinderclient import client as cinderclient
 from designateclient import client as designateclient
 import glanceclient
+from gnocchiclient import client as gnocchiclient
 from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client
@@ -84,6 +85,12 @@ def get_designate_client(sess=None, project_id=None):
         sess = get_session()
     return designateclient.Client('2', session=sess,
                                   sudo_project_id=project_id)
+
+
+def get_gnocchi_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return gnocchiclient.Client('1', session=sess)
 
 
 def get_swift_client(sess=None, project_id=None):
