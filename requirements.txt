@@ -8,6 +8,7 @@ python-neutronclient
 python-swiftclient
 python-troveclient
 python-manilaclient
+gnocchiclient
 jinja2
 prettytable
 python-freshdesk
