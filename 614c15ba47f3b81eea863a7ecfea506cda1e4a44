@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eec92652_fda9968e",
+        "filename": "nectar_tools/audit/base.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-03-21T23:28:50Z",
+      "side": 1,
+      "message": "what about \nif method !\u003d \u0027run_all\u0027:\n  getattr(self, method)()\nand save 1 line?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 35
+      },
+      "revId": "614c15ba47f3b81eea863a7ecfea506cda1e4a44",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8ef33b4_3b63b5a8",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-03-21T23:28:50Z",
+      "side": 1,
+      "message": "if not allocation_id ?",
+      "range": {
+        "startLine": 21,
+        "startChar": 11,
+        "endLine": 21,
+        "endChar": 32
+      },
+      "revId": "614c15ba47f3b81eea863a7ecfea506cda1e4a44",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
