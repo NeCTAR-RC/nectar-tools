@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a37f350d_c19d510c",
+        "filename": "nectar_tools/audit/cmd/project_base.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2019-03-22T00:52:17Z",
+      "side": 1,
+      "message": "store_true is default False. does this means that default, with no --all and no -p, is do nothing?",
+      "range": {
+        "startLine": 10,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 57
+      },
+      "revId": "53e1c4496ce3e36b8a7439833ba0c13080a64d86",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
