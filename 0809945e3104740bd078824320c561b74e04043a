@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16cc936a_35ca3e03",
+        "filename": "nectar_tools/audit/metric/instance.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2019-03-22T00:38:02Z",
+      "side": 1,
+      "message": "I like self healing, but I expect an Auditor to just tell me what\u0027s wrong and not make any changes (it\u0027s scary otherwise). Maybe we should to discuss on whether there should be a --dry-run mode or a --fix mode or something.",
+      "range": {
+        "startLine": 38,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 71
+      },
+      "revId": "0809945e3104740bd078824320c561b74e04043a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
