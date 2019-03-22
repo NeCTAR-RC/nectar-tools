@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e490519e_c345b8b4",
+        "filename": "nectar_tools/audit/metric/base.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-03-22T03:11:59Z",
+      "side": 1,
+      "message": "worthy to rename it? since we used g_client for glance client in other classes.",
+      "range": {
+        "startLine": 8,
+        "startChar": 13,
+        "endLine": 8,
+        "endChar": 21
+      },
+      "revId": "6c222ed6d5ec1af4269ef9bccfa919f6d12d7a05",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
