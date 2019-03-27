@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "65c6d9ce_c5e15be1",
+        "filename": "nectar_tools/audit/cmd/project_base.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2019-03-27T01:07:36Z",
+      "side": 1,
+      "message": "I think it\u0027s cleaner to use required\u003dTrue here\n\nhttps://docs.python.org/3/library/argparse.html#argparse.ArgumentParser.add_mutually_exclusive_group",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 66
+      },
+      "revId": "6992a4b5f880ad13157207bc871e014a3567d070",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
