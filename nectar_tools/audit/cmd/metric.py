@@ -1,4 +1,5 @@
 from nectar_tools.audit.metric import instance
+from nectar_tools.audit.metric import resource_provider
 from nectar_tools import cmd_base
 
 
@@ -9,8 +10,11 @@ class MetricAuditor(cmd_base.CmdBase):
         self.parser.description = 'Metric auditor'
 
     def run_audits(self):
-        auditor = instance.InstanceAuditor(ks_session=self.session)
-        auditor.run_all()
+        instance_auditor = instance.InstanceAuditor(ks_session=self.session)
+        instance_auditor.run_all()
+        rp_auditor = resource_provider.ResourceProviderAuditor(
+            ks_session=self.session)
+        rp_auditor.run_all()
 
 
 def main():
