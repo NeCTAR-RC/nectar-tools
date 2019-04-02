@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "49298a9f_36af24b0",
+        "filename": "nectar_tools/audit/cmd/project_base.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2019-04-02T03:18:49Z",
+      "side": 1,
+      "message": "not necessary now",
+      "range": {
+        "startLine": 26,
+        "startChar": 0,
+        "endLine": 28,
+        "endChar": 30
+      },
+      "revId": "61436f5c3a5b4b0268feacba7b7eebc60837e12b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
