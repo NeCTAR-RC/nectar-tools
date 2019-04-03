@@ -17,8 +17,22 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
 
     def check_allocation_id(self):
         allocation_id = getattr(self.project, 'allocation_id', None)
+        expiry_status = getattr(self.project, 'expiry_status', '')
+        if expiry_status == 'admin':
+            return
         if not allocation_id:
             LOG.info("%s: No allocation_id", self.project.id)
+            try:
+                allocation = self.a_client.allocations.get_current(
+                    project_id=self.project.id)
+            except allocation_exceptions.AllocationDoesNotExist:
+                LOG.error("%s: Can't find allocation for project",
+                          self.project.id)
+                return
+            LOG.info("%s: Setting allocation_id = %s", self.project.id,
+                     allocation.id)
+            self.k_client.projects.update(self.project.id,
+                                          allocation_id=allocation.id)
             return
         try:
             allocation = self.a_client.allocations.get(allocation_id)
