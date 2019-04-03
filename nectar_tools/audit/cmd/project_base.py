@@ -11,6 +11,8 @@ class ProjectAuditor(cmd_base.CmdBase):
                             help='Run over all projects')
         project_group.add_argument('-p', '--project-id',
                             help='Project ID to process')
+        self.parser.add_argument('--domain', default='default',
+                            help='Project domain.')
 
     def run_audits(self):
         manager = self.get_manager()
@@ -19,7 +21,8 @@ class ProjectAuditor(cmd_base.CmdBase):
             project = self.k_client.projects.get(self.args.project_id)
             projects.append(project)
         elif self.args.all:
-            projects = self.k_client.projects.list(enabled=True)
+            projects = self.k_client.projects.list(enabled=True,
+                                                   domain=self.args.domain)
             projects.sort(key=lambda p: p.name.split('-')[-1].zfill(5))
 
         for project in projects:
