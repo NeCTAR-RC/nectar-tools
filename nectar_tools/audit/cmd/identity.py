@@ -1,5 +1,6 @@
 from nectar_tools import cmd_base
 from nectar_tools.audit.identity import role
+from nectar_tools.audit.identity import user
 
 
 class IdentityAuditorCmd(cmd_base.CmdBase):
@@ -11,6 +12,8 @@ class IdentityAuditorCmd(cmd_base.CmdBase):
     def run_audits(self):
         role_auditor = role.RoleAuditor(self.session)
         role_auditor.run_all()
+        user_auditor = user.UserAuditor(self.session)
+        user_auditor.run_all()
 
 
 def main():

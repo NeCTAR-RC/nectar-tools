@@ -1,16 +1,12 @@
 import logging
 
-from nectar_tools.audit import base
-from nectar_tools import auth
+from nectar_tools.audit.identity import base
 
 
 LOG = logging.getLogger(__name__)
 
 
-class RoleAuditor(base.Auditor):
-
-    def __init__(self, ks_session):
-        self.k_client = auth.get_keystone_client(sess=ks_session)
+class RoleAuditor(base.IdentityAuditor):
 
     def check_unused_roles(self):
         roles = self.k_client.roles.list()
