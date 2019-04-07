@@ -1,10 +1,10 @@
-from nectar_tools import cmd_base
+from nectar_tools.audit.cmd import base
 
 
-class ProjectAuditor(cmd_base.CmdBase):
+class ProjectAuditorCmd(base.AuditCmdBase):
 
     def add_args(self):
-        super(ProjectAuditor, self).add_args()
+        super(ProjectAuditorCmd, self).add_args()
         self.parser.description = 'Project auditor'
         project_group = self.parser.add_mutually_exclusive_group(required=True)
         project_group.add_argument('--all', action='store_true',
@@ -28,4 +28,4 @@ class ProjectAuditor(cmd_base.CmdBase):
         for project in projects:
             if self.is_valid_project(project):
                 auditor = manager(ks_session=self.session, project=project)
-                auditor.run_all()
+                auditor.run_all(list_not_run=self.list_not_run)

@@ -5,7 +5,7 @@ from nectar_tools.audit.projects import pt
 from nectar_tools import utils
 
 
-class PTAuditor(project_base.ProjectAuditor):
+class PTAuditorCmd(project_base.ProjectAuditorCmd):
 
     @staticmethod
     def get_manager():
@@ -16,7 +16,7 @@ class PTAuditor(project_base.ProjectAuditor):
 
 
 def main():
-    cmd = PTAuditor()
+    cmd = PTAuditorCmd()
     cmd.run_audits()
 
 
