@@ -25,6 +25,9 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
     if CONF.args.use_syslog:
         use_syslog = True
 
+    # When set via config this comes in as a string
+    use_syslog = bool(use_syslog)
+
     config = {
         'version': 1,
         'disable_existing_loggers': False,
