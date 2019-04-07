@@ -28,4 +28,4 @@ class ProjectAuditor(cmd_base.CmdBase):
         for project in projects:
             if self.is_valid_project(project):
                 auditor = manager(ks_session=self.session, project=project)
-                auditor.run_all()
+                auditor.run_all(list_not_run=self.list_not_run)

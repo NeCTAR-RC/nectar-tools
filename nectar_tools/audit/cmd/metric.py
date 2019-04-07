@@ -5,16 +5,12 @@ from nectar_tools import cmd_base
 
 class MetricAuditor(cmd_base.CmdBase):
 
+    AUDITORS = [instance.InstanceAuditor,
+                resource_provider.ResourceProviderAuditor]
+
     def add_args(self):
         super(MetricAuditor, self).add_args()
         self.parser.description = 'Metric auditor'
-
-    def run_audits(self):
-        instance_auditor = instance.InstanceAuditor(ks_session=self.session)
-        instance_auditor.run_all()
-        rp_auditor = resource_provider.ResourceProviderAuditor(
-            ks_session=self.session)
-        rp_auditor.run_all()
 
 
 def main():
