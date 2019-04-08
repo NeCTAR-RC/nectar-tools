@@ -1,12 +1,14 @@
 from nectar_tools.audit.cmd import base
 from nectar_tools.audit.metric import instance
 from nectar_tools.audit.metric import resource_provider
+from nectar_tools.audit.metric import tempest_test
 
 
 class MetricAuditorCmd(base.AuditCmdBase):
 
     AUDITORS = [instance.InstanceAuditor,
-                resource_provider.ResourceProviderAuditor]
+                resource_provider.ResourceProviderAuditor,
+                tempest_test.TempestTestAuditor]
 
     def add_args(self):
         super(MetricAuditorCmd, self).add_args()
