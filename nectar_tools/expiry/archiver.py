@@ -377,7 +377,8 @@ class CinderArchiver(Archiver):
             self.c_client.quotas.update(tenant_id=self.project.id,
                                         volumes=0,
                                         gigabytes=0,
-                                        snapshots=0)
+                                        snapshots=0,
+                                        force=True)
         LOG.debug("%s: Zero cinder quota", self.project.id)
 
     def delete_resources(self, force=False):

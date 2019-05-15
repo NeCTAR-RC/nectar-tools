@@ -395,7 +395,7 @@ class CinderArchiverTests(test.TestCase):
             ca.zero_quota()
             mock_quotas.update.assert_called_with(tenant_id=PROJECT.id,
                                                   volumes=0, gigabytes=0,
-                                                  snapshots=0)
+                                                  snapshots=0, force=True)
 
     def test_delete_resources(self):
         ca = archiver.CinderArchiver(resources=PROJECT_RESOURCE)
