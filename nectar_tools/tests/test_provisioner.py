@@ -224,12 +224,83 @@ class ProvisionerTests(test.TestCase):
             mock_update.assert_called_once_with(provisioned=True)
             self.assertEqual(new_allocation, allocation)
 
+    def test_get_compute_zones(self):
+        with mock.patch.object(self.manager, 'a_client') as mock_allocation:
+            mock_allocation.zones.compute_homes.return_value = \
+                                                        fakes.COMPUTE_HOMES
+            zones = self.manager.get_compute_zones(self.allocation)
+            self.assertEqual([], zones)
+
+    def test_get_compute_zones_multiple(self):
+        self.allocation.allocation_home = 'monash'
+        with mock.patch.object(self.manager, 'a_client') as mock_allocation:
+            mock_allocation.zones.compute_homes.return_value = \
+                                                        fakes.COMPUTE_HOMES
+            zones = self.manager.get_compute_zones(self.allocation)
+            self.assertEqual(['monash-01', 'monash-02', 'monash-03'], zones)
+
+    def test_get_incorrect_zones_no_instances(self):
+        project = fakes.FakeProject()
+        with test.nested(
+            mock.patch.object(self.manager, 'get_compute_zones'),
+            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
+        ) as (mock_get_zones, mock_archiver):
+            mock_get_zones.return_value = ['nova', 'nova-2']
+            nova = mock.Mock()
+            mock_archiver.return_value = nova
+            nova._all_instances.return_value = []
+
+            ret_val = self.manager.get_incorrect_zones(self.allocation,
+                                                       project)
+            self.assertFalse(ret_val)
+
+    def test_get_incorrect_zones_instances_out_of_zone(self):
+        project = fakes.FakeProject()
+        with test.nested(
+            mock.patch.object(self.manager, 'get_compute_zones'),
+            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
+        ) as (mock_get_zones, mock_archiver):
+            mock_get_zones.return_value = ['nova', 'nova-2']
+            nova = mock.Mock()
+            mock_archiver.return_value = nova
+            nova._all_instances.return_value = [
+                fakes.FakeInstance(availability_zone='wrong'),
+                fakes.FakeInstance(availability_zone='nova')]
+
+            ret_val = self.manager.get_incorrect_zones(self.allocation,
+                                                      project)
+            self.assertTrue(ret_val)
+
+    def test_get_incorrect_zones_instances_in_zone(self):
+        project = fakes.FakeProject()
+        with test.nested(
+            mock.patch.object(self.manager, 'get_compute_zones'),
+            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
+        ) as (mock_get_zones, mock_archiver):
+            mock_get_zones.return_value = ['nova', 'nova-2']
+            nova = mock.Mock()
+            mock_archiver.return_value = nova
+            nova._all_instances.return_value = [
+                fakes.FakeInstance(availability_zone='nova-2'),
+                fakes.FakeInstance(availability_zone='nova-2'),
+                fakes.FakeInstance(availability_zone='nova')]
+
+            ret_val = self.manager.get_incorrect_zones(self.allocation,
+                                                      project)
+            self.assertFalse(ret_val)
+
     def test_create_project(self):
-        with mock.patch.object(self.manager, 'k_client') as mock_keystone:
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'get_compute_zones')
+         ) as (mock_keystone, mock_get_zones):
+            mock_get_zones.return_value = []
             fake_project = fakes.FakeProject()
             mock_keystone.projects.create.return_value = fake_project
 
             project = self.manager.create_project(self.allocation)
+
+            mock_get_zones.assert_called_once_with(self.allocation)
             mock_keystone.projects.create.assert_called_once_with(
                 name=self.allocation.project_name,
                 domain='default',
@@ -239,8 +310,35 @@ class ProvisionerTests(test.TestCase):
             )
             self.assertEqual(fake_project, project)
 
+    def test_create_project_local(self):
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'get_compute_zones')
+         ) as (mock_keystone, mock_get_zones):
+            mock_get_zones.return_value = ['melbourne-qh2-uom']
+            fake_project = fakes.FakeProject()
+            mock_keystone.projects.create.return_value = fake_project
+
+            project = self.manager.create_project(self.allocation)
+
+            mock_get_zones.assert_called_once_with(self.allocation)
+            mock_keystone.projects.create.assert_called_once_with(
+                name=self.allocation.project_name,
+                domain='default',
+                description=self.allocation.project_description,
+                allocation_id=self.allocation.id,
+                expires=self.allocation.end_date,
+                compute_zones='melbourne-qh2-uom',
+            )
+            self.assertEqual(fake_project, project)
+
     def test_update_project(self):
-        with mock.patch.object(self.manager, 'k_client') as mock_keystone:
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'get_compute_zones')
+         ) as (mock_keystone, mock_get_zones):
+            mock_get_zones.return_value = []
+
             self.manager.update_project(self.allocation)
 
             mock_keystone.projects.update.assert_called_once_with(
@@ -249,6 +347,24 @@ class ProvisionerTests(test.TestCase):
                 description=self.allocation.project_description,
                 allocation_id=self.allocation.id,
                 expires=self.allocation.end_date)
+
+    def test_update_project_local(self):
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'get_compute_zones')
+         ) as (mock_keystone, mock_get_zones):
+            mock_get_zones.return_value = ['tasmania', 'tasmania-s']
+
+            self.manager.update_project(self.allocation)
+
+            mock_keystone.projects.update.assert_called_once_with(
+                self.allocation.project_id,
+                name=self.allocation.project_name,
+                description=self.allocation.project_description,
+                allocation_id=self.allocation.id,
+                expires=self.allocation.end_date,
+                compute_zones='tasmania,tasmania-s',
+                )
 
     def test_grant_owner_roles(self):
         project = fakes.FakeProject()
@@ -265,14 +381,37 @@ class ProvisionerTests(test.TestCase):
             mock_keystone.roles.grant.assert_has_calls(role_calls)
 
     @mock.patch("nectar_tools.provisioning.notifier.ProvisioningNotifier")
-    def test_notify_provisioned(self, mock_notifier_class):
+    def test_notify_provisioned_new(self, mock_notifier_class):
         mock_notifier = mock.Mock()
         mock_notifier_class.return_value = mock_notifier
-        self.manager.notify_provisioned(self.allocation, True, None,
-                                        report='bar')
-        mock_notifier.send_message.assert_called_once_with(
-            'new', self.allocation.contact_email,
-            extra_context={'allocation': self.allocation, 'report': 'bar'})
+        with mock.patch.object(self.manager, 'get_compute_zones') \
+             as mock_get_zones:
+            mock_get_zones.return_value = []
+            self.manager.notify_provisioned(self.allocation, True, None,
+                                            report='bar')
+            mock_notifier.send_message.assert_called_once_with(
+                'new', self.allocation.contact_email,
+                extra_context={'allocation': self.allocation, 'report': 'bar',
+                               'incorrect_zones': [], 'compute_zones': []})
+
+    @mock.patch("nectar_tools.provisioning.notifier.ProvisioningNotifier")
+    def test_notify_provisioned_update(self, mock_notifier_class):
+        mock_notifier = mock.Mock()
+        mock_notifier_class.return_value = mock_notifier
+        with test.nested(
+                mock.patch.object(self.manager, 'get_incorrect_zones'),
+                mock.patch.object(self.manager, 'get_compute_zones'),
+        ) as (mock_incorrect, mock_get_zones):
+            mock_incorrect.return_value = []
+            mock_get_zones.return_value = ['nova', 'nova2']
+
+            self.manager.notify_provisioned(self.allocation, False, None,
+                                            report='bar')
+            mock_notifier.send_message.assert_called_once_with(
+                'update', self.allocation.contact_email,
+                extra_context={'allocation': self.allocation, 'report': 'bar',
+                               'incorrect_zones': [],
+                               'compute_zones': ['nova', 'nova2']})
 
     @mock.patch("nectar_tools.provisioning.notifier.ProvisioningNotifier")
     def test_notify_provisioned_disabled_allocation(self, mock_notifier_class):

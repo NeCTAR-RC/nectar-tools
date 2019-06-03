@@ -1,6 +1,24 @@
 {% extends 'base.tmpl' %}
 
 {% block message %}
-Thanks for your continued use of the Nectar Research Cloud.  Your
+Thanks for your continued use of the Nectar Research Cloud. Your
 request has been processed and the details are below.
+
+Your allocation has been approved as a {{ allocation.allocation_home }} allocation.
+
+{% if allocation.allocation_home == 'national' %} This means you will be able to 
+use compute resources provided by all Nectar sites.
+{% else %}
+This means you will be able to use the compute resources provided by
+the {{ allocation.allocation_home }} Nectar site.
+{% endif %}
+{% if has_instances_out_of_zone %}It looks like you have instances that are outside
+your approved allocation home location. You will need to arrange to move these
+to be within the following compute availability zones:
+<ul>
+{for zone in compute_zones %}
+<li>* {{ zone }}</li>
+{% endfor %}
+</ul>
+{% enfif %}
 {% endblock message %}

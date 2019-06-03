@@ -3,4 +3,12 @@
 {% block message %}
 Congratulations on obtaining Nectar Cloud resources for your project.
 Your request has been processed and the details are below.
+
+Your allocation has been approved as a {{ allocation.allocation_home }} allocation.
+{% if allocation.allocation_home == 'national' %} This means you will be able to 
+use all compute availability zones.
+{% else %}
+This means you will be able to use the compute resources provided by
+the {{ allocation.allocation_home }} Nectar site.
+{% enfif %}
 {% endblock message %}
