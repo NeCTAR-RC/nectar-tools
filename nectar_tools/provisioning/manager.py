@@ -29,6 +29,7 @@ class ProvisioningManager(object):
         self.ks_session = ks_session
         self.client = client.Client(1, session=ks_session)
         self.k_client = auth.get_keystone_client(ks_session)
+        self.a_client = auth.get_allocation_client(ks_session)
 
     def provision(self, allocation):
         if allocation.provisioned:
@@ -96,6 +97,48 @@ class ProvisioningManager(object):
         # Get a fresh copy of object
         return allocation.manager.get(allocation.id)
 
+    def get_project_metadata(self, allocation):
+        metadata = dict(name=allocation.project_name,
+                        description=allocation.project_description,
+                        allocation_id=allocation.id,
+                        expires=allocation.end_date)
+
+        zones = self.get_compute_zones(allocation)
+        if zones:
+            metadata.update(compute_zones=",".join(zones))
+        return metadata
+
+    def get_compute_zones(self, allocation):
+        """Returns a list of zones based on allocation home
+
+        If national or no mapping then return []
+        """
+
+        zone_map = self.a_client.zones.compute_homes()
+        zones = zone_map.get(allocation.allocation_home)
+        if zones:
+            return zones
+        return []
+
+    def get_out_of_zone_instances(self, allocation, project):
+        """Returns list of instances that a project has running in
+        zones that it shouldn't based on its allocation home.
+        """
+        zones = self.get_compute_zones(allocation)
+        if not zones:
+            return []
+        nova_archiver = archiver.NovaArchiver(
+            {'project': project}, self.ks_session)
+        instances = nova_archiver._all_instances()
+        out_of_zone = []
+        for instance in instances:
+            az = getattr(instance, 'OS-EXT-AZ:availability_zone')
+            if az not in zones:
+                # We set this attribute so we can use it in templating
+                setattr(instance, 'availability_zone', az)
+                out_of_zone.append(instance)
+        return out_of_zone
+
     def create_project(self, allocation):
         domain_mappings = collections.defaultdict(lambda: 'default')
         domain_mappings['auckland'] = 'b38a521521d844e49daf98571fa8a153'
@@ -105,12 +148,9 @@ class ProvisioningManager(object):
                      allocation.id, domain)
             return None
 
-        project = self.k_client.projects.create(
-            name=allocation.project_name,
-            domain=domain,
-            description=allocation.project_description,
-            allocation_id=allocation.id,
-            expires=allocation.end_date)
+        metadata = self.get_project_metadata(allocation)
+        metadata.update(domain=domain)
+        project = self.k_client.projects.create(**metadata)
         LOG.info("%s: Created new keystone project %s", allocation.id,
                  project.id)
         return project
@@ -122,12 +162,10 @@ class ProvisioningManager(object):
             return self.k_client.projects.get(allocation.project_id)
         LOG.info("%s: Updating keystone project %s", allocation.id,
                  allocation.project_id)
-        project = self.k_client.projects.update(
-            allocation.project_id,
-            name=allocation.project_name,
-            description=allocation.project_description,
-            allocation_id=allocation.id,
-            expires=allocation.end_date)
+
+        metadata = self.get_project_metadata(allocation)
+        project = self.k_client.projects.update(allocation.project_id,
+                                                **metadata)
         return project
 
     def _grant_owner_roles(self, allocation, project):
@@ -159,12 +197,18 @@ class ProvisioningManager(object):
             LOG.info("%s: Would notify %s", allocation.id,
                      allocation.contact_email)
             return
+        out_of_zone_instances = []
+        compute_zones = self.get_compute_zones(allocation)
         if is_new_project:
             notification = 'new'
         else:
             notification = 'update'
+            out_of_zone_instances = self.get_out_of_zone_instances(allocation,
+                                                                   project)
         notifier = provisioning_notifier.ProvisioningNotifier(project)
-        extra_context = {'allocation': allocation, 'report': report}
+        extra_context = {'allocation': allocation, 'report': report,
+                         'out_of_zone_instances': out_of_zone_instances,
+                         'compute_zones': compute_zones}
         notifier.send_message(notification, allocation.contact_email,
                               extra_context=extra_context)
 
