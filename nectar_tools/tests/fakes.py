@@ -168,6 +168,17 @@ class FakeVolume(object):
         return getattr(self, key, default)
 
 
+COMPUTE_HOMES = {'auckland': ['auckland'],
+                'ersa': ['sa'],
+                'intersect': ['intersect'],
+                'monash': ['monash-01', 'monash-02'],
+                'nci': ['NCI'],
+                'qcif': ['QRIScloud'],
+                'swinburne': ['swinburne-01'],
+                'tpac': ['tasmania', 'tasmania-s'],
+                'uom': ['melbourne-qh2-uom']}
+
+
 ALLOCATION_RESPONSE = {
     "quotas": [
         {
