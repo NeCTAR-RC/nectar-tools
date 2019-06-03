@@ -129,10 +129,12 @@ class FakeAllocationManager(object):
 class FakeInstance(object):
 
     def __init__(self, id='fake', status='ACTIVE', metadata={},
-                 task_state='', vm_state='ACTIVE', host='fakehost', **kwargs):
+                 task_state='', vm_state='ACTIVE', host='fakehost',
+                 availability_zone='nova', **kwargs):
         self.id = id
         self.status = status
         self.metadata = metadata
+        setattr(self, 'OS-EXT-AZ:availability_zone', availability_zone)
         setattr(self, 'OS-EXT-STS:task_state', task_state)
         setattr(self, 'OS-EXT-STS:vm_state', vm_state)
         setattr(self, 'OS-EXT-SRV-ATTR:host', host)
@@ -166,6 +168,17 @@ class FakeVolume(object):
 
     def get(self, key, default=None):
         return getattr(self, key, default)
+
+
+COMPUTE_HOMES = {'auckland': ['auckland'],
+                'ersa': ['sa'],
+                'intersect': ['intersect'],
+                'monash': ['monash-01', 'monash-02', 'monash-03'],
+                'nci': ['NCI'],
+                'qcif': ['QRIScloud'],
+                'swinburne': ['swinburne-01'],
+                'tpac': ['tasmania', 'tasmania-s'],
+                'uom': ['melbourne-qh2-uom']}
 
 
 ALLOCATION_RESPONSE = {
