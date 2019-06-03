@@ -96,6 +96,36 @@ class ProvisioningManager(object):
         # Get a fresh copy of object
         return allocation.manager.get(allocation.id)
 
+    def get_project_metadata(self, allocation):
+        metadata = dict(name=allocation.project_name,
+                        description=allocation.project_description,
+                        allocation_id=allocation.id,
+                        expires=allocation.end_date)
+
+        zones = self.get_compute_zones(allocation)
+        if zones:
+            metadata.update(compute_az=zones)
+        return metadata
+
+    def get_compute_zones(self, allocation):
+        """ Returns a list of zones based on allocation home
+
+        If national or no mapping then return None
+        """
+        zone_map = {'auckland': ['auckland'],
+                    'ersa': ['sa'],
+                    'intersect': ['intersect'],
+                    'monash': ['monash-01', 'monash-02', 'monash-03'],
+                    'nci': ['NCI'],
+                    'qcif': ['QRIScloud'],
+                    'swinburne': ['swinburne-01'],
+                    'tpac': ['tasmania', 'tasmania-s'],
+                    'uom': ['melbourne-qh2-uom'],
+        }
+        zones = zone_map.get(allocation.allocation_home)
+        if zones:
+            return ",".join(zones)
+
     def create_project(self, allocation):
         domain_mappings = collections.defaultdict(lambda: 'default')
         domain_mappings['auckland'] = 'b38a521521d844e49daf98571fa8a153'
@@ -105,12 +135,9 @@ class ProvisioningManager(object):
                      allocation.id, domain)
             return None
 
-        project = self.k_client.projects.create(
-            name=allocation.project_name,
-            domain=domain,
-            description=allocation.project_description,
-            allocation_id=allocation.id,
-            expires=allocation.end_date)
+        metadata = self.get_project_metadata(allocation)
+        metadata.update(domain=domain)
+        project = self.k_client.projects.create(**metadata)
         LOG.info("%s: Created new keystone project %s", allocation.id,
                  project.id)
         return project
@@ -122,12 +149,10 @@ class ProvisioningManager(object):
             return self.k_client.projects.get(allocation.project_id)
         LOG.info("%s: Updating keystone project %s", allocation.id,
                  allocation.project_id)
-        project = self.k_client.projects.update(
-            allocation.project_id,
-            name=allocation.project_name,
-            description=allocation.project_description,
-            allocation_id=allocation.id,
-            expires=allocation.end_date)
+
+        metadata = self.get_project_metadata(allocation)
+        project = self.k_client.projects.update(allocation.project_id,
+                                                **metadata)
         return project
 
     def _grant_owner_roles(self, allocation, project):
