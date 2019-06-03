@@ -225,7 +225,12 @@ class ProvisionerTests(test.TestCase):
             self.assertEqual(new_allocation, allocation)
 
     def test_create_project(self):
-        with mock.patch.object(self.manager, 'k_client') as mock_keystone:
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'a_client')
+         ) as (mock_keystone, mock_allocation):
+            mock_allocation.zones.compute_homes.return_value = \
+                                                        fakes.COMPUTE_HOMES
             fake_project = fakes.FakeProject()
             mock_keystone.projects.create.return_value = fake_project
 
@@ -239,8 +244,35 @@ class ProvisionerTests(test.TestCase):
             )
             self.assertEqual(fake_project, project)
 
+    def test_create_project_local(self):
+        self.allocation.allocation_home = 'monash'
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'a_client')
+         ) as (mock_keystone, mock_allocation):
+            mock_allocation.zones.compute_homes.return_value = \
+                                                        fakes.COMPUTE_HOMES
+            fake_project = fakes.FakeProject()
+            mock_keystone.projects.create.return_value = fake_project
+
+            project = self.manager.create_project(self.allocation)
+            mock_keystone.projects.create.assert_called_once_with(
+                name=self.allocation.project_name,
+                domain='default',
+                description=self.allocation.project_description,
+                allocation_id=self.allocation.id,
+                expires=self.allocation.end_date,
+                compute_az='monash-01,monash-02',
+            )
+            self.assertEqual(fake_project, project)
+
     def test_update_project(self):
-        with mock.patch.object(self.manager, 'k_client') as mock_keystone:
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'a_client')
+         ) as (mock_keystone, mock_allocation):
+            mock_allocation.zones.compute_homes.return_value = \
+                                                        fakes.COMPUTE_HOMES
             self.manager.update_project(self.allocation)
 
             mock_keystone.projects.update.assert_called_once_with(
@@ -249,6 +281,25 @@ class ProvisionerTests(test.TestCase):
                 description=self.allocation.project_description,
                 allocation_id=self.allocation.id,
                 expires=self.allocation.end_date)
+
+    def test_update_project_local(self):
+        self.allocation.allocation_home = 'uom'
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'a_client')
+         ) as (mock_keystone, mock_allocation):
+            mock_allocation.zones.compute_homes.return_value = \
+                                                        fakes.COMPUTE_HOMES
+            self.manager.update_project(self.allocation)
+
+            mock_keystone.projects.update.assert_called_once_with(
+                self.allocation.project_id,
+                name=self.allocation.project_name,
+                description=self.allocation.project_description,
+                allocation_id=self.allocation.id,
+                expires=self.allocation.end_date,
+                compute_az='melbourne-qh2-uom',
+                )
 
     def test_grant_owner_roles(self):
         project = fakes.FakeProject()
