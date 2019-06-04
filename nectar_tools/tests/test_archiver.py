@@ -637,6 +637,7 @@ class DesignateArchiverTests(test.TestCase):
             mock.patch.object(da, '_clean_zone_name'),
         ) as (mock_designate, mock_clean_zone_name):
             mock_clean_zone_name.return_value = fakes.ZONE['name']
+            mock_designate.zones.get.side_effect = designate_exc.NotFound()
             mock_designate.zone_transfers.create_request.return_value = \
                 fakes.ZONE_CREATE_TRANSFER
             mock_designate.zone_transfers.accept_request.return_value = \
@@ -646,6 +647,30 @@ class DesignateArchiverTests(test.TestCase):
 
             mock_designate.zones.create.assert_called_once_with(
                 'myproject.example.com.', email=CONF.designate.zone_email)
+
+            mock_designate.zone_transfers.create_request.\
+                assert_called_once_with(fakes.ZONE['name'], PROJECT.id)
+
+            mock_designate.zone_transfers.accept_request.\
+                assert_called_once_with(fakes.ZONE_CREATE_TRANSFER['id'],
+                                        fakes.ZONE_CREATE_TRANSFER['key'])
+
+    def test_create_zone_exists_not_transferred(self):
+        da = archiver.DesignateArchiver(resources=PROJECT_RESOURCE)
+        with test.nested(
+            mock.patch.object(da, 'd_client'),
+            mock.patch.object(da, '_clean_zone_name'),
+        ) as (mock_designate, mock_clean_zone_name):
+            mock_clean_zone_name.return_value = fakes.ZONE['name']
+            mock_designate.zones.get.side_effect = None
+            mock_designate.zone_transfers.create_request.return_value = \
+                fakes.ZONE_CREATE_TRANSFER
+            mock_designate.zone_transfers.accept_request.return_value = \
+                fakes.ZONE_ACCEPT_TRANSFER
+
+            da._create_zone(fakes.ZONE['name'])
+
+            mock_designate.zones.create.assert_not_called()
 
             mock_designate.zone_transfers.create_request.\
                 assert_called_once_with(fakes.ZONE['name'], PROJECT.id)

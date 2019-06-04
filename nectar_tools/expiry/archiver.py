@@ -636,8 +636,11 @@ class DesignateArchiver(Archiver):
         else:
             self.d_client.session.sudo_project_id = None  # admin
             LOG.debug("%s: Creating new zone %s", self.project.id, name)
-            zone = self.d_client.zones.create(
-                name, email=CONF.designate.zone_email)
+            try:
+                zone = self.d_client.zones.get(name)
+            except designate_exc.NotFound:
+                zone = self.d_client.zones.create(
+                    name, email=CONF.designate.zone_email)
 
             LOG.debug("%s: Transferring zone %s to project", self.project.id,
                       zone['name'])
