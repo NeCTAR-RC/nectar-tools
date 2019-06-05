@@ -22,6 +22,30 @@
       "revId": "2996d0b4eec89a5cfe63ac8d6aec953ecd0e565a",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "90f6b8e5_01b32855",
+        "filename": "nectar_tools/tests/test_archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 665,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-06-05T01:41:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "e212bca8_ea983a1e",
+      "range": {
+        "startLine": 665,
+        "startChar": 51,
+        "endLine": 665,
+        "endChar": 55
+      },
+      "revId": "2996d0b4eec89a5cfe63ac8d6aec953ecd0e565a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
