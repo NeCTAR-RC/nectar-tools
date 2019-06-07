@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8dc36a4d_08b72f90",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 9
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-06-07T06:04:19Z",
+      "side": 1,
+      "message": "ws?",
+      "range": {
+        "startLine": 9,
+        "startChar": 80,
+        "endLine": 9,
+        "endChar": 81
+      },
+      "revId": "74e85c1d48de4c246479aa33035135c3ee8ae4b8",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00db288c_379eb1ae",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 9
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-06-07T06:04:19Z",
+      "side": 1,
+      "message": "maybe be more assertive?\n\nYou have existing instances... ?",
+      "range": {
+        "startLine": 18,
+        "startChar": 3,
+        "endLine": 18,
+        "endChar": 13
+      },
+      "revId": "74e85c1d48de4c246479aa33035135c3ee8ae4b8",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3b32de80_4c968271",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 9
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-06-07T06:04:19Z",
+      "side": 1,
+      "message": "/be within/one of/ ?",
+      "range": {
+        "startLine": 22,
+        "startChar": 3,
+        "endLine": 22,
+        "endChar": 12
+      },
+      "revId": "74e85c1d48de4c246479aa33035135c3ee8ae4b8",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
