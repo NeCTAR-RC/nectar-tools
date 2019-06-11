@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "048c6dae_eea1fb7a",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2019-06-11T05:09:53Z",
+      "side": 1,
+      "message": "is this the requested AZ ?",
+      "range": {
+        "startLine": 138,
+        "startChar": 16,
+        "endLine": 138,
+        "endChar": 58
+      },
+      "revId": "22501ffc4aa6e6d05a37760bdf037198cd030dc3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
