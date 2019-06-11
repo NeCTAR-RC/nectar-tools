@@ -22,6 +22,30 @@
       "revId": "22501ffc4aa6e6d05a37760bdf037198cd030dc3",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dea9eef4_fb2403bb",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-06-11T07:40:39Z",
+      "side": 1,
+      "message": "No I\u0027m setting this attribute on the instance, OS-EXT-AZ:availability_zone is the availability_zone of the instance but it\u0027s hard to work with in a template so am copying it into an attribute called availability_zone that doesn\u0027t exist.\n\nThink you\u0027re getting confused between the API and the DB",
+      "parentUuid": "048c6dae_eea1fb7a",
+      "range": {
+        "startLine": 138,
+        "startChar": 16,
+        "endLine": 138,
+        "endChar": 58
+      },
+      "revId": "22501ffc4aa6e6d05a37760bdf037198cd030dc3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
