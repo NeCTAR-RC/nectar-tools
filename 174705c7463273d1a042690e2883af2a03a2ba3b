@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d9629bd1_01f2381a",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-06-26T05:44:56Z",
+      "side": 1,
+      "message": "how about\n\nreturn zone_map.get(allocation.allocation_home, [])",
+      "range": {
+        "startLine": 118,
+        "startChar": 0,
+        "endLine": 121,
+        "endChar": 17
+      },
+      "revId": "174705c7463273d1a042690e2883af2a03a2ba3b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "717f0e2a_5ea2d217",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-06-26T05:44:56Z",
+      "side": 1,
+      "message": "is this ok for it to return an exception if az is not available?",
+      "range": {
+        "startLine": 135,
+        "startChar": 17,
+        "endLine": 135,
+        "endChar": 24
+      },
+      "revId": "174705c7463273d1a042690e2883af2a03a2ba3b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
