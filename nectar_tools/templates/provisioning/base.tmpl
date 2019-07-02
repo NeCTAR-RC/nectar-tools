@@ -4,13 +4,13 @@ Hi,
 {% block message %}{% endblock message %}
 <br />
 <br />
-Your allocation has been approved as a {{ allocation.allocation_home }} allocation.
+Your allocation has been approved as a {{ allocation.allocation_home_display }} allocation.
 <br />
 {% if allocation.allocation_home == 'national' %} This means you will be able to
 use the cloud resources provided by all nationally funded Nectar sites.
 {% else %}
 This means you will be able to use the cloud resources provided by
-the {{ allocation.allocation_home }} Nectar site.
+the {{ allocation.allocation_home_display }} Nectar site.
 {% endif %}
 <br />
 {% if out_of_zone_instances %}
