@@ -389,14 +389,6 @@ class NovaArchiverTests(test.TestCase):
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class CinderArchiverTests(test.TestCase):
 
-    def test_zero_quota(self):
-        ca = archiver.CinderArchiver(resources=PROJECT_RESOURCE)
-        with mock.patch.object(ca.c_client, 'quotas') as mock_quotas:
-            ca.zero_quota()
-            mock_quotas.update.assert_called_with(tenant_id=PROJECT.id,
-                                                  volumes=0, gigabytes=0,
-                                                  snapshots=0)
-
     def test_delete_resources(self):
         ca = archiver.CinderArchiver(resources=PROJECT_RESOURCE)
         volume1 = fakes.FakeVolume()
