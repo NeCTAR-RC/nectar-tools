@@ -196,13 +196,14 @@ class ProvisionerTests(test.TestCase):
             mock_designate.create_resources.called_once_with()
             mock_quota.assert_called_once_with(self.allocation)
             mock_report.assert_called_once_with(self.allocation, html=True,
-                                                show_current=False)
-            mock_notify.assert_called_once_with(self.allocation, True, project,
+                                                show_current=True)
+            mock_notify.assert_called_once_with(self.allocation, False,
+                                                project,
                                                 mock_report.return_value)
             update_calls = [mock.call(self.allocation, project_id=project.id),
                             mock.call(self.allocation, provisioned=True)]
             mock_update.assert_has_calls(update_calls)
-            mock_revert.assert_not_called()
+            mock_revert.assert_called_once()
 
     @mock.patch('nectar_tools.expiry.expirer.AllocationExpirer')
     def test_revert_expiry(self, mock_expirer):
@@ -437,8 +438,8 @@ class ProvisionerTests(test.TestCase):
     def test_convert_trial(self):
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
-            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
-        ) as (mock_keystone, mock_archiver):
+            mock.patch.object(self.manager, 'get_project_metadata')
+        ) as (mock_keystone, mock_metadata):
             old_pt = fakes.FakeProject(name='pt-123', description='abc')
             project = fakes.FakeProject(id='123')
             manager = mock.Mock()
@@ -446,8 +447,8 @@ class ProvisionerTests(test.TestCase):
             mock_keystone.projects.get.return_value = old_pt
             mock_keystone.projects.create.return_value = project
             mock_keystone.projects.update.return_value = project
-            archiver = mock.Mock()
-            mock_archiver.return_value = archiver
+            fake_metadata = {'name': 'test', 'desc': 'foo'}
+            mock_metadata.return_value = fake_metadata
             self.manager.convert_trial(self.allocation)
 
             new_pt_tmp_name = "%s_copy" % old_pt.name
@@ -461,14 +462,7 @@ class ProvisionerTests(test.TestCase):
                 default_project=mock_keystone.projects.create.return_value)
 
             calls = [
-                mock.call(old_pt.id,
-                          name=self.allocation.project_name,
-                          description=self.allocation.project_description,
-                          status='',
-                        expiry_next_step='',
-                          expiry_status='',
-                          expiry_ticket_id=0,
-                          expiry_updated_at=''),
+                mock.call(old_pt.id, **fake_metadata),
                 mock.call(mock_keystone.projects.create.return_value,
                           name=old_pt.name
                       )
@@ -478,9 +472,6 @@ class ProvisionerTests(test.TestCase):
                 CONF.keystone.member_role_id,
                 project=project,
                 user=manager)
-            mock_archiver.assert_called_with(
-                {'project': project}, self.manager.ks_session)
-            archiver.enable_resources.assert_called_once_with()
 
     def test_convert_trial_no_user(self):
         with mock.patch.object(self.manager, 'k_client') as mock_keystone:
