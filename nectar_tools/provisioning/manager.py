@@ -57,6 +57,7 @@ class ProvisioningManager(object):
 
             if allocation.convert_trial_project:
                 project = self.convert_trial(allocation)
+                is_new_project = False
             else:
                 project = self.create_project(allocation)
             if not self.noop:
@@ -235,25 +236,13 @@ class ProvisioningManager(object):
         self.k_client.users.update(manager, default_project=new_pt)
 
         # Rename existing pt to new project name/desc.
-        # Reset status in case their pt- is pending suspension.
-        project = self.k_client.projects.update(
-            old_pt.id,
-            name=allocation.project_name,
-            description=allocation.project_description,
-            status='',
-            expiry_next_step='',
-            expiry_status='',
-            expiry_ticket_id=0,
-            expiry_updated_at=''
-        )
+        metadata = self.get_project_metadata(allocation)
+        project = self.k_client.projects.update(old_pt.id, **metadata)
+
         self.k_client.projects.update(new_pt, name=old_pt.name)
         self.k_client.roles.grant(CONF.keystone.member_role_id,
                                   project=new_pt,
                                   user=manager)
-
-        nova_archiver = archiver.NovaArchiver(
-            {'project': project}, self.ks_session)
-        nova_archiver.enable_resources()
 
         return project
 
