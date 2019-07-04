@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5574ac8c_1ebbe2d7",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-07-04T23:35:00Z",
+      "side": 1,
+      "message": "Is the + really necessary here?",
+      "range": {
+        "startLine": 108,
+        "startChar": 19,
+        "endLine": 108,
+        "endChar": 20
+      },
+      "revId": "0979f0bf075a823d8b8363c0bc92948aea9573c7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
