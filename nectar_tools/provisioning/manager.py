@@ -1,11 +1,13 @@
 import collections
-from keystoneauth1 import exceptions as keystone_exc
+import datetime
 import logging
+
+from dateutil import relativedelta
+from keystoneauth1 import exceptions as keystone_exc
+from nectarallocationclient import client
 import neutronclient
 import novaclient
 import prettytable
-
-from nectarallocationclient import client
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -75,6 +77,7 @@ class ProvisioningManager(object):
         report = self.quota_report(allocation, html=True,
                                    show_current=not is_new_project)
         self.set_quota(allocation)
+        allocation = self.set_allocation_start_end(allocation)
         self.notify_provisioned(allocation, is_new_project, project, report)
         allocation = self.update_allocation(allocation, provisioned=True)
         LOG.info("%s: Allocation provisioned successfully", allocation.id)
@@ -97,6 +100,17 @@ class ProvisioningManager(object):
         allocation.update(**kwargs)
         # Get a fresh copy of object
         return allocation.manager.get(allocation.id)
+
+    def set_allocation_start_end(self, allocation):
+        duration_months = allocation.estimated_project_duration
+        start_date = datetime.date.today()
+        end_date = start_date + relativedelta.relativedelta(
+            months=+duration_months)
+
+        return self.update_allocation(
+            allocation,
+            start_date=start_date.strftime('%Y-%m-%d'),
+            end_date=end_date.strftime('%Y-%m-%d'))
 
     def get_project_metadata(self, allocation):
         metadata = dict(name=allocation.project_name,

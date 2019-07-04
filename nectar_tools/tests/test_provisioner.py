@@ -1,6 +1,8 @@
+import datetime
 import testfixtures
 from unittest import mock
 
+from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
 import novaclient
 
@@ -33,11 +35,14 @@ class ProvisionerTests(test.TestCase):
             mock.patch.object(self.manager, 'quota_report'),
             mock.patch.object(self.manager, 'notify_provisioned'),
             mock.patch.object(self.manager, 'update_allocation'),
+            mock.patch.object(self.manager, 'set_allocation_start_end'),
             mock.patch.object(self.manager, 'revert_expiry'),
             mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_update_project, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert, mock_designate):
+              mock_notify, mock_update, mock_set_dates, mock_revert,
+              mock_designate):
             mock_update.return_value = self.allocation
+            mock_set_dates.return_value = self.allocation
             project = fakes.FakeProject()
             mock_update_project.return_value = project
             mock_designate.return_value = mock.Mock()
@@ -126,11 +131,14 @@ class ProvisionerTests(test.TestCase):
             mock.patch.object(self.manager, 'quota_report'),
             mock.patch.object(self.manager, 'notify_provisioned'),
             mock.patch.object(self.manager, 'update_allocation'),
+            mock.patch.object(self.manager, 'set_allocation_start_end'),
             mock.patch.object(self.manager, 'revert_expiry'),
             mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_create, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert, mock_designate):
+              mock_notify, mock_update, mock_set_dates, mock_revert,
+              mock_designate):
             mock_update.return_value = self.allocation
+            mock_set_dates.return_value = self.allocation
             project = fakes.FakeProject()
             mock_create.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
@@ -182,11 +190,14 @@ class ProvisionerTests(test.TestCase):
             mock.patch.object(self.manager, 'quota_report'),
             mock.patch.object(self.manager, 'notify_provisioned'),
             mock.patch.object(self.manager, 'update_allocation'),
+            mock.patch.object(self.manager, 'set_allocation_start_end'),
             mock.patch.object(self.manager, 'revert_expiry'),
             mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
         ) as (mock_keystone, mock_convert, mock_quota, mock_report,
-              mock_notify, mock_update, mock_revert, mock_designate):
+              mock_notify, mock_update, mock_set_dates, mock_revert,
+              mock_designate):
             mock_update.return_value = self.allocation
+            mock_set_dates.return_value = self.allocation
             project = fakes.FakeProject()
             mock_convert.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
@@ -224,6 +235,19 @@ class ProvisionerTests(test.TestCase):
                 self.allocation, provisioned=True)
             mock_update.assert_called_once_with(provisioned=True)
             self.assertEqual(new_allocation, allocation)
+
+    def test_set_allocation_start_end(self):
+        with mock.patch.object(
+                self.manager, 'update_allocation') as mock_update:
+            allocation = self.manager.set_allocation_start_end(self.allocation)
+            start = datetime.date.today()
+            duration = self.allocation.estimated_project_duration
+            end = start + relativedelta.relativedelta(months=+duration)
+            mock_update.assert_called_once_with(
+                self.allocation,
+                start_date=start.strftime('%Y-%m-%d'),
+                end_date=end.strftime('%Y-%m-%d'))
+            self.assertEqual(mock_update.return_value, allocation)
 
     def test_get_compute_zones(self):
         with mock.patch.object(self.manager, 'a_client') as mock_allocation:
