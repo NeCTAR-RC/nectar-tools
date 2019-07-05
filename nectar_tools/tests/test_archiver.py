@@ -689,7 +689,7 @@ class ImageArchiverTests(test.TestCase):
 
     def test_delete_image(self):
         image = fakes.FakeImage(visibility='private', owner='123')
-        project = fakes.FakeProject(project_id='123')
+        project = fakes.FakeProject(id='123')
         ia = archiver.ImageArchiver(
             resources={'project': project, 'image': image})
         with mock.patch.object(ia, 'g_client') as mock_image:
@@ -698,7 +698,7 @@ class ImageArchiverTests(test.TestCase):
 
     def test_delete_image_not_public(self):
         image = fakes.FakeImage(visibility='public', owner='123')
-        project = fakes.FakeProject(project_id='123')
+        project = fakes.FakeProject(id='123')
         ia = archiver.ImageArchiver(
             resources={'project': project, 'image': image})
         with mock.patch.object(ia, 'g_client') as mock_image:
@@ -707,7 +707,7 @@ class ImageArchiverTests(test.TestCase):
 
     def test_restrict_image(self):
         image = fakes.FakeImage(visibility='public', owner='123')
-        project = fakes.FakeProject(project_id='123')
+        project = fakes.FakeProject(id='123')
         ia = archiver.ImageArchiver(
             resources={'project': project, 'image': image})
         with mock.patch.object(ia, 'g_client') as mock_image:
@@ -717,7 +717,7 @@ class ImageArchiverTests(test.TestCase):
 
     def test_restrict_image_not_private(self):
         image = fakes.FakeImage(visibility='private', owner='123')
-        project = fakes.FakeProject(project_id='123')
+        project = fakes.FakeProject(id='123')
         ia = archiver.ImageArchiver(
             resources={'project': project, 'image': image})
         with mock.patch.object(ia, 'g_client') as mock_image:
@@ -730,7 +730,7 @@ class ProjectImagesArchiverTests(test.TestCase):
 
     @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._delete_image')
     def test_delete_resources(self, mock_delete):
-        project = fakes.FakeProject(project_id='123')
+        project = fakes.FakeProject(id='123')
         pia = archiver.ProjectImagesArchiver(resources={'project': project})
         image1 = fakes.FakeImage(visibility='private', owner='123')
         image2 = fakes.FakeImage(visibility='public', owner='123')
@@ -745,7 +745,7 @@ class ProjectImagesArchiverTests(test.TestCase):
     @mock.patch(
         'nectar_tools.expiry.archiver.ImageArchiver._restrict_image')
     def test_restrict_resources(self, mock_restrict):
-        project = fakes.FakeProject(project_id='123')
+        project = fakes.FakeProject(id='123')
         pia = archiver.ProjectImagesArchiver(resources={'project': project})
         image1 = fakes.FakeImage(visibility='private', project_id='123')
         image2 = fakes.FakeImage(visibility='public', project_id='123')
