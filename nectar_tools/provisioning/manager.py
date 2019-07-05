@@ -251,8 +251,7 @@ class ProvisioningManager(object):
 
         # Rename existing pt to new project name/desc.
         metadata = self.get_project_metadata(allocation)
-        project = self.k_client.projects.update(old_pt.id, **metadata)
-
+        project = self.k_client.projects.update(old_pt, **metadata)
         self.k_client.projects.update(new_pt, name=old_pt.name)
         self.k_client.roles.grant(CONF.keystone.member_role_id,
                                   project=new_pt,

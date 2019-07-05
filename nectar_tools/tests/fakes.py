@@ -97,11 +97,11 @@ MEMBERS = [mock.Mock(id='member1',
 
 class FakeProject(object):
 
-    def __init__(self, project_id='dummy', name='MyProject',
+    def __init__(self, id='dummy', name='MyProject',
                  domain_id='default', enabled=True, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-        self.id = project_id
+        self.id = id
         self.name = name
         self.domain_id = domain_id
         self.enabled = True
@@ -123,7 +123,13 @@ class FakeAllocationManager(object):
             raise allocation_exceptions.AllocationDoesNotExist()
 
     def update(self, allocation_id, **kwargs):
-        return
+        allocation = self.get(allocation_id)
+        for key, value in kwargs.items():
+            setattr(allocation, key, value)
+        return allocation
+
+    def get(self, id):
+        return allocations.Allocation(self, ALLOCATION_RESPONSE)
 
 
 class FakeInstance(object):
@@ -310,7 +316,7 @@ ALLOCATION_RESPONSE = {
 
 
 def get_allocation():
-    return allocations.Allocation(mock.Mock(), ALLOCATION_RESPONSE)
+    return allocations.Allocation(FakeAllocationManager(), ALLOCATION_RESPONSE)
 
 
 class FakeZone(object):

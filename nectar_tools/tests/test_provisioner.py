@@ -486,7 +486,7 @@ class ProvisionerTests(test.TestCase):
                 default_project=mock_keystone.projects.create.return_value)
 
             calls = [
-                mock.call(old_pt.id, **fake_metadata),
+                mock.call(old_pt, **fake_metadata),
                 mock.call(mock_keystone.projects.create.return_value,
                           name=old_pt.name
                       )
