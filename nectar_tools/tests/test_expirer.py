@@ -24,12 +24,12 @@ AFTER = '2018-01-01'
 
 class FakeProjectWithOwner(object):
 
-    def __init__(self, project_id='dummy', name='pt-123',
+    def __init__(self, id='dummy', name='pt-123',
                  owner=mock.Mock(email='fake@fake.com', enabled=True),
                  **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-        self.id = project_id
+        self.id = id
         self.name = name
         self.owner = owner
 

@@ -28,6 +28,9 @@ class ProvisionerTests(test.TestCase):
         self.manager = manager.ProvisioningManager(ks_session=mock.Mock())
 
     def test_provision(self):
+        """Test provisioning an existing allocation"""
+        self.allocation.project_id = PROJECT.id
+
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
             mock.patch.object(self.manager, 'update_project'),
@@ -66,6 +69,7 @@ class ProvisionerTests(test.TestCase):
 
     def test_provision_already_provisioned(self):
         self.allocation.provisioned = True
+        self.allocation.project_id = PROJECT.id
 
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
@@ -84,6 +88,8 @@ class ProvisionerTests(test.TestCase):
     def test_provision_force(self):
         self.manager.force = True
         self.allocation.provisioned = True
+        self.allocation.project_id = PROJECT.id
+
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
             mock.patch.object(self.manager, 'update_project'),
@@ -103,6 +109,7 @@ class ProvisionerTests(test.TestCase):
             mock_update_project.assert_called_once_with(self.allocation)
 
     def test_provision_project_not_found(self):
+        self.allocation.project_id = PROJECT.id
 
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
@@ -119,6 +126,7 @@ class ProvisionerTests(test.TestCase):
             mock_notify.assert_not_called()
 
     def test_provision_new(self):
+        """Test provisioning a new allocation"""
         self.allocation.project_id = None
         self.allocation.project_name = None
         self.allocation.convert_trial_project = False
@@ -486,7 +494,7 @@ class ProvisionerTests(test.TestCase):
                 default_project=mock_keystone.projects.create.return_value)
 
             calls = [
-                mock.call(old_pt.id, **fake_metadata),
+                mock.call(old_pt, **fake_metadata),
                 mock.call(mock_keystone.projects.create.return_value,
                           name=old_pt.name
                       )
@@ -515,6 +523,7 @@ class ProvisionerTests(test.TestCase):
 
     @mock.patch('nectar_tools.auth.get_nova_client')
     def test_get_current_nova_quota(self, mock_get_nova):
+        self.allocation.project_id = PROJECT.id
         nova_client = mock.Mock()
         mock_get_nova.return_value = nova_client
         quota = {'instance': 30, 'ram': 1, 'cores': 33}
