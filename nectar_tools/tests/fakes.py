@@ -97,11 +97,11 @@ MEMBERS = [mock.Mock(id='member1',
 
 class FakeProject(object):
 
-    def __init__(self, project_id='dummy', name='MyProject',
+    def __init__(self, id='dummy', name='MyProject',
                  domain_id='default', enabled=True, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
-        self.id = project_id
+        self.id = id
         self.name = name
         self.domain_id = domain_id
         self.enabled = True
@@ -118,12 +118,18 @@ class FakeAllocationManager(object):
     def get_current(self, project_id='dummy'):
         try:
             data = self.allocation_cache[project_id]
-            return allocations.Allocation(self, data)
+            return allocations.Allocation(self, data, loaded=True)
         except KeyError:
             raise allocation_exceptions.AllocationDoesNotExist()
 
     def update(self, allocation_id, **kwargs):
-        return
+        allocation = self.get(allocation_id)
+        for key, value in kwargs.items():
+            setattr(allocation, key, value)
+        return allocation
+
+    def get(self, id):
+        return allocations.Allocation(self, ALLOCATION_RESPONSE, loaded=True)
 
 
 class FakeInstance(object):
@@ -293,8 +299,9 @@ ALLOCATION_RESPONSE = {
     "usage_patterns": "dsdsd",
     "requested_allocation_home": "unassigned",
     "allocation_home": "national",
+    "allocation_home_display": "National",
     "geographic_requirements": "dssd",
-    "project_id": "0e36fd26f4784e76a17ae2fb144d4e0a",
+    "project_id": None,
     "estimated_number_users": 1,
     "field_of_research_1": "010101",
     "for_percentage_1": 100,
@@ -310,7 +317,8 @@ ALLOCATION_RESPONSE = {
 
 
 def get_allocation():
-    return allocations.Allocation(mock.Mock(), ALLOCATION_RESPONSE)
+    return allocations.Allocation(FakeAllocationManager(), ALLOCATION_RESPONSE,
+                                  loaded=True)
 
 
 class FakeZone(object):

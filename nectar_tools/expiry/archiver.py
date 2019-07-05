@@ -369,7 +369,7 @@ class CinderArchiver(Archiver):
 
     def __init__(self, resources, ks_session=None, dry_run=False):
         super(CinderArchiver, self).__init__(resources, ks_session, dry_run)
-        self.c_client = auth.get_cinder_client()
+        self.c_client = auth.get_cinder_client(ks_session)
         self.volumes = None
 
     def delete_resources(self, force=False):
@@ -404,7 +404,7 @@ class NeutronBasicArchiver(Archiver):
     def __init__(self, resources, ks_session=None, dry_run=False):
         super(NeutronBasicArchiver, self).__init__(resources, ks_session,
                                                    dry_run)
-        self.ne_client = auth.get_neutron_client()
+        self.ne_client = auth.get_neutron_client(ks_session)
 
     def zero_quota(self):
         body = {'quota': {'port': 0,
@@ -577,7 +577,7 @@ class DesignateArchiver(Archiver):
         super(DesignateArchiver, self).__init__(resources, ks_session, dry_run)
         if not dry_run:
             self.d_client = auth.get_designate_client(
-                project_id=self.project.id)
+                ks_session, project_id=self.project.id)
 
     def delete_resources(self, force=False):
         if not force:
