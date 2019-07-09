@@ -1,5 +1,10 @@
 import logging
 
+try:
+    from grafana_api import grafana_face
+except ImportError:
+    grafana_face = None
+
 from cinderclient import client as cinderclient
 from designateclient import client as designateclient
 import glanceclient
@@ -127,3 +132,12 @@ def get_placement_client(sess=None):
     if not sess:
         sess = get_session()
     return placementclient.Client(version='1', session=sess)
+
+
+@configurable('grafana')
+def get_grafana_client(host, username, password, port=3000):
+    if grafana_face:
+        return grafana_face.GrafanaFace(
+            auth=(username, password),
+            host=host,
+            port=port)

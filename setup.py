@@ -45,6 +45,7 @@ setup(
             'nectar-project-allocation-audit = nectar_tools.audit.cmd.project:main',
             'nectar-pt-audit = nectar_tools.audit.cmd.pt:main',
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
+            'nectar-grafana-audit = nectar_tools.audit.cmd.grafana:main',
         ],
     },
     include_package_data=True,
