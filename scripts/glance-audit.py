@@ -138,14 +138,22 @@ def delete_image_set(gc, connection, image_set, container, noop=True):
     for image_id in image_set:
         delete = False
         try:
-            image = gc.images.get(image_id)
-            if image.status == 'killed':
+            try:
+                image = gc.images.get(image_id)
+            except Exception, e:
+                print "Failed to get image with ID %s" % image_id
+                print e
+                image = None
+            if image is None:
+                delete = True
+            elif image.status == 'killed':
                 delete = True
             else:
-                print "Skipping active image %s" % image_id
-                print "Status: %s" % image.status
-                print "Created: %s, Updated %s" % (image.created_at,
-                                                   image.updated_at)
+                delete = False
+                #print "Skipping active image %s" % image_id
+                #print "Status: %s" % image.status
+                #print "Created: %s, Updated %s" % (image.created_at,
+                #                                   image.updated_at)
 
         except glanceclient.exc.HTTPNotFound:
             delete = True
