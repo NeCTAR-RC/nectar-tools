@@ -4,7 +4,6 @@ import swiftclient
 from keystoneclient.exceptions import AuthorizationFailure
 import os
 import sys
-import MySQLdb
 import time
 import requests
 import json
@@ -12,6 +11,7 @@ import json
 from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client
+from nectarallocationclient import client as allocation_client
 
 
 SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
@@ -51,34 +51,8 @@ def get_swift_client(sess=None, project_id=None):
     return swiftclient.client.Connection(session=sess, os_options=os_opts)
 
 
-class NectarApiSession(requests.Session):
-    """Class to encapsulate the rest api endpoint with a requests session.
-
-    """
-    def __init__(self, api_url=None, api_username=None,
-                 api_password=None, *args, **kwargs):
-        username = os.environ.get('NECTAR_ALLOCATIONS_USERNAME', api_username)
-        password = os.environ.get('NECTAR_ALLOCATIONS_PASSWORD', api_password)
-        self.api_url = os.environ.get('NECTAR_ALLOCATIONS_URL', api_url)
-        assert username and password and self.api_url
-        requests.Session.__init__(self, *args, **kwargs)
-        self.auth = (username, password)
-
-    def _api_get(self, rel_url, *args, **kwargs):
-        return self.get("%s%s" % (self.api_url, rel_url), *args, **kwargs)
-
-    def get_allocations(self):
-        req = self._api_get('/rest_api/allocations')
-        req.raise_for_status()
-        return req.json()
-
-    def get_quotas(self, allocation, resource='object', zone='nectar'):
-        url = '/rest_api/quotas/?resource=%s&zone=%s' % (resource, zone)
-        if allocation:
-            url += '&allocation=%s' % allocation
-        req = self._api_get(url)
-        req.raise_for_status()
-        return req.json()
+def get_allocation_client(sess=None):
+    return allocation_client.Client('1', session=sess)
 
 
 def set_swift_quota(client, tenant, quota):
@@ -110,11 +84,9 @@ def swift_data(sclient):
 
 
 def allocation_is_valid(allocation):
-    if not allocation['tenant_uuid']:
+    if not allocation.project_id:
         return False
-    if allocation['parent_request'] is not None:
-        return False
-    if allocation['status'] not in ('A', 'X'):
+    if allocation.status not in ('A', 'X'):
         return False
     return True
 
@@ -123,28 +95,28 @@ if __name__ == '__main__':
     ksession = get_session()
     kc = get_keystone_client(ksession)
 
-    allocation_api = NectarApiSession()
-    allocations = allocation_api.get_allocations()
+    allocation_api = get_allocation_client(ksession)
+    allocations = allocation_api.allocations.list(parent_request__isnull=True)
 
     quota_dict = {}
     for allocation in allocations:
         if not allocation_is_valid(allocation):
             continue
-        tenant = allocation['tenant_uuid']
-        quota = allocation_api.get_quotas(allocation=allocation['id'])
-        if len(quota) == 1:
-            quota_dict[tenant] = int(quota[0]['allocation']) * 1024 * 1024 * 1024
+        project = allocation.project_id
+        quota = allocation.get_allocated_swift_quota()['object']
+        quota_dict[project] = int(quota) * 1024 * 1024 * 1024
     projects = kc.projects.list()
 
-    #t = kc.projects.get('25')
-    #projects = [t]
+    # t = kc.projects.get('23')
+    # projects = [t]
     for project in projects:
         if not project.enabled:
             continue
-        #if not project.name.startswith('pt-'):
+        # if not project.name.startswith('pt-'):
         #    continue
 
-        role_assignments = kc.role_assignments.list(project=project.id, include_names=True)
+        role_assignments = kc.role_assignments.list(project=project.id,
+                                                    include_names=True)
         user_emails = []
         for ra in role_assignments:
             if ra.user['name'] not in user_emails:
@@ -160,6 +132,9 @@ if __name__ == '__main__':
             if gbs < allocated and quota == -1:
                 set_swift_quota(sclient, project, allocated)
                 quota = allocated
+            if gbs > allocated:
+                sys.stderr.write(
+                    "PT %s using more than they should!" % project.name)
         else:
             if allocated and quota == -1 and gbs <= allocated:
                 set_swift_quota(sclient, project, allocated)
