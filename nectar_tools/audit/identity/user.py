@@ -32,6 +32,8 @@ class UserAuditor(base.IdentityAuditor):
                 LOG.warn("User %s default_project_id points to non existant"
                          "project", user.name)
                 continue
+            if getattr(project, 'expiry_status') == 'admin':
+                continue
             if not project.name.startswith('pt-'):
                 LOG.warn("User %s default_project_id is not a Project Trial",
                          user.name)
