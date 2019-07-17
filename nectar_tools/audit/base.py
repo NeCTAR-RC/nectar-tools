@@ -1,10 +1,15 @@
 import logging
 
+from nectar_tools import auth
+
 
 LOG = logging.getLogger(__name__)
 
 
 class Auditor(object):
+
+    def __init__(self, ks_session):
+        self.sdk_client = auth.get_openstacksdk(sess=ks_session)
 
     def run_all(self, list_not_run=False):
         public_method_names = [method for method in dir(self)
