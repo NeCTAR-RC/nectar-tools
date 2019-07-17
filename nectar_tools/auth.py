@@ -11,6 +11,7 @@ from manilaclient import client as manilaclient
 from nectarallocationclient import client as allocationclient
 from neutronclient.neutron import client as neutronclient
 from novaclient import client as novaclient
+from openstack import connection as sdkconnection
 from swiftclient import client as swiftclient
 from troveclient import client as troveclient
 
@@ -104,3 +105,9 @@ def get_swift_client(sess=None, project_id=None):
                                     'AUTH_%s' % project_id)
         os_opts['object_storage_url'] = '%s' % endpoint
     return swiftclient.Connection(session=sess, os_options=os_opts)
+
+
+def get_openstacksdk(sess=None):
+    if not sess:
+        sess = get_session()
+    return sdkconnection.Connection(session=sess)
