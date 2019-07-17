@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cdd17aef_f64664c6",
+        "filename": "nectar_tools/audit/compute/instance.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-07-17T23:20:14Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 14
+      },
+      "revId": "78f7632d690f43c0f8354c4f707f363b2694d368",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8a23f8d_286a2cd6",
+        "filename": "nectar_tools/audit/compute/instance.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-07-17T23:20:14Z",
+      "side": 1,
+      "message": "either uncomment or remove, seem to be ones that would be useful?",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 20,
+        "endChar": 14
+      },
+      "revId": "78f7632d690f43c0f8354c4f707f363b2694d368",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ee0c0a7_13a26403",
+        "filename": "nectar_tools/auth.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-07-17T23:20:14Z",
+      "side": 1,
+      "message": "needs to be added to requirements",
+      "range": {
+        "startLine": 14,
+        "startChar": 0,
+        "endLine": 14,
+        "endChar": 49
+      },
+      "revId": "78f7632d690f43c0f8354c4f707f363b2694d368",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
