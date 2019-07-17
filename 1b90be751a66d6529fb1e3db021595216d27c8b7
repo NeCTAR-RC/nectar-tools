@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "64ef15af_3196c293",
+        "filename": "nectar_tools/audit/compute/instance.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-07-17T06:47:58Z",
+      "side": 1,
+      "message": "not valid state for queens",
+      "range": {
+        "startLine": 13,
+        "startChar": 5,
+        "endLine": 13,
+        "endChar": 12
+      },
+      "revId": "1b90be751a66d6529fb1e3db021595216d27c8b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25cc4df5_9aef50b9",
+        "filename": "nectar_tools/audit/compute/instance.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-07-17T06:47:58Z",
+      "side": 1,
+      "message": "need all projects",
+      "range": {
+        "startLine": 31,
+        "startChar": 7,
+        "endLine": 31,
+        "endChar": 71
+      },
+      "revId": "1b90be751a66d6529fb1e3db021595216d27c8b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
