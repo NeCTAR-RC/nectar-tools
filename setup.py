@@ -39,6 +39,7 @@ setup(
             'nectar-allocation-audit = nectar_tools.audit.cmd.allocation:main',
             'nectar-identity-audit = nectar_tools.audit.cmd.identity:main',
             'nectar-metric-audit = nectar_tools.audit.cmd.metric:main',
+            'nectar-compute-audit = nectar_tools.audit.cmd.compute:main',
         ],
     },
     include_package_data=True,
