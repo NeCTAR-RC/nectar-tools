@@ -14,6 +14,17 @@ class ResourceProviderAuditor(base.ResourceAuditor):
             resource_type='resource_provider',
             query='site=null')
 
+        domain_site_mapping = {
+            'monash.edu.au': 'monash',
+            'melbourne.nectar.org.au': 'melbourne',
+            'unimelb.edu.au': 'melbourne',
+            'qld.nectar.org.au': 'QRIScloud',
+            'auckland': 'auckland',
+            'intersect': 'intersect',
+            'tpac.org.au': 'tasmania',
+            'mgmt.sut': 'swinburne',
+        }
+
         for rp in resources:
             LOG.info("Processing %s", rp['name'])
             old_resources = self.g_client.resource.search(
@@ -30,44 +41,16 @@ class ResourceProviderAuditor(base.ResourceAuditor):
                     resource_id=rp['id'],
                     resource={'site': site})
             else:
-                if 'monash.edu.au' in rp['name']:
-                    self.g_client.resource.update(
-                        resource_type='resource_provider',
-                        resource_id=rp['id'], resource={'site': 'monash'})
-                    LOG.info("Set %s to monash", rp['name'])
-                    continue
-                if 'melbourne.nectar.org.au' in rp['name']:
-                    self.g_client.resource.update(
-                        resource_type='resource_provider',
-                        resource_id=rp['id'], resource={'site': 'melbourne'})
-                    LOG.info("Set %s to melbourne", rp['name'])
-                    continue
-                if 'unimelb.edu.au' in rp['name']:
-                    self.g_client.resource.update(
-                        resource_type='resource_provider',
-                        resource_id=rp['id'], resource={'site': 'melbourne'})
-                    LOG.info("Set %s to melbourne", rp['name'])
-                    continue
-                if 'qld.nectar.org.au' in rp['name']:
-                    self.g_client.resource.update(
-                        resource_type='resource_provider',
-                        resource_id=rp['id'], resource={'site': 'QRIScloud'})
-                    LOG.info("Set %s to QRIScloud", rp['name'])
-                    continue
-                if 'auckland' in rp['name']:
-                    self.g_client.resource.update(
-                        resource_type='resource_provider',
-                        resource_id=rp['id'], resource={'site': 'auckland'})
-                    LOG.info("Set %s to auckland", rp['name'])
-                    continue
-                if 'intersect' in rp['name']:
-                    self.g_client.resource.update(
-                        resource_type='resource_provider',
-                        resource_id=rp['id'], resource={'site': 'intersect'})
-                    LOG.info("Set %s to intersect", rp['name'])
-                    continue
-                LOG.info("No old resource_provider so don't know which "
-                         "site to assign to fix with: "
-                         "self.g_client resource update "
-                         "--type resource_provider"
-                         "-a 'site:<site>' %s", rp['id'])
+                for domain_search, site in domain_site_mapping.items():
+                    if domain_search in rp['name']:
+                        self.g_client.resource.update(
+                            resource_type='resource_provider',
+                            resource_id=rp['id'], resource={'site': site})
+                        LOG.info("Set %s to %s", rp['name'], site)
+                        break
+                else:
+                    LOG.info("No old resource_provider so don't know which "
+                             "site to assign to fix with: "
+                             "self.g_client resource update "
+                             "--type resource_provider"
+                             "-a 'site:<site>' %s", rp['id'])
