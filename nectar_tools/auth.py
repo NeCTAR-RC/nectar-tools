@@ -81,11 +81,12 @@ def get_trove_client(sess=None):
     return troveclient.Client('1.0', session=sess)
 
 
-def get_designate_client(sess=None, project_id=None):
+def get_designate_client(sess=None, project_id=None, all_projects=False):
     if not sess:
         sess = get_session()
     return designateclient.Client('2', session=sess,
-                                  sudo_project_id=project_id)
+                                  sudo_project_id=project_id,
+                                  all_projects=all_projects)
 
 
 def get_gnocchi_client(sess=None):
