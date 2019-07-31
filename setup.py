@@ -40,6 +40,7 @@ setup(
             'nectar-identity-audit = nectar_tools.audit.cmd.identity:main',
             'nectar-metric-audit = nectar_tools.audit.cmd.metric:main',
             'nectar-compute-audit = nectar_tools.audit.cmd.compute:main',
+            'nectar-dns-audit = nectar_tools.audit.cmd.dns:main',
         ],
     },
     include_package_data=True,
