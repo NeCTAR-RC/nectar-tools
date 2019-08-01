@@ -333,6 +333,8 @@ class ProjectExpirerTests(test.TestCase):
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
             new=mock.Mock())
+@mock.patch('nectarallocationclient.v1.zones.ZoneManager',
+            new=fakes.FakeZoneManager)
 @mock.patch('nectarallocationclient.v1.allocations.AllocationManager',
             new=fakes.FakeAllocationManager)
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
@@ -520,6 +522,157 @@ class AllocationExpiryTests(test.TestCase):
         with mock.patch.object(ex, 'delete_resources') as mock_delete:
             self.assertTrue(ex.process())
             mock_delete.assert_called_with()
+
+    def test_process_allocation_renewed_local_allocation(self):
+        project = fakes.FakeProject(expiry_status=expiry_states.RENEWED)
+        ex = expirer.AllocationExpirer(project)
+        expected_zones = "monash-01,monash-02,monash-03"
+        ex.zones = expected_zones.split(",")
+
+        with test.nested(
+            mock.patch.object(ex, 'revert_expiry'),
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'get_out_of_zone_instances')
+        ) as (mock_revert, mock_update, mock_get_instances):
+            self.assertTrue(ex.process())
+            mock_revert.assert_called_once_with()
+            mock_update.assert_called_once_with(compute_zones=expected_zones)
+            mock_get_instances.assert_called_once_with()
+
+    def test_process_force_delete_local_allocation(self):
+        project = fakes.FakeProject('warning1')
+        ex = expirer.AllocationExpirer(project, force_delete=True)
+        ex.zones = "local allocation"
+
+        with test.nested(
+            mock.patch.object(ex, 'delete_project'),
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'get_out_of_zone_instances')
+        ) as (mock_delete, mock_update, mock_get_instances):
+            self.assertTrue(ex.process())
+            mock_delete.assert_called_with()
+            mock_update.assert_not_called()
+            mock_get_instances.assert_not_called()
+
+    def test_process_active_local_allocation(self):
+        project = fakes.FakeProject('active')
+        ex = expirer.AllocationExpirer(project)
+        expected_zones = "monash-01,monash-02,monash-03"
+        ex.zones = expected_zones.split(",")
+
+        with test.nested(
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'get_out_of_zone_instances')
+        ) as (mock_update, mock_get_instances):
+            self.assertFalse(ex.process())
+            mock_update.assert_called_once_with(compute_zones=expected_zones)
+            mock_get_instances.assert_called_once_with()
+
+    def test_process_send_warning_local_allocation(self):
+        project = fakes.FakeProject('warning1')
+        ex = expirer.AllocationExpirer(project)
+        expected_zones = "monash-01,monash-02,monash-03"
+        ex.zones = expected_zones.split(",")
+
+        with test.nested(
+            mock.patch.object(ex, 'send_warning'),
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'get_out_of_zone_instances')
+        ) as (mock_send_warning, mock_update, mock_get_instances):
+            self.assertTrue(ex.process())
+            mock_send_warning.assert_called_with()
+            mock_update.assert_called_once_with(compute_zones=expected_zones)
+            mock_get_instances.assert_called_once_with()
+
+    def test_get_compute_zone(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+
+        with mock.patch.object(ex, 'a_client') as mock_allocation:
+            mock_allocation.zones.compute_homes.return_value = \
+                fakes.COMPUTE_HOMES
+            zones = ex.get_compute_zones()
+            self.assertEqual([], zones)
+
+    def test_get_compute_zone_national(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+        ex.allocation.allcation_home = 'national'
+
+        with mock.patch.object(ex, 'a_client') as mock_allocation:
+            mock_allocation.zones.compute_homes.return_value = \
+                fakes.COMPUTE_HOMES
+            zones = ex.get_compute_zones()
+            self.assertEqual([], zones)
+
+    def test_get_compute_zone_multiple(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+        ex.allocation.allocation_home = 'monash'
+
+        with mock.patch.object(ex, 'a_client') as mock_allocation:
+            mock_allocation.zones.compute_homes.return_value = \
+                    fakes.COMPUTE_HOMES
+            zones = ex.get_compute_zones()
+            self.assertEqual(['monash-01', 'monash-02', 'monash-03'], zones)
+
+    def test_update_project_zones_no_compute_zone(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+        expected_zones = 'zone1,zone2'
+        ex.zones = expected_zones.split(",")
+
+        with mock.patch.object(ex, '_update_project') as mock_update_project:
+            ex.update_project_zones()
+            mock_update_project.assert_called_once_with(
+                compute_zones=expected_zones)
+
+    def test_update_project_zones_with_compute_zone(self):
+        project = fakes.FakeProject(
+            compute_zones='monash-01,monash-02,monash-03')
+        ex = expirer.AllocationExpirer(project)
+        ex.zones = ['monash-01', 'monash-02', 'monash-03']
+
+        with mock.patch.object(ex, '_update_project') as mock_update_project:
+            ex.update_project_zones()
+            mock_update_project.assert_not_called()
+
+    def test_update_project_zones_with_incorrect_compute_zone(self):
+        project = fakes.FakeProject(compute_zones='invalid')
+        ex = expirer.AllocationExpirer(project)
+        expected_zones = 'monash-01,monash-02,monash-03'
+        ex.zones = expected_zones.split(",")
+
+        with mock.patch.object(ex, '_update_project') as mock_update_project:
+            ex.update_project_zones()
+            mock_update_project.assert_called_once_with(
+                compute_zones=expected_zones)
+
+    def test_get_out_of_zone_instances(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+        ex.zones = ['zone1', 'zone2']
+        instance1 = mock.Mock()
+        instance2 = mock.Mock()
+        instance3 = mock.Mock()
+        setattr(instance1, "OS-EXT-AZ:availability_zone", 'zone2')
+        setattr(instance2, "OS-EXT-AZ:availability_zone", 'zone3')
+        setattr(instance3, "OS-EXT-AZ:availability_zone", 'zone4')
+        az1 = mock.PropertyMock()
+        az2 = mock.PropertyMock()
+        az3 = mock.PropertyMock()
+        type(instance1).availability_zone = az1
+        type(instance2).availability_zone = az2
+        type(instance3).availability_zone = az3
+
+        with mock.patch.object(ex, 'n_client') as mock_nova:
+            mock_nova.servers.list.return_value = \
+                [instance1, instance2, instance3]
+            out_of_zone = ex.get_out_of_zone_instances()
+            self.assertEqual(out_of_zone, [instance2, instance3])
+            az1.assert_not_called()
+            az2.assert_called_once_with('zone3')
+            az3.assert_called_once_with('zone4')
 
     def test_get_notice_period_days(self):
         project = fakes.FakeProject()
@@ -736,6 +889,8 @@ class AllocationExpiryTests(test.TestCase):
     def test_send_notification(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
+        ex.out_of_zone_instances = ['instance1', 'instance2']
+        ex.zones = ['zone1', 'zone2']
         with test.nested(
             mock.patch.object(ex, 'notifier'),
             mock.patch.object(ex, '_get_notification_context',
@@ -744,7 +899,9 @@ class AllocationExpiryTests(test.TestCase):
                               return_value=('owner@fake.org',
                                             ['manager1@fake.org']))
         ) as (mock_notifier, mock_context, mock_recipients):
-            expected_context = {'foo': 'bar', 'foo2': 'bar2'}
+            expected_context = {'foo': 'bar', 'foo2': 'bar2',
+                'out_of_zone_instances': ['instance1', 'instance2'],
+                'compute_zones': ['zone1', 'zone2']}
             ex._send_notification('fakestage', {'foo2': 'bar2'})
             mock_notifier.send_message.assert_called_with(
                 'fakestage', 'owner@fake.org', extra_context=expected_context,

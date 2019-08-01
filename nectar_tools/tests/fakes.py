@@ -14,6 +14,7 @@ ALLOCATIONS = {
               'quotas': [],
               'contact_email': 'fake@fake.org',
               'approver_email': 'approver@fake.org',
+              'allocation_home': 'national',
               'notifications': True},
     'no-notifications': {'id': 1,
                          'project_id': 'dummy',
@@ -24,6 +25,7 @@ ALLOCATIONS = {
                          'quotas': [],
                          'contact_email': 'fake@fake.org',
                          'approver_email': 'approver@fake.org',
+                         'allocation_home': 'national',
                          'notifications': False},
     'warning1': {'id': 2,
                  'project_id': 'warning1',
@@ -32,6 +34,7 @@ ALLOCATIONS = {
                  'end_date': '2017-01-01',
                  'modified_time': '2015-01-02T10:10:10Z',
                  'quotas': [],
+                 'allocation_home': 'national',
                  'contact_email': 'fake@fake.org'},
     'warning2': {'id': 3,
                  'project_id': 'warning2',
@@ -40,6 +43,7 @@ ALLOCATIONS = {
                  'end_date': '2017-01-01',
                  'modified_time': '2016-01-02T10:10:10Z',
                  'quotas': [],
+                 'allocation_home': 'national',
                  'contact_email': 'fake@fake.org'},
     'active': {'id': 4,
                'project_id': 'active',
@@ -48,6 +52,7 @@ ALLOCATIONS = {
                'end_date': '2018-01-01',
                'modified_time': '2015-01-02T10:10:10Z',
                'quotas': [],
+               'allocation_home': 'national',
                'contact_email': 'fake@fake.org'},
     'pending1': {'id': 6,
                  'project_id': 'pending1',
@@ -56,6 +61,7 @@ ALLOCATIONS = {
                  'end_date': '2016-07-01',
                  'modified_time': '2016-01-02T10:10:10Z',
                  'quotas': [],
+                 'allocation_home': 'national',
                  'contact_email': 'fake@fake.org'},
     'pending2': {'id': 7,
                  'project_id': 'pending2',
@@ -64,6 +70,7 @@ ALLOCATIONS = {
                  'end_date': '2017-07-01',
                  'modified_time': '2016-12-02T10:10:10Z',
                  'quotas': [],
+                 'allocation_home': 'national',
                  'contact_email': 'fake@fake.org'},
     'expired': {'id': 10,
                 'project_id': 'expired',
@@ -72,6 +79,7 @@ ALLOCATIONS = {
                 'end_date': '2016-07-01',
                 'modified_time': '2015-01-02T10:10:10Z',
                 'quotas': [],
+                'allocation_home': 'national',
                 'contact_email': 'fake@fake.org'},
 }
 
@@ -130,6 +138,14 @@ class FakeAllocationManager(object):
 
     def get(self, id):
         return allocations.Allocation(self, ALLOCATION_RESPONSE, loaded=True)
+
+
+class FakeZoneManager(object):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def compute_homes(self):
+        return COMPUTE_HOMES
 
 
 class FakeInstance(object):

@@ -261,10 +261,13 @@ class AllocationExpirer(ProjectExpirer):
         super(AllocationExpirer, self).__init__(
             project, archivers, notifier, ks_session, dry_run, disable_project)
 
+        self.n_client = auth.get_nova_client(ks_session)
         self.a_client = auth.get_allocation_client(ks_session)
         self.force_no_allocation = force_no_allocation
         self.force_delete = force_delete
         self.allocation = self.get_allocation()
+        self.zones = self.get_compute_zones()
+        self.out_of_zone_instances = []
 
     def get_allocation(self):
         try:
@@ -281,7 +284,8 @@ class AllocationExpirer(ProjectExpirer):
                      'status': allocation_states.APPROVED,
                      'quotas': [],
                      'start_date': '1970-01-01',
-                     'end_date': '1970-01-01'},
+                     'end_date': '1970-01-01',
+                     'allocation_home': 'national'},
                     None)
             else:
                 raise exceptions.AllocationDoesNotExist(
@@ -319,6 +323,31 @@ class AllocationExpirer(ProjectExpirer):
                   allocation_start.date(), allocation_end.date())
         return allocation
 
+    def get_compute_zones(self):
+        zone_map = self.a_client.zones.compute_homes()
+        if self.allocation:
+            return zone_map.get(self.allocation.allocation_home, [])
+
+    def update_project_zones(self):
+        if self.zones:
+            zones = ",".join(self.zones)
+        if not hasattr(self.project, 'compute_zones') or \
+            self.project.compute_zones != zones:
+            self._update_project(compute_zones=zones)
+
+    def get_out_of_zone_instances(self):
+        out_of_zone = []
+        opts = {'deleted': False,
+                'all_tenants': True,
+                'project_id': self.project.id}
+        instances = self.n_client.servers.list(search_opts=opts)
+        for instance in instances:
+            az = getattr(instance, 'OS-EXT-AZ:availability_zone')
+            if az not in self.zones:
+                setattr(instance, 'availability_zone', az)
+                out_of_zone.append(instance)
+        return out_of_zone
+
     def process(self):
 
         expiry_status = self.get_status()
@@ -335,6 +364,13 @@ class AllocationExpirer(ProjectExpirer):
 
         if not self.should_process_project():
             raise exceptions.InvalidProjectAllocation()
+
+        # handling for local allocations
+        # out-of-zone will not trigger seperate warning emails
+        # instead it piggybacks on the project expiry emails
+        if self.zones:
+            self.update_project_zones()
+            self.out_of_zone_instances = self.get_out_of_zone_instances()
 
         if expiry_status == expiry_states.RENEWED:
             self.revert_expiry()
@@ -532,6 +568,9 @@ class AllocationExpirer(ProjectExpirer):
             LOG.info("%s: Skipping notification due to force no "
                         "allocation being set", self.project.id)
         else:
+            extra_context.update({
+                'out_of_zone_instances': self.out_of_zone_instances,
+                'compute_zones': self.zones})
             super(AllocationExpirer, self)._send_notification(
                 stage, extra_context)
 
