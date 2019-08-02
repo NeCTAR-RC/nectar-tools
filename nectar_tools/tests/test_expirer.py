@@ -808,9 +808,12 @@ class AllocationExpiryTests(test.TestCase):
             mock_archiver.stop_resources.assert_called_once_with()
             mock_event.assert_called_once_with('stop')
 
-    def test_get_recipients(self):
+    @mock.patch('nectar_tools.provisioning.manager.ProvisioningManager')
+    def test_get_recipients(self, mock_allocation):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
+        mock_allocation.return_value.find_relevant_contacts.return_value \
+                = ['alt@fake.org']
         with test.nested(
             mock.patch.object(ex, '_get_project_managers',
                               return_value=fakes.MANAGERS),
@@ -819,9 +822,9 @@ class AllocationExpiryTests(test.TestCase):
             to, cc = ex._get_recipients()
             self.assertEqual('fake@fake.org', to)
             cc.sort()
-            self.assertEqual(['approver@fake.org', 'manager1@example.org',
-                              'manager2@example.org', 'member1@example.org'],
-                             cc)
+            self.assertEqual(['alt@fake.org', 'approver@fake.org',
+                              'manager1@example.org', 'manager2@example.org',
+                              'member1@example.org'], cc)
 
     def test_set_project_archived(self):
         project = fakes.FakeProject()

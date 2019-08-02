@@ -16,6 +16,7 @@ from nectar_tools import exceptions
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expiry_states
 from nectar_tools.expiry import notifier as expiry_notifier
+from nectar_tools.provisioning import manager as prov_mgr
 
 
 CONF = config.CONFIG
@@ -473,6 +474,12 @@ class AllocationExpirer(ProjectExpirer):
         approver_email = self.allocation.approver_email.lower()
         managers = self._get_project_managers()
 
+        provisioning = prov_mgr.ProvisioningManager(
+            self.ks_session, self.dry_run)
+
+        recent_owners_emails = provisioning.find_relevant_contacts(
+            self.allocation)
+
         manager_emails = []
         member_emails = []
         for manager in managers:
@@ -484,7 +491,8 @@ class AllocationExpirer(ProjectExpirer):
             if member.enabled and member.email:
                 member_emails.append(member.email.lower())
 
-        extra_emails = list(set(manager_emails + member_emails))
+        extra_emails = list(set(
+            manager_emails + member_emails + recent_owners_emails))
         if approver_email and approver_email not in extra_emails:
             extra_emails.append(approver_email)
         if owner_email in extra_emails:

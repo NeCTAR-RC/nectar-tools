@@ -418,8 +418,12 @@ class ProvisionerTests(test.TestCase):
     def test_notify_provisioned_new(self, mock_notifier_class):
         mock_notifier = mock.Mock()
         mock_notifier_class.return_value = mock_notifier
-        with mock.patch.object(self.manager, 'get_compute_zones') \
-             as mock_get_zones:
+        with test.nested(
+            mock.patch.object(self.manager, 'get_compute_zones'),
+            mock.patch.object(self.manager, 'find_relevant_contacts')
+        ) as (mock_get_zones, mock_find_contacts):
+            mock_find_contacts.return_value = ['second_contact',
+                                               'third_contact']
             mock_get_zones.return_value = ['melbourne']
             self.manager.notify_provisioned(self.allocation, True, None,
                                             report='bar')
@@ -427,7 +431,8 @@ class ProvisionerTests(test.TestCase):
                 'new', self.allocation.contact_email,
                 extra_context={'allocation': self.allocation, 'report': 'bar',
                                'out_of_zone_instances': [],
-                               'compute_zones': ['melbourne']})
+                               'compute_zones': ['melbourne']},
+                extra_recipients=['second_contact', 'third_contact'])
 
     @mock.patch("nectar_tools.provisioning.notifier.ProvisioningNotifier")
     def test_notify_provisioned_update(self, mock_notifier_class):
@@ -436,7 +441,10 @@ class ProvisionerTests(test.TestCase):
         with test.nested(
                 mock.patch.object(self.manager, 'get_out_of_zone_instances'),
                 mock.patch.object(self.manager, 'get_compute_zones'),
-        ) as (mock_out_of_zone, mock_get_zones):
+                mock.patch.object(self.manager, 'find_relevant_contacts')
+        ) as (mock_out_of_zone, mock_get_zones, mock_find_contacts):
+            mock_find_contacts.return_value = ['second_contact',
+                                               'third_contact']
             fake_instances = [fakes.FakeInstance(), fakes.FakeInstance]
             mock_out_of_zone.return_value = fake_instances
             mock_get_zones.return_value = ['nova', 'nova2']
@@ -447,7 +455,8 @@ class ProvisionerTests(test.TestCase):
                 'update', self.allocation.contact_email,
                 extra_context={'allocation': self.allocation, 'report': 'bar',
                                'out_of_zone_instances': fake_instances,
-                               'compute_zones': ['nova', 'nova2']})
+                               'compute_zones': ['nova', 'nova2']},
+                extra_recipients=['second_contact', 'third_contact'])
 
     @mock.patch("nectar_tools.provisioning.notifier.ProvisioningNotifier")
     def test_notify_provisioned_disabled_allocation(self, mock_notifier_class):
@@ -646,6 +655,27 @@ class ProvisionerTests(test.TestCase):
         nova_client.flavor_access.add_tenant_access.side_effect = \
                                 novaclient.exceptions.Conflict(code=409)
         self.manager.flavor_grant(self.allocation, 'compute')
+
+    def test_find_relevant_contacts(self):
+
+        with mock.patch.object(self.manager, 'a_client') as mock_allocation:
+
+            self.allocation.contact_email = 'user2@email'
+            allocation1 = fakes.FakeAllocation(id='1', project_id='fake1',
+                                               provisioned='False',
+                                               contact_email='user1@email')
+            allocation2 = fakes.FakeAllocation(id='2', project_id='fake2',
+                                               provisioned='True',
+                                               contact_email='user2@email')
+            allocation3 = fakes.FakeAllocation(id='3', project_id='fake3',
+                                               provisioned='False',
+                                               contact_email='user3@email')
+            mock_allocation.allocations.list.return_value = [
+                allocation1, allocation2, allocation3]
+
+            expected_contacts = ['user1@email']
+            contacts = self.manager.find_relevant_contacts(self.allocation)
+            self.assertEqual(contacts, expected_contacts)
 
     @mock.patch('nectar_tools.auth.get_cinder_client')
     def test_set_cinder_quota(self, mock_cinder):
