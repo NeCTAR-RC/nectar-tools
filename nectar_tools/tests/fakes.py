@@ -110,6 +110,15 @@ class FakeProject(object):
         return self.__dict__
 
 
+class FakeAllocation(object):
+
+    def __init__(self, id='fake', project_id='fake_project', **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+            self.id = id
+            self.project_id = project_id
+
+
 class FakeAllocationManager(object):
 
     def __init__(self, *args, **kwargs):

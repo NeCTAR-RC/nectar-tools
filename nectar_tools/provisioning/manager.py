@@ -202,13 +202,29 @@ class ProvisioningManager(object):
                                   user=manager)
         LOG.info("%s: Add member role to %s", allocation.id, manager.name)
 
+    def find_relevant_contacts(self, allocation):
+        # we find the last provision allocation and get all contacts since then
+        # not use get_last_approved() as 'last approved' != 'last provisioned'
+        history = self.a_client.allocations.list(
+            parent_request=allocation.id)
+        for index, allo in enumerate(history):
+            if allo.provisioned == "True":
+                recent_allocations = history[:index + 1]
+                break
+        else:
+            recent_allocations = history
+        return list(set(a.contact_email for a in recent_allocations
+                       if a.contact_email != allocation.contact_email))
+
     def notify_provisioned(self, allocation, is_new_project, project, report):
         if not allocation.notifications or self.no_notify:
             LOG.info("%s: Noifications disabled, skipping", allocation.id)
             return
+
+        extra_recipients = self.find_relevant_contacts(allocation)
         if self.noop:
-            LOG.info("%s: Would notify %s", allocation.id,
-                     allocation.contact_email)
+            LOG.info("%s: Would notify %s and %s", allocation.id,
+                     allocation.contact_email, extra_recipients)
             return
         out_of_zone_instances = []
         compute_zones = self.get_compute_zones(allocation)
@@ -223,7 +239,8 @@ class ProvisioningManager(object):
                          'out_of_zone_instances': out_of_zone_instances,
                          'compute_zones': compute_zones}
         notifier.send_message(notification, allocation.contact_email,
-                              extra_context=extra_context)
+                              extra_context=extra_context,
+                              extra_recipients=extra_recipients)
 
     def convert_trial(self, allocation):
         LOG.info("%s: Converting project trial", allocation.id)
