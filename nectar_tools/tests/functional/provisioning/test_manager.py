@@ -60,6 +60,7 @@ class ProvisionerTests(test.TestCase):
         mock_a_client = mock.Mock()
         mock_a_client.zones.compute_homes.return_value = {'uom': {'my-az'}}
         mock_a_client.allocations.get_current.return_value = self.allocation
+        mock_a_client.allocations.list.return_value = [mock.Mock()]
         mock_get_a_client.return_value = mock_a_client
 
         self.allocation.project_id = None
