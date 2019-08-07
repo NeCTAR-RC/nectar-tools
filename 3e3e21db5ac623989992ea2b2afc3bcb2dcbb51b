@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a7564c14_a7166be1",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-07T05:43:52Z",
+      "side": 1,
+      "message": "import the module not the method\n\nfrom nectar_tools import utils",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 44
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f088adc7_c459b0e6",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-07T05:43:52Z",
+      "side": 1,
+      "message": "let\u0027s makes this a bit more conservative to allow for outages etc. maybe make it more than 6 hours?",
+      "range": {
+        "startLine": 14,
+        "startChar": 12,
+        "endLine": 14,
+        "endChar": 32
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "084fef24_cf9842b6",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-07T05:43:52Z",
+      "side": 1,
+      "message": "move this to the check_zone states method and you can also filter by zone status \n\nhttps://docs.openstack.org/api-ref/dns/?expanded\u003dlist-zones-detail#id4",
+      "range": {
+        "startLine": 23,
+        "startChar": 8,
+        "endLine": 23,
+        "endChar": 60
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1abb5787_883bf299",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-07T05:43:52Z",
+      "side": 1,
+      "message": "move this outside the forloop so only executed once",
+      "range": {
+        "startLine": 30,
+        "startChar": 16,
+        "endLine": 30,
+        "endChar": 36
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ba57f0df_29e563a5",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-07T05:43:52Z",
+      "side": 1,
+      "message": "maybe call it list_resources?",
+      "range": {
+        "startLine": 15,
+        "startChar": 4,
+        "endLine": 15,
+        "endChar": 17
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "60c4b8c9_c70c7c98",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-07T05:43:52Z",
+      "side": 1,
+      "message": "may as well call this marker_name",
+      "range": {
+        "startLine": 15,
+        "startChar": 28,
+        "endLine": 15,
+        "endChar": 37
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b01ac800_2ea45646",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-07T05:43:52Z",
+      "side": 1,
+      "message": "could call this list_method",
+      "range": {
+        "startLine": 15,
+        "startChar": 18,
+        "endLine": 15,
+        "endChar": 26
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "988b900e_90cafbec",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-07T05:43:52Z",
+      "side": 1,
+      "message": "should be **kwargs and also below",
+      "range": {
+        "startLine": 16,
+        "startChar": 23,
+        "endLine": 16,
+        "endChar": 29
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
