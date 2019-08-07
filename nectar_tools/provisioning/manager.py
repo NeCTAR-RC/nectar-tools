@@ -122,6 +122,8 @@ class ProvisioningManager(object):
         zones = self.get_compute_zones(allocation)
         if zones:
             metadata.update(compute_zones=",".join(zones))
+        else:
+            metadata.update(compute_zones="")
         return metadata
 
     def get_compute_zones(self, allocation):

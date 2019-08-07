@@ -340,7 +340,8 @@ class ProvisionerTests(test.TestCase):
                 domain='default',
                 description=self.allocation.project_description,
                 allocation_id=self.allocation.id,
-                expires=self.allocation.end_date
+                expires=self.allocation.end_date,
+                compute_zones=""
             )
             self.assertEqual(fake_project, project)
 
@@ -380,7 +381,8 @@ class ProvisionerTests(test.TestCase):
                 name=self.allocation.project_name,
                 description=self.allocation.project_description,
                 allocation_id=self.allocation.id,
-                expires=self.allocation.end_date)
+                expires=self.allocation.end_date,
+                compute_zones="")
 
     def test_update_project_local(self):
         with test.nested(
