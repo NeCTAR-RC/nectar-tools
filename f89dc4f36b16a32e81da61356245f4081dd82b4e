@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "17276a34_c52f65b5",
+        "filename": "nectar_tools/audit/base.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-08T23:19:44Z",
+      "side": 1,
+      "message": "space between these imports",
+      "revId": "f89dc4f36b16a32e81da61356245f4081dd82b4e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95fda1bd_fc471e73",
+        "filename": "nectar_tools/audit/compute/instance.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-08T23:19:44Z",
+      "side": 1,
+      "message": "this should live in the check_instance_states method (do the same as what you did for dns)",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 38,
+        "endChar": 50
+      },
+      "revId": "f89dc4f36b16a32e81da61356245f4081dd82b4e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
