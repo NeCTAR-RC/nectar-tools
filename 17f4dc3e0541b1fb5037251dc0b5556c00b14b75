@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a95880ca_5c9c615a",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-08T23:55:30Z",
+      "side": 1,
+      "message": "it doesn\u0027t feel right to be importing the provisioner into here. I think the find_relevant_contacts needs to live inside some utils class outside of expiry and provisioner so they can both use them",
+      "range": {
+        "startLine": 476,
+        "startChar": 0,
+        "endLine": 481,
+        "endChar": 28
+      },
+      "revId": "17f4dc3e0541b1fb5037251dc0b5556c00b14b75",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
