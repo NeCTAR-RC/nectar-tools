@@ -60,15 +60,18 @@ class ExpiryNotifierTests(test.TestCase):
 
         with test.nested(
             mock.patch.object(n, '_create_ticket'),
+            mock.patch.object(n, '_update_ticket_requester'),
             mock.patch.object(n, '_update_ticket'),
             mock.patch.object(n, '_set_ticket_id'),
             mock.patch.object(n, '_add_note_to_ticket')
-        ) as (mock_create, mock_update, mock_id, mock_note):
+        ) as (mock_create, mock_update_requester, mock_update, mock_id,
+              mock_note):
             n.send_message('second', 'owner@fake.org',
                            extra_recipients=['manager1@fake.org'])
             mock_create.assert_not_called()
             mock_note.assert_not_called()
             mock_id.assert_not_called()
+            mock_update_requester.assert_called_with(45, 'owner@fake.org')
             mock_update.assert_called_with(
                 45, n.render_template('second-warning.tmpl'),
                 cc_emails=['manager1@fake.org'])
