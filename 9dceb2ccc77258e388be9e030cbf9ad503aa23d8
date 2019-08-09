@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "663d17a8_93b8cf86",
+        "filename": "nectar_tools/notifier.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-09T03:41:08Z",
+      "side": 1,
+      "message": "this should be done in a separate method as opposed in the update_ticket method.\n\nEg make a update_requestor method in here",
+      "range": {
+        "startLine": 82,
+        "startChar": 2,
+        "endLine": 89,
+        "endChar": 66
+      },
+      "revId": "9dceb2ccc77258e388be9e030cbf9ad503aa23d8",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
