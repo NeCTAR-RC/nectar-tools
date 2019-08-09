@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d86797c1_7f1497d2",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-09T00:59:31Z",
+      "side": 1,
+      "message": "use new utils methods",
+      "range": {
+        "startLine": 326,
+        "startChar": 1,
+        "endLine": 349,
+        "endChar": 26
+      },
+      "revId": "32ca1582df2e60d06acf081bc55c577713e82d55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}

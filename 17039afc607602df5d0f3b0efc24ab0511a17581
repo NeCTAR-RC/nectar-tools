@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "272fed15_f3da586f",
+        "filename": "nectar_tools/templates/allocations/second-warning.tmpl",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-09T00:59:31Z",
+      "side": 0,
+      "message": "maybe this file in a separate commit",
+      "range": {
+        "startLine": 1,
+        "startChar": 1,
+        "endLine": 9,
+        "endChar": 6
+      },
+      "revId": "17039afc607602df5d0f3b0efc24ab0511a17581",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
