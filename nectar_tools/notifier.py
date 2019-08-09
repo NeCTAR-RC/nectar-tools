@@ -79,11 +79,14 @@ class FreshDeskNotifier(Notifier):
 
         return ticket_id
 
-    def _update_ticket(self, ticket_id, text, cc_emails=[]):
+    def _update_ticket(self, ticket_id, owner, text, cc_emails=[]):
         if self.dry_run:
             LOG.info("%s: Would send reply to ticket %s", self.project.id,
                      ticket_id)
         else:
+            # Update ticket owner without checking if the owner is changed
+            # as it needs more api calls otherwise(get_ticket then get_contact)
+            self.api.tickets.update_ticket(ticket_id, email=owner)
             self.api.comments.create_reply(ticket_id, text,
                                            cc_emails=cc_emails)
             LOG.info("%s: Sent reply to ticket %s", self.project.id, ticket_id)

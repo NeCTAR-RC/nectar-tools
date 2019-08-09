@@ -70,7 +70,7 @@ class ExpiryNotifierTests(test.TestCase):
             mock_note.assert_not_called()
             mock_id.assert_not_called()
             mock_update.assert_called_with(
-                45, n.render_template('second-warning.tmpl'),
+                45, 'owner@fake.org', n.render_template('second-warning.tmpl'),
                 cc_emails=['manager1@fake.org'])
 
     def test_finish(self, mock_api):

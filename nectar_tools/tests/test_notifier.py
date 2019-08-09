@@ -89,7 +89,11 @@ class FreshDeskNotifierTests(test.TestCase):
             project=PROJECT, template_dir='allocations',
             group_id=1, subject='Ticket-Subject %s' % PROJECT.name)
 
-        n._update_ticket(44, 'some text', cc_emails=['manager1@fake.org'])
+        n._update_ticket(44, 'owner@fake.org', 'some text',
+                         cc_emails=['manager1@fake.org'])
+        mock_api.return_value.tickets.update_ticket.assert_called_with(
+            44, email='owner@fake.org'
+        )
         mock_api.return_value.comments.create_reply.assert_called_with(
             44, 'some text', cc_emails=['manager1@fake.org']
         )
