@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2fa2a00c_2a1a34fe",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-09T03:34:35Z",
+      "side": 1,
+      "message": "minor nit -  ideally designate import should be in second grouping of imports, it goes:\n\nbuiltins\n...\n\u003cnewline\u003e\n\u003cthirdparty\u003e\n...\n\u003cnewline\u003e\n\u003ccurrentmodule\u003e\n...",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 4,
+        "endChar": 14
+      },
+      "revId": "bdfc3e85f5d80aedcff7b2242c7576116840eb23",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b4b0cce4_13cef4a3",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-09T03:34:35Z",
+      "side": 1,
+      "message": "should be **list_method_kwargs, standard is *args, **kwargs",
+      "range": {
+        "startLine": 15,
+        "startChar": 64,
+        "endLine": 15,
+        "endChar": 68
+      },
+      "revId": "bdfc3e85f5d80aedcff7b2242c7576116840eb23",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b35afffa_356f19aa",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-09T03:34:35Z",
+      "side": 1,
+      "message": "It\u0027s not actually a dict that is passed in here, it is an optional amount of key word arguments",
+      "range": {
+        "startLine": 20,
+        "startChar": 11,
+        "endLine": 20,
+        "endChar": 15
+      },
+      "revId": "bdfc3e85f5d80aedcff7b2242c7576116840eb23",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
