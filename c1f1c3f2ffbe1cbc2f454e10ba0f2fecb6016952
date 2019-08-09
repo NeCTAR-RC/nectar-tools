@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9d332383_a9f5809d",
+        "filename": "nectar_tools/audit/compute/instance.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-09T04:14:10Z",
+      "side": 1,
+      "message": "does this need to be cast to a list? seems weird",
+      "range": {
+        "startLine": 38,
+        "startChar": 28,
+        "endLine": 38,
+        "endChar": 33
+      },
+      "revId": "c1f1c3f2ffbe1cbc2f454e10ba0f2fecb6016952",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0e5d6ea3_f074f4ea",
+        "filename": "nectar_tools/audit/compute/instance.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-09T04:14:10Z",
+      "side": 1,
+      "message": "put this out of the forloop as it\u0027s constant",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 42,
+        "endChar": 36
+      },
+      "revId": "c1f1c3f2ffbe1cbc2f454e10ba0f2fecb6016952",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ebaf6e6_39b3039a",
+        "filename": "nectar_tools/audit/compute/instance.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-09T04:14:10Z",
+      "side": 1,
+      "message": "could do the same as you did in the dns one",
+      "range": {
+        "startLine": 43,
+        "startChar": 31,
+        "endLine": 43,
+        "endChar": 48
+      },
+      "revId": "c1f1c3f2ffbe1cbc2f454e10ba0f2fecb6016952",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
