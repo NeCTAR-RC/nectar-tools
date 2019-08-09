@@ -85,6 +85,15 @@ class FreshDeskNotifierTests(test.TestCase):
         )
         self.assertEqual(3, ticket_id)
 
+    def test_update_ticket_requester(self, mock_api):
+        n = notifier.FreshDeskNotifier(
+            project=PROJECT, template_dir='allocations',
+            group_id=1, subject='Ticket-Subject %s' % PROJECT.name)
+
+        n._update_ticket_requester(43, 'owner@fake.org')
+        mock_api.return_value.tickets.update_ticket.assert_called_with(
+            43, email='owner@fake.org')
+
     def test_update_ticket(self, mock_api):
         n = notifier.FreshDeskNotifier(
             resource_type='project', resource=PROJECT,

@@ -29,6 +29,7 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
         ticket_id = self._get_ticket_id()
 
         if ticket_id > 0:
+            self._update_ticket_requester(ticket_id, owner)
             self._update_ticket(ticket_id, text, cc_emails=extra_recipients)
         else:
             ticket_id = self._create_ticket(email=owner,
