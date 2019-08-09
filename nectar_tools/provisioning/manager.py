@@ -15,6 +15,7 @@ from nectar_tools import exceptions
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expirer
 from nectar_tools.provisioning import notifier as provisioning_notifier
+from nectar_tools import utils
 
 
 CONF = config.CONFIG
@@ -119,40 +120,12 @@ class ProvisioningManager(object):
                         allocation_id=allocation.id,
                         expires=allocation.end_date)
 
-        zones = self.get_compute_zones(allocation)
+        zones = utils.get_compute_zones(self.ks_session, allocation)
         if zones:
             metadata.update(compute_zones=",".join(zones))
         else:
             metadata.update(compute_zones="")
         return metadata
-
-    def get_compute_zones(self, allocation):
-        """Returns a list of zones based on allocation home
-
-        If national or no mapping then return []
-        """
-
-        zone_map = self.a_client.zones.compute_homes()
-        return zone_map.get(allocation.allocation_home, [])
-
-    def get_out_of_zone_instances(self, allocation, project):
-        """Returns list of instances that a project has running in
-        zones that it shouldn't based on its allocation home.
-        """
-        zones = self.get_compute_zones(allocation)
-        if not zones:
-            return []
-        nova_archiver = archiver.NovaArchiver(
-            {'project': project}, self.ks_session)
-        instances = nova_archiver._all_instances()
-        out_of_zone = []
-        for instance in instances:
-            az = getattr(instance, 'OS-EXT-AZ:availability_zone')
-            if az not in zones:
-                # We set this attribute so we can use it in templating
-                setattr(instance, 'availability_zone', az)
-                out_of_zone.append(instance)
-        return out_of_zone
 
     def create_project(self, allocation):
         domain_mappings = collections.defaultdict(lambda: 'default')
@@ -213,13 +186,13 @@ class ProvisioningManager(object):
                      allocation.contact_email)
             return
         out_of_zone_instances = []
-        compute_zones = self.get_compute_zones(allocation)
+        compute_zones = utils.get_compute_zones(self.ks_session, allocation)
         if is_new_project:
             notification = 'new'
         else:
             notification = 'update'
-            out_of_zone_instances = self.get_out_of_zone_instances(allocation,
-                                                                   project)
+            out_of_zone_instances = utils.get_out_of_zone_instances(
+                self.ks_session, allocation, project)
         notifier = provisioning_notifier.ProvisioningNotifier(project)
         extra_context = {'allocation': allocation, 'report': report,
                          'out_of_zone_instances': out_of_zone_instances,

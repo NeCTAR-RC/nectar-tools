@@ -9,6 +9,7 @@ import novaclient
 from nectar_tools import config
 from nectar_tools import exceptions
 from nectar_tools import test
+from nectar_tools import utils
 
 from nectar_tools.provisioning import manager
 
@@ -257,76 +258,10 @@ class ProvisionerTests(test.TestCase):
                 end_date=end.strftime('%Y-%m-%d'))
             self.assertEqual(mock_update.return_value, allocation)
 
-    def test_get_compute_zones(self):
-        with mock.patch.object(self.manager, 'a_client') as mock_allocation:
-            mock_allocation.zones.compute_homes.return_value = \
-                                                        fakes.COMPUTE_HOMES
-            zones = self.manager.get_compute_zones(self.allocation)
-            self.assertEqual([], zones)
-
-    def test_get_compute_zones_multiple(self):
-        self.allocation.allocation_home = 'monash'
-        with mock.patch.object(self.manager, 'a_client') as mock_allocation:
-            mock_allocation.zones.compute_homes.return_value = \
-                                                        fakes.COMPUTE_HOMES
-            zones = self.manager.get_compute_zones(self.allocation)
-            self.assertEqual(['monash-01', 'monash-02', 'monash-03'], zones)
-
-    def test_get_out_of_zone_instances_no_instances(self):
-        project = fakes.FakeProject()
-        with test.nested(
-            mock.patch.object(self.manager, 'get_compute_zones'),
-            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
-        ) as (mock_get_zones, mock_archiver):
-            mock_get_zones.return_value = ['nova', 'nova-2']
-            nova = mock.Mock()
-            mock_archiver.return_value = nova
-            nova._all_instances.return_value = []
-
-            instances = self.manager.get_out_of_zone_instances(self.allocation,
-                                                             project)
-            self.assertEqual([], instances)
-
-    def test_get_out_of_zone_instances_out_of_zone(self):
-        project = fakes.FakeProject()
-        with test.nested(
-            mock.patch.object(self.manager, 'get_compute_zones'),
-            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
-        ) as (mock_get_zones, mock_archiver):
-            mock_get_zones.return_value = ['nova', 'nova-2']
-            nova = mock.Mock()
-            mock_archiver.return_value = nova
-            instance = fakes.FakeInstance(availability_zone='wrong')
-            nova._all_instances.return_value = [
-                instance,
-                fakes.FakeInstance(availability_zone='nova')]
-
-            instances = self.manager.get_out_of_zone_instances(self.allocation,
-                                                               project)
-            self.assertEqual([instance], instances)
-
-    def test_get_out_of_zone_instances_instances_in_zone(self):
-        project = fakes.FakeProject()
-        with test.nested(
-            mock.patch.object(self.manager, 'get_compute_zones'),
-            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
-        ) as (mock_get_zones, mock_archiver):
-            mock_get_zones.return_value = ['nova', 'nova-2']
-            nova = mock.Mock()
-            mock_archiver.return_value = nova
-            nova._all_instances.return_value = [
-                fakes.FakeInstance(availability_zone='nova-2'),
-                fakes.FakeInstance(availability_zone='nova-2'),
-                fakes.FakeInstance(availability_zone='nova')]
-
-            instances = self.manager.get_out_of_zone_instances(self.allocation,
-                                                               project)
-            self.assertEqual([], instances)
-
     def test_create_project(self):
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
-            mock.patch.object(self.manager, 'get_compute_zones')
+            mock.patch.object(utils, 'get_compute_zones')
          ) as (mock_keystone, mock_get_zones):
             mock_get_zones.return_value = []
             fake_project = fakes.FakeProject()
@@ -334,7 +269,8 @@ class ProvisionerTests(test.TestCase):
 
             project = self.manager.create_project(self.allocation)
 
-            mock_get_zones.assert_called_once_with(self.allocation)
+            mock_get_zones.assert_called_once_with(self.manager.ks_session,
+                                                   self.allocation)
             mock_keystone.projects.create.assert_called_once_with(
                 name=self.allocation.project_name,
                 domain='default',
@@ -348,7 +284,7 @@ class ProvisionerTests(test.TestCase):
     def test_create_project_local(self):
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
-            mock.patch.object(self.manager, 'get_compute_zones')
+            mock.patch.object(utils, 'get_compute_zones')
          ) as (mock_keystone, mock_get_zones):
             mock_get_zones.return_value = ['melbourne-qh2-uom']
             fake_project = fakes.FakeProject()
@@ -356,7 +292,8 @@ class ProvisionerTests(test.TestCase):
 
             project = self.manager.create_project(self.allocation)
 
-            mock_get_zones.assert_called_once_with(self.allocation)
+            mock_get_zones.assert_called_once_with(self.manager.ks_session,
+                                                   self.allocation)
             mock_keystone.projects.create.assert_called_once_with(
                 name=self.allocation.project_name,
                 domain='default',
@@ -370,7 +307,7 @@ class ProvisionerTests(test.TestCase):
     def test_update_project(self):
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
-            mock.patch.object(self.manager, 'get_compute_zones')
+            mock.patch.object(utils, 'get_compute_zones')
          ) as (mock_keystone, mock_get_zones):
             mock_get_zones.return_value = []
 
@@ -387,7 +324,7 @@ class ProvisionerTests(test.TestCase):
     def test_update_project_local(self):
         with test.nested(
             mock.patch.object(self.manager, 'k_client'),
-            mock.patch.object(self.manager, 'get_compute_zones')
+            mock.patch.object(utils, 'get_compute_zones')
          ) as (mock_keystone, mock_get_zones):
             mock_get_zones.return_value = ['tasmania', 'tasmania-s']
 
@@ -420,8 +357,7 @@ class ProvisionerTests(test.TestCase):
     def test_notify_provisioned_new(self, mock_notifier_class):
         mock_notifier = mock.Mock()
         mock_notifier_class.return_value = mock_notifier
-        with mock.patch.object(self.manager, 'get_compute_zones') \
-             as mock_get_zones:
+        with mock.patch.object(utils, 'get_compute_zones') as mock_get_zones:
             mock_get_zones.return_value = ['melbourne']
             self.manager.notify_provisioned(self.allocation, True, None,
                                             report='bar')
@@ -436,8 +372,8 @@ class ProvisionerTests(test.TestCase):
         mock_notifier = mock.Mock()
         mock_notifier_class.return_value = mock_notifier
         with test.nested(
-                mock.patch.object(self.manager, 'get_out_of_zone_instances'),
-                mock.patch.object(self.manager, 'get_compute_zones'),
+                mock.patch.object(utils, 'get_out_of_zone_instances'),
+                mock.patch.object(utils, 'get_compute_zones'),
         ) as (mock_out_of_zone, mock_get_zones):
             fake_instances = [fakes.FakeInstance(), fakes.FakeInstance]
             mock_out_of_zone.return_value = fake_instances
