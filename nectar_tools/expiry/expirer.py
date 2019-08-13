@@ -13,6 +13,8 @@ from nectarallocationclient.v1 import allocations
 from nectar_tools import auth
 from nectar_tools import config
 from nectar_tools import exceptions
+from nectar_tools import utils
+
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expiry_states
 from nectar_tools.expiry import notifier as expiry_notifier
@@ -265,18 +267,15 @@ class AllocationExpirer(ProjectExpirer):
         self.a_client = auth.get_allocation_client(ks_session)
         self.force_no_allocation = force_no_allocation
         self.force_delete = force_delete
-        self.allocation = self.get_allocation()
 
-    def get_allocation(self):
         try:
-            allocation = self.a_client.allocations.get_current(
-                project_id=self.project.id)
+            self.allocation = utils.get_allocation(ks_session, self.project.id)
         except allocation_exceptions.AllocationDoesNotExist:
             if self.is_ignored_project():
                 return
             LOG.warn("%s: Allocation can not be found", self.project.id)
             if self.force_no_allocation:
-                allocation = allocations.Allocation(
+                self.allocation = allocations.Allocation(
                     None,
                     {'id': 'NO-ALLOCATION',
                      'status': allocation_states.APPROVED,
@@ -287,38 +286,6 @@ class AllocationExpirer(ProjectExpirer):
             else:
                 raise exceptions.AllocationDoesNotExist(
                     project_id=self.project.id)
-
-        allocation_status = allocation.status
-
-        if allocation_status in (allocation_states.UPDATE_DECLINED,
-                                 allocation_states.UPDATE_PENDING,
-                                 allocation_states.DECLINED):
-
-            six_months_ago = self.now - relativedelta(months=6)
-            mod_time = datetime.datetime.strptime(
-                allocation.modified_time, DATETIME_FORMAT)
-            if mod_time < six_months_ago:
-                approved = self.a_client.allocations.get_last_approved(
-                    project_id=self.project.id)
-                if approved:
-                    LOG.debug("%s: Allocation has old unapproved application, "
-                              "using last approved allocation",
-                              self.project.id)
-                    LOG.debug("%s: Changing allocation from %s to %s",
-                              self.project.id, allocation.id,
-                              approved.id)
-                    allocation = approved
-
-        allocation_status = allocation.status
-        allocation_start = datetime.datetime.strptime(
-            allocation.start_date, DATE_FORMAT)
-        allocation_end = datetime.datetime.strptime(
-            allocation.end_date, DATE_FORMAT)
-        LOG.debug("%s: Allocation id=%s, status='%s', start=%s, end=%s",
-                  self.project.id, allocation.id,
-                  allocation_states.STATES[allocation_status],
-                  allocation_start.date(), allocation_end.date())
-        return allocation
 
     def process(self):
 

@@ -1,3 +1,4 @@
+from freezegun import freeze_time
 from unittest import mock
 
 from nectar_tools import auth
@@ -7,11 +8,11 @@ from nectar_tools import utils
 
 from nectar_tools.tests import fakes
 
-
 PROJECT = fakes.FakeProject('active')
 CONF = config.CONFIG
 
 
+@freeze_time("2017-01-01")
 class UtilsTests(test.TestCase):
 
     def setUp(self, *args, **kwargs):
@@ -85,3 +86,49 @@ class UtilsTests(test.TestCase):
             instances = utils.get_out_of_zone_instances(None, self.allocation,
                                                         project)
             self.assertEqual([], instances)
+
+    def test_get_allocation_active(self):
+        project = fakes.FakeProject()
+        mock_allocations = fakes.FakeAllocationManager()
+        active = mock_allocations.get_current('active')
+        with mock.patch.object(auth, 'get_allocation_client') as mock_a_client:
+            mock_a_client.return_value.allocations.get_current.return_value \
+                    = active
+            output = utils.get_allocation(None, project.id)
+            mock_a_client.return_value.allocations.get_current\
+                    .assert_called_once_with(project_id=project.id)
+            self.assertEqual(active, output)
+
+    def test_get_allocation_active_pending(self):
+        project = fakes.FakeProject()
+
+        mock_allocations = fakes.FakeAllocationManager()
+        pending2 = mock_allocations.get_current('pending2')
+        active = mock_allocations.get_current('active')
+
+        with mock.patch.object(auth, 'get_allocation_client') as mock_a_client:
+            mock_a_client.return_value.allocations.get_current.return_value \
+                    = pending2
+            mock_a_client.return_value.allocations.get_last_approved.\
+                    return_value = active
+            output = utils.get_allocation(None, project.id)
+            mock_a_client.return_value.allocations.get_current.\
+                    assert_called_once_with(project_id=project.id)
+            self.assertEqual(pending2, output)
+
+    def test_get_allocation_active_pending_expired(self):
+        project = fakes.FakeProject()
+
+        mock_allocations = fakes.FakeAllocationManager()
+        pending1 = mock_allocations.get_current('pending1')
+        active = mock_allocations.get_current('active')
+
+        with mock.patch.object(auth, 'get_allocation_client') as mock_a_client:
+            mock_a_client.return_value.allocations.get_current.return_value \
+                    = pending1
+            mock_a_client.return_value.allocations.get_last_approved.\
+                    return_value = active
+            output = utils.get_allocation(None, project.id)
+            mock_a_client.return_value.allocations.get_current.\
+                    assert_called_once_with(project_id=project.id)
+            self.assertEqual(active, output)
