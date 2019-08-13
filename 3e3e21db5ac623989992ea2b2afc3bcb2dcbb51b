@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "80990345_61b88351",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2019-08-13T04:12:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "a7564c14_a7166be1",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 44
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f088adc7_c459b0e6",
         "filename": "nectar_tools/audit/dns/zone.py",
         "patchSetId": 5
@@ -45,6 +69,30 @@
       "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5c4ba877_cbce2300",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2019-08-13T04:12:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "f088adc7_c459b0e6",
+      "range": {
+        "startLine": 14,
+        "startChar": 12,
+        "endLine": 14,
+        "endChar": 32
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "2fe52230_805d2e1c",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2019-08-13T04:12:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "084fef24_cf9842b6",
+      "range": {
+        "startLine": 23,
+        "startChar": 8,
+        "endLine": 23,
+        "endChar": 60
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1abb5787_883bf299",
         "filename": "nectar_tools/audit/dns/zone.py",
         "patchSetId": 5
@@ -91,6 +163,30 @@
       "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2582bb1c_6c3f5e20",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2019-08-13T04:12:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1abb5787_883bf299",
+      "range": {
+        "startLine": 30,
+        "startChar": 16,
+        "endLine": 30,
+        "endChar": 36
+      },
+      "revId": "3e3e21db5ac623989992ea2b2afc3bcb2dcbb51b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
