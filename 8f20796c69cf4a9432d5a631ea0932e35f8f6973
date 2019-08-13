@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "160ae6da_17ff218f",
+        "filename": "nectar_tools/auth.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2019-08-13T05:58:27Z",
+      "side": 1,
+      "message": "should this be get_session()?\n\n(is there some magic in openstacksdk that make this still work when you pass in a function?)",
+      "range": {
+        "startLine": 112,
+        "startChar": 15,
+        "endLine": 112,
+        "endChar": 26
+      },
+      "revId": "8f20796c69cf4a9432d5a631ea0932e35f8f6973",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
