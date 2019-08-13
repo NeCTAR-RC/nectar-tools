@@ -45,6 +45,30 @@
       "revId": "cbaf5e48b445c69bc7149dc3b09371c1627c1d98",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8315bbd3_ed3b80af",
+        "filename": "nectar_tools/expiry/notifier.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-08-13T07:12:40Z",
+      "side": 1,
+      "message": "I didn\u0027t change this cause it\u0027s the only place we use the status. Probably will add such meaningful variables in the future if more status check comes in.",
+      "parentUuid": "4fe5ec36_d8b821b3",
+      "range": {
+        "startLine": 60,
+        "startChar": 58,
+        "endLine": 60,
+        "endChar": 66
+      },
+      "revId": "cbaf5e48b445c69bc7149dc3b09371c1627c1d98",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
