@@ -3,8 +3,6 @@ from dateutil.relativedelta import relativedelta
 from freezegun import freeze_time
 from unittest import mock
 
-from nectarallocationclient import exceptions as allocation_exceptions
-
 from nectar_tools import config
 from nectar_tools import exceptions
 from nectar_tools import test
@@ -352,73 +350,6 @@ class AllocationExpiryTests(test.TestCase):
         project = fakes.FakeProject('no-allocation')
         ex = expirer.AllocationExpirer(project, force_no_allocation=True)
         self.assertEqual('NO-ALLOCATION', ex.allocation.id)
-
-    def test_get_allocation_active(self):
-        project = fakes.FakeProject()
-        ex = expirer.AllocationExpirer(project)
-        mock_allocations = fakes.FakeAllocationManager()
-        active = mock_allocations.get_current('active')
-
-        with mock.patch.object(ex, 'a_client') as mock_api:
-            mock_api.allocations.get_current.return_value = active
-            output = ex.get_allocation()
-            mock_api.allocations.get_current.assert_called_once_with(
-                project_id=project.id)
-            self.assertEqual(active, output)
-
-    def test_get_allocation_no_allocation(self):
-        project = fakes.FakeProject()
-        ex = expirer.AllocationExpirer(project)
-
-        with mock.patch.object(ex, 'a_client') as mock_api:
-            mock_api.allocations.get_current.side_effect = \
-                allocation_exceptions.AllocationDoesNotExist()
-
-            self.assertRaises(exceptions.AllocationDoesNotExist,
-                              ex.get_allocation)
-
-    def test_get_allocation_no_allocation_force(self):
-        project = fakes.FakeProject()
-        ex = expirer.AllocationExpirer(project, force_no_allocation=True)
-
-        with mock.patch.object(ex, 'a_client') as mock_api:
-            mock_api.allocations.get_current.side_effect = \
-                allocation_exceptions.AllocationDoesNotExist()
-
-            output = ex.get_allocation()
-            self.assertEqual('NO-ALLOCATION', output.id)
-
-    def test_get_allocation_active_pending(self):
-        project = fakes.FakeProject()
-        ex = expirer.AllocationExpirer(project)
-
-        mock_allocations = fakes.FakeAllocationManager()
-        pending2 = mock_allocations.get_current('pending2')
-        active = mock_allocations.get_current('active')
-
-        with mock.patch.object(ex, 'a_client') as mock_api:
-            mock_api.allocations.get_current.return_value = pending2
-            mock_api.allocations.get_last_approved.return_value = active
-            output = ex.get_allocation()
-            mock_api.allocations.get_current.assert_called_once_with(
-                project_id=project.id)
-            self.assertEqual(pending2, output)
-
-    def test_get_allocation_active_pending_expired(self):
-        project = fakes.FakeProject()
-        ex = expirer.AllocationExpirer(project)
-
-        mock_allocations = fakes.FakeAllocationManager()
-        pending1 = mock_allocations.get_current('pending1')
-        active = mock_allocations.get_current('active')
-
-        with mock.patch.object(ex, 'a_client') as mock_api:
-            mock_api.allocations.get_current.return_value = pending1
-            mock_api.allocations.get_last_approved.return_value = active
-            output = ex.get_allocation()
-            mock_api.allocations.get_current.assert_called_once_with(
-                project_id=project.id)
-            self.assertEqual(active, output)
 
     def test_process_allocation_renewed(self):
         project = fakes.FakeProject(expiry_status=expiry_states.RENEWED)
