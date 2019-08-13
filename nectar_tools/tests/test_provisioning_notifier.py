@@ -17,7 +17,8 @@ PROJECT = fakes.FakeProject('active')
 class ProvisioningNotifierTests(test.TestCase):
 
     def _test_send_message(self, stage, template):
-        n = notifier.ProvisioningNotifier(project=PROJECT)
+        n = notifier.ProvisioningNotifier(
+            resource_type="project", resource=PROJECT)
 
         self.assertEqual(int(CONF.freshdesk.provisioning_group), n.group_id)
         self.assertEqual('provisioning', n.template_dir)
