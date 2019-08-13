@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "71f56d77_30d2b149",
+        "filename": "nectar_tools/expiry/notifier.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-13T04:01:27Z",
+      "side": 1,
+      "message": "I think this should stay as the resource-type and if template doesn\u0027t exist then just don\u0027t add a note\n\nSo template would be \"%s-details.tmpl\" % self.resource_type",
+      "revId": "19d4ef632cee2ef0615f399a6dcc981f06b86348",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e7bc4ebf_4656cea1",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-13T04:01:27Z",
+      "side": 1,
+      "message": "shouldn\u0027t need to change this - see other comment",
+      "range": {
+        "startLine": 196,
+        "startChar": 0,
+        "endLine": 197,
+        "endChar": 31
+      },
+      "revId": "19d4ef632cee2ef0615f399a6dcc981f06b86348",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d1bf1476_d475d58d",
+        "filename": "nectar_tools/provisioning/notifier.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-13T04:01:27Z",
+      "side": 1,
+      "message": "this will always be project so I don\u0027t think we need to change this?",
+      "range": {
+        "startLine": 10,
+        "startChar": 23,
+        "endLine": 10,
+        "endChar": 46
+      },
+      "revId": "19d4ef632cee2ef0615f399a6dcc981f06b86348",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00529110_a5922c04",
+        "filename": "nectar_tools/provisioning/notifier.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-13T04:01:27Z",
+      "side": 1,
+      "message": "hard code this to project?",
+      "range": {
+        "startLine": 15,
+        "startChar": 12,
+        "endLine": 15,
+        "endChar": 25
+      },
+      "revId": "19d4ef632cee2ef0615f399a6dcc981f06b86348",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "870e254d_178f3af9",
+        "filename": "nectar_tools/templates/allocations/resource-details.tmpl",
+        "patchSetId": 13
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-13T04:01:27Z",
+      "side": 1,
+      "message": "leave as is with same filename",
+      "range": {
+        "startLine": 58,
+        "startChar": 7,
+        "endLine": 58,
+        "endChar": 8
+      },
+      "revId": "19d4ef632cee2ef0615f399a6dcc981f06b86348",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "515fb746_97081cab",
+        "filename": "nectar_tools/templates/pts/resource-details.tmpl",
+        "patchSetId": 13
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-13T04:01:27Z",
+      "side": 1,
+      "message": "leave as is with same name",
+      "revId": "19d4ef632cee2ef0615f399a6dcc981f06b86348",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
