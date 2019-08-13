@@ -10,6 +10,8 @@ from nectar_tools.tests import fakes
 
 CONF = config.CONFIG
 PROJECT = fakes.FakeProject('active')
+IMAGE = fakes.FakeImage(name='fake')
+INST = fakes.FakeInstance(name='fake')
 
 
 @mock.patch('freshdesk.v2.api.API')
@@ -17,8 +19,8 @@ PROJECT = fakes.FakeProject('active')
 class ExpiryNotifierTests(test.TestCase):
 
     def _test_send_message(self, stage, template):
-        n = notifier.ExpiryNotifier(
-            project=PROJECT, template_dir='allocations',
+        n = notifier.ExpiryNotifier(resource_type='project',
+            resource=PROJECT, template_dir='allocations',
             group_id=1, subject='Ticket-Subject %s' % PROJECT.name)
 
         with test.nested(
@@ -54,8 +56,8 @@ class ExpiryNotifierTests(test.TestCase):
     def test_send_message_update(self, mock_api):
         project = PROJECT
         project.expiry_ticket_id = 45
-        n = notifier.ExpiryNotifier(
-            project=project, template_dir='allocations',
+        n = notifier.ExpiryNotifier(resource_type='project',
+            resource=project, template_dir='allocations',
             group_id=1, subject='Ticket-Subject %s' % PROJECT.name)
 
         with test.nested(
@@ -75,8 +77,8 @@ class ExpiryNotifierTests(test.TestCase):
 
     def test_finish(self, mock_api):
         project = fakes.FakeProject(expiry_ticket_id=22)
-        n = notifier.ExpiryNotifier(
-            project=project, template_dir='allocations',
+        n = notifier.ExpiryNotifier(resource_type='project',
+            resource=project, template_dir='allocations',
             group_id=1, subject='subject')
         with mock.patch.object(n, '_add_note_to_ticket') as mock_note:
             n.finish()
@@ -86,8 +88,8 @@ class ExpiryNotifierTests(test.TestCase):
 
     def test_finish_message(self, mock_api):
         project = fakes.FakeProject(expiry_ticket_id=22)
-        n = notifier.ExpiryNotifier(
-            project=project, template_dir='allocations',
+        n = notifier.ExpiryNotifier(resource_type='project',
+            resource=project, template_dir='allocations',
             group_id=1, subject='subject')
         with mock.patch.object(n, '_add_note_to_ticket') as mock_note:
             n.finish(message='note-message')
@@ -95,9 +97,9 @@ class ExpiryNotifierTests(test.TestCase):
             mock_api.return_value.tickets.update_ticket.assert_called_with(
                 22, status=4)
 
-    def test_set_ticket_id(self, mock_api):
-        n = notifier.ExpiryNotifier(
-            project=PROJECT, template_dir='allocations',
+    def test_project_set_ticket_id(self, mock_api):
+        n = notifier.ExpiryNotifier(resource_type='project',
+            resource=PROJECT, template_dir='allocations',
             group_id=1, subject='Ticket-Subject %s' % PROJECT.name)
 
         with mock.patch.object(n, 'k_client') as mock_keystone:
@@ -105,23 +107,86 @@ class ExpiryNotifierTests(test.TestCase):
             mock_keystone.projects.update.assert_called_with(
                 PROJECT.id, expiry_ticket_id='34')
 
-    def test_get_ticket_id(self, mock_api):
+    def test_project_get_ticket_id(self, mock_api):
         project = fakes.FakeProject(expiry_ticket_id=34)
-        n = notifier.ExpiryNotifier(
-            project=project, template_dir='allocations',
+        n = notifier.ExpiryNotifier(resource_type='project',
+            resource=project, template_dir='allocations',
             group_id=1, subject='subject')
         self.assertEqual(34, n._get_ticket_id())
 
-    def test_get_ticket_id_none(self, mock_api):
+    def test_project_get_ticket_id_none(self, mock_api):
         project = fakes.FakeProject()
-        n = notifier.ExpiryNotifier(
-            project=project, template_dir='allocations',
+        n = notifier.ExpiryNotifier(resource_type='project',
+            resource=project, template_dir='allocations',
             group_id=1, subject='subject')
         self.assertEqual(0, n._get_ticket_id())
 
-    def test_get_ticket_id_invalid(self, mock_api):
+    def test_project_get_ticket_id_invalid(self, mock_api):
         project = fakes.FakeProject(expiry_ticket_id='not-a-number')
-        n = notifier.ExpiryNotifier(
-            project=project, template_dir='allocations',
+        n = notifier.ExpiryNotifier(resource_type='project',
+            resource=project, template_dir='allocations',
+            group_id=1, subject='subject')
+        self.assertEqual(0, n._get_ticket_id())
+
+    def test_image_set_ticket_id(self, mock_api):
+        n = notifier.ExpiryNotifier(resource_type='image',
+            resource=IMAGE, template_dir='images',
+            group_id=1, subject='Ticket-Subject %s' % IMAGE.name)
+
+        with mock.patch.object(n, 'g_client') as mock_glance:
+            n._set_ticket_id(34)
+            mock_glance.images.update.assert_called_with(
+                IMAGE.id, nectar_expiry_ticket_id='34')
+
+    def test_image_get_ticket_id(self, mock_api):
+        image = fakes.FakeImage(nectar_expiry_ticket_id=34)
+        n = notifier.ExpiryNotifier(resource_type='image',
+            resource=image, template_dir='images',
+            group_id=1, subject='subject')
+        self.assertEqual(34, n._get_ticket_id())
+
+    def test_image_get_ticket_id_none(self, mock_api):
+        image = fakes.FakeImage()
+        n = notifier.ExpiryNotifier(resource_type='image',
+            resource=image, template_dir='images',
+            group_id=1, subject='subject')
+        self.assertEqual(0, n._get_ticket_id())
+
+    def test_image_get_ticket_id_invalid(self, mock_api):
+        image = fakes.FakeImage(nectar_expiry_ticket_id='not-a-number')
+        n = notifier.ExpiryNotifier(resource_type='image',
+            resource=image, template_dir='images',
+            group_id=1, subject='subject')
+        self.assertEqual(0, n._get_ticket_id())
+
+    def test_instance_set_ticket_id(self, mock_api):
+        n = notifier.ExpiryNotifier(resource_type='instance',
+            resource=INST, template_dir='instances',
+            group_id=1, subject='Ticket-Subject %s' % INST.name)
+
+        with mock.patch.object(n, 'n_client') as mock_nova:
+            n._set_ticket_id(34)
+            mock_nova.servers.set_meta.assert_called_with(
+                INST.id, {'expiry_ticket_id': '34'})
+
+    def test_instance_get_ticket_id(self, mock_api):
+        inst = fakes.FakeInstance(metadata={'expiry_ticket_id': '34'})
+        n = notifier.ExpiryNotifier(resource_type='instance',
+            resource=inst, template_dir='instances',
+            group_id=1, subject='subject')
+        self.assertEqual(34, n._get_ticket_id())
+
+    def test_instance_get_ticket_id_none(self, mock_api):
+        inst = fakes.FakeInstance()
+        n = notifier.ExpiryNotifier(resource_type='instance',
+            resource=inst, template_dir='instances',
+            group_id=1, subject='subject')
+        self.assertEqual(0, n._get_ticket_id())
+
+    def test_instance_get_ticket_id_invalid(self, mock_api):
+        inst = fakes.FakeInstance(metadata={
+            'expiry_ticket_id': 'not-a-numnber'})
+        n = notifier.ExpiryNotifier(resource_type='instance',
+            resource=inst, template_dir='instances',
             group_id=1, subject='subject')
         self.assertEqual(0, n._get_ticket_id())
