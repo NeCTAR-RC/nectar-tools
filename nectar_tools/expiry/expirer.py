@@ -253,7 +253,8 @@ class AllocationExpirer(ProjectExpirer):
         archivers = ['nova', 'cinder', 'neutron', 'projectimages', 'swift']
 
         notifier = expiry_notifier.ExpiryNotifier(
-            project=project, template_dir='allocations',
+            resource_type='project', resource=project,
+            template_dir='allocations',
             group_id=CONF.freshdesk.allocation_group,
             subject="Nectar Project Allocation Renewal - %s" % project.name,
             ks_session=ks_session, dry_run=dry_run)
@@ -573,7 +574,7 @@ class PTExpirer(ProjectExpirer):
                  disable_project=False, force_delete=False):
         archivers = ['nova', 'neutron_basic', 'swift']
         notifier = expiry_notifier.ExpiryNotifier(
-            project=project, template_dir='pts',
+            resource_type='project', resource=project, template_dir='pts',
             group_id=CONF.freshdesk.pt_group,
             subject="Nectar Project Trial Expiry - %s" % project.name,
             ks_session=ks_session, dry_run=dry_run)
