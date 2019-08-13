@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "094d9113_ff838ab0",
+        "filename": "nectar_tools/expiry/notifier.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-13T06:27:20Z",
+      "side": 1,
+      "message": "what happens if the template doesn\u0027t exist?",
+      "range": {
+        "startLine": 45,
+        "startChar": 2,
+        "endLine": 46,
+        "endChar": 70
+      },
+      "revId": "cbaf5e48b445c69bc7149dc3b09371c1627c1d98",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "4fe5ec36_d8b821b3",
         "filename": "nectar_tools/expiry/notifier.py",
         "patchSetId": 14
