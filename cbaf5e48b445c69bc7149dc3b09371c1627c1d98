@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4fe5ec36_d8b821b3",
+        "filename": "nectar_tools/expiry/notifier.py",
+        "patchSetId": 14
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-08-13T05:12:16Z",
+      "side": 1,
+      "message": "If there is any other checks of status like this, I\u0027d be tempted to define them and use them like status\u003dtickets.RESOLVED, but it\u0027s not important",
+      "range": {
+        "startLine": 60,
+        "startChar": 58,
+        "endLine": 60,
+        "endChar": 66
+      },
+      "revId": "cbaf5e48b445c69bc7149dc3b09371c1627c1d98",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
