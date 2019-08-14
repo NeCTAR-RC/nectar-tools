@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4597a6e4_9f78c21c",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 13
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-14T03:55:00Z",
+      "side": 1,
+      "message": "isn\u0027t this now a date? Should just say more then 12 hours as the 12 is hardcoded too",
+      "range": {
+        "startLine": 31,
+        "startChar": 57,
+        "endLine": 31,
+        "endChar": 66
+      },
+      "revId": "b39b31b03ad843450dd7395ee1124d2c7d4f13c8",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
