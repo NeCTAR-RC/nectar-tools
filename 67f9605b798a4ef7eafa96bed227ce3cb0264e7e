@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "df2d8272_d68578ef",
+        "filename": "nectar_tools/notifier.py",
+        "patchSetId": 16
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-14T00:58:29Z",
+      "side": 1,
+      "message": "just realised we already handle if template not found, sorry about that. So then you can just test for \"if template: add_note\"",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 23
+      },
+      "revId": "67f9605b798a4ef7eafa96bed227ce3cb0264e7e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
