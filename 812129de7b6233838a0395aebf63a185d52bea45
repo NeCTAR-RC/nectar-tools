@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb5e0d40_11803acd",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-14T00:54:20Z",
+      "side": 1,
+      "message": "I think we could get rid of this argument and it would be up to the caller to determine if they want to catch and ignore the exception",
+      "range": {
+        "startLine": 70,
+        "startChar": 40,
+        "endLine": 70,
+        "endChar": 54
+      },
+      "revId": "812129de7b6233838a0395aebf63a185d52bea45",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ff4f09a6_a22d8442",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-14T00:54:20Z",
+      "side": 1,
+      "message": "think we could also remove this and leave this part up to the caller",
+      "range": {
+        "startLine": 71,
+        "startChar": 19,
+        "endLine": 71,
+        "endChar": 44
+      },
+      "revId": "812129de7b6233838a0395aebf63a185d52bea45",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12a2b90e_3b2e86ba",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-14T00:54:20Z",
+      "side": 1,
+      "message": "essentially remove this part and leave it where it is",
+      "range": {
+        "startLine": 77,
+        "startChar": 5,
+        "endLine": 89,
+        "endChar": 13
+      },
+      "revId": "812129de7b6233838a0395aebf63a185d52bea45",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
