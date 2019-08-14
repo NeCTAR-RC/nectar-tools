@@ -119,6 +119,49 @@ class Expirer(object):
         resources = self.archiver.delete_resources()
         return resources
 
+    @staticmethod
+    def get_status(resource):
+        if not hasattr(resource, 'expiry_status') or \
+           not resource.expiry_status:
+            resource.expiry_status = expiry_states.ACTIVE
+        return resource.expiry_status
+
+    @staticmethod
+    def get_next_step_date(resource):
+        if not hasattr(resource, 'expiry_next_step') or \
+           not resource.expiry_next_step:
+            return None
+        try:
+            expiry_next_step = resource.expiry_next_step
+            return datetime.datetime.strptime(expiry_next_step, DATE_FORMAT)
+        except ValueError:
+            LOG.error('%s: Invalid expiry_next_step date: %s',
+                      resource.id, expiry_next_step)
+        return None
+
+    @staticmethod
+    def at_next_step(resource):
+        next_step = Expirer.get_next_step_date(resource)
+        if not next_step:
+            return True
+        if next_step <= datetime.datetime.now():
+            LOG.debug('%s: Ready for next step (%s)', resource.id,
+                      next_step)
+            return True
+        else:
+            LOG.debug('%s: Not yet ready for next step (%s)',
+                      resource.id, next_step)
+            return False
+
+    @staticmethod
+    def make_next_step_date(now, unit=1):
+        # If date within 15 December and 31 January, allow 30 days
+        if (now.month == 12 and now.day >= 15) or now.month == 1:
+            next_step_date = now + relativedelta(days=30 * unit)
+        else:
+            next_step_date = now + relativedelta(weeks=2 * unit)
+        return next_step_date.strftime(DATE_FORMAT)
+
 
 class ProjectExpirer(Expirer):
 
@@ -170,14 +213,8 @@ class ProjectExpirer(Expirer):
 
         self.archiver.archive_resources()
 
-    def get_status(self):
-        status = self.project.expiry_status
-        if not status:
-            self.project.expiry_status = expiry_states.ACTIVE
-        return self.project.expiry_status
-
     def is_ignored_project(self):
-        status = self.get_status()
+        status = self.get_status(self.project)
         if status is None:
             return False
         elif status == expiry_states.ADMIN:
@@ -191,42 +228,8 @@ class ProjectExpirer(Expirer):
             return True
         return False
 
-    def get_next_step_date(self):
-        expiry_next_step = self.project.expiry_next_step
-
-        if not expiry_next_step:
-            return None
-        try:
-            return datetime.datetime.strptime(expiry_next_step, DATE_FORMAT)
-        except ValueError:
-            LOG.error('%s: Invalid expiry_next_step date: %s',
-                      self.project.id, expiry_next_step)
-        return None
-
-    def at_next_step(self):
-        next_step = self.get_next_step_date()
-        if not next_step:
-            return True
-        if next_step <= self.now:
-            LOG.debug('%s: Ready for next step (%s)', self.project.id,
-                      next_step)
-            return True
-        else:
-            LOG.debug('%s: Not yet ready for next step (%s)',
-                      self.project.id, next_step)
-            return False
-
     def set_project_archived(self):
         self._update_project(expiry_status=expiry_states.ARCHIVED)
-
-    def make_next_step_date(self):
-        # If date within 15 December and 31 January, allow 30 days
-        if (self.now.month == 12 and self.now.day >= 15) or \
-            self.now.month == 1:
-            next_step_date = self.now + relativedelta(days=30)
-        else:
-            next_step_date = self.now + relativedelta(weeks=2)
-        return next_step_date.strftime(DATE_FORMAT)
 
     def delete_project(self):
         LOG.info("%s: Deleting project", self.project.id)
@@ -289,8 +292,8 @@ class AllocationExpirer(ProjectExpirer):
 
     def process(self):
 
-        expiry_status = self.get_status()
-        expiry_next_step = self.get_next_step_date()
+        expiry_status = self.get_status(self.project)
+        expiry_next_step = self.get_next_step_date(self.project)
 
         LOG.debug("%s: Processing project=%s status=%s next_step=%s",
                   self.project.id, self.project.name, expiry_status,
@@ -317,22 +320,22 @@ class AllocationExpirer(ProjectExpirer):
                 return True
 
         elif expiry_status == expiry_states.WARNING:
-            if self.at_next_step():
+            if self.at_next_step(self.project):
                 self.restrict_project()
                 return True
 
         elif expiry_status == expiry_states.RESTRICTED:
-            if self.at_next_step():
+            if self.at_next_step(self.project):
                 self.stop_project()
                 return True
 
         elif expiry_status == expiry_states.STOPPED:
-            if self.at_next_step():
+            if self.at_next_step(self.project):
                 self.archive_project()
                 return True
 
         elif expiry_status == expiry_states.ARCHIVING:
-            if self.at_next_step():
+            if self.at_next_step(self.project):
                 LOG.debug("%s: Archiving longer than next step, move on",
                           self.project.id)
                 self.set_project_archived()
@@ -341,7 +344,7 @@ class AllocationExpirer(ProjectExpirer):
             return True
 
         elif expiry_status == expiry_states.ARCHIVED:
-            if self.at_next_step():
+            if self.at_next_step(self.project):
                 self.delete_project()
             else:
                 self.delete_resources()
@@ -379,7 +382,7 @@ class AllocationExpirer(ProjectExpirer):
         return warning_date < self.now
 
     def revert_expiry(self):
-        status = self.get_status()
+        status = self.get_status(self.project)
         if status == expiry_states.ACTIVE:
             return
 
@@ -418,7 +421,7 @@ class AllocationExpirer(ProjectExpirer):
         if self.is_ignored_project():
             return False
 
-        if self.get_status() == expiry_states.RENEWED:
+        if self.get_status(self.project) == expiry_states.RENEWED:
             return True
 
         allocation_status = self.allocation.status
@@ -507,7 +510,7 @@ class AllocationExpirer(ProjectExpirer):
         LOG.info("%s: Restricting project", self.project.id)
         self.archiver.zero_quota()
 
-        expiry_date = self.make_next_step_date()
+        expiry_date = self.make_next_step_date(self.now)
         self._update_project(expiry_status=expiry_states.RESTRICTED,
                              expiry_next_step=expiry_date)
         self._send_notification('final')
@@ -516,7 +519,7 @@ class AllocationExpirer(ProjectExpirer):
     def stop_project(self):
         LOG.info("%s: Stopping project", self.project.id)
         self.archiver.stop_resources()
-        expiry_date = self.make_next_step_date()
+        expiry_date = self.make_next_step_date(self.now)
         self._update_project(expiry_status=expiry_states.STOPPED,
                              expiry_next_step=expiry_date)
         self.send_event('stop')
@@ -570,14 +573,14 @@ class PTExpirer(ProjectExpirer):
         if not self.should_process_project():
             raise exceptions.InvalidProjectTrial()
 
-        status = self.get_status()
-        self.get_next_step_date()
+        status = self.get_status(self.project)
+        self.get_next_step_date(self.project)
 
         LOG.debug("%s: Processing project %s status: %s",
                   self.project.id, self.project.name, status)
 
         if status in [expiry_states.ARCHIVED, expiry_states.ARCHIVE_ERROR]:
-            if self.at_next_step():
+            if self.at_next_step(self.project):
                 self.delete_project()
                 return True
             else:
@@ -585,12 +588,12 @@ class PTExpirer(ProjectExpirer):
                 return False
 
         elif status == expiry_states.SUSPENDED:
-            if self.at_next_step():
+            if self.at_next_step(self.project):
                 self.archive_project()
                 return True
 
         elif status == expiry_states.ARCHIVING:
-            if self.at_next_step():
+            if self.at_next_step(self.project):
                 LOG.debug("%s: Archiving longer than next step, move on",
                           self.project.id)
                 self.set_project_archived()
@@ -645,7 +648,7 @@ class PTExpirer(ProjectExpirer):
         return limits[event]()
 
     def notify_near_limit(self):
-        if self.get_status() == expiry_states.QUOTA_WARNING:
+        if self.get_status(self.project) == expiry_states.QUOTA_WARNING:
             return False
 
         LOG.info("%s: Usage is over 80%% - setting status to quota warning",
@@ -659,7 +662,7 @@ class PTExpirer(ProjectExpirer):
         return True
 
     def notify_at_limit(self):
-        if self.get_status() == expiry_states.PENDING_SUSPENSION:
+        if self.get_status(self.project) == expiry_states.PENDING_SUSPENSION:
             LOG.debug("Usage OK for now, ignoring")
             return False
 
@@ -667,7 +670,7 @@ class PTExpirer(ProjectExpirer):
                  "pending suspension", self.project.id)
         self.archiver.zero_quota()
 
-        expiry_date = self.make_next_step_date()
+        expiry_date = self.make_next_step_date(self.now)
         self._update_project(expiry_status=expiry_states.PENDING_SUSPENSION,
                              expiry_next_step=expiry_date)
         self._send_notification('second')
@@ -675,9 +678,9 @@ class PTExpirer(ProjectExpirer):
         return True
 
     def notify_over_limit(self):
-        if self.get_status() != expiry_states.PENDING_SUSPENSION:
+        if self.get_status(self.project) != expiry_states.PENDING_SUSPENSION:
             return self.notify_at_limit()
-        if not self.at_next_step():
+        if not self.at_next_step(self.project):
             return False
 
         LOG.info("%s: Usage is over 120%%, suspending project",
@@ -686,7 +689,7 @@ class PTExpirer(ProjectExpirer):
         self.archiver.zero_quota()
         self.archiver.stop_resources()
 
-        expiry_date = self.make_next_step_date()
+        expiry_date = self.make_next_step_date(self.now)
         self._update_project(expiry_status=expiry_states.SUSPENDED,
                              expiry_next_step=expiry_date)
         self._send_notification('final')
