@@ -62,3 +62,12 @@ def list_resources(list_method, marker_name='id', **list_method_kwargs):
                 break
             results += next
     return results
+
+
+def read_file(uuid_file):
+    """Get a list of UUIDs from a file.
+
+    Can be project or user or image IDs
+    """
+    data = uuid_file.read()
+    return data.split('\n')
