@@ -4,8 +4,9 @@ import prettytable
 
 from nectar_tools import cmd_base
 from nectar_tools import config
-
 from nectar_tools import exceptions
+from nectar_tools import utils
+
 from nectar_tools.expiry import expiry_states
 
 
@@ -26,7 +27,7 @@ class ProjectExpiryBaseCmd(cmd_base.CmdBase):
             projects = self.k_client.projects.list(enabled=True,
                                                    domain=self.args.domain)
             if self.args.filename:
-                wanted_projects = self.read_file(self.args.filename)
+                wanted_projects = utils.read_file(self.args.filename)
 
                 projects = [p for p in projects if p.id in wanted_projects]
             projects.sort(key=lambda p: p.name.split('-')[-1].zfill(5))
@@ -106,15 +107,6 @@ class ProjectExpiryBaseCmd(cmd_base.CmdBase):
         self.parser.add_argument('--force-delete', action='store_true',
                             help="Delete a project no matter what state it's \
                                  in")
-
-    @staticmethod
-    def read_file(project_file=False):
-        """Get a list of UUIDs from a file.
-
-        Can be project or user IDs
-        """
-        data = project_file.read()
-        return data.split('\n')
 
     @staticmethod
     def project_set_defaults(project):
