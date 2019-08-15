@@ -43,3 +43,12 @@ def get_out_of_zone_instances(session, allocation, project):
             setattr(instance, 'availability_zone', az)
             out_of_zone.append(instance)
     return out_of_zone
+
+
+def read_file(uuid_file):
+    """Get a list of UUIDs from a file.
+
+    Can be project or user or image IDs
+    """
+    data = uuid_file.read()
+    return data.split('\n')
