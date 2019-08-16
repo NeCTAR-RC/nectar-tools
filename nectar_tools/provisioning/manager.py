@@ -7,6 +7,8 @@ from keystoneauth1 import exceptions as keystone_exc
 from nectarallocationclient import client
 import neutronclient
 import novaclient
+from oslo_context import context
+import oslo_messaging
 import prettytable
 
 from nectar_tools import auth
@@ -20,6 +22,8 @@ from nectar_tools import utils
 
 CONF = config.CONFIG
 LOG = logging.getLogger(__name__)
+OSLO_CONF = config.OSLO_CONF
+OSLO_CONTEXT = context.RequestContext()
 
 
 class ProvisioningManager(object):
@@ -33,6 +37,23 @@ class ProvisioningManager(object):
         self.client = client.Client(1, session=ks_session)
         self.k_client = auth.get_keystone_client(ks_session)
         self.a_client = auth.get_allocation_client(ks_session)
+
+        transport = oslo_messaging.get_notification_transport(OSLO_CONF)
+        self.event_notifier = oslo_messaging.Notifier(transport, 'expiry')
+        target = oslo_messaging.Target(exchange='openstack',
+                                       topic='notifications')
+        for queue in CONF.events.notifier_queues.split(','):
+            transport._driver.listen_for_notifications([(target, 'audit')],
+                                                       queue, 1, 1)
+
+    def send_event(self, allocation, event, extra_context={}):
+        event_type = 'provisioning.%s' % event
+        event_notification = {'allocation': allocation.to_dict()}
+        event_notification.update(extra_context)
+        if self.noop:
+            LOG.info('%s: Would send event %s' % (allocation.id, event_type))
+            return
+        self.event_notifier.audit(OSLO_CONTEXT, event_type, event_notification)
 
     def provision(self, allocation):
         if allocation.provisioned:
@@ -48,6 +69,7 @@ class ProvisioningManager(object):
                 raise exceptions.InvalidProjectAllocation(
                     "Existing project not found") from exc
         is_new_project = True
+        event_type = 'new'
         if not project:
             # New allocation
             try:
@@ -61,6 +83,7 @@ class ProvisioningManager(object):
             if allocation.convert_trial_project:
                 project = self.convert_trial(allocation)
                 is_new_project = False
+                event_type = 'pt-conversion'
             else:
                 project = self.create_project(allocation)
             if not self.noop:
@@ -70,6 +93,7 @@ class ProvisioningManager(object):
         else:
             project = self.update_project(allocation)
             is_new_project = False
+            event_type = 'renewed'
 
         designate_archiver = archiver.DesignateArchiver(
             {'project': project}, self.ks_session, dry_run=self.noop)
@@ -80,6 +104,7 @@ class ProvisioningManager(object):
         self.set_quota(allocation)
         allocation = self.set_allocation_start_end(allocation)
         self.notify_provisioned(allocation, is_new_project, project, report)
+        self.send_event(allocation, event_type)
         allocation = self.update_allocation(allocation, provisioned=True)
         LOG.info("%s: Allocation provisioned successfully", allocation.id)
 
