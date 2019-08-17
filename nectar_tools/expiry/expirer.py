@@ -38,8 +38,8 @@ class CPULimit(enum.Enum):
 
 
 class Expirer(object):
-    def __init__(self, resources, archivers, notifier, ks_session=None,
-                 dry_run=False):
+    def __init__(self, resource_type, resource, archivers, notifier,
+                 ks_session=None, dry_run=False):
         self.k_client = auth.get_keystone_client(ks_session)
         self.dry_run = dry_run
         self.ks_session = ks_session
@@ -47,6 +47,8 @@ class Expirer(object):
         self.notifier = notifier
         self.managers = None
         self.members = None
+        self.resource_type = resource_type
+        self.resource = resource
 
         transport = oslo_messaging.get_notification_transport(OSLO_CONF)
         self.event_notifier = oslo_messaging.Notifier(transport, 'expiry')
@@ -56,40 +58,38 @@ class Expirer(object):
             transport._driver.listen_for_notifications([(target, 'audit')],
                                                        queue, 1, 1)
 
-        for res_type, res in resources.items():
-            setattr(self, res_type, res)
-        if not hasattr(self, 'project'):
-            project = self._get_project_from_other_res(resources)
-            setattr(self, 'project', project)
-
-        self.archiver = archiver.ResourceArchiver(resources=resources,
-                                                  archivers=archivers,
-                                                  ks_session=ks_session,
-                                                  dry_run=dry_run)
+        # image/inst archiver will be initialized in their expirer class
+        if self.resource_type == 'project':
+            self.archiver = archiver.ResourceArchiver(resource,
+                                                      archivers=archivers,
+                                                      ks_session=ks_session,
+                                                      dry_run=dry_run)
 
     def _get_project_managers(self):
         if self.managers is None:
             role = CONF.keystone.manager_role_id
-            self.managers = self._get_users_by_role(role)
+            project = self._get_project_from_resource()
+            self.managers = self._get_users_by_role(project, role)
         return self.managers
 
     def _get_project_members(self):
         if self.members is None:
             role = CONF.keystone.member_role_id
-            self.members = self._get_users_by_role(role)
+            project = self._get_project_from_resource()
+            self.members = self._get_users_by_role(project, role)
         return self.members
 
-    def _get_users_by_role(self, role):
+    def _get_users_by_role(self, project, role):
         members = self.k_client.role_assignments.list(
-            project=self.project, role=role)
+            project=project, role=role)
         users = []
         for member in members:
             users.append(self.k_client.users.get(member.user['id']))
         return users
 
-    def _get_project_from_other_res(self, resources):
-        # TODO(rocky): get the project object from other resources
-        pass
+    def _get_project_from_resource(self):
+        if self.resource_type == 'project':
+            return self.resource
 
     def _get_notification_context(self):
         return {}
@@ -109,7 +109,8 @@ class Expirer(object):
 
     def _send_event(self, event_type, payload):
         if self.dry_run:
-            LOG.info('%s: Would send event %s' % (self.project.id, event_type))
+            LOG.info('%s: Would send event %s' % (self.resource.id,
+                                                  event_type))
             return
         self.event_notifier.audit(OSLO_CONTEXT, event_type, payload)
 
@@ -165,9 +166,9 @@ class ProjectExpirer(Expirer):
 
     def __init__(self, project, archivers, notifier, ks_session=None,
                  dry_run=False, disable_project=False):
-        resources = {'project': project}
         super(ProjectExpirer, self).__init__(
-            resources, archivers, notifier, ks_session, dry_run)
+            'project', project, archivers, notifier, ks_session, dry_run)
+        self.project = project
         self.project_set_defaults()
         self.disable_project = disable_project
 
