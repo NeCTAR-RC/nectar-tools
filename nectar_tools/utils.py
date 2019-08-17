@@ -32,8 +32,7 @@ def get_out_of_zone_instances(session, allocation, project):
     zones = get_compute_zones(session, allocation)
     if not zones:
         return []
-    nova_archiver = archiver.NovaArchiver(
-        {'project': project}, session)
+    nova_archiver = archiver.NovaArchiver(project, session)
     instances = nova_archiver._all_instances()
     out_of_zone = []
     for instance in instances:
