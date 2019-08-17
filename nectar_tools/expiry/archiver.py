@@ -15,17 +15,15 @@ LOG = logging.getLogger(__name__)
 
 class Archiver(object):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
+    def __init__(self, resource_type, resource, ks_session=None,
+                 dry_run=False):
         self.k_client = auth.get_keystone_client(ks_session)
         self.g_client = auth.get_glance_client(ks_session)
         self.dry_run = dry_run
         self.ks_session = ks_session
 
-        # will set Archiver instance attributes from resources
-        # e.g project archiver will set self.project
-        # image archiver will set self.project and self.image
-        for res_type, res in resources.items():
-            setattr(self, res_type, res)
+        self.resource_type = resource_type
+        self.resource = resource
 
     def is_archive_successful(self):
         return True
@@ -57,8 +55,10 @@ class Archiver(object):
 
 class ImageArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(ImageArchiver, self).__init__(resources, ks_session, dry_run)
+    def __init__(self, resource_type, resource, ks_session=None,
+                 dry_run=False):
+        super(ImageArchiver, self).__init__(
+            resource_type, resource, ks_session, dry_run)
 
     def _delete_image(self, image):
         LOG.debug("Found image %s", image.id)
@@ -97,19 +97,21 @@ class ImageArchiver(Archiver):
         if not force:
             return
 
-        self._delete_image(self.image)
+        self._delete_image(self.resource)
 
     def restrict_resources(self, force=False):
         if not force:
             return
 
-        self._restrict_image(self.image)
+        self._restrict_image(self.resource)
 
 
 class NovaArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(NovaArchiver, self).__init__(resources, ks_session, dry_run)
+    def __init__(self, resource_type, resource, ks_session=None,
+                 dry_run=False):
+        super(NovaArchiver, self).__init__(
+            resource_type, resource, ks_session, dry_run)
         self.n_client = auth.get_nova_client(self.ks_session)
         self.images = None
         self.instances = None
@@ -140,7 +142,7 @@ class NovaArchiver(Archiver):
         if image:
             if image.status == 'active':
                 LOG.info('%s: Instance %s archived successfully',
-                         self.project.id, instance.id)
+                         self.resource.id, instance.id)
                 return True
             elif image.status in ['queued', 'saving']:
                 LOG.info("Archiving in progress (%s) for %s (image: %s)",
@@ -155,12 +157,12 @@ class NovaArchiver(Archiver):
 
     def zero_quota(self):
         if not self.dry_run:
-            self.n_client.quotas.update(tenant_id=self.project.id,
+            self.n_client.quotas.update(tenant_id=self.resource.id,
                                         ram=0,
                                         instances=0,
                                         cores=0,
                                         force=True)
-        LOG.debug("%s: Zero nova quota", self.project.id)
+        LOG.debug("%s: Zero nova quota", self.resource.id)
 
     def stop_resources(self):
         instances = self._all_instances()
@@ -198,21 +200,21 @@ class NovaArchiver(Archiver):
         """
         images = self._get_project_images()
         LOG.debug("%s: Found %s instance archive image",
-                  self.project.id, len(images))
+                  self.resource.id, len(images))
         for image in images:
             if not self.dry_run:
                 self.g_client.images.delete(image.id)
-                LOG.info("%s: Deleted image %s", self.project.id, image.id)
+                LOG.info("%s: Deleted image %s", self.resource.id, image.id)
             else:
                 LOG.info("%s: Would delete image %s(%s)",
-                         self.project.id, image.name, image.id)
+                         self.resource.id, image.name, image.id)
 
     def _all_instances(self):
         if self.instances is None:
             instances = []
             marker = None
             opts = {"all_tenants": True,
-                    'tenant_id': self.project.id}
+                    'tenant_id': self.resource.id}
 
             while True:
                 if marker:
@@ -246,7 +248,7 @@ class NovaArchiver(Archiver):
                 self._delete_instance(instance)
                 return
             LOG.debug("%s: Can't snapshot %s due to instance status %s",
-                      self.project.id, instance.id, instance.status)
+                      self.resource.id, instance.id, instance.status)
             return
 
         if instance.status == 'DELETED' or task_state == 'deleting':
@@ -257,7 +259,7 @@ class NovaArchiver(Archiver):
             # Instance should be stopped when moving into suspended status
             # but we can stop for now and start archiving next run
             LOG.warn("%s: Instance %s is running, expected it to be stopped",
-                     self.project.id, instance.id)
+                     self.resource.id, instance.id)
             self._stop_instance(instance)
             return
 
@@ -265,7 +267,7 @@ class NovaArchiver(Archiver):
                           'image_snapshot', 'image_pending_upload',
                           'image_uploading', 'powering-off', 'powering-on']:
             LOG.debug("%s: Can't snapshot %s due to task_state %s",
-                      self.project.id, instance.id, task_state)
+                      self.resource.id, instance.id, task_state)
             return
 
         if vm_state in ['stopped', 'suspended', 'paused']:
@@ -275,7 +277,7 @@ class NovaArchiver(Archiver):
 
             if self.dry_run:
                 LOG.info("%s: Would create archive %s (attempt %d/%d)",
-                         self.project.id, archive_name, set_attempts,
+                         self.resource.id, archive_name, set_attempts,
                          ARCHIVE_ATTEMPTS)
             else:
                 metadata = {'archive_attempts': str(set_attempts)}
@@ -283,20 +285,20 @@ class NovaArchiver(Archiver):
 
                 try:
                     LOG.info("%s: Creating archive %s (attempt %d/%d)",
-                             self.project.id, archive_name, set_attempts,
+                             self.resource.id, archive_name, set_attempts,
                              ARCHIVE_ATTEMPTS)
                     image_id = self.n_client.servers.create_image(
                         instance.id, archive_name,
                         metadata={'nectar_archive': 'True'})
-                    LOG.info("%s: Archived image id: %s", self.project.id,
+                    LOG.info("%s: Archived image id: %s", self.resource.id,
                              image_id)
                 except Exception as e:
                     LOG.error("%s: Error creating archive: %s",
-                              self.project.id, e)
+                              self.resource.id, e)
         else:
             # Fail in an unknown state
             LOG.warning("%s: Instance %s is %s (vm_state: %s)",
-                        self.project.id, instance.id, instance.status,
+                        self.resource.id, instance.id, instance.status,
                         vm_state)
 
     def _stop_instance(self, instance):
@@ -327,7 +329,7 @@ class NovaArchiver(Archiver):
             if instance.status != "ERROR":
                 self.n_client.servers.set_meta(instance.id,
                                                {EXPIRY_METADATA_KEY: 'True'})
-            LOG.info("%s: Locked instance %s", self.project.id, instance.id)
+            LOG.info("%s: Locked instance %s", self.resource.id, instance.id)
 
     def _unlock_instance(self, instance):
         if not instance.locked:
@@ -338,14 +340,15 @@ class NovaArchiver(Archiver):
             self.n_client.servers.unlock(instance.id)
             self.n_client.servers.delete_meta(instance.id,
                                               [EXPIRY_METADATA_KEY])
-            LOG.info("%s: Unlocked instance %s", self.project.id, instance.id)
+            LOG.info("%s: Unlocked instance %s", self.resource.id, instance.id)
 
     def _delete_instance(self, instance):
         if self.dry_run:
             LOG.info("%s: Would delete instance: %s",
-                     self.project.id, instance.id)
+                     self.resource.id, instance.id)
         else:
-            LOG.info("%s: Deleting instance: %s", self.project.id, instance.id)
+            LOG.info("%s: Deleting instance: %s",
+                     self.resource.id, instance.id)
             self.n_client.servers.delete(instance.id)
 
     def _get_image_by_instance_id(self, instance_id):
@@ -359,7 +362,7 @@ class NovaArchiver(Archiver):
     def _get_project_images(self):
         if self.images is None:
             images = [i for i in self.g_client.images.list(
-                filters={'owner_id': self.project.id,
+                filters={'owner_id': self.resource.id,
                          'nectar_archive': 'True'})]
             self.images = images
         return self.images
@@ -367,8 +370,10 @@ class NovaArchiver(Archiver):
 
 class CinderArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(CinderArchiver, self).__init__(resources, ks_session, dry_run)
+    def __init__(self, resource_type, resource, ks_session=None,
+                 dry_run=False):
+        super(CinderArchiver, self).__init__(
+            resource_type, resource, ks_session, dry_run)
         self.c_client = auth.get_cinder_client(ks_session)
         self.volumes = None
 
@@ -383,27 +388,29 @@ class CinderArchiver(Archiver):
     def _all_volumes(self):
         if self.volumes is None:
             opts = {'all_tenants': True,
-                    'project_id': self.project.id}
+                    'project_id': self.resource.id}
             volumes = self.c_client.volumes.list(search_opts=opts)
             volumes = [v for v in volumes if
                        getattr(v, 'os-vol-tenant-attr:tenant_id')
-                       == self.project.id]
+                       == self.resource.id]
             self.volumes = volumes
         return self.volumes
 
     def _delete_volume(self, volume):
         if self.dry_run:
-            LOG.info("%s: Would delete volume: %s", self.project.id, volume.id)
+            LOG.info("%s: Would delete volume: %s",
+                     self.resource.id, volume.id)
         else:
-            LOG.info("%s: Deleting volume: %s", self.project.id, volume.id)
+            LOG.info("%s: Deleting volume: %s", self.resource.id, volume.id)
             self.c_client.volumes.delete(volume.id, cascade=True)
 
 
 class NeutronBasicArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(NeutronBasicArchiver, self).__init__(resources, ks_session,
-                                                   dry_run)
+    def __init__(self, resource_type, resource, ks_session=None,
+                 dry_run=False):
+        super(NeutronBasicArchiver, self).__init__(
+            resource_type, resource, ks_session, dry_run)
         self.ne_client = auth.get_neutron_client(ks_session)
 
     def zero_quota(self):
@@ -419,8 +426,8 @@ class NeutronBasicArchiver(Archiver):
         }
 
         if not self.dry_run:
-            self.ne_client.update_quota(self.project.id, body)
-        LOG.debug("%s: Zero neutron quota", self.project.id)
+            self.ne_client.update_quota(self.resource.id, body)
+        LOG.debug("%s: Zero neutron quota", self.resource.id)
 
     def delete_resources(self, force=False):
         # Because we can't archive only delete when forced
@@ -435,17 +442,18 @@ class NeutronBasicArchiver(Archiver):
                                   list_args={}, log_name=None):
         if not log_name:
             log_name = name
-        resources = list_method(tenant_id=self.project.id, **list_args)[name]
-        LOG.debug("%s: Found %s %s", self.project.id, len(resources), log_name)
+        resources = list_method(tenant_id=self.resource.id, **list_args)[name]
+        LOG.debug("%s: Found %s %s",
+                  self.resource.id, len(resources), log_name)
         if not resources:
             return
         for r in resources:
             if not self.dry_run:
                 delete_method(r['id'])
-                LOG.info("%s: Deleted %s %s", self.project.id, log_name,
+                LOG.info("%s: Deleted %s %s", self.resource.id, log_name,
                          r['id'])
             else:
-                LOG.info("%s: Would delete %s %s", self.project.id, log_name,
+                LOG.info("%s: Would delete %s %s", self.resource.id, log_name,
                          r['id'])
 
 
@@ -477,8 +485,8 @@ class NeutronArchiver(NeutronBasicArchiver):
 
     def _delete_routers(self):
         routers = self.ne_client.list_routers(
-            tenant_id=self.project.id)['routers']
-        LOG.debug("%s: Found %s routers", self.project.id,
+            tenant_id=self.resource.id)['routers']
+        LOG.debug("%s: Found %s routers", self.resource.id,
                   len(routers))
 
         for router in routers:
@@ -493,10 +501,10 @@ class NeutronArchiver(NeutronBasicArchiver):
                     self.ne_client.remove_interface_router(router['id'], body)
             if not self.dry_run:
                 self.ne_client.delete_router(router['id'])
-                LOG.info("%s: Deleted router %s", self.project.id,
+                LOG.info("%s: Deleted router %s", self.resource.id,
                          router['id'])
             else:
-                LOG.info("%s: Would delete router %s", self.project.id,
+                LOG.info("%s: Would delete router %s", self.resource.id,
                          router['id'])
 
 
@@ -507,7 +515,7 @@ class ProjectImagesArchiver(ImageArchiver):
             return
 
         images = list(self.g_client.images.list(
-            filters={'owner': self.project.id}))
+            filters={'owner': self.resource.id}))
         for image in images:
             self._delete_image(image)
 
@@ -515,7 +523,7 @@ class ProjectImagesArchiver(ImageArchiver):
         if not force:
             return
         images = list(self.g_client.images.list(
-            filters={'owner': self.project.id}))
+            filters={'owner': self.resource.id}))
         for image in images:
             self._restrict_image(image)
 
@@ -524,16 +532,18 @@ class SwiftArchiver(Archiver):
 
     SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(SwiftArchiver, self).__init__(resources, ks_session, dry_run)
-        self.s_client = auth.get_swift_client(ks_session,
-                                              project_id=self.project.id)
+    def __init__(self, resource_type, resource, ks_session=None,
+                 dry_run=False):
+        super(SwiftArchiver, self).__init__(
+            resource_type, resource, ks_session, dry_run)
+        self.s_client = auth.get_swift_client(
+            ks_session, project_id=self.resource.id)
 
     def zero_quota(self):
         if not self.dry_run:
             self.s_client.post_account(
                 headers={SwiftArchiver.SWIFT_QUOTA_KEY: 0})
-        LOG.debug("%s: Zero swift quota", self.project.id)
+        LOG.debug("%s: Zero swift quota", self.resource.id)
 
     def delete_resources(self, force=False):
         if not force:
@@ -545,39 +555,41 @@ class SwiftArchiver(Archiver):
             if 'x-container-read' in container_stat:
                 read_acl = container_stat['x-container-read']
                 LOG.warn("%s: Ignoring container %s due to read_acl %s",
-                         self.project.id, c['name'], read_acl)
+                         self.resource.id, c['name'], read_acl)
                 continue
             self._delete_container(c, objects)
 
     def _delete_container(self, container, objects):
         for obj in objects:
             if not self.dry_run:
-                LOG.info("%s: Deleting object %s/%s", self.project.id,
+                LOG.info("%s: Deleting object %s/%s", self.resource.id,
                          container['name'], obj['name'])
                 try:
                     self.s_client.delete_object(container['name'], obj['name'])
                 except Exception:
                     LOG.info("%s: Failed to delete object %s/%s",
-                             self.project.id, container['name'], obj['name'])
+                             self.resource.id, container['name'], obj['name'])
             else:
-                LOG.info("%s: Would delete object %s/%s", self.project.id,
+                LOG.info("%s: Would delete object %s/%s", self.resource.id,
                          container['name'], obj['name'])
         if not self.dry_run:
-            LOG.info("%s: Deleting container %s", self.project.id,
+            LOG.info("%s: Deleting container %s", self.resource.id,
                      container['name'])
             self.s_client.delete_container(container['name'])
         else:
-            LOG.info("%s: Would delete container %s", self.project.id,
+            LOG.info("%s: Would delete container %s", self.resource.id,
                      container['name'])
 
 
 class DesignateArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(DesignateArchiver, self).__init__(resources, ks_session, dry_run)
+    def __init__(self, resource_type, resource, ks_session=None,
+                 dry_run=False):
+        super(DesignateArchiver, self).__init__(
+            resource_type, resource, ks_session, dry_run)
         if not dry_run:
             self.d_client = auth.get_designate_client(
-                ks_session, project_id=self.project.id)
+                ks_session, project_id=self.resource.id)
 
     def delete_resources(self, force=False):
         if not force:
@@ -589,9 +601,9 @@ class DesignateArchiver(Archiver):
 
     def _delete_zone(self, zone):
         if self.dry_run:
-            LOG.info("%s: Would delete zone: %s", self.project.id, zone.id)
+            LOG.info("%s: Would delete zone: %s", self.resource.id, zone.id)
         else:
-            LOG.info("%s: Deleting zone: %s", self.project.id, zone.id)
+            LOG.info("%s: Deleting zone: %s", self.resource.id, zone.id)
             self.d_client.zones.delete(zone['id'])
 
     def _clean_zone_name(self, name):
@@ -606,77 +618,84 @@ class DesignateArchiver(Archiver):
 
     def create_resources(self):
         if self.dry_run:
-            if self.project:
-                LOG.info("%s: Would create designate zone", self.project.id)
+            if self.resource:
+                LOG.info("%s: Would create designate zone", self.resource.id)
             else:
                 LOG.info("Would create designate zone for project")
         else:
-            sub_name = self._clean_zone_name(self.project.name)
+            sub_name = self._clean_zone_name(self.resource.name)
             zone_name = "%s.%s" % (sub_name, CONF.designate.user_domain)
 
             try:
                 self.d_client.zones.get(zone_name)
-                LOG.info("%s: Zone already exists: %s", self.project.id,
+                LOG.info("%s: Zone already exists: %s", self.resource.id,
                          zone_name)
             except designate_exc.NotFound:
                 self._create_zone(zone_name)
 
     def _create_zone(self, name):
         if self.dry_run:
-            LOG.info("%s: Would create designate zone %s", self.project.id,
+            LOG.info("%s: Would create designate zone %s", self.resource.id,
                      name)
         else:
             self.d_client.session.sudo_project_id = None  # admin
-            LOG.debug("%s: Creating new zone %s", self.project.id, name)
+            LOG.debug("%s: Creating new zone %s", self.resource.id, name)
             try:
                 zone = self.d_client.zones.get(name)
             except designate_exc.NotFound:
                 zone = self.d_client.zones.create(
                     name, email=CONF.designate.zone_email)
 
-            LOG.debug("%s: Transferring zone %s to project", self.project.id,
+            LOG.debug("%s: Transferring zone %s to project", self.resource.id,
                       zone['name'])
             create_req = self.d_client.zone_transfers.create_request(
-                name, self.project.id)
+                name, self.resource.id)
 
-            self.d_client.session.sudo_project_id = self.project.id  # no admin
+            self.d_client.session.sudo_project_id = self.resource.id  # noadmin
             accept_req = self.d_client.zone_transfers.accept_request(
                 create_req['id'], create_req['key'])
 
             if accept_req['status'] == 'COMPLETE':
                 LOG.info("%s: Zone %s transfer to project %s is complete",
-                         self.project.id, zone['name'], self.project.id)
+                         self.resource.id, zone['name'], self.resource.id)
                 return zone
             else:
                 LOG.error("%s: Zone %s transfer to project %s is: %s",
-                          self.project.id, zone['name'], self.project.id,
+                          self.resource.id, zone['name'], self.resource.id,
                           accept_req['status'])
 
 
 class ResourceArchiver(object):
 
-    def __init__(self, resources, archivers, ks_session=None, dry_run=False):
+    def __init__(self, resource_type, resource, archivers, ks_session=None,
+                 dry_run=False):
         enabled = []
         # project scope archiver
         if 'nova' in archivers:
-            enabled.append(NovaArchiver(resources, ks_session, dry_run))
+            enabled.append(NovaArchiver(
+                resource_type, resource, ks_session, dry_run))
         if 'cinder' in archivers:
-            enabled.append(CinderArchiver(resources, ks_session, dry_run))
+            enabled.append(CinderArchiver(
+                resource_type, resource, ks_session, dry_run))
         if 'neutron_basic' in archivers:
-            enabled.append(NeutronBasicArchiver(resources, ks_session,
-                                                dry_run))
+            enabled.append(NeutronBasicArchiver(
+                resource_type, resource, ks_session, dry_run))
         if 'neutron' in archivers:
-            enabled.append(NeutronArchiver(resources, ks_session, dry_run))
+            enabled.append(NeutronArchiver(
+                resource_type, resource, ks_session, dry_run))
         if 'projectimages' in archivers:
-            enabled.append(ProjectImagesArchiver(resources, ks_session,
-                                                 dry_run))
+            enabled.append(ProjectImagesArchiver(
+                resource_type, resource, ks_session, dry_run))
         if 'swift' in archivers:
-            enabled.append(SwiftArchiver(resources, ks_session, dry_run))
+            enabled.append(SwiftArchiver(
+                resource_type, resource, ks_session, dry_run))
         if 'designate' in archivers:
-            enabled.append(DesignateArchiver(resources, ks_session, dry_run))
+            enabled.append(DesignateArchiver(
+                resource_type, resource, ks_session, dry_run))
         # individual resource archiver
         if 'image' in archivers:
-            enabled.append(ImageArchiver(resources, ks_session, dry_run))
+            enabled.append(ImageArchiver(
+                resource_type, resource, ks_session, dry_run))
 
         self.archivers = enabled
 
