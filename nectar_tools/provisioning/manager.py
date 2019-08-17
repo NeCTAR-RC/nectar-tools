@@ -72,7 +72,7 @@ class ProvisioningManager(object):
             is_new_project = False
 
         designate_archiver = archiver.DesignateArchiver(
-            {'project': project}, self.ks_session, dry_run=self.noop)
+            project, self.ks_session, dry_run=self.noop)
         designate_archiver.create_resources()
 
         report = self.quota_report(allocation, html=True,
