@@ -45,29 +45,35 @@ class ExpiryTests(test.TestCase):
 
     def test_get_project_managers(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         self.assertIsNone(ex.managers)
-        with mock.patch.object(ex, '_get_users_by_role',
-                               return_value=fakes.MANAGERS):
+        with test.nested(
+            mock.patch.object(ex, '_get_users_by_role',
+                              return_value=fakes.MANAGERS),
+            mock.patch.object(ex, 'get_project',
+                              return_value=project)):
             managers = ex._get_project_managers()
             self.assertEqual(fakes.MANAGERS, ex.managers)
             self.assertEqual(fakes.MANAGERS, managers)
 
     def test_get_project_members(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         self.assertIsNone(ex.members)
-        with mock.patch.object(ex, '_get_users_by_role',
-                               return_value=fakes.MEMBERS):
+        with test.nested(
+            mock.patch.object(ex, '_get_users_by_role',
+                              return_value=fakes.MEMBERS),
+            mock.patch.object(ex, 'get_project',
+                              return_value=project)):
             members = ex._get_project_members()
             self.assertEqual(fakes.MEMBERS, ex.members)
             self.assertEqual(fakes.MEMBERS, members)
 
     def test_get_users_by_role(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         role = 'fakerole'
         role_assignments = [mock.Mock(), mock.Mock()]
@@ -84,7 +90,7 @@ class ExpiryTests(test.TestCase):
         with mock.patch.object(ex, 'k_client') as mock_keystone:
             mock_keystone.role_assignments.list.return_value = role_assignments
             mock_keystone.users.get.side_effect = user_side_effect
-            users = ex._get_users_by_role('fakerole')
+            users = ex._get_users_by_role(project, 'fakerole')
             mock_keystone.role_assignments.list.assert_called_with(
                 project=project, role=role)
             mock_keystone.users.get.assert_has_calls([mock.call('fakeuser1'),
@@ -93,7 +99,7 @@ class ExpiryTests(test.TestCase):
 
     def test_delete_resources(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         with mock.patch.object(ex, 'archiver') as mock_archiver:
             ex.delete_resources()
@@ -101,7 +107,7 @@ class ExpiryTests(test.TestCase):
 
     def test_send_notification(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         with test.nested(
             mock.patch.object(ex, 'notifier'),
@@ -122,7 +128,7 @@ class ExpiryTests(test.TestCase):
         mock_notifier = mock.Mock()
         mock_oslo_messaging.Notifier.return_value = mock_notifier
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         ex._send_event('foo', 'bar')
         mock_notifier.audit.assert_called_once_with(mock.ANY, 'foo', 'bar')
