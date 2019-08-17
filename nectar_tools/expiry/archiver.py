@@ -15,17 +15,11 @@ LOG = logging.getLogger(__name__)
 
 class Archiver(object):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
+    def __init__(self, ks_session=None, dry_run=False):
         self.k_client = auth.get_keystone_client(ks_session)
         self.g_client = auth.get_glance_client(ks_session)
         self.dry_run = dry_run
         self.ks_session = ks_session
-
-        # will set Archiver instance attributes from resources
-        # e.g project archiver will set self.project
-        # image archiver will set self.project and self.image
-        for res_type, res in resources.items():
-            setattr(self, res_type, res)
 
     def is_archive_successful(self):
         return True
@@ -57,8 +51,9 @@ class Archiver(object):
 
 class ImageArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(ImageArchiver, self).__init__(resources, ks_session, dry_run)
+    def __init__(self, image, ks_session=None, dry_run=False):
+        super(ImageArchiver, self).__init__(ks_session, dry_run)
+        self.image = image
 
     def _delete_image(self, image):
         LOG.debug("Found image %s", image.id)
@@ -108,9 +103,10 @@ class ImageArchiver(Archiver):
 
 class NovaArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(NovaArchiver, self).__init__(resources, ks_session, dry_run)
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super(NovaArchiver, self).__init__(ks_session, dry_run)
         self.n_client = auth.get_nova_client(self.ks_session)
+        self.project = project
         self.images = None
         self.instances = None
 
@@ -345,7 +341,8 @@ class NovaArchiver(Archiver):
             LOG.info("%s: Would delete instance: %s",
                      self.project.id, instance.id)
         else:
-            LOG.info("%s: Deleting instance: %s", self.project.id, instance.id)
+            LOG.info("%s: Deleting instance: %s",
+                     self.project.id, instance.id)
             self.n_client.servers.delete(instance.id)
 
     def _get_image_by_instance_id(self, instance_id):
@@ -367,9 +364,10 @@ class NovaArchiver(Archiver):
 
 class CinderArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(CinderArchiver, self).__init__(resources, ks_session, dry_run)
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super(CinderArchiver, self).__init__(ks_session, dry_run)
         self.c_client = auth.get_cinder_client(ks_session)
+        self.project = project
         self.volumes = None
 
     def delete_resources(self, force=False):
@@ -393,7 +391,8 @@ class CinderArchiver(Archiver):
 
     def _delete_volume(self, volume):
         if self.dry_run:
-            LOG.info("%s: Would delete volume: %s", self.project.id, volume.id)
+            LOG.info("%s: Would delete volume: %s",
+                     self.project.id, volume.id)
         else:
             LOG.info("%s: Deleting volume: %s", self.project.id, volume.id)
             self.c_client.volumes.delete(volume.id, cascade=True)
@@ -401,10 +400,10 @@ class CinderArchiver(Archiver):
 
 class NeutronBasicArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(NeutronBasicArchiver, self).__init__(resources, ks_session,
-                                                   dry_run)
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super(NeutronBasicArchiver, self).__init__(ks_session, dry_run)
         self.ne_client = auth.get_neutron_client(ks_session)
+        self.project = project
 
     def zero_quota(self):
         body = {'quota': {'port': 0,
@@ -436,7 +435,8 @@ class NeutronBasicArchiver(Archiver):
         if not log_name:
             log_name = name
         resources = list_method(tenant_id=self.project.id, **list_args)[name]
-        LOG.debug("%s: Found %s %s", self.project.id, len(resources), log_name)
+        LOG.debug("%s: Found %s %s",
+                  self.project.id, len(resources), log_name)
         if not resources:
             return
         for r in resources:
@@ -502,6 +502,10 @@ class NeutronArchiver(NeutronBasicArchiver):
 
 class ProjectImagesArchiver(ImageArchiver):
 
+    def __init__(self, project, ks_session=None, dry_run=False):
+        Archiver.__init__(self, ks_session, dry_run)
+        self.project = project
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -524,10 +528,11 @@ class SwiftArchiver(Archiver):
 
     SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(SwiftArchiver, self).__init__(resources, ks_session, dry_run)
-        self.s_client = auth.get_swift_client(ks_session,
-                                              project_id=self.project.id)
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super(SwiftArchiver, self).__init__(ks_session, dry_run)
+        self.project = project
+        self.s_client = auth.get_swift_client(
+            ks_session, project_id=self.project.id)
 
     def zero_quota(self):
         if not self.dry_run:
@@ -573,8 +578,9 @@ class SwiftArchiver(Archiver):
 
 class DesignateArchiver(Archiver):
 
-    def __init__(self, resources, ks_session=None, dry_run=False):
-        super(DesignateArchiver, self).__init__(resources, ks_session, dry_run)
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super(DesignateArchiver, self).__init__(ks_session, dry_run)
+        self.project = project
         if not dry_run:
             self.d_client = auth.get_designate_client(
                 ks_session, project_id=self.project.id)
@@ -639,7 +645,7 @@ class DesignateArchiver(Archiver):
             create_req = self.d_client.zone_transfers.create_request(
                 name, self.project.id)
 
-            self.d_client.session.sudo_project_id = self.project.id  # no admin
+            self.d_client.session.sudo_project_id = self.project.id  # noadmin
             accept_req = self.d_client.zone_transfers.accept_request(
                 create_req['id'], create_req['key'])
 
@@ -655,29 +661,23 @@ class DesignateArchiver(Archiver):
 
 class ResourceArchiver(object):
 
-    def __init__(self, resources, archivers, ks_session=None, dry_run=False):
+    def __init__(self, project, archivers, ks_session=None, dry_run=False):
         enabled = []
-        # project scope archiver
+        # project scope archiver, could be multiple archivers
         if 'nova' in archivers:
-            enabled.append(NovaArchiver(resources, ks_session, dry_run))
+            enabled.append(NovaArchiver(project, ks_session, dry_run))
         if 'cinder' in archivers:
-            enabled.append(CinderArchiver(resources, ks_session, dry_run))
+            enabled.append(CinderArchiver(project, ks_session, dry_run))
         if 'neutron_basic' in archivers:
-            enabled.append(NeutronBasicArchiver(resources, ks_session,
-                                                dry_run))
+            enabled.append(NeutronBasicArchiver(project, ks_session, dry_run))
         if 'neutron' in archivers:
-            enabled.append(NeutronArchiver(resources, ks_session, dry_run))
+            enabled.append(NeutronArchiver(project, ks_session, dry_run))
         if 'projectimages' in archivers:
-            enabled.append(ProjectImagesArchiver(resources, ks_session,
-                                                 dry_run))
+            enabled.append(ProjectImagesArchiver(project, ks_session, dry_run))
         if 'swift' in archivers:
-            enabled.append(SwiftArchiver(resources, ks_session, dry_run))
+            enabled.append(SwiftArchiver(project, ks_session, dry_run))
         if 'designate' in archivers:
-            enabled.append(DesignateArchiver(resources, ks_session, dry_run))
-        # individual resource archiver
-        if 'image' in archivers:
-            enabled.append(ImageArchiver(resources, ks_session, dry_run))
-
+            enabled.append(DesignateArchiver(project, ks_session, dry_run))
         self.archivers = enabled
 
     def is_archive_successful(self):
