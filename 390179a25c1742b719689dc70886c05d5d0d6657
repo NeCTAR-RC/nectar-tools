@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e57faf04_834fca96",
+        "filename": "nectar_tools/audit/app/environment.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-20T22:34:07Z",
+      "side": 1,
+      "message": "maybe should be called EnvironmentAuditor? Eg. we might have other auditors for app catalog project in the future \n\n(I think we\u0027re auditing environments here?)",
+      "range": {
+        "startLine": 15,
+        "startChar": 6,
+        "endLine": 15,
+        "endChar": 16
+      },
+      "revId": "390179a25c1742b719689dc70886c05d5d0d6657",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f93d4f90_2b8c783d",
+        "filename": "nectar_tools/audit/app/environment.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-20T22:34:07Z",
+      "side": 1,
+      "message": "I wonder if we need all this complexity in the auditor, should work just as well not listing the packages in the log message?",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 40
+      },
+      "revId": "390179a25c1742b719689dc70886c05d5d0d6657",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ba43849_ff8d9ac5",
+        "filename": "nectar_tools/audit/cmd/app.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-20T22:34:07Z",
+      "side": 1,
+      "message": "AppCatalogAuditorCmd, may as well keep it consistent with the others",
+      "range": {
+        "startLine": 5,
+        "startChar": 6,
+        "endLine": 5,
+        "endChar": 19
+      },
+      "revId": "390179a25c1742b719689dc70886c05d5d0d6657",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "54bdc329_05c1db43",
+        "filename": "nectar_tools/audit/cmd/app.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-20T22:34:07Z",
+      "side": 1,
+      "message": "maybe call the file app_catalog.py to keep it consistent with the other auditors?",
+      "revId": "390179a25c1742b719689dc70886c05d5d0d6657",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
