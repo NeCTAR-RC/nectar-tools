@@ -8,6 +8,7 @@ from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client
 from manilaclient import client as manilaclient
+from muranoclient import client as muranoclient
 from nectarallocationclient import client as allocationclient
 from neutronclient.neutron import client as neutronclient
 from novaclient import client as novaclient
@@ -112,3 +113,10 @@ def get_openstacksdk(sess=None):
     if not sess:
         sess = get_session()
     return sdkconnection.Connection(session=sess)
+
+
+def get_murano_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return muranoclient.Client(version='1', session=sess,
+                               service_type='application-catalog')
