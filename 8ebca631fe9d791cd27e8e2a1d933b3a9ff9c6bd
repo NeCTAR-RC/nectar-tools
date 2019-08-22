@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "672e7caa_1121dddd",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-22T02:10:02Z",
+      "side": 1,
+      "message": "set \n    self.project \u003d project \nhere so don\u0027t need to do all the renaming below",
+      "revId": "8ebca631fe9d791cd27e8e2a1d933b3a9ff9c6bd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
