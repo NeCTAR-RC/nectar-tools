@@ -37,6 +37,7 @@ setup(
             'nectar-allocation-provisioner = nectar_tools.provisioning.cmd.provision:main',
             'nectar-pt-audit = nectar_tools.audit.cmd.pt:main',
             'nectar-allocation-audit = nectar_tools.audit.cmd.allocation:main',
+            'nectar-project-allocation-audit = nectar_tools.audit.cmd.project:main',
             'nectar-identity-audit = nectar_tools.audit.cmd.identity:main',
             'nectar-metric-audit = nectar_tools.audit.cmd.metric:main',
             'nectar-compute-audit = nectar_tools.audit.cmd.compute:main',
