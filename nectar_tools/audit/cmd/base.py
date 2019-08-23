@@ -31,10 +31,10 @@ class AuditCmdBase(cmd_base.CmdBase):
                 LOG.exception(e)
                 sys.exit(1)
 
-    def run_audits(self):
+    def run_audits(self, **kwargs):
         for auditor in self.AUDITORS:
             a = auditor(ks_session=self.session)
-            a.run_all(list_not_run=self.list_not_run)
+            a.run_all(list_not_run=self.list_not_run, **kwargs)
 
     def add_args(self):
         super(AuditCmdBase, self).add_args()

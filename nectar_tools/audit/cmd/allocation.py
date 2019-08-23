@@ -1,23 +1,27 @@
 #!/usr/bin/env python
 
-from nectar_tools.audit.cmd import project_base
-from nectar_tools.audit.projects import allocation
-from nectar_tools import utils
+from nectar_tools.audit.allocation import allocation
+from nectar_tools.audit.cmd import base
 
 
-class AllocationAuditorCmd(project_base.ProjectAuditorCmd):
+class AllocationAuditorCmd(base.AuditCmdBase):
+
+    AUDITORS = [allocation.AllocationAuditor]
 
     @staticmethod
     def get_manager():
-        return allocation.ProjectAllocationAuditor
+        return allocation.AllocationAuditor
 
-    def is_valid_project(self, project):
-        return utils.valid_project_allocation(project)
+    def add_args(self):
+        super(AllocationAuditorCmd, self).add_args()
+        self.parser.description = 'Allocation auditor'
+        self.parser.add_argument('-a', '--allocation-id',
+                                 help='Allocation ID to process')
 
 
 def main():
     cmd = AllocationAuditorCmd()
-    cmd.run_audits()
+    cmd.run_audits(allocation_id=cmd.args.allocation_id)
 
 
 if __name__ == '__main__':

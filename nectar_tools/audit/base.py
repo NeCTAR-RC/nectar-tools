@@ -11,7 +11,7 @@ class Auditor(object):
     def __init__(self, ks_session):
         self.sdk_client = auth.get_openstacksdk(sess=ks_session)
 
-    def run_all(self, list_not_run=False):
+    def run_all(self, list_not_run=False, **kwargs):
         public_method_names = [method for method in dir(self)
                                if callable(getattr(self, method))
                                if not method.startswith('_')]
@@ -25,7 +25,7 @@ class Auditor(object):
                     continue
                 LOG.debug("Starting %s", method)
                 try:
-                    getattr(self, method)()
+                    getattr(self, method)(**kwargs)
                 except Exception as e:
                     LOG.exception(e)
                 LOG.debug("Finished %s", method)
