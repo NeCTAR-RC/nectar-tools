@@ -32,8 +32,7 @@ def get_out_of_zone_instances(session, allocation, project):
     zones = get_compute_zones(session, allocation)
     if not zones:
         return []
-    nova_archiver = archiver.NovaArchiver(
-        {'project': project}, session)
+    nova_archiver = archiver.NovaArchiver(project, session)
     instances = nova_archiver._all_instances()
     out_of_zone = []
     for instance in instances:
@@ -62,3 +61,12 @@ def list_resources(list_method, marker_name='id', **list_method_kwargs):
                 break
             results += next
     return results
+
+
+def read_file(uuid_file):
+    """Get a list of UUIDs from a file.
+
+    Can be project or user or image IDs
+    """
+    data = uuid_file.read()
+    return data.split('\n')

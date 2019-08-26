@@ -45,29 +45,35 @@ class ExpiryTests(test.TestCase):
 
     def test_get_project_managers(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         self.assertIsNone(ex.managers)
-        with mock.patch.object(ex, '_get_users_by_role',
-                               return_value=fakes.MANAGERS):
+        with test.nested(
+            mock.patch.object(ex, '_get_users_by_role',
+                              return_value=fakes.MANAGERS),
+            mock.patch.object(ex, 'get_project',
+                              return_value=project)):
             managers = ex._get_project_managers()
             self.assertEqual(fakes.MANAGERS, ex.managers)
             self.assertEqual(fakes.MANAGERS, managers)
 
     def test_get_project_members(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         self.assertIsNone(ex.members)
-        with mock.patch.object(ex, '_get_users_by_role',
-                               return_value=fakes.MEMBERS):
+        with test.nested(
+            mock.patch.object(ex, '_get_users_by_role',
+                              return_value=fakes.MEMBERS),
+            mock.patch.object(ex, 'get_project',
+                              return_value=project)):
             members = ex._get_project_members()
             self.assertEqual(fakes.MEMBERS, ex.members)
             self.assertEqual(fakes.MEMBERS, members)
 
     def test_get_users_by_role(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         role = 'fakerole'
         role_assignments = [mock.Mock(), mock.Mock()]
@@ -84,7 +90,7 @@ class ExpiryTests(test.TestCase):
         with mock.patch.object(ex, 'k_client') as mock_keystone:
             mock_keystone.role_assignments.list.return_value = role_assignments
             mock_keystone.users.get.side_effect = user_side_effect
-            users = ex._get_users_by_role('fakerole')
+            users = ex._get_users_by_role(project, 'fakerole')
             mock_keystone.role_assignments.list.assert_called_with(
                 project=project, role=role)
             mock_keystone.users.get.assert_has_calls([mock.call('fakeuser1'),
@@ -93,7 +99,7 @@ class ExpiryTests(test.TestCase):
 
     def test_delete_resources(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         with mock.patch.object(ex, 'archiver') as mock_archiver:
             ex.delete_resources()
@@ -101,7 +107,7 @@ class ExpiryTests(test.TestCase):
 
     def test_send_notification(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         with test.nested(
             mock.patch.object(ex, 'notifier'),
@@ -122,10 +128,76 @@ class ExpiryTests(test.TestCase):
         mock_notifier = mock.Mock()
         mock_oslo_messaging.Notifier.return_value = mock_notifier
         project = fakes.FakeProject()
-        ex = expirer.Expirer({'project': project},
+        ex = expirer.Expirer('project', project,
                              archivers='fake', notifier='fake')
         ex._send_event('foo', 'bar')
         mock_notifier.audit.assert_called_once_with(mock.ANY, 'foo', 'bar')
+
+    def test_get_status(self):
+        expected = 'archived'
+        project = fakes.FakeProject(expiry_status=expected)
+        actual = expirer.Expirer.get_status(project)
+        self.assertEqual(expected, actual)
+
+    def test_get_status_none(self):
+        project = fakes.FakeProject()
+        actual = expirer.Expirer.get_status(project)
+        self.assertEqual('active', actual)
+
+    def test_get_next_step_date(self):
+        project = fakes.FakeProject(expiry_next_step='2017-01-01')
+        expected = datetime.datetime(2017, 1, 1)
+        actual = expirer.Expirer.get_next_step_date(project)
+        self.assertEqual(expected, actual)
+
+    def test_get_next_step_date_none(self):
+        project = fakes.FakeProject()
+        actual = expirer.Expirer.get_next_step_date(project)
+        self.assertIsNone(actual)
+
+    def test_at_next_step(self):
+        project = fakes.FakeProject()
+        with mock.patch(
+            'nectar_tools.expiry.expirer.Expirer.get_next_step_date'
+        ) as mock_next:
+            mock_next.return_value = datetime.datetime(2016, 1, 1)
+            self.assertTrue(expirer.Expirer.at_next_step(project))
+
+    def test_at_next_step_negative(self):
+        project = fakes.FakeProject()
+        with mock.patch(
+            'nectar_tools.expiry.expirer.Expirer.get_next_step_date'
+        ) as mock_next:
+            mock_next.return_value = datetime.datetime(2018, 1, 1)
+            self.assertFalse(expirer.Expirer.at_next_step(project))
+            mock_next.reset_mock()
+            mock_next.return_value = None
+            self.assertTrue(expirer.Expirer.at_next_step(project))
+
+    def test_make_next_step_date_feb_1(self):
+        now = datetime.datetime(2018, 2, 1)
+        actual = expirer.Expirer.make_next_step_date(now)
+        self.assertEqual('2018-02-15', actual)
+
+    def test_make_next_step_date_feb_1_two_more_weeks(self):
+        now = datetime.datetime(2018, 2, 1)
+        actual = expirer.Expirer.make_next_step_date(now, 2)
+        self.assertEqual('2018-03-01', actual)
+
+    def test_make_next_step_date_dec_14(self):
+        now = datetime.datetime(2018, 12, 14)
+        actual = expirer.Expirer.make_next_step_date(now)
+        self.assertEqual('2018-12-28', actual)
+
+    def test_make_next_step_date_dec_15(self):
+        now = datetime.datetime(2018, 12, 15)
+        actual = expirer.Expirer.make_next_step_date(now)
+        self.assertEqual('2019-01-14', actual)
+
+    def test_make_next_step_date_jan_31(self):
+        now = datetime.datetime(2019, 1, 31)
+        actual = expirer.Expirer.make_next_step_date(now)
+        self.assertEqual('2019-03-02', actual)
 
 
 @freeze_time("2017-01-01")
@@ -205,23 +277,6 @@ class ProjectExpirerTests(test.TestCase):
             mock_archiver.archive_resources.assert_called_once_with()
             mock_update_project.assert_not_called()
 
-    def test_get_status(self):
-        expected = 'archived'
-        project = fakes.FakeProject(expiry_status=expected)
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        with mock.patch.object(ex, '_update_project') as mock_update_project:
-            actual = ex.get_status()
-            self.assertEqual(expected, actual)
-            mock_update_project.assert_not_called()
-
-    def test_get_status_none(self):
-        project = fakes.FakeProject()
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        with mock.patch.object(ex, '_update_project') as mock_update_project:
-            actual = ex.get_status()
-            self.assertEqual('active', actual)
-            mock_update_project.assert_not_called()
-
     def test_is_ignored_project(self):
         project = fakes.FakeProject()
         ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
@@ -242,40 +297,6 @@ class ProjectExpirerTests(test.TestCase):
         ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
         self.assertFalse(ex.is_ignored_project())
 
-    def test_get_next_step_date(self):
-        project = fakes.FakeProject(expiry_next_step='2017-01-01')
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        expected = datetime.datetime(2017, 1, 1)
-        with mock.patch.object(ex, '_update_project') as mock_update_project:
-            actual = ex.get_next_step_date()
-            self.assertEqual(expected, actual)
-            mock_update_project.assert_not_called()
-
-    def test_get_next_step_date_none(self):
-        project = fakes.FakeProject()
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        with mock.patch.object(ex, '_update_project') as mock_update_project:
-            actual = ex.get_next_step_date()
-            self.assertIsNone(actual)
-            mock_update_project.assert_not_called()
-
-    def test_at_next_step(self):
-        project = fakes.FakeProject()
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        with mock.patch.object(ex, 'get_next_step_date') as mock_next:
-            mock_next.return_value = datetime.datetime(2016, 1, 1)
-            self.assertTrue(ex.at_next_step())
-
-    def test_at_next_step_neagtive(self):
-        project = fakes.FakeProject()
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        with mock.patch.object(ex, 'get_next_step_date') as mock_next:
-            mock_next.return_value = datetime.datetime(2018, 1, 1)
-            self.assertFalse(ex.at_next_step())
-            mock_next.reset_mock()
-            mock_next.return_value = None
-            self.assertTrue(ex.at_next_step())
-
     def test_set_project_archived(self):
         project = fakes.FakeProject()
         ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
@@ -283,30 +304,6 @@ class ProjectExpirerTests(test.TestCase):
             ex.set_project_archived()
             mock_update.assert_called_with(
                 expiry_status=expiry_states.ARCHIVED)
-
-    @freeze_time('2018-02-01')
-    def test_make_next_step_date_feb_1(self):
-        project = fakes.FakeProject()
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        assert ex.make_next_step_date() == '2018-02-15'
-
-    @freeze_time('2018-12-14')
-    def test_make_next_step_date_dec_14(self):
-        project = fakes.FakeProject()
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        assert ex.make_next_step_date() == '2018-12-28'
-
-    @freeze_time('2018-12-15')
-    def test_make_next_step_date_dec_15(self):
-        project = fakes.FakeProject()
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        assert ex.make_next_step_date() == '2019-01-14'
-
-    @freeze_time('2019-01-31')
-    def test_make_next_step_date_jan_31(self):
-        project = fakes.FakeProject()
-        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
-        assert ex.make_next_step_date() == '2019-03-02'
 
     def test_delete_project(self):
         project = fakes.FakeProject()
