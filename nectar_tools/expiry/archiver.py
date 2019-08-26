@@ -659,6 +659,30 @@ class DesignateArchiver(Archiver):
                           accept_req['status'])
 
 
+class InstanceArchiver(NovaArchiver):
+
+    def __init__(self, instance, ks_session=None, dry_run=False):
+        Archiver.__init__(self, ks_session, dry_run)
+        self.n_client = auth.get_nova_client(self.ks_session)
+        self.instance = instance
+        self.project = self.k_client.projects.get(instance.tenant_id)
+
+    def archive_resources(self):
+        if not self.dry_run:
+            LOG.info("Archive the instance %s", self.instance.id)
+            self._stop_instance(self.instance)
+            self._lock_instance(self.instance)
+        else:
+            LOG.info("Would archive the instance %s", self.instance.id)
+
+    def delete_resources(self):
+        if not self.dry_run:
+            LOG.info("Delete the instance %s", self.instance.id)
+            self._delete_instance(self.instance)
+        else:
+            LOG.info("Would delete the instance %s", self.instance.id)
+
+
 class ResourceArchiver(object):
 
     def __init__(self, project, archivers, ks_session=None, dry_run=False):

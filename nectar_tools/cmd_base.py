@@ -24,6 +24,8 @@ class CmdBase(object):
 
         self.session = auth.get_session()
         self.k_client = auth.get_keystone_client(self.session)
+        self.n_client = auth.get_nova_client(self.session)
+        self.a_client = auth.get_allocation_client(self.session)
 
     def add_args(self):
         self.parser.add_argument('-y', '--no-dry-run', action='store_true',

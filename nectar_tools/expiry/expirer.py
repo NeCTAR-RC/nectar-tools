@@ -13,6 +13,8 @@ from nectarallocationclient.v1 import allocations
 from nectar_tools import auth
 from nectar_tools import config
 from nectar_tools import exceptions
+from nectar_tools import utils
+
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expiry_states
 from nectar_tools.expiry import notifier as expiry_notifier
@@ -743,3 +745,117 @@ class PTExpirer(ProjectExpirer):
         event_notification = {'project': self.project.to_dict()}
         event_notification.update(extra_context)
         self._send_event(event_type, event_notification)
+
+
+class InstanceExpirer(Expirer):
+
+    def __init__(self, instance, ks_session=None, dry_run=False,
+                 force_delete=False):
+        notifier = expiry_notifier.ExpiryNotifier(
+            resource_type='instance', resource=instance,
+            template_dir='instances',
+            group_id=CONF.freshdesk.instance_group,
+            subject="Nectar Instance Expiry - %s" % instance.name,
+            ks_session=ks_session, dry_run=dry_run)
+
+        super(InstanceExpirer, self).__init__(
+            'instance', instance, [], notifier, ks_session, dry_run)
+        self.resource_set_defaults()
+        self.force_delete = force_delete
+        self.n_client = auth.get_nova_client(ks_session)
+        self.a_client = auth.get_allocation_client(ks_session)
+        self.project = self.get_project()
+        self.allocation = self.a_client.allocations.get_current(
+            project_id=instance.tenant_id)
+        self.archiver = archiver.InstanceArchiver(instance,
+                                                  ks_session=ks_session,
+                                                  dry_run=dry_run)
+
+    def get_project(self):
+        return self.k_client.projects.get(self.resource.tenant_id)
+
+    def resource_set_defaults(self):
+        self.resource.expiry_status = self.resource.metadata.get(
+            'expiry_status', '')
+        self.resource.expiry_next_step = self.resource.metadata.get(
+            'expiry_next_step', '')
+        self.resource.expiry_ticket_id = self.resource.metadata.get(
+            'expiry_ticket_id', 0)
+        self.resource.compute_zone = self.resource.metadata.get(
+            'compute_zone', '')
+        self.resource.availability_zone = getattr(
+            self.resource, 'OS-EXT-AZ:availability_zone', '')
+
+    def _update_instance(self, **kwargs):
+        today = self.now.strftime(DATE_FORMAT)
+        kwargs.update({'expiry_updated_at': today})
+        if not self.dry_run:
+            self.n_client.servers.set_meta(self.resource.id, kwargs)
+        if 'expiry_status' in kwargs.keys():
+            self.resource.expiry_status = kwargs['expiry_status']
+        if 'expiry_next_step' in kwargs.keys():
+            self.resource.expiry_next_step = kwargs['expiry_next_step']
+        msg = 'Instance %s: Updating %s' % (self.resource.id, kwargs)
+        LOG.debug(msg)
+
+    def _get_recipients(self):
+        owner = self.k_client.users.get(self.resource.user_id)
+        owner_email = owner.email.lower()
+        managers = self._get_project_managers()
+        manager_emails = []
+        for manager in managers:
+            if manager.enabled and manager.email:
+                manager_emails.append(manager.email.lower())
+        manager_emails.remove(owner_email)
+        return (owner_email, manager_emails)
+
+    def resource_ready_for_warning(self):
+        start_date = datetime.datetime.strptime(self.allocation.start_date,
+                                                DATE_FORMAT)
+        if self.now > start_date + relativedelta(days=60):
+            return True
+        return False
+
+    def send_warning(self, stage, expiry_status):
+        LOG.info("instance %s: Sending warning", self.resource.id)
+        # four weeks
+        next_step_date = self.make_next_step_date(self.now, unit=2)
+        self._update_instance(expiry_status=expiry_status,
+                              expiry_next_step=next_step_date)
+        compute_zones = utils.get_compute_zones(self.ks_session,
+                                                self.allocation)
+        extra_context = {'allocation': self.allocation,
+                         'compute_zones': compute_zones}
+        self._send_notification(stage, extra_context=extra_context)
+
+    def process(self):
+
+        expiry_status = self.get_status(self.resource)
+        expiry_next_step = self.get_next_step_date(self.resource)
+
+        if self.force_delete:
+            LOG.info("%s: Processing instance=%s status=%s next_step=%s",
+                     self.resource.id, self.resource.name, expiry_status,
+                     expiry_next_step)
+            self.archiver.delete_resources()
+            return True
+
+        if expiry_status == expiry_states.ADMIN:
+            LOG.info("%s: instance=%s is in Admin state, skip expiry",
+                     self.resource.id, self.resource.name)
+            return False
+
+        if expiry_status == expiry_states.DELETED:
+            return False
+
+        elif expiry_status == expiry_states.ACTIVE:
+            if self.resource_ready_for_warning():
+                self.send_warning('first', expiry_states.WARNING)
+                return True
+            return False
+        elif expiry_status == expiry_states.WARNING:
+            if self.at_next_step(self.resource):
+                self.archiver.archive_resources()
+                self.send_warning('archived', expiry_states.STOPPED)
+                return True
+            return False
