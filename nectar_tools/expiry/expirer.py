@@ -533,12 +533,10 @@ class AllocationExpirer(ProjectExpirer):
         self._send_event(event_type, event_notification)
 
     def _send_notification(self, stage, extra_context={}):
-        if not self.allocation.notifications:
-            return
         if self.force_no_allocation:
             LOG.info("%s: Skipping notification due to force no "
                         "allocation being set", self.project.id)
-        else:
+        elif self.allocation.notifications:
             super(AllocationExpirer, self)._send_notification(
                 stage, extra_context)
 
