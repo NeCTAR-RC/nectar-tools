@@ -5,6 +5,7 @@ from designateclient import exceptions as designate_exc
 
 from nectar_tools import auth
 from nectar_tools import config
+from nectar_tools import utils
 
 
 EXPIRY_METADATA_KEY = 'expiry_locked'
@@ -362,6 +363,22 @@ class NovaArchiver(Archiver):
         return self.images
 
 
+class ZoneInstanceArchiver(NovaArchiver):
+
+    def __init__(self, project, ks_session=None, dry_run=False):
+        Archiver.__init__(self, ks_session, dry_run)
+        self.n_client = auth.get_nova_client(ks_session)
+        self.a_client = auth.get_allocation_client(ks_session)
+        self.project = project
+        self.allocation = self.a_client.allocations.get(
+            project.allocation_id)
+
+    def _all_instances(self):
+        instances = utils.get_out_of_zone_instances(
+            self.ks_session, self.allocation, self.project)
+        return instances
+
+
 class CinderArchiver(Archiver):
 
     def __init__(self, project, ks_session=None, dry_run=False):
@@ -666,6 +683,8 @@ class ResourceArchiver(object):
         # project scope archiver, could be multiple archivers
         if 'nova' in archivers:
             enabled.append(NovaArchiver(project, ks_session, dry_run))
+        if 'zoneinstance' in archivers:
+            enabled.append(ZoneInstanceArchiver(project, ks_session, dry_run))
         if 'cinder' in archivers:
             enabled.append(CinderArchiver(project, ks_session, dry_run))
         if 'neutron_basic' in archivers:
