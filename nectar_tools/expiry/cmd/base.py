@@ -108,8 +108,8 @@ class ProjectExpiryBaseCmd(cmd_base.CmdBase):
                             help="Delete a project no matter what state it's \
                                  in")
 
-    @staticmethod
-    def project_set_defaults(project):
+    @classmethod
+    def project_set_defaults(cls, project):
         project.owner = getattr(project, 'owner', None)
         project.expiry_status = getattr(project, 'expiry_status', None)
         project.expiry_next_step = getattr(project, 'expiry_next_step', None)

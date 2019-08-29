@@ -134,7 +134,7 @@ class ExpiryNotifierTests(test.TestCase):
             group_id=1, subject='Ticket-Subject %s' % IMAGE.name)
 
         with mock.patch.object(n, 'g_client') as mock_glance:
-            n._set_ticket_id(34)
+            n._set_ticket_id(34, ticket_id_name='nectar_expiry_ticket_id')
             mock_glance.images.update.assert_called_with(
                 IMAGE.id, nectar_expiry_ticket_id='34')
 
@@ -143,7 +143,8 @@ class ExpiryNotifierTests(test.TestCase):
         n = notifier.ExpiryNotifier(resource_type='image',
             resource=image, template_dir='images',
             group_id=1, subject='subject')
-        self.assertEqual(34, n._get_ticket_id())
+        self.assertEqual(34, n._get_ticket_id(
+            ticket_id_name='nectar_expiry_ticket_id'))
 
     def test_image_get_ticket_id_none(self, mock_api):
         image = fakes.FakeImage()
