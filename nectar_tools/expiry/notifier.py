@@ -11,6 +11,8 @@ LOG = logging.getLogger(__name__)
 
 class ExpiryNotifier(notifier.FreshDeskNotifier):
 
+    ticket_id_name = 'expiry_ticket_id'
+
     def __init__(self, resource_type, resource, template_dir, group_id,
                  subject, ks_session=None, dry_run=False):
         super(ExpiryNotifier, self).__init__(
@@ -65,30 +67,27 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
                          ticket_id)
 
     def _set_ticket_id(self, ticket_id):
+        ticket = {self.ticket_id_name: str(ticket_id)}
         if not self.dry_run:
             if self.resource_type == 'project':
-                self.k_client.projects.update(self.resource.id,
-                    expiry_ticket_id=str(ticket_id))
+                self.k_client.projects.update(self.resource.id, **ticket)
             elif self.resource_type == 'image':
-                self.g_client.images.update(self.resource.id,
-                    nectar_expiry_ticket_id=str(ticket_id))
-                # use "nectar_" prefix for image property protection
+                self.g_client.images.update(self.resource.id, **ticket)
             elif self.resource_type == 'instance':
-                self.n_client.servers.set_meta(self.resource.id,
-                    {'expiry_ticket_id': str(ticket_id)})
-        msg = '%s: Setting expiry_ticket_id=%s' % (self.resource.id,
-                                                   ticket_id)
+                self.n_client.servers.set_meta(self.resource.id, ticket)
+        msg = '%s: Setting %s=%s' % (self.resource.id, self.ticket_id_name,
+                                     ticket_id)
         LOG.debug(msg)
 
     def _get_ticket_id(self):
         try:
             if self.resource_type == 'project':
-                return int(getattr(self.resource, 'expiry_ticket_id', 0))
+                return int(getattr(self.resource, self.ticket_id_name, 0))
             elif self.resource_type == 'image':
                 return int(getattr(self.resource,
-                                   'nectar_expiry_ticket_id', 0))
+                                   self.ticket_id_name, 0))
             elif self.resource_type == 'instance':
                 return int(self.resource.metadata.get(
-                           'expiry_ticket_id', 0))
+                           self.ticket_id_name, 0))
         except ValueError:
             return 0
