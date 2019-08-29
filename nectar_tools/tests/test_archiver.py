@@ -2,10 +2,12 @@ from unittest import mock
 
 from designateclient import exceptions as designate_exc
 
+from nectar_tools import auth
 from nectar_tools import config
 from nectar_tools.expiry import archiver
 from nectar_tools import test
 from nectar_tools.tests import fakes
+from nectar_tools import utils
 
 CONF = config.CONFIG
 PROJECT = fakes.FakeProject('active')
@@ -380,6 +382,45 @@ class NovaArchiverTests(test.TestCase):
             self.assertEqual(image2,
                              na._get_image_by_instance_id(instance2.id))
             self.assertIsNone(na._get_image_by_instance_id(instance3.id))
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class ZoneInstanceArchiverTests(test.TestCase):
+
+    def test_all_instances(self):
+        project = fakes.FakeProject(allocation_id='fake')
+        with test.nested(
+            mock.patch.object(utils, 'get_out_of_zone_instances'),
+            mock.patch.object(auth, 'get_allocation_client')
+        ) as (mock_out_of_zone, mock_get_client):
+            a_client = mock_get_client.return_value
+            a_client.allocations.get.return_value = 'fake allocation'
+            za = archiver.ZoneInstanceArchiver(project)
+            mock_out_of_zone.return_value = ['inst1', 'inst2']
+            self.assertEqual(za._all_instances(), ['inst1', 'inst2'])
+
+    @mock.patch.object(auth, 'get_allocation_client')
+    def test_archive_resources(self, mock_client):
+        a_client = mock_client.return_value
+        a_client.allocations.get.return_value = 'fake allocation'
+        project = fakes.FakeProject(allocation_id='fake')
+        za = archiver.ZoneInstanceArchiver(project)
+        instance1 = fakes.FakeInstance()
+        instance2 = fakes.FakeInstance(id='fake2')
+
+        with test.nested(
+            mock.patch.object(utils, 'get_out_of_zone_instances'),
+            mock.patch.object(za, '_instance_has_archive'),
+            mock.patch.object(za, '_delete_instance'),
+            mock.patch.object(za, '_archive_instance'),
+        ) as (mock_instances, mock_has_archive, mock_delete,
+              mock_archive):
+            mock_has_archive.return_value = False
+            mock_instances.return_value = [instance1, instance2]
+            za.archive_resources()
+            mock_archive.assert_has_calls([mock.call(instance1),
+                                           mock.call(instance2)])
+            self.assertEqual(mock_archive.call_count, 2)
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())

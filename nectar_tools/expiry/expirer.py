@@ -13,6 +13,8 @@ from nectarallocationclient.v1 import allocations
 from nectar_tools import auth
 from nectar_tools import config
 from nectar_tools import exceptions
+from nectar_tools import utils
+
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expiry_states
 from nectar_tools.expiry import notifier as expiry_notifier
@@ -118,19 +120,19 @@ class Expirer(object):
         return resources
 
     @staticmethod
-    def get_status(resource):
-        if not hasattr(resource, 'expiry_status') or \
-           not resource.expiry_status:
-            resource.expiry_status = expiry_states.ACTIVE
-        return resource.expiry_status
+    def get_status(resource, key_name='expiry_status'):
+        if not hasattr(resource, key_name) or \
+           not getattr(resource, key_name):
+            setattr(resource, key_name, expiry_states.ACTIVE)
+        return getattr(resource, key_name)
 
     @staticmethod
-    def get_next_step_date(resource):
-        if not hasattr(resource, 'expiry_next_step') or \
-           not resource.expiry_next_step:
+    def get_next_step_date(resource, key_name='expiry_next_step'):
+        if not hasattr(resource, key_name) or \
+           not getattr(resource, key_name):
             return None
         try:
-            expiry_next_step = resource.expiry_next_step
+            expiry_next_step = getattr(resource, key_name)
             return datetime.datetime.strptime(expiry_next_step, DATE_FORMAT)
         except ValueError:
             LOG.error('%s: Invalid expiry_next_step date: %s',
@@ -138,8 +140,8 @@ class Expirer(object):
         return None
 
     @classmethod
-    def at_next_step(cls, resource):
-        next_step = cls.get_next_step_date(resource)
+    def at_next_step(cls, resource, key_name='expiry_next_step'):
+        next_step = cls.get_next_step_date(resource, key_name=key_name)
         if not next_step:
             return True
         if next_step <= datetime.datetime.now():
@@ -152,13 +154,21 @@ class Expirer(object):
             return False
 
     @staticmethod
-    def make_next_step_date(now, unit=1):
+    def make_next_step_date(now, fortnight=1):
         # If date within 15 December and 31 January, allow more 16 days
         if (now.month == 12 and now.day >= 15) or now.month == 1:
-            next_step_date = now + relativedelta(days=14 * unit + 16)
+            next_step_date = now + relativedelta(days=14 * fortnight + 16)
         else:
-            next_step_date = now + relativedelta(weeks=2 * unit)
+            next_step_date = now + relativedelta(weeks=2 * fortnight)
         return next_step_date.strftime(DATE_FORMAT)
+
+    @staticmethod
+    def is_too_old(start_date, days):
+        start_date = datetime.datetime.strptime(start_date,
+                                                DATE_FORMAT)
+        if datetime.datetime.now() > start_date + relativedelta(days=days):
+            return True
+        return False
 
 
 class ProjectExpirer(Expirer):
@@ -255,14 +265,15 @@ class AllocationExpirer(ProjectExpirer):
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  force_no_allocation=False, force_delete=False,
-                 disable_project=True):
-        archivers = ['nova', 'cinder', 'neutron', 'projectimages', 'swift']
+                 disable_project=True, archivers=['nova', 'cinder', 'neutron',
+                 'projectimages', 'swift'], template_dir='allocations',
+                 subject='Nectar Project Allocation Renewal - '):
 
         notifier = expiry_notifier.ExpiryNotifier(
             resource_type='project', resource=project,
-            template_dir='allocations',
+            template_dir=template_dir,
             group_id=CONF.freshdesk.allocation_group,
-            subject="Nectar Project Allocation Renewal - %s" % project.name,
+            subject=subject + project.name,
             ks_session=ks_session, dry_run=dry_run)
 
         super(AllocationExpirer, self).__init__(
@@ -483,16 +494,17 @@ class AllocationExpirer(ProjectExpirer):
         manager_emails = []
         member_emails = []
         for manager in managers:
-            if manager.enabled and manager.email:
+            if manager.enabled and utils.is_email_address(manager.email):
                 manager_emails.append(manager.email.lower())
 
         members = self._get_project_members()
         for member in members:
-            if member.enabled and member.email:
+            if member.enabled and utils.is_email_address(member.email):
                 member_emails.append(member.email.lower())
 
         extra_emails = list(set(manager_emails + member_emails))
-        if approver_email and approver_email not in extra_emails:
+        if utils.is_email_address(approver_email) \
+           and approver_email not in extra_emails:
             extra_emails.append(approver_email)
         if owner_email in extra_emails:
             extra_emails.remove(owner_email)
@@ -741,3 +753,168 @@ class PTExpirer(ProjectExpirer):
         event_notification = {'project': self.project.to_dict()}
         event_notification.update(extra_context)
         self._send_event(event_type, event_notification)
+
+
+class AllocationInstanceExpirer(AllocationExpirer):
+
+    def __init__(self, project, ks_session=None, dry_run=False,
+                 force_delete=False):
+        archivers = ['zoneinstance']
+
+        super(AllocationInstanceExpirer, self).__init__(
+            project, ks_session=ks_session, dry_run=dry_run,
+            force_delete=force_delete, archivers=archivers,
+            template_dir='allocation_instances',
+            subject="Nectar Allocation Instances Expiry - ")
+
+    def project_set_defaults(self):
+        super(AllocationInstanceExpirer, self).project_set_defaults()
+        self.project.compute_zones = getattr(self.project,
+                                             'compute_zones', None)
+        self.project.zone_expiry_status = getattr(self.project,
+            'zone_expiry_status', '')
+        self.project.zone_expiry_next_step = getattr(self.project,
+            'zone_expiry_next_step', '')
+        self.project.zone_expiry_ticket_id = getattr(self.project,
+            'zone_expiry_ticket_id', 0)
+
+    def _update_project(self, **kwargs):
+        today = self.now.strftime(DATE_FORMAT)
+        kwargs.update({'zone_expiry_updated_at': today})
+        if not self.dry_run:
+            self.k_client.projects.update(self.project.id, **kwargs)
+        if 'zone_expiry_status' in kwargs.keys():
+            self.project.zone_expiry_status = kwargs['zone_expiry_status']
+        if 'zone_expiry_next_step' in kwargs.keys():
+            self.project.zone_expiry_next_step = kwargs[
+                'zone_expiry_next_step']
+        msg = '%s: Updating %s' % (self.project.id, kwargs)
+        LOG.debug(msg)
+
+    def process(self):
+        self.instances = utils.get_out_of_zone_instances(
+            self.ks_session, self.allocation, self.project)
+
+        if not self.instances:
+            if self.project.zone_expiry_status != '' or \
+               self.project.zone_expiry_ticket_id != '0' or \
+               self.project.zone_expiry_next_step != '':
+                self.finish_expiry()
+            return False
+
+        zone_expiry_status = self.get_status(
+            self.project, key_name='zone_expiry_status')
+        zone_expiry_next_step = self.get_next_step_date(
+            self.project, key_name='zone_expiry_next_step')
+
+        LOG.debug("%s: Processing out of zone instances project=%s "
+                  "status=%s next_step=%s number_of_instances=%s",
+                  self.project.id, self.project.name, zone_expiry_status,
+                  zone_expiry_next_step, len(self.instances))
+
+        if self.force_delete:
+            LOG.info("%s: Force deleting out of zone instances=%s",
+                     self.project.id, self.instances)
+            self.archiver.delete_resources()
+            return True
+
+        if zone_expiry_status == expiry_states.ACTIVE:
+            if self.is_too_old(self.allocation.start_date, 60):
+                self.send_warning('first', expiry_states.WARNING)
+                return True
+            return False
+        elif zone_expiry_status == expiry_states.WARNING:
+            if self.at_next_step(self.project,
+                                 key_name='zone_expiry_next_step'):
+                self.archiver.stop_resources()
+                self.send_warning('second', expiry_states.STOPPED)
+                return True
+            return False
+        elif zone_expiry_status == expiry_states.STOPPED:
+            if self.at_next_step(self.project,
+                                 key_name='zone_expiry_next_step'):
+                self.archiver.archive_resources()
+                self.send_warning('archived', expiry_states.ARCHIVING)
+                return True
+            return False
+        elif zone_expiry_status == expiry_states.ARCHIVING:
+            if self.at_next_step(self.project,
+                                 key_name='zone_expiry_next_step'):
+                LOG.debug("%s: Archiving longer than next step, move on",
+                          self.project.id)
+                self.set_project_archived()
+            else:
+                self.check_archiving_status()
+            return True
+        elif zone_expiry_status == expiry_states.ARCHIVED:
+            if self.at_next_step(self.project,
+                                 key_name='zone_expiry_next_step'):
+                self.archiver.delete_resources()
+                self.finish_expiry()
+                return True
+            return False
+
+    def set_project_archived(self):
+        twelve_weeks = self.make_next_step_date(self.now, fortnight=6)
+        self._update_project(zone_expiry_status=expiry_states.ARCHIVED,
+                             zone_expiry_next_step=twelve_weeks)
+
+    def archive_project(self):
+        if self.project.zone_expiry_status != expiry_states.ARCHIVING:
+            LOG.info("%s: Archiving project", self.project.id)
+            four_weeks = self.make_next_step_date(self.now, fortnight=2)
+            self._update_project(zone_expiry_status=expiry_states.ARCHIVING,
+                                 zone_expiry_next_step=four_weeks)
+
+        self.archiver.archive_resources()
+
+    def _send_notification(self, stage, extra_context={},
+                           ticket_id_name='zone_expiry_ticket_id'):
+        if self.allocation.notifications:
+            context = self._get_notification_context()
+            context.update(extra_context)
+            recipient, extras = self._get_recipients()
+            self.notifier.send_message(stage, recipient, extra_context=context,
+                                       extra_recipients=extras,
+                                       ticket_id_name=ticket_id_name)
+
+    def send_warning(self, stage, zone_expiry_status):
+        LOG.info("Project %s: Sending warning for out zone instances",
+                 self.project.id)
+        if zone_expiry_status == expiry_states.DELETED:
+            next_step_date = ''
+        else:
+            next_step_date = self.make_next_step_date(self.now, fortnight=2)
+        compute_zones = self.project.compute_zones
+        extra_context = {'allocation': self.allocation,
+                         'compute_zones': compute_zones,
+                         'expiry_date': next_step_date,
+                         'out_of_zone_instances': self.instances}
+        self._send_notification(stage, extra_context=extra_context)
+        self._update_project(zone_expiry_status=zone_expiry_status,
+                             zone_expiry_next_step=next_step_date)
+
+    def finish_expiry(self):
+        status = self.get_status(self.project, key_name='zone_expiry_status')
+        if status == expiry_states.ACTIVE:
+            return
+
+        LOG.info("%s: Out-of-zone instances expiry has been finished",
+                 self.project.id)
+
+        try:
+            self.notifier.finish(
+                message="Project no longer has any out of zone instances",
+                ticket_id_name='zone_expiry_ticket_id')
+        except Exception:
+            pass
+
+        update = {}
+        if self.project.zone_expiry_status:
+            update['zone_expiry_status'] = ''
+        if self.project.zone_expiry_next_step:
+            update['zone_expiry_next_step'] = ''
+        if self.project.zone_expiry_ticket_id:
+            update['zone_expiry_ticket_id'] = 0
+        if update:
+            self._update_project(**update)

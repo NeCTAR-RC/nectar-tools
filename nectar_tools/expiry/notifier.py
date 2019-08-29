@@ -20,7 +20,7 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
         self.n_client = auth.get_nova_client(ks_session)
 
     def send_message(self, stage, owner, extra_context={},
-                     extra_recipients=[]):
+                     extra_recipients=[], ticket_id_name='expiry_ticket_id'):
         if stage == 'first':
             tmpl = 'first-warning.tmpl'
         elif stage == 'second':
@@ -31,7 +31,7 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
             tmpl = 'archived.tmpl'
         text = self.render_template(tmpl, extra_context)
 
-        ticket_id = self._get_ticket_id()
+        ticket_id = self._get_ticket_id(ticket_id_name=ticket_id_name)
 
         if ticket_id > 0:
             self._update_ticket(ticket_id, text, cc_emails=extra_recipients)
@@ -41,7 +41,7 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
                                             description=text,
                                             extra_context=extra_context,
                                             tags=['expiry'])
-            self._set_ticket_id(ticket_id)
+            self._set_ticket_id(ticket_id, ticket_id_name=ticket_id_name)
 
             details = self.render_template(
                 '%s-details.tmpl' % self.resource_type, extra_context)
@@ -49,8 +49,8 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
             if details:
                 self._add_note_to_ticket(ticket_id, details)
 
-    def finish(self, message=None):
-        ticket_id = self._get_ticket_id()
+    def finish(self, message=None, ticket_id_name='expiry_ticket_id'):
+        ticket_id = self._get_ticket_id(ticket_id_name=ticket_id_name)
         if ticket_id:
             if message:
                 self._add_note_to_ticket(ticket_id, message)
@@ -64,31 +64,28 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
                 LOG.info("%s: Would resolve ticket %s", self.resource.id,
                          ticket_id)
 
-    def _set_ticket_id(self, ticket_id):
+    def _set_ticket_id(self, ticket_id, ticket_id_name='expiry_ticket_id'):
+        ticket = {ticket_id_name: str(ticket_id)}
         if not self.dry_run:
             if self.resource_type == 'project':
-                self.k_client.projects.update(self.resource.id,
-                    expiry_ticket_id=str(ticket_id))
+                self.k_client.projects.update(self.resource.id, **ticket)
             elif self.resource_type == 'image':
-                self.g_client.images.update(self.resource.id,
-                    nectar_expiry_ticket_id=str(ticket_id))
-                # use "nectar_" prefix for image property protection
+                self.g_client.images.update(self.resource.id, **ticket)
             elif self.resource_type == 'instance':
-                self.n_client.servers.set_meta(self.resource.id,
-                    {'expiry_ticket_id': str(ticket_id)})
-        msg = '%s: Setting expiry_ticket_id=%s' % (self.resource.id,
-                                                   ticket_id)
+                self.n_client.servers.set_meta(self.resource.id, ticket)
+        msg = '%s: Setting %s=%s' % (self.resource.id, ticket_id_name,
+                                     ticket_id)
         LOG.debug(msg)
 
-    def _get_ticket_id(self):
+    def _get_ticket_id(self, ticket_id_name='expiry_ticket_id'):
         try:
             if self.resource_type == 'project':
-                return int(getattr(self.resource, 'expiry_ticket_id', 0))
+                return int(getattr(self.resource, ticket_id_name, 0))
             elif self.resource_type == 'image':
                 return int(getattr(self.resource,
-                                   'nectar_expiry_ticket_id', 0))
+                                   ticket_id_name, 0))
             elif self.resource_type == 'instance':
                 return int(self.resource.metadata.get(
-                           'expiry_ticket_id', 0))
+                           ticket_id_name, 0))
         except ValueError:
             return 0
