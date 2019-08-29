@@ -1,0 +1,205 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "41263994_bae6eae0",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-29T01:39:58Z",
+      "side": 1,
+      "message": "can\u0027t we just call super here?",
+      "range": {
+        "startLine": 369,
+        "startChar": 8,
+        "endLine": 369,
+        "endChar": 52
+      },
+      "revId": "93b9e5eccbaff6694a4eb49b72fca48c1c75b8be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d451bcd2_a9e34a48",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-29T01:39:58Z",
+      "side": 1,
+      "message": "this method name could be changed to describe what this method does better. \n\nis_too_old(start_date, days) ?",
+      "range": {
+        "startLine": 166,
+        "startChar": 8,
+        "endLine": 166,
+        "endChar": 34
+      },
+      "revId": "93b9e5eccbaff6694a4eb49b72fca48c1c75b8be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0619af46_f8927734",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-29T01:39:58Z",
+      "side": 1,
+      "message": "This is the same attribute as above so would override it? same as below",
+      "range": {
+        "startLine": 203,
+        "startChar": 25,
+        "endLine": 203,
+        "endChar": 38
+      },
+      "revId": "93b9e5eccbaff6694a4eb49b72fca48c1c75b8be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e91a2de9_d03f9ee9",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-29T01:39:58Z",
+      "side": 1,
+      "message": "could remove this check",
+      "range": {
+        "startLine": 501,
+        "startChar": 31,
+        "endLine": 501,
+        "endChar": 50
+      },
+      "revId": "93b9e5eccbaff6694a4eb49b72fca48c1c75b8be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4e044dc1_a4b69ccc",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 507,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-29T01:39:58Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 507,
+        "startChar": 30,
+        "endLine": 507,
+        "endChar": 48
+      },
+      "revId": "93b9e5eccbaff6694a4eb49b72fca48c1c75b8be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c2be35fb_99a1830d",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-29T01:39:58Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 512,
+        "startChar": 11,
+        "endLine": 512,
+        "endChar": 29
+      },
+      "revId": "93b9e5eccbaff6694a4eb49b72fca48c1c75b8be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ef8218ce_bd035821",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 779,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-29T01:39:58Z",
+      "side": 1,
+      "message": "This could be done better so we can call super() here",
+      "range": {
+        "startLine": 778,
+        "startChar": 7,
+        "endLine": 779,
+        "endChar": 62
+      },
+      "revId": "93b9e5eccbaff6694a4eb49b72fca48c1c75b8be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "42b12578_b0bca807",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 787,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-29T01:39:58Z",
+      "side": 1,
+      "message": "think this should be in the process method",
+      "range": {
+        "startLine": 786,
+        "startChar": 2,
+        "endLine": 787,
+        "endChar": 49
+      },
+      "revId": "93b9e5eccbaff6694a4eb49b72fca48c1c75b8be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "837b49bb_8d304194",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-08-29T01:39:58Z",
+      "side": 1,
+      "message": "could do a if not mail: return False here",
+      "revId": "93b9e5eccbaff6694a4eb49b72fca48c1c75b8be",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
