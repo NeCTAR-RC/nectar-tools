@@ -520,11 +520,17 @@ class AllocationExpirer(ProjectExpirer):
 
         next_step_date = next_step_date.strftime(DATE_FORMAT)
 
+        previous_kwargs = dict(expiry_status=self.project.expiry_status,
+                               expiry_next_step=self.project.expiry_next_step)
         self._update_project(expiry_status=expiry_states.WARNING,
                              expiry_next_step=next_step_date)
         extra_context = {'expiry_date': self.allocation.end_date}
-        self._send_notification('first', extra_context=extra_context)
-        self.send_event('warning', extra_context=extra_context)
+        try:
+            self._send_notification('first', extra_context=extra_context)
+        except Exception:
+            self._update_project(**previous_kwargs)
+        else:
+            self.send_event('warning', extra_context=extra_context)
 
     def send_event(self, event, extra_context={}):
         event_type = 'expiry.allocation.%s' % event
@@ -544,11 +550,17 @@ class AllocationExpirer(ProjectExpirer):
         LOG.info("%s: Restricting project", self.project.id)
         self.archiver.zero_quota()
 
+        previous_kwargs = dict(expiry_status=self.project.expiry_status,
+                               expiry_next_step=self.project.expiry_next_step)
         expiry_date = self.make_next_step_date(self.now)
         self._update_project(expiry_status=expiry_states.RESTRICTED,
                              expiry_next_step=expiry_date)
-        self._send_notification('final')
-        self.send_event('restrict')
+        try:
+            self._send_notification('final')
+        except Exception:
+            self._update_project(**previous_kwargs)
+        else:
+            self.send_event('restrict')
 
     def stop_project(self):
         LOG.info("%s: Stopping project", self.project.id)
@@ -687,12 +699,18 @@ class PTExpirer(ProjectExpirer):
 
         LOG.info("%s: Usage is over 80%% - setting status to quota warning",
                  self.project.id)
-        self._send_notification('first')
-        self.send_event('first-warning')
+        previous_kwargs = dict(expiry_status=self.project.expiry_status,
+                               expiry_next_step=self.project.expiry_next_step)
         # 18 days minimum time for 2 cores usage 80% -> 100%
         next_step = (self.now + relativedelta(days=18)).strftime(DATE_FORMAT)
         self._update_project(expiry_status=expiry_states.QUOTA_WARNING,
                              expiry_next_step=next_step)
+        try:
+            self._send_notification('first')
+        except Exception:
+            self._update_project(**previous_kwargs)
+        else:
+            self.send_event('first-warning')
         return True
 
     def notify_at_limit(self):
@@ -704,11 +722,17 @@ class PTExpirer(ProjectExpirer):
                  "pending suspension", self.project.id)
         self.archiver.zero_quota()
 
+        previous_kwargs = dict(expiry_status=self.project.expiry_status,
+                               expiry_next_step=self.project.expiry_next_step)
         expiry_date = self.make_next_step_date(self.now)
         self._update_project(expiry_status=expiry_states.PENDING_SUSPENSION,
                              expiry_next_step=expiry_date)
-        self._send_notification('second')
-        self.send_event('second-warning')
+        try:
+            self._send_notification('second')
+        except Exception:
+            self._update_project(**previous_kwargs)
+        else:
+            self.send_event('second-warning')
         return True
 
     def notify_over_limit(self):
@@ -723,11 +747,17 @@ class PTExpirer(ProjectExpirer):
         self.archiver.zero_quota()
         self.archiver.stop_resources()
 
+        previous_kwargs = dict(expiry_status=self.project.expiry_status,
+                               expiry_next_step=self.project.expiry_next_step)
         expiry_date = self.make_next_step_date(self.now)
         self._update_project(expiry_status=expiry_states.SUSPENDED,
                              expiry_next_step=expiry_date)
-        self._send_notification('final')
-        self.send_event('suspended')
+        try:
+            self._send_notification('final')
+        except Exception:
+            self._update_project(**previous_kwargs)
+        else:
+            self.send_event('suspended')
         return True
 
     def _get_recipients(self):
