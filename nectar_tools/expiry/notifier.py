@@ -41,7 +41,9 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
                                             description=text,
                                             extra_context=extra_context,
                                             tags=['expiry'])
-            self._set_ticket_id(ticket_id)
+            ticket_id_name = extra_context.get('ticket_id_name',
+                                               'expiry_ticket_id')
+            self._set_ticket_id(ticket_id, ticket_id_name)
 
             details = self.render_template(
                 '%s-details.tmpl' % self.resource_type, extra_context)
@@ -64,20 +66,17 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
                 LOG.info("%s: Would resolve ticket %s", self.resource.id,
                          ticket_id)
 
-    def _set_ticket_id(self, ticket_id):
+    def _set_ticket_id(self, ticket_id, ticket_id_name):
+        ticket = {ticket_id_name: str(ticket_id)}
         if not self.dry_run:
             if self.resource_type == 'project':
-                self.k_client.projects.update(self.resource.id,
-                    expiry_ticket_id=str(ticket_id))
+                self.k_client.projects.update(self.resource.id, **ticket)
             elif self.resource_type == 'image':
-                self.g_client.images.update(self.resource.id,
-                    nectar_expiry_ticket_id=str(ticket_id))
-                # use "nectar_" prefix for image property protection
+                self.g_client.images.update(self.resource.id, **ticket)
             elif self.resource_type == 'instance':
-                self.n_client.servers.set_meta(self.resource.id,
-                    {'expiry_ticket_id': str(ticket_id)})
-        msg = '%s: Setting expiry_ticket_id=%s' % (self.resource.id,
-                                                   ticket_id)
+                self.n_client.servers.set_meta(self.resource.id, ticket)
+        msg = '%s: Setting %s=%s' % (self.resource.id, ticket_id_name,
+                                     ticket_id)
         LOG.debug(msg)
 
     def _get_ticket_id(self):

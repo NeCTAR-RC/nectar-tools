@@ -42,7 +42,7 @@ class ExpiryNotifierTests(test.TestCase):
                 tags=['expiry'])
             mock_note.assert_called_with(
                 32, n.render_template('project-details.tmpl', {'foo': 'bar'}))
-            mock_id.assert_called_with(32)
+            mock_id.assert_called_with(32, 'expiry_ticket_id')
 
     def test_send_message_first(self, mock_api):
         self._test_send_message('first', 'first-warning.tmpl')
@@ -103,7 +103,7 @@ class ExpiryNotifierTests(test.TestCase):
             group_id=1, subject='Ticket-Subject %s' % PROJECT.name)
 
         with mock.patch.object(n, 'k_client') as mock_keystone:
-            n._set_ticket_id(34)
+            n._set_ticket_id(34, 'expiry_ticket_id')
             mock_keystone.projects.update.assert_called_with(
                 PROJECT.id, expiry_ticket_id='34')
 
@@ -134,7 +134,7 @@ class ExpiryNotifierTests(test.TestCase):
             group_id=1, subject='Ticket-Subject %s' % IMAGE.name)
 
         with mock.patch.object(n, 'g_client') as mock_glance:
-            n._set_ticket_id(34)
+            n._set_ticket_id(34, 'nectar_expiry_ticket_id')
             mock_glance.images.update.assert_called_with(
                 IMAGE.id, nectar_expiry_ticket_id='34')
 
@@ -165,7 +165,7 @@ class ExpiryNotifierTests(test.TestCase):
             group_id=1, subject='Ticket-Subject %s' % INST.name)
 
         with mock.patch.object(n, 'n_client') as mock_nova:
-            n._set_ticket_id(34)
+            n._set_ticket_id(34, 'expiry_ticket_id')
             mock_nova.servers.set_meta.assert_called_with(
                 INST.id, {'expiry_ticket_id': '34'})
 
