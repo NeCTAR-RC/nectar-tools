@@ -117,8 +117,7 @@ class ProvisioningManager(object):
     def get_project_metadata(self, allocation):
         metadata = dict(name=allocation.project_name,
                         description=allocation.project_description,
-                        allocation_id=allocation.id,
-                        expires=allocation.end_date)
+                        allocation_id=allocation.id)
 
         zones = utils.get_compute_zones(self.ks_session, allocation)
         if zones:
@@ -145,8 +144,8 @@ class ProvisioningManager(object):
 
     def update_project(self, allocation):
         if self.noop:
-            LOG.info("%s: Would update keystone project %s with expires = %s",
-                     allocation.id, allocation.project_id, allocation.end_date)
+            LOG.info("%s: Would update keystone project %s metadata",
+                     allocation.id, allocation.project_id)
             return self.k_client.projects.get(allocation.project_id)
         LOG.info("%s: Updating keystone project %s", allocation.id,
                  allocation.project_id)
