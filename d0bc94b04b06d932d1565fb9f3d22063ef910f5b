@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a0945bb_8111571f",
+        "filename": "nectar_tools/expiry/cmd/allocation_instance_expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-03T01:34:17Z",
+      "side": 1,
+      "message": "also only run on projects where expiry_status \u003d\u003d \u0027\u0027",
+      "range": {
+        "startLine": 16,
+        "startChar": 11,
+        "endLine": 17,
+        "endChar": 24
+      },
+      "revId": "d0bc94b04b06d932d1565fb9f3d22063ef910f5b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5b7624a2_065e88dc",
+        "filename": "nectar_tools/expiry/cmd/allocation_instance_expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-03T01:34:17Z",
+      "side": 1,
+      "message": "not needed",
+      "range": {
+        "startLine": 20,
+        "startChar": 2,
+        "endLine": 21,
+        "endChar": 59
+      },
+      "revId": "d0bc94b04b06d932d1565fb9f3d22063ef910f5b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "67b12073_25aa35d6",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-03T01:34:17Z",
+      "side": 1,
+      "message": "this stuff not needed anymore since being overridden?",
+      "range": {
+        "startLine": 202,
+        "startChar": 0,
+        "endLine": 208,
+        "endChar": 40
+      },
+      "revId": "d0bc94b04b06d932d1565fb9f3d22063ef910f5b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0458e3c0_1c27eb64",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 808,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-03T01:34:17Z",
+      "side": 1,
+      "message": "unset any zone_expiry fields and resolve ticket",
+      "range": {
+        "startLine": 808,
+        "startChar": 0,
+        "endLine": 808,
+        "endChar": 18
+      },
+      "revId": "d0bc94b04b06d932d1565fb9f3d22063ef910f5b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8494b6df_664126c2",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 822,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-03T01:34:17Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 822,
+        "startChar": 43,
+        "endLine": 822,
+        "endChar": 52
+      },
+      "revId": "d0bc94b04b06d932d1565fb9f3d22063ef910f5b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0977c466_638e44db",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 848,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-03T01:34:17Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 846,
+        "startChar": 0,
+        "endLine": 848,
+        "endChar": 23
+      },
+      "revId": "d0bc94b04b06d932d1565fb9f3d22063ef910f5b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "15abe9b1_bb484de3",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 876,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-03T01:34:17Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 875,
+        "startChar": 0,
+        "endLine": 876,
+        "endChar": 40
+      },
+      "revId": "d0bc94b04b06d932d1565fb9f3d22063ef910f5b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "84f7e4cf_c79fd870",
+        "filename": "nectar_tools/expiry/notifier.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-03T01:34:17Z",
+      "side": 1,
+      "message": "could this default to \u0027expiry_ticket_id\u0027 to make it more backwards compatible?",
+      "range": {
+        "startLine": 69,
+        "startChar": 40,
+        "endLine": 69,
+        "endChar": 54
+      },
+      "revId": "d0bc94b04b06d932d1565fb9f3d22063ef910f5b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
