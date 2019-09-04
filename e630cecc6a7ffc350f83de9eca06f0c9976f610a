@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6627fd44_8bf99433",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-04T03:56:07Z",
+      "side": 1,
+      "message": "can we have tests in the same commit? Be good to keep it all together. If you did want to break it down you could do so by having a patch for the archiver, then a separate patch for the notification changes and a separate one for the new expirer etc?",
+      "range": {
+        "startLine": 16,
+        "startChar": 31,
+        "endLine": 16,
+        "endChar": 37
+      },
+      "revId": "e630cecc6a7ffc350f83de9eca06f0c9976f610a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d0e935fb_7481261a",
+        "filename": "nectar_tools/expiry/cmd/allocation_instance_expirer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-04T03:56:07Z",
+      "side": 1,
+      "message": "Zones",
+      "range": {
+        "startLine": 30,
+        "startChar": 72,
+        "endLine": 30,
+        "endChar": 76
+      },
+      "revId": "e630cecc6a7ffc350f83de9eca06f0c9976f610a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4bbe8812_83a716bf",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-04T03:56:07Z",
+      "side": 1,
+      "message": "I don\u0027t think fortnight is a good option here, could be days\u003d14 or weeks\u003d2. fortnights is a bit less flexible. Eg. you wanted 3 weeks etc.",
+      "range": {
+        "startLine": 157,
+        "startChar": 33,
+        "endLine": 157,
+        "endChar": 42
+      },
+      "revId": "e630cecc6a7ffc350f83de9eca06f0c9976f610a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "820547fe_0a9aa8b6",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 872,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-04T03:56:07Z",
+      "side": 1,
+      "message": "The ticket_id_name could be an attribute of the class and then you could just modify the parent method to have\n\n\nsend_message(.... ticket_id_name\u003dself.ticket_id_name)\n\nmake sense? Then you wouldn\u0027t need to override this method at all",
+      "range": {
+        "startLine": 872,
+        "startChar": 27,
+        "endLine": 872,
+        "endChar": 65
+      },
+      "revId": "e630cecc6a7ffc350f83de9eca06f0c9976f610a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
