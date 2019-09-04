@@ -29,10 +29,14 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
                 LOG.error("%s: Can't find allocation for project",
                           self.project.id)
                 return
-            LOG.info("%s: Setting allocation_id = %s", self.project.id,
-                     allocation.id)
-            self.k_client.projects.update(self.project.id,
-                                          allocation_id=allocation.id)
+            if not self.dry_run:
+                LOG.info("%s: Setting allocation_id = %s", self.project.id,
+                         allocation.id)
+                self.k_client.projects.update(self.project.id,
+                                              allocation_id=allocation.id)
+            else:
+                LOG.info("%s: Would set allocation_id = %s", self.project.id,
+                         allocation.id)
             return
         try:
             allocation = self.a_client.allocations.get(allocation_id)

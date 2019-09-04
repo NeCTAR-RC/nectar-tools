@@ -32,21 +32,27 @@ class ResourceProviderAuditor(base.ResourceAuditor):
                 query="site!=null and name='%s'" % rp['name'])
             if old_resources:
                 site = old_resources[0]['site']
-                LOG.info("Site should be %s", site)
-                for old in old_resources:
-                    LOG.info("Deleting old RP %s", old['id'])
-                    self.g_client.resource.delete(old['id'])
-                self.g_client.resource.update(
-                    resource_type='resource_provider',
-                    resource_id=rp['id'],
-                    resource={'site': site})
+                if not self.dry_run:
+                    LOG.info("Site should be %s", site)
+                    for old in old_resources:
+                        LOG.info("Deleting old RP %s", old['id'])
+                        self.g_client.resource.delete(old['id'])
+                    self.g_client.resource.update(
+                        resource_type='resource_provider',
+                        resource_id=rp['id'],
+                        resource={'site': site})
+                else:
+                    LOG.info("Would replace old RPs for site %s", site)
             else:
                 for domain_search, site in domain_site_mapping.items():
                     if domain_search in rp['name']:
-                        self.g_client.resource.update(
-                            resource_type='resource_provider',
-                            resource_id=rp['id'], resource={'site': site})
-                        LOG.info("Set %s to %s", rp['name'], site)
+                        if not self.dry_run:
+                            self.g_client.resource.update(
+                                resource_type='resource_provider',
+                                resource_id=rp['id'], resource={'site': site})
+                            LOG.info("Set %s to %s", rp['name'], site)
+                        else:
+                            LOG.info("Would set %s to %s", rp['name'], site)
                         break
                 else:
                     LOG.info("No old resource_provider so don't know which "
