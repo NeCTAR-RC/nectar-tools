@@ -40,5 +40,9 @@ class AuditCmdBase(cmd_base.CmdBase):
         super(AuditCmdBase, self).add_args()
         self.parser.add_argument('-l', '--list', action='store_true',
                                  help="List audits but don't run them")
+        self.parser.add_argument('-r', '--repair', action='store_true',
+                                 help="Automated repair of some problems "
+                                 "found by the audits. Needs the '-y' "
+                                 "option to actually do the repairs")
         self.parser.add_argument('check', nargs='?',
                                  help="specific check to run")
