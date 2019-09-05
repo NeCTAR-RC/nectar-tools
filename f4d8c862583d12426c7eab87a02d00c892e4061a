@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b2e791cb_ace4f3c8",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-05T21:57:55Z",
+      "side": 1,
+      "message": "all this below could go in another check, just add below this\n\ndef check_deleted_allocation(self):",
+      "revId": "f4d8c862583d12426c7eab87a02d00c892e4061a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "358a6f76_85e53570",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-05T21:57:55Z",
+      "side": 1,
+      "message": "could use nectarallocationclient.states.DELETED ?",
+      "range": {
+        "startLine": 56,
+        "startChar": 32,
+        "endLine": 56,
+        "endChar": 35
+      },
+      "revId": "f4d8c862583d12426c7eab87a02d00c892e4061a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "0cfdf997_489d94ba",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-05T21:57:55Z",
+      "side": 1,
+      "message": "did you also want to check if project is disabled but it\u0027s active in allocation system?",
+      "revId": "f4d8c862583d12426c7eab87a02d00c892e4061a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
