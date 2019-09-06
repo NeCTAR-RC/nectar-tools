@@ -136,43 +136,51 @@ class ExpiryTests(test.TestCase):
     def test_get_status(self):
         expected = 'archived'
         project = fakes.FakeProject(expiry_status=expected)
-        actual = expirer.Expirer.get_status(project)
+        ex = expirer.Expirer('project', project,
+                             archivers='fake', notifier='fake')
+        actual = ex.get_status(project)
         self.assertEqual(expected, actual)
 
     def test_get_status_none(self):
         project = fakes.FakeProject()
-        actual = expirer.Expirer.get_status(project)
+        ex = expirer.Expirer('project', project,
+                             archivers='fake', notifier='fake')
+        actual = ex.get_status(project)
         self.assertEqual('active', actual)
 
     def test_get_next_step_date(self):
         project = fakes.FakeProject(expiry_next_step='2017-01-01')
         expected = datetime.datetime(2017, 1, 1)
-        actual = expirer.Expirer.get_next_step_date(project)
+        ex = expirer.Expirer('project', project,
+                             archivers='fake', notifier='fake')
+        actual = ex.get_next_step_date(project)
         self.assertEqual(expected, actual)
 
     def test_get_next_step_date_none(self):
         project = fakes.FakeProject()
-        actual = expirer.Expirer.get_next_step_date(project)
+        ex = expirer.Expirer('project', project,
+                             archivers='fake', notifier='fake')
+        actual = ex.get_next_step_date(project)
         self.assertIsNone(actual)
 
     def test_at_next_step(self):
         project = fakes.FakeProject()
-        with mock.patch(
-            'nectar_tools.expiry.expirer.Expirer.get_next_step_date'
-        ) as mock_next:
+        ex = expirer.Expirer('project', project,
+                             archivers='fake', notifier='fake')
+        with mock.patch.object(ex, 'get_next_step_date') as mock_next:
             mock_next.return_value = datetime.datetime(2016, 1, 1)
-            self.assertTrue(expirer.Expirer.at_next_step(project))
+            self.assertTrue(ex.at_next_step(project))
 
     def test_at_next_step_negative(self):
         project = fakes.FakeProject()
-        with mock.patch(
-            'nectar_tools.expiry.expirer.Expirer.get_next_step_date'
-        ) as mock_next:
+        ex = expirer.Expirer('project', project,
+                             archivers='fake', notifier='fake')
+        with mock.patch.object(ex, 'get_next_step_date') as mock_next:
             mock_next.return_value = datetime.datetime(2018, 1, 1)
-            self.assertFalse(expirer.Expirer.at_next_step(project))
+            self.assertFalse(ex.at_next_step(project))
             mock_next.reset_mock()
             mock_next.return_value = None
-            self.assertTrue(expirer.Expirer.at_next_step(project))
+            self.assertTrue(ex.at_next_step(project))
 
     def test_make_next_step_date_feb_1(self):
         now = datetime.datetime(2018, 2, 1)

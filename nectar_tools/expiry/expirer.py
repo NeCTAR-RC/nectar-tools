@@ -38,6 +38,10 @@ class CPULimit(enum.Enum):
 
 
 class Expirer(object):
+
+    STATUS_KEY = 'expiry_status'
+    NEXT_STEP_KEY = 'expiry_next_step'
+
     def __init__(self, resource_type, resource, archivers, notifier,
                  ks_session=None, dry_run=False):
         self.k_client = auth.get_keystone_client(ks_session)
@@ -117,29 +121,26 @@ class Expirer(object):
         resources = self.archiver.delete_resources()
         return resources
 
-    @staticmethod
-    def get_status(resource):
-        if not hasattr(resource, 'expiry_status') or \
-           not resource.expiry_status:
-            resource.expiry_status = expiry_states.ACTIVE
-        return resource.expiry_status
+    def get_status(self, resource):
+        if not hasattr(resource, self.STATUS_KEY) or \
+           not getattr(resource, self.STATUS_KEY):
+            setattr(resource, self.STATUS_KEY, expiry_states.ACTIVE)
+        return getattr(resource, self.STATUS_KEY)
 
-    @staticmethod
-    def get_next_step_date(resource):
-        if not hasattr(resource, 'expiry_next_step') or \
-           not resource.expiry_next_step:
+    def get_next_step_date(self, resource):
+        if not hasattr(resource, self.NEXT_STEP_KEY) or \
+           not getattr(resource, self.NEXT_STEP_KEY):
             return None
         try:
-            expiry_next_step = resource.expiry_next_step
+            expiry_next_step = getattr(resource, self.NEXT_STEP_KEY)
             return datetime.datetime.strptime(expiry_next_step, DATE_FORMAT)
         except ValueError:
-            LOG.error('%s: Invalid expiry_next_step date: %s',
-                      resource.id, expiry_next_step)
+            LOG.error('%s: Invalid %s date: %s',
+                      resource.id, self.NEXT_STEP_KEY, expiry_next_step)
         return None
 
-    @classmethod
-    def at_next_step(cls, resource):
-        next_step = cls.get_next_step_date(resource)
+    def at_next_step(self, resource):
+        next_step = self.get_next_step_date(resource)
         if not next_step:
             return True
         if next_step <= datetime.datetime.now():
