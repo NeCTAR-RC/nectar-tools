@@ -2,10 +2,12 @@ from unittest import mock
 
 from designateclient import exceptions as designate_exc
 
+from nectar_tools import auth
 from nectar_tools import config
 from nectar_tools.expiry import archiver
 from nectar_tools import test
 from nectar_tools.tests import fakes
+from nectar_tools import utils
 
 CONF = config.CONFIG
 PROJECT = fakes.FakeProject('active')
@@ -380,6 +382,22 @@ class NovaArchiverTests(test.TestCase):
             self.assertEqual(image2,
                              na._get_image_by_instance_id(instance2.id))
             self.assertIsNone(na._get_image_by_instance_id(instance3.id))
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class ZoneInstanceArchiverTests(NovaArchiverTests):
+
+    def test_all_instances(self):
+        project = fakes.FakeProject(allocation_id='fake')
+        with test.nested(
+            mock.patch.object(utils, 'get_out_of_zone_instances'),
+            mock.patch.object(auth, 'get_allocation_client')
+        ) as (mock_out_of_zone, mock_get_client):
+            a_client = mock_get_client.return_value
+            a_client.allocations.get.return_value = 'fake allocation'
+            za = archiver.ZoneInstanceArchiver(project)
+            mock_out_of_zone.return_value = ['inst1', 'inst2']
+            self.assertEqual(['inst1', 'inst2'], za._all_instances())
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
