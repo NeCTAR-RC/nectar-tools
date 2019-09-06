@@ -170,7 +170,7 @@ class ExpiryTests(test.TestCase):
 
     def test_make_next_step_date_feb_1_two_more_weeks(self):
         now = datetime.datetime(2018, 2, 1)
-        actual = expirer.Expirer.make_next_step_date(now, 2)
+        actual = expirer.Expirer.make_next_step_date(now, 4)
         self.assertEqual('2018-03-01', actual)
 
     def test_make_next_step_date_dec_14(self):
@@ -1065,3 +1065,316 @@ class PTExpiryTests(test.TestCase):
             payload = {'project': project.to_dict(),
                        'uni': 'melb'}
             mock_send.assert_called_once_with('expiry.pt.foo', payload)
+
+
+@freeze_time("2017-03-01")
+@mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
+            new=mock.Mock())
+@mock.patch('nectarallocationclient.v1.allocations.AllocationManager',
+            new=fakes.FakeAllocationManager)
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class AllocationInstanceExpiryTests(test.TestCase):
+
+    def test_init(self):
+        project = fakes.FakeProject('dummy', allocation_id=1)
+        ex = expirer.AllocationInstanceExpirer(project)
+        self.assertEqual(fakes.ALLOCATIONS['dummy']['id'], ex.allocation.id)
+
+    def test_finish_expiry_active(self):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='')
+        ex = expirer.AllocationInstanceExpirer(project)
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, '_update_project')
+        ) as (mock_notifier, mock_update):
+            mock_notifier.assert_not_called()
+            mock_update.assert_not_called()
+
+    def test_finish_expiry_deleted(self):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status=expiry_states.DELETED,
+                                    zone_expiry_next_step='2018-10-10',
+                                    zone_expiry_ticket_id='100')
+        ex = expirer.AllocationInstanceExpirer(project)
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, '_update_project')
+        ) as (mock_notifier, mock_update):
+            ex.finish_expiry()
+            mock_notifier.finish.assert_called_with(
+                message="Project no longer has any out of zone instances")
+            mock_update.assert_called_with(zone_expiry_status='',
+                                           zone_expiry_next_step='',
+                                           zone_expiry_ticket_id=0)
+
+    def test_send_warning(self):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='',
+                                    compute_zones=['zone1'])
+        ex = expirer.AllocationInstanceExpirer(project)
+        inst1 = fakes.FakeInstance(1)
+        inst2 = fakes.FakeInstance(2)
+        ex.instances = [inst1, inst2]
+        next_step_date = '2017-03-29'
+
+        with test.nested(
+            mock.patch.object(ex, '_send_notification'),
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'send_event'),
+        ) as (mock_notification, mock_update_project, mock_event):
+            ex.send_warning('first', 'warning')
+            mock_update_project.assert_called_with(
+                zone_expiry_next_step=next_step_date,
+                zone_expiry_status=expiry_states.WARNING)
+            extra_context = {'allocation': ex.allocation.to_dict(),
+                             'compute_zones': ['zone1'],
+                             'expiry_date': next_step_date,
+                             'out_of_zone_instances': ex.instances}
+            extra_context['out_of_zone_instances'] = \
+                [inst1.to_dict(), inst2.to_dict()]
+            mock_notification.assert_called_with('first',
+                                                 extra_context=extra_context)
+            mock_event.assert_called_once_with('first',
+                                               extra_context=extra_context)
+
+    def test_send_warning_deleted(self):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='deleted',
+                                    compute_zones=['zone1'])
+        ex = expirer.AllocationInstanceExpirer(project)
+        ex.instances = ['inst1', 'inst2']
+
+        with test.nested(
+            mock.patch.object(ex, '_send_notification'),
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'send_event'),
+        ) as (mock_notification, mock_update_project, mock_event):
+            ex.send_warning('final', 'deleted')
+            mock_update_project.assert_not_called()
+            mock_notification.assert_not_called()
+            mock_event.assert_not_called()
+
+    def test_send_warning_archived(self):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='archiving',
+                                    compute_zones=['zone1'])
+        ex = expirer.AllocationInstanceExpirer(project)
+        inst1 = fakes.FakeInstance(1)
+        inst2 = fakes.FakeInstance(2)
+        ex.instances = [inst1, inst2]
+        next_step_date = '2017-05-24'
+
+        with test.nested(
+            mock.patch.object(ex, '_send_notification'),
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'send_event'),
+        ) as (mock_notification, mock_update_project, mock_event):
+            ex.send_warning('final', 'archiving')
+            mock_update_project.assert_called_with(
+                zone_expiry_next_step=next_step_date,
+                zone_expiry_status=expiry_states.ARCHIVING)
+            extra_context = {'allocation': ex.allocation.to_dict(),
+                             'compute_zones': ['zone1'],
+                             'expiry_date': next_step_date,
+                             'out_of_zone_instances': ex.instances}
+            extra_context['out_of_zone_instances'] = \
+                [inst1.to_dict(), inst2.to_dict()]
+            mock_notification.assert_called_with('final',
+                                                 extra_context=extra_context)
+            mock_event.assert_called_once_with('final',
+                                               extra_context=extra_context)
+
+    def test_send_event(self):
+        project = fakes.FakeProject(allocation_id=1)
+        ex = expirer.AllocationInstanceExpirer(project)
+        with mock.patch.object(ex, '_send_event') as mock_send:
+            ex.send_event('foo', {'uni': 'melb'})
+            payload = {'allocation': ex.allocation.to_dict(),
+                       'uni': 'melb'}
+            mock_send.assert_called_once_with(
+                'expiry.allocation.instance.foo', payload)
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_no_instance(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='fake')
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = []
+        with mock.patch.object(ex, 'finish_expiry') as mock_finish:
+            self.assertFalse(ex.process())
+            mock_finish.assert_called_with()
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_force_delete(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='fake')
+        ex = expirer.AllocationInstanceExpirer(project, force_delete=True)
+        mock_instances.return_value = ['inst1', 'inst2']
+        with mock.patch.object(ex, 'archiver') as mock_archiver:
+            mock_instances.return_value = ['inst1', 'inst2']
+            self.assertTrue(ex.process())
+            mock_archiver._delete_instance.assert_has_calls(
+                [mock.call('inst1'), mock.call('inst2')])
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_active_not_old(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1)
+        ex = expirer.AllocationInstanceExpirer(project)
+        ex.allocation.start_date = AFTER
+        mock_instances.return_value = ['fake']
+        with mock.patch.object(ex, 'send_warning') as mock_send_warning:
+            self.assertFalse(ex.process())
+            mock_send_warning.assert_not_called()
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_active_old_enough(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1)
+        ex = expirer.AllocationInstanceExpirer(project)
+        ex.allocation.start_date = BEFORE
+        mock_instances.return_value = ['fake']
+        with mock.patch.object(ex, 'send_warning') as mock_send_warning:
+            self.assertTrue(ex.process())
+            mock_send_warning.assert_called_with('first',
+                                                 expiry_states.WARNING)
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_warning_not_old(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='warning',
+                                    zone_expiry_next_step=AFTER)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = ['fake']
+        with test.nested(
+            mock.patch.object(ex, 'send_warning'),
+            mock.patch.object(ex, 'archiver')
+        ) as (mock_send_warning, mock_archiver):
+            self.assertFalse(ex.process())
+            mock_archiver.stop_resources.assert_not_called()
+            mock_send_warning.assert_not_called()
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_warning_old_enough(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='warning',
+                                    zone_expiry_next_step=BEFORE)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = ['fake']
+        with test.nested(
+            mock.patch.object(ex, 'send_warning'),
+            mock.patch.object(ex, 'archiver')
+        ) as (mock_send_warning, mock_archiver):
+            self.assertTrue(ex.process())
+            mock_archiver.stop_resources.assert_called_with()
+            mock_send_warning.assert_called_with('second',
+                                                 expiry_states.STOPPED)
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_stopped_not_old(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='stopped',
+                                    zone_expiry_next_step=AFTER)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = ['fake']
+        with test.nested(
+            mock.patch.object(ex, 'send_warning'),
+            mock.patch.object(ex, 'archiver')
+        ) as (mock_send_warning, mock_archiver):
+            self.assertFalse(ex.process())
+            mock_archiver.archive_resources.assert_not_called()
+            mock_send_warning.assert_not_called()
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_stopped_old_enough(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='stopped',
+                                    zone_expiry_next_step=BEFORE)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = ['fake']
+        with test.nested(
+            mock.patch.object(ex, 'send_warning'),
+            mock.patch.object(ex, 'archiver')
+        ) as (mock_send_warning, mock_archiver):
+            self.assertTrue(ex.process())
+            mock_archiver.archive_resources.assert_called_with()
+            mock_send_warning.assert_called_with('final',
+                                                 expiry_states.ARCHIVING)
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_archiving_not_old_archived_success(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='archiving',
+                                    zone_expiry_next_step=AFTER)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = ['fake']
+        with test.nested(
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'archiver'),
+            mock.patch.object(ex, 'set_project_archived')
+        ) as (mock_update, mock_archiver, mock_proj_arch):
+            mock_archiver.is_archive_successful.return_value = True
+            self.assertTrue(ex.process())
+            mock_proj_arch.assert_called_with()
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_archiving_not_old_archived_not_success(self,
+                                                            mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='archiving',
+                                    zone_expiry_next_step=AFTER)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = ['fake']
+        with test.nested(
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'archiver')
+        ) as (mock_update, mock_archiver):
+            mock_archiver.is_archive_successful.return_value = False
+            self.assertTrue(ex.process())
+            mock_update.assert_not_called()
+            mock_archiver.archive_resources.assert_called_with()
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_archiving_old_enough(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='archiving',
+                                    zone_expiry_next_step=BEFORE)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = ['fake']
+        with test.nested(
+            mock.patch.object(ex, '_update_project'),
+            mock.patch.object(ex, 'archiver'),
+            mock.patch.object(ex, 'set_project_archived')
+        ) as (mock_update, mock_archiver, mock_proj_arch):
+            self.assertTrue(ex.process())
+            mock_archiver.archive_resources.assert_not_called()
+            mock_proj_arch.assert_called_with()
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_archived_not_old(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='archived',
+                                    zone_expiry_next_step=AFTER)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = ['fake']
+        with test.nested(
+            mock.patch.object(ex, 'archiver'),
+            mock.patch.object(ex, 'finish_expiry')
+        ) as (mock_archiver, mock_finish):
+            self.assertFalse(ex.process())
+            mock_archiver.delete_archives.assert_not_called()
+            mock_finish.assert_not_called()
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_archived_old_enough(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status='archived',
+                                    zone_expiry_next_step=BEFORE)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = ['fake']
+        with test.nested(
+            mock.patch.object(ex, 'archiver'),
+            mock.patch.object(ex, 'finish_expiry')
+        ) as (mock_archiver, mock_finish):
+            self.assertTrue(ex.process())
+            mock_archiver.delete_archives.assert_called_with()
+            mock_finish.assert_called_with()
