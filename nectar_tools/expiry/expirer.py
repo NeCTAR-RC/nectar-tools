@@ -585,7 +585,6 @@ class PTExpirer(ProjectExpirer):
 
         super(PTExpirer, self).__init__(project, archivers, notifier,
                                         ks_session, dry_run, disable_project)
-        self.project_set_defaults()
         self.n_client = auth.get_nova_client(ks_session)
         self.force_delete = force_delete
 
