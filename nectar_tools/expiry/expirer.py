@@ -42,7 +42,7 @@ class Expirer(object):
     STATUS_KEY = 'expiry_status'
     NEXT_STEP_KEY = 'expiry_next_step'
 
-    def __init__(self, resource_type, resource, archivers, notifier,
+    def __init__(self, resource_type, resource, notifier,
                  ks_session=None, dry_run=False):
         self.k_client = auth.get_keystone_client(ks_session)
         self.dry_run = dry_run
@@ -61,13 +61,6 @@ class Expirer(object):
         for queue in CONF.events.notifier_queues.split(','):
             transport._driver.listen_for_notifications([(target, 'audit')],
                                                        queue, 1, 1)
-
-        # image/inst archiver will be initialized in their expirer class
-        if self.resource_type == 'project':
-            self.archiver = archiver.ResourceArchiver(resource,
-                                                      archivers=archivers,
-                                                      ks_session=ks_session,
-                                                      dry_run=dry_run)
 
     def _get_project_managers(self):
         if self.managers is None:
@@ -167,10 +160,14 @@ class ProjectExpirer(Expirer):
     def __init__(self, project, archivers, notifier, ks_session=None,
                  dry_run=False, disable_project=False):
         super(ProjectExpirer, self).__init__(
-            'project', project, archivers, notifier, ks_session, dry_run)
+            'project', project, notifier, ks_session, dry_run)
         self.project = project
         self.project_set_defaults()
         self.disable_project = disable_project
+        self.archiver = archiver.ResourceArchiver(project,
+                                                  archivers=archivers,
+                                                  ks_session=ks_session,
+                                                  dry_run=dry_run)
 
     def get_project(self):
         return self.project
