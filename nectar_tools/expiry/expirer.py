@@ -62,13 +62,6 @@ class Expirer(object):
             transport._driver.listen_for_notifications([(target, 'audit')],
                                                        queue, 1, 1)
 
-        # image/inst archiver will be initialized in their expirer class
-        if self.resource_type == 'project':
-            self.archiver = archiver.ResourceArchiver(resource,
-                                                      archivers=archivers,
-                                                      ks_session=ks_session,
-                                                      dry_run=dry_run)
-
     def _get_project_managers(self):
         if self.managers is None:
             role = CONF.keystone.manager_role_id
@@ -171,6 +164,10 @@ class ProjectExpirer(Expirer):
         self.project = project
         self.project_set_defaults()
         self.disable_project = disable_project
+        self.archiver = archiver.ResourceArchiver(project,
+                                                  archivers=archivers,
+                                                  ks_session=ks_session,
+                                                  dry_run=dry_run)
 
     def get_project(self):
         return self.project
