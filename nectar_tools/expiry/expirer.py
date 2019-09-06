@@ -13,6 +13,8 @@ from nectarallocationclient.v1 import allocations
 from nectar_tools import auth
 from nectar_tools import config
 from nectar_tools import exceptions
+from nectar_tools import utils
+
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expiry_states
 from nectar_tools.expiry import notifier as expiry_notifier
@@ -484,16 +486,17 @@ class AllocationExpirer(ProjectExpirer):
         manager_emails = []
         member_emails = []
         for manager in managers:
-            if manager.enabled and manager.email:
+            if manager.enabled and utils.is_email_address(manager.email):
                 manager_emails.append(manager.email.lower())
 
         members = self._get_project_members()
         for member in members:
-            if member.enabled and member.email:
+            if member.enabled and utils.is_email_address(member.email):
                 member_emails.append(member.email.lower())
 
         extra_emails = list(set(manager_emails + member_emails))
-        if approver_email and approver_email not in extra_emails:
+        if utils.is_email_address(approver_email) \
+            and approver_email not in extra_emails:
             extra_emails.append(approver_email)
         if owner_email in extra_emails:
             extra_emails.remove(owner_email)
