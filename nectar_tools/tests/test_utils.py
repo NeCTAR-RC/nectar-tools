@@ -85,3 +85,15 @@ class UtilsTests(test.TestCase):
             instances = utils.get_out_of_zone_instances(None, self.allocation,
                                                         project)
             self.assertEqual([], instances)
+
+    def test_is_email_address_valid(self):
+        email = "name@fake.org"
+        self.assertEqual(True, utils.is_email_address(email))
+
+    def test_is_email_address_invalid(self):
+        email1 = "fake@name@fake.org"
+        email2 = "@fake.org"
+        email3 = "fake"
+        self.assertEqual(False, utils.is_email_address(email1))
+        self.assertEqual(False, utils.is_email_address(email2))
+        self.assertEqual(False, utils.is_email_address(email3))

@@ -70,3 +70,10 @@ def read_file(uuid_file):
     """
     data = uuid_file.read()
     return data.split('\n')
+
+
+def is_email_address(mail):
+    if not mail:
+        return False
+    regex = re.compile(r"[^@]+@[^@]+\.[^@]+")
+    return True if regex.match(mail) else False
