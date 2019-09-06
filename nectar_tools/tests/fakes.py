@@ -147,6 +147,9 @@ class FakeInstance(object):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+    def to_dict(self):
+        return self.__dict__
+
 
 class FakeImage(object):
 
