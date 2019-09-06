@@ -62,13 +62,6 @@ class Expirer(object):
             transport._driver.listen_for_notifications([(target, 'audit')],
                                                        queue, 1, 1)
 
-        # image/inst archiver will be initialized in their expirer class
-        if self.resource_type == 'project':
-            self.archiver = archiver.ResourceArchiver(resource,
-                                                      archivers=archivers,
-                                                      ks_session=ks_session,
-                                                      dry_run=dry_run)
-
     def _get_project_managers(self):
         if self.managers is None:
             role = CONF.keystone.manager_role_id
@@ -116,10 +109,6 @@ class Expirer(object):
                                                   event_type))
             return
         self.event_notifier.audit(OSLO_CONTEXT, event_type, payload)
-
-    def delete_resources(self):
-        resources = self.archiver.delete_resources()
-        return resources
 
     def get_status(self, resource):
         if not hasattr(resource, self.STATUS_KEY) or \
@@ -171,6 +160,10 @@ class ProjectExpirer(Expirer):
         self.project = project
         self.project_set_defaults()
         self.disable_project = disable_project
+        self.archiver = archiver.ResourceArchiver(project,
+                                                  archivers=archivers,
+                                                  ks_session=ks_session,
+                                                  dry_run=dry_run)
 
     def get_project(self):
         return self.project
@@ -250,6 +243,10 @@ class ProjectExpirer(Expirer):
             LOG.info("%s: Disabling project", self.project.id)
             self._update_project(enabled=False)
         self.send_event('delete')
+
+    def delete_resources(self):
+        resources = self.archiver.delete_resources()
+        return resources
 
 
 class AllocationExpirer(ProjectExpirer):
