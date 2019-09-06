@@ -97,14 +97,6 @@ class ExpiryTests(test.TestCase):
                                                       mock.call('fakeuser2')])
             self.assertEqual(['fakeuser1', 'fakeuser2'], [x.id for x in users])
 
-    def test_delete_resources(self):
-        project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project,
-                             archivers='fake', notifier='fake')
-        with mock.patch.object(ex, 'archiver') as mock_archiver:
-            ex.delete_resources()
-            mock_archiver.delete_resources.assert_called_with()
-
     def test_send_notification(self):
         project = fakes.FakeProject()
         ex = expirer.Expirer('project', project,
@@ -333,6 +325,13 @@ class ProjectExpirerTests(test.TestCase):
                 expiry_next_step='',
                 expiry_deleted_at=today)
             mock_event.assert_called_once_with('delete')
+
+    def test_delete_resources(self):
+        project = fakes.FakeProject()
+        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
+        with mock.patch.object(ex, 'archiver') as mock_archiver:
+            ex.delete_resources()
+            mock_archiver.delete_resources.assert_called_with()
 
 
 @freeze_time("2017-01-01")
