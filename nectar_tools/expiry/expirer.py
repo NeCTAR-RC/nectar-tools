@@ -41,6 +41,8 @@ class Expirer(object):
 
     STATUS_KEY = 'expiry_status'
     NEXT_STEP_KEY = 'expiry_next_step'
+    TICKET_ID_KEY = 'expiry_ticket_id'
+    UPDATED_AT_KEY = 'expiry_updated_at'
 
     def __init__(self, resource_type, resource, archivers, notifier,
                  ks_session=None, dry_run=False):
@@ -176,22 +178,26 @@ class ProjectExpirer(Expirer):
         return self.project
 
     def project_set_defaults(self):
-        self.project.owner = getattr(self.project, 'owner', None)
-        self.project.expiry_status = getattr(self.project, 'expiry_status', '')
-        self.project.expiry_next_step = getattr(self.project,
-                                                'expiry_next_step', '')
-        self.project.expiry_ticket_id = getattr(self.project,
-                                                'expiry_ticket_id', 0)
+        if not hasattr(self.project, 'owner'):
+            setattr(self.project, 'owner', None)
+        if not hasattr(self.project, self.STATUS_KEY):
+            setattr(self.project, self.STATUS_KEY, '')
+        if not hasattr(self.project, self.NEXT_STEP_KEY):
+            setattr(self.project, self.NEXT_STEP_KEY, '')
+        if not hasattr(self.project, self.TICKET_ID_KEY):
+            setattr(self.project, self.TICKET_ID_KEY, 0)
 
     def _update_project(self, **kwargs):
         today = self.now.strftime(DATE_FORMAT)
-        kwargs.update({'expiry_updated_at': today})
+        kwargs.update({self.UPDATED_AT_KEY: today})
         if not self.dry_run:
             self.k_client.projects.update(self.project.id, **kwargs)
-        if 'expiry_status' in kwargs.keys():
-            self.project.expiry_status = kwargs['expiry_status']
-        if 'expiry_next_step' in kwargs.keys():
-            self.project.expiry_next_step = kwargs['expiry_next_step']
+        if self.STATUS_KEY in kwargs.keys():
+            setattr(self.project, self.STATUS_KEY,
+                    kwargs[self.STATUS_KEY])
+        if self.NEXT_STEP_KEY in kwargs.keys():
+            setattr(self.project, self.NEXT_STEP_KEY,
+                    kwargs[self.NEXT_STEP_KEY])
         msg = '%s: Updating %s' % (self.project.id, kwargs)
         LOG.debug(msg)
 
@@ -204,14 +210,17 @@ class ProjectExpirer(Expirer):
             LOG.debug("%s: Retrying archiving", self.project.id)
             self.archive_project()
 
-    def archive_project(self):
-        if self.project.expiry_status != expiry_states.ARCHIVING:
+    def archive_project(self, duration=90):
+        """Archive a project's resources. Keep archive for `duration` days"""
+        status = self.get_status(self.project)
+        if status != expiry_states.ARCHIVING:
             LOG.info("%s: Archiving project", self.project.id)
-            three_months = (
-                self.now + datetime.timedelta(days=90)).strftime(
+            next_step = (self.now
+                         + datetime.timedelta(days=duration)).strftime(
                     DATE_FORMAT)
-            self._update_project(expiry_status=expiry_states.ARCHIVING,
-                                 expiry_next_step=three_months)
+            update_kwargs = {self.STATUS_KEY: expiry_states.ARCHIVING,
+                             self.NEXT_STEP_KEY: next_step}
+            self._update_project(**update_kwargs)
 
         self.archiver.archive_resources()
 
@@ -231,7 +240,8 @@ class ProjectExpirer(Expirer):
         return False
 
     def set_project_archived(self):
-        self._update_project(expiry_status=expiry_states.ARCHIVED)
+        update_kwargs = {self.STATUS_KEY: expiry_states.ARCHIVED}
+        self._update_project(**update_kwargs)
 
     def delete_project(self):
         LOG.info("%s: Deleting project", self.project.id)
@@ -242,9 +252,10 @@ class ProjectExpirer(Expirer):
         except Exception:
             pass
         today = self.now.strftime(DATE_FORMAT)
-        self._update_project(expiry_status=expiry_states.DELETED,
-                             expiry_next_step='',
-                             expiry_deleted_at=today)
+        delete_kwargs = {self.STATUS_KEY: expiry_states.DELETED,
+                         self.NEXT_STEP_KEY: '',
+                         'expiry_deleted_at': today}
+        self._update_project(**delete_kwargs)
 
         if self.disable_project:
             LOG.info("%s: Disabling project", self.project.id)
@@ -555,8 +566,9 @@ class AllocationExpirer(ProjectExpirer):
         LOG.info("%s: Stopping project", self.project.id)
         self.archiver.stop_resources()
         expiry_date = self.make_next_step_date(self.now)
-        self._update_project(expiry_status=expiry_states.STOPPED,
-                             expiry_next_step=expiry_date)
+        update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
+                         self.NEXT_STEP_KEY: expiry_date}
+        self._update_project(**update_kwargs)
         self.send_event('stop')
 
     def set_project_archived(self):
