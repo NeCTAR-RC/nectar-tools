@@ -204,14 +204,17 @@ class ProjectExpirer(Expirer):
             LOG.debug("%s: Retrying archiving", self.project.id)
             self.archive_project()
 
-    def archive_project(self):
-        if self.project.expiry_status != expiry_states.ARCHIVING:
+    def archive_project(self, duration=90):
+        """Archive a project's resources. Keep archive for `duration` days"""
+        status = self.get_status(self.project)
+        if status != expiry_states.ARCHIVING:
             LOG.info("%s: Archiving project", self.project.id)
-            three_months = (
-                self.now + datetime.timedelta(days=90)).strftime(
+            next_step = (self.now
+                         + datetime.timedelta(days=duration)).strftime(
                     DATE_FORMAT)
-            self._update_project(expiry_status=expiry_states.ARCHIVING,
-                                 expiry_next_step=three_months)
+            update_kwargs = {self.STATUS_KEY: expiry_states.ARCHIVING,
+                             self.NEXT_STEP_KEY: next_step}
+            self._update_project(**update_kwargs)
 
         self.archiver.archive_resources()
 
@@ -231,7 +234,8 @@ class ProjectExpirer(Expirer):
         return False
 
     def set_project_archived(self):
-        self._update_project(expiry_status=expiry_states.ARCHIVED)
+        update_kwargs = {self.STATUS_KEY: expiry_states.ARCHIVED}
+        self._update_project(**update_kwargs)
 
     def delete_project(self):
         LOG.info("%s: Deleting project", self.project.id)
@@ -555,8 +559,9 @@ class AllocationExpirer(ProjectExpirer):
         LOG.info("%s: Stopping project", self.project.id)
         self.archiver.stop_resources()
         expiry_date = self.make_next_step_date(self.now)
-        self._update_project(expiry_status=expiry_states.STOPPED,
-                             expiry_next_step=expiry_date)
+        update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
+                         self.NEXT_STEP_KEY: expiry_date}
+        self._update_project(**update_kwargs)
         self.send_event('stop')
 
     def set_project_archived(self):
