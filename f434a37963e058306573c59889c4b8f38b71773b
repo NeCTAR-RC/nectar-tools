@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "953f9477_b481cf8f",
+        "filename": "nectar_tools/tests/test_archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-08T22:16:44Z",
+      "side": 1,
+      "message": "make this inherit from NovaArchiverTests so it tests all the others and then you can remove the test_archive_resources test from this class",
+      "range": {
+        "startLine": 388,
+        "startChar": 32,
+        "endLine": 388,
+        "endChar": 45
+      },
+      "revId": "f434a37963e058306573c59889c4b8f38b71773b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "31a38b59_4624d784",
+        "filename": "nectar_tools/tests/test_archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-08T22:16:44Z",
+      "side": 1,
+      "message": "should be the other way around. \n\nassertEqual(expected, actual)",
+      "range": {
+        "startLine": 400,
+        "startChar": 29,
+        "endLine": 400,
+        "endChar": 68
+      },
+      "revId": "f434a37963e058306573c59889c4b8f38b71773b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
