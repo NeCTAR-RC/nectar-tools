@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "309928bf_2970ace1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-09T01:30:39Z",
+      "side": 1,
+      "message": "I\u0027d change this to something like:\n\nAdd a utility method to validate an email address",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 54
+      },
+      "revId": "8eaab93941ca685f8f9828976fb2d500c51e6db8",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
