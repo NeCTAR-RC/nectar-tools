@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "27b8911f_17a8da4f",
+        "filename": "nectar_tools/expiry/cmd/allocation_instance_expirer.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-09T22:02:10Z",
+      "side": 1,
+      "message": "think this can be removed?",
+      "range": {
+        "startLine": 61,
+        "startChar": 1,
+        "endLine": 63,
+        "endChar": 14
+      },
+      "revId": "a7c40f542205807a2b0e2ee3d9caf5c32a7f1853",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a6e2b696_c42eeb98",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 821,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-09T22:02:10Z",
+      "side": 1,
+      "message": "I think this should be self.delete_resources()",
+      "range": {
+        "startLine": 820,
+        "startChar": 0,
+        "endLine": 821,
+        "endChar": 56
+      },
+      "revId": "a7c40f542205807a2b0e2ee3d9caf5c32a7f1853",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}

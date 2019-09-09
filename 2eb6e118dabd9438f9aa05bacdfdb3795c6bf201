@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bb1a51b3_7a062dc9",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 820,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-09T22:02:10Z",
+      "side": 1,
+      "message": "Think this can be changed to \n\nself.delete_resources()",
+      "range": {
+        "startLine": 819,
+        "startChar": 0,
+        "endLine": 820,
+        "endChar": 56
+      },
+      "revId": "2eb6e118dabd9438f9aa05bacdfdb3795c6bf201",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
