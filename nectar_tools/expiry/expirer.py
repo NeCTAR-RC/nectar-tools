@@ -262,6 +262,8 @@ class ProjectExpirer(Expirer):
 
 class AllocationExpirer(ProjectExpirer):
 
+    EVENT_PREFIX = 'expiry.allocation'
+
     def __init__(self, project, ks_session=None, dry_run=False,
                  force_no_allocation=False, force_delete=False,
                  disable_project=True):
@@ -537,7 +539,7 @@ class AllocationExpirer(ProjectExpirer):
         self.send_event('warning', extra_context=extra_context)
 
     def send_event(self, event, extra_context={}):
-        event_type = 'expiry.allocation.%s' % event
+        event_type = '%s.%s' % (self.EVENT_PREFIX, event)
         event_notification = {'allocation': self.allocation.to_dict()}
         event_notification.update(extra_context)
         self._send_event(event_type, event_notification)
