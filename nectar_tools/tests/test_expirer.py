@@ -610,13 +610,11 @@ class AllocationExpiryTests(test.TestCase):
         ex = expirer.AllocationExpirer(project)
 
         with test.nested(
-            mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, 'archiver'),
-        ) as (mock_update_project, mock_archiver):
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_update_project.assert_called_once_with(expiry_status='',
-                                                        expiry_next_step='',
-                                                        expiry_ticket_id=0)
+            mock_finish.assert_called_once_with()
             mock_archiver.reset_quota.assert_not_called()
             mock_archiver.enable_resources.assert_called_once_with()
 
@@ -627,13 +625,11 @@ class AllocationExpiryTests(test.TestCase):
         ex = expirer.AllocationExpirer(project)
 
         with test.nested(
-            mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, 'archiver'),
-        ) as (mock_update_project, mock_archiver):
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_update_project.assert_called_once_with(expiry_status='',
-                                                        expiry_next_step='',
-                                                        expiry_ticket_id=0)
+            mock_finish.assert_called_once_with()
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
 
@@ -644,13 +640,11 @@ class AllocationExpiryTests(test.TestCase):
         ex = expirer.AllocationExpirer(project)
 
         with test.nested(
-            mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, 'archiver'),
-        ) as (mock_update_project, mock_archiver):
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_update_project.assert_called_once_with(expiry_status='',
-                                                        expiry_next_step='',
-                                                        expiry_ticket_id=0)
+            mock_finish.assert_called_once_with()
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
 
@@ -661,15 +655,30 @@ class AllocationExpiryTests(test.TestCase):
         ex = expirer.AllocationExpirer(project)
 
         with test.nested(
-            mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, 'archiver'),
-        ) as (mock_update_project, mock_archiver):
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
+            mock_finish.assert_called_once_with()
+            mock_archiver.reset_quota.assert_called_once_with()
+            mock_archiver.enable_resources.assert_called_once_with()
+
+    def test_finish_expiry(self):
+        project = fakes.FakeProject(expiry_status=expiry_states.STOPPED,
+                                    expiry_next_step=BEFORE,
+                                    expiry_ticket_id='20')
+        ex = expirer.AllocationExpirer(project)
+        message = 'expiry is finished'
+
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, '_update_project'),
+        ) as (mock_notifier, mock_update_project):
+            ex.finish_expiry(message=message)
+            mock_notifier.finish.assert_called_once_with(message=message)
             mock_update_project.assert_called_once_with(expiry_status='',
                                                         expiry_next_step='',
                                                         expiry_ticket_id=0)
-            mock_archiver.reset_quota.assert_called_once_with()
-            mock_archiver.enable_resources.assert_called_once_with()
 
     def test_send_warning(self):
         project = fakes.FakeProject()
