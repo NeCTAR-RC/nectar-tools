@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "96ecf82d_9fc13d0f",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 789,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-10T00:37:51Z",
+      "side": 1,
+      "message": "will do",
+      "parentUuid": "5424b8ed_11a65b23",
+      "range": {
+        "startLine": 789,
+        "startChar": 12,
+        "endLine": 789,
+        "endChar": 32
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "edb6ee0c_b3f5948e",
         "filename": "nectar_tools/expiry/expirer.py",
         "patchSetId": 12
@@ -36,6 +60,30 @@
       "writtenOn": "2019-09-09T22:02:10Z",
       "side": 1,
       "message": "I think you can use self.delete_resources() here",
+      "range": {
+        "startLine": 817,
+        "startChar": 0,
+        "endLine": 818,
+        "endChar": 56
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5e509e18_ad0d1209",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 818,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-10T00:37:51Z",
+      "side": 1,
+      "message": "will do",
+      "parentUuid": "edb6ee0c_b3f5948e",
       "range": {
         "startLine": 817,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "07869a32_2a096572",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 828,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-10T00:37:51Z",
+      "side": 1,
+      "message": "stop_project will update the project attributes and send event but will not send the notification. That is why I did not use it here but use the following send_warning instead. Or do you think its need to add _send_notification in stop_project?",
+      "parentUuid": "a8a1a216_134b7428",
+      "range": {
+        "startLine": 828,
+        "startChar": 17,
+        "endLine": 828,
+        "endChar": 46
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "a32e0110_03621716",
         "filename": "nectar_tools/expiry/expirer.py",
         "patchSetId": 12
@@ -82,6 +154,30 @@
       "writtenOn": "2019-09-09T22:02:10Z",
       "side": 1,
       "message": "maybe the stage should be called stopped ?",
+      "range": {
+        "startLine": 829,
+        "startChar": 35,
+        "endLine": 829,
+        "endChar": 41
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "56b49719_3d3c24dd",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 829,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-10T00:37:51Z",
+      "side": 1,
+      "message": "will do",
+      "parentUuid": "a32e0110_03621716",
       "range": {
         "startLine": 829,
         "startChar": 35,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "aa4a914b_54f48cd4",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 854,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-10T00:37:51Z",
+      "side": 1,
+      "message": "yes, the problem here is I want to use the grandparent class (ProjectExpirer) method here but not the parent class (AllocationExpirer). Because the method in AllocationExpirer will send notification but did not include the context we want. So instead of using ProjectExpirer.set_prject_archived() I think maybe just override it here.",
+      "parentUuid": "8b8a6127_0f141fdf",
+      "range": {
+        "startLine": 854,
+        "startChar": 3,
+        "endLine": 854,
+        "endChar": 35
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f82df15e_19daf318",
         "filename": "nectar_tools/expiry/expirer.py",
         "patchSetId": 12
@@ -128,6 +248,30 @@
       "writtenOn": "2019-09-09T22:02:10Z",
       "side": 1,
       "message": "See https://review.rc.nectar.org.au/c/NeCTAR-RC/nectar-tools/+/19428",
+      "range": {
+        "startLine": 858,
+        "startChar": 4,
+        "endLine": 858,
+        "endChar": 50
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "def53d85_edb67c4d",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 858,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-10T00:37:51Z",
+      "side": 1,
+      "message": "will do",
+      "parentUuid": "f82df15e_19daf318",
       "range": {
         "startLine": 858,
         "startChar": 4,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "bc27899f_c8e2c9b4",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 891,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-10T00:37:51Z",
+      "side": 1,
+      "message": "Regarding this one and following one, I have some considerations as well. There is some difference in this method (need extra_context) and following method (we don\u0027t need to enable_resources and set_quota). yes we can modify the method in the base class to be used here easily but it will make the method ugly with more arguments passing in. So I think maybe override it here would be better?",
+      "parentUuid": "989010bb_1571f9c7",
+      "range": {
+        "startLine": 864,
+        "startChar": 4,
+        "endLine": 891,
+        "endChar": 63
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "0da470f3_98bbb6d2",
         "filename": "nectar_tools/expiry/expirer.py",
         "patchSetId": 12
@@ -174,6 +342,30 @@
       "writtenOn": "2019-09-09T22:02:10Z",
       "side": 1,
       "message": "should be able to use the revert_expiry method here and just change that slightly so it can work for both types of expiry?",
+      "range": {
+        "startLine": 893,
+        "startChar": 3,
+        "endLine": 893,
+        "endChar": 28
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "119c7410_e687b162",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 893,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-10T00:37:51Z",
+      "side": 1,
+      "message": "see above",
+      "parentUuid": "0da470f3_98bbb6d2",
       "range": {
         "startLine": 893,
         "startChar": 3,
