@@ -237,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "4dd11d08_e3becb41",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 854,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-10T00:59:38Z",
+      "side": 1,
+      "message": "Ah ok I see, you could change it to be\n\ndef set_project_archived(self, send_notification\u003dTrue):\n\nSo then you could use it too? Think it\u0027s better than overriding it",
+      "parentUuid": "aa4a914b_54f48cd4",
+      "range": {
+        "startLine": 854,
+        "startChar": 3,
+        "endLine": 854,
+        "endChar": 35
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "f82df15e_19daf318",
         "filename": "nectar_tools/expiry/expirer.py",
         "patchSetId": 12
@@ -319,6 +343,30 @@
       "side": 1,
       "message": "Regarding this one and following one, I have some considerations as well. There is some difference in this method (need extra_context) and following method (we don\u0027t need to enable_resources and set_quota). yes we can modify the method in the base class to be used here easily but it will make the method ugly with more arguments passing in. So I think maybe override it here would be better?",
       "parentUuid": "989010bb_1571f9c7",
+      "range": {
+        "startLine": 864,
+        "startChar": 4,
+        "endLine": 891,
+        "endChar": 63
+      },
+      "revId": "c4c4ee07128ac3d5cdfba35b595e5a7776225da9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c13f0ea_0d8fcdeb",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 12
+      },
+      "lineNbr": 891,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-10T00:59:38Z",
+      "side": 1,
+      "message": "just add extra_conext and stage as an argument?\n\nFor the revert_expiry see other review",
+      "parentUuid": "bc27899f_c8e2c9b4",
       "range": {
         "startLine": 864,
         "startChar": 4,
