@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b5645bda_b41fa314",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-09-10T00:14:06Z",
+      "side": 1,
+      "message": "does it make sense to use enumerate() here?\n\nsorted_history \u003d sorted(history, key\u003dlambda h: h.id, reverse\u003dTrue)\nfor i,h in enumerate(sorted_history):\n    ...",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 26
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "600b4e3b_62135d14",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-09-10T00:14:06Z",
+      "side": 1,
+      "message": "what is this needed for?",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 59
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9e36e418_a9f17868",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-09-10T00:14:06Z",
+      "side": 1,
+      "message": "enumerate here too maybe?",
+      "range": {
+        "startLine": 112,
+        "startChar": 20,
+        "endLine": 112,
+        "endChar": 32
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
