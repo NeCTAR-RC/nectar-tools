@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "231e9eba_f5191579",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-09-10T02:01:18Z",
+      "side": 1,
+      "message": "I don\u0027t think so.  I am counting all of the history records, not just the records in history.  (And it was a belt-and-braces thing anyway.  A sanity check.)\n\nAlso, I still have to use \u0027prev\u0027 because the first \u0027prev\u0027 is the main alloc record which is not in the history list ... as written",
+      "parentUuid": "b5645bda_b41fa314",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 83,
+        "endChar": 26
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "600b4e3b_62135d14",
         "filename": "nectar_tools/audit/allocation/allocation.py",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "e6f8ca00_d8d236f5",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-09-10T02:01:18Z",
+      "side": 1,
+      "message": "It is explained by the comment immediately below.  There may be modified_time values that were originally dates, and we don\u0027t want false positives for records that were modified on the same date.",
+      "parentUuid": "600b4e3b_62135d14",
+      "range": {
+        "startLine": 91,
+        "startChar": 0,
+        "endLine": 94,
+        "endChar": 59
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9e36e418_a9f17868",
         "filename": "nectar_tools/audit/allocation/allocation.py",
         "patchSetId": 1
@@ -68,6 +116,30 @@
       "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "00c2c5e0_4172cc56",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-09-10T02:01:18Z",
+      "side": 1,
+      "message": "Don\u0027t think so either.",
+      "parentUuid": "9e36e418_a9f17868",
+      "range": {
+        "startLine": 112,
+        "startChar": 20,
+        "endLine": 112,
+        "endChar": 32
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
