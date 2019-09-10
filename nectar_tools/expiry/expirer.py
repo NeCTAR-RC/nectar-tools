@@ -442,8 +442,11 @@ class AllocationExpirer(ProjectExpirer):
                       expiry_states.RENEWED]:
             self.archiver.reset_quota()
 
+        self.finish_expiry()
+
+    def finish_expiry(self, message='Allocation has been renewed'):
         try:
-            self.notifier.finish(message="Allocation has been renewed")
+            self.notifier.finish(message=message)
         except Exception:
             pass
 

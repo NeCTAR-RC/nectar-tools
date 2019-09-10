@@ -671,6 +671,22 @@ class AllocationExpiryTests(test.TestCase):
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
 
+    def test_finish_expiry(self):
+        project = fakes.FakeProject(expiry_status=expiry_states.ARCHIVED,
+                                    expiry_next_step=BEFORE,
+                                    expiry_ticket_id='20')
+        ex = expirer.AllocationExpirer(project)
+        message = 'expiry finished'
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, '_update_project')
+        ) as (mock_notifier, mock_update_project):
+            ex.finish_expiry(message=message)
+            mock_notifier.finish.assert_called_with(message=message)
+            mock_update_project.assert_called_once_with(expiry_status='',
+                                                        expiry_next_step='',
+                                                        expiry_ticket_id=0)
+
     def test_send_warning(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
