@@ -363,7 +363,8 @@ class AllocationExpirer(ProjectExpirer):
 
         elif expiry_status == expiry_states.ACTIVE:
             if self.allocation_ready_for_warning():
-                self.send_warning()
+                self.send_warning(
+                    extra_context={'expiry_date': self.allocation.end_date})
                 return True
 
         elif expiry_status == expiry_states.WARNING:
@@ -521,24 +522,29 @@ class AllocationExpirer(ProjectExpirer):
                    'allocation': self.allocation}
         return context
 
-    def send_warning(self):
+    def send_warning(self, stage='first', next_status='warning',
+                     extra_context={}):
         LOG.info("%s: Sending warning", self.project.id)
+
         expiry_date = datetime.datetime.strptime(
             self.allocation.end_date, DATE_FORMAT)
 
         # Need minimum notice time, not necessarily actual end date
         notice_period = self.get_notice_period_days()
+
+        if getattr(self.project, self.STATUS_KEY) == 'archiving':
+            notice_period = notice_period * 3
         next_step_date = self.now + datetime.timedelta(days=notice_period)
 
         if expiry_date > next_step_date:
             next_step_date = expiry_date
 
         next_step_date = next_step_date.strftime(DATE_FORMAT)
-        update_kwargs = {self.STATUS_KEY: expiry_states.WARNING,
+
+        update_kwargs = {self.STATUS_KEY: next_status,
                          self.NEXT_STEP_KEY: next_step_date}
         self._update_project(**update_kwargs)
-        extra_context = {'expiry_date': self.allocation.end_date}
-        self._send_notification('first', extra_context=extra_context)
+        self._send_notification(stage, extra_context=extra_context)
         self.send_event('warning', extra_context=extra_context)
 
     def send_event(self, event, extra_context={}):
@@ -575,10 +581,11 @@ class AllocationExpirer(ProjectExpirer):
         self._update_project(**update_kwargs)
         self.send_event('stop')
 
-    def set_project_archived(self):
+    def set_project_archived(self, send_notification=True):
         super(AllocationExpirer, self).set_project_archived()
-        self._send_notification('archived')
-        self.send_event('archived')
+        if send_notification:
+            self._send_notification('archived')
+            self.send_event('archived')
 
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()

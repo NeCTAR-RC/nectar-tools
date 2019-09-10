@@ -440,7 +440,8 @@ class AllocationExpiryTests(test.TestCase):
 
         with mock.patch.object(ex, 'send_warning') as mock_send_warning:
             self.assertTrue(ex.process())
-            mock_send_warning.assert_called_with()
+            mock_send_warning.assert_called_with(
+                extra_context={'expiry_date': '2017-01-01'})
 
     def test_process_send_warning_short(self):
         project = fakes.FakeProject('warning2')
@@ -448,7 +449,8 @@ class AllocationExpiryTests(test.TestCase):
 
         with mock.patch.object(ex, 'send_warning') as mock_send_warning:
             self.assertTrue(ex.process())
-            mock_send_warning.assert_called_with()
+            mock_send_warning.assert_called_with(
+                extra_context={'expiry_date': '2017-01-01'})
             mock_send_warning.reset_mock()
 
     def test_process_warning(self):
@@ -700,11 +702,11 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, 'send_event'),
         ) as (mock_notification, mock_update_project, mock_event):
-            ex.send_warning()
+            extra_context = {'expiry_date': ex.allocation.end_date}
+            ex.send_warning(extra_context=extra_context)
             mock_update_project.assert_called_with(
                 expiry_next_step=next_step_date,
                 expiry_status=expiry_states.WARNING)
-            extra_context = {'expiry_date': ex.allocation.end_date}
             mock_notification.assert_called_with('first',
                                                  extra_context=extra_context)
             mock_event.assert_called_once_with('warning',
@@ -723,11 +725,11 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, 'send_event'),
         ) as (mock_notification, mock_update_project, mock_event):
-            ex.send_warning()
+            extra_context = {'expiry_date': ex.allocation.end_date}
+            ex.send_warning(extra_context=extra_context)
             mock_update_project.assert_called_with(
                 expiry_next_step=next_step_date,
                 expiry_status=expiry_states.WARNING)
-            extra_context = {'expiry_date': ex.allocation.end_date}
             mock_notification.assert_called_with('first',
                                                  extra_context=extra_context)
             mock_event.assert_called_once_with('warning',
