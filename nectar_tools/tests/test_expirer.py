@@ -716,7 +716,7 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, '_update_project'),
             mock.patch.object(ex, 'send_event'),
         ) as (mock_notification, mock_update_project, mock_event):
-            ex.send_warning()
+            ex.send_warning(extra_context={})
             mock_update_project.assert_called_with(
                 expiry_next_step=next_step_date,
                 expiry_status=expiry_states.WARNING)
@@ -808,7 +808,7 @@ class AllocationExpiryTests(test.TestCase):
                 expiry_status=expiry_states.STOPPED)
 
             mock_archiver.stop_resources.assert_called_once_with()
-            mock_event.assert_called_once_with('stop')
+            mock_event.assert_called_once_with('stop', extra_context={})
 
     def test_get_recipients(self):
         project = fakes.FakeProject()
@@ -837,8 +837,9 @@ class AllocationExpiryTests(test.TestCase):
         ) as (mock_send_notification, mock_parent_set_proj_arch, mock_event):
             ex.set_project_archived()
             mock_parent_set_proj_arch.assert_called_once_with()
-            mock_send_notification.assert_called_once_with('archived')
-            mock_event.assert_called_once_with('archived')
+            mock_send_notification.assert_called_once_with('archived',
+                                                           extra_context={})
+            mock_event.assert_called_once_with('archived', extra_context={})
 
     def test_delete_project(self):
         project = fakes.FakeProject()
