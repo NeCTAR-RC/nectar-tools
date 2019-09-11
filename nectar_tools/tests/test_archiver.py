@@ -391,13 +391,40 @@ class ZoneInstanceArchiverTests(NovaArchiverTests):
         project = fakes.FakeProject(allocation_id='fake')
         with test.nested(
             mock.patch.object(utils, 'get_out_of_zone_instances'),
-            mock.patch.object(auth, 'get_allocation_client')
+            mock.patch.object(auth, 'get_allocation_client'),
         ) as (mock_out_of_zone, mock_get_client):
             a_client = mock_get_client.return_value
             a_client.allocations.get.return_value = 'fake allocation'
             za = archiver.ZoneInstanceArchiver(project)
             mock_out_of_zone.return_value = ['inst1', 'inst2']
             self.assertEqual(['inst1', 'inst2'], za._all_instances())
+
+    @mock.patch('nectar_tools.auth.get_allocation_client')
+    def test_get_project_images(self, mock_a_client):
+        project = fakes.FakeProject(allocation_id='fake')
+        mock_a_client.return_value.allocations.get.return_value = 'allocation1'
+        za = archiver.ZoneInstanceArchiver(project)
+        image1 = fakes.FakeImage(id='fake1')
+        image2 = fakes.FakeImage(id='fake2')
+        image3 = fakes.FakeImage(id='fake3')
+        instance1 = fakes.FakeInstance(id='fake1')
+        instance2 = fakes.FakeInstance(id='fake2')
+
+        def fake_list(filters):
+            if filters['instance_uuid'] == 'fake1':
+                return [image1, image2]
+            elif filters['instance_uuid'] == 'fake2':
+                return [image3]
+
+        with test.nested(
+            mock.patch.object(za, 'g_client'),
+            mock.patch.object(za, '_all_instances'),
+        ) as (mock_glance, mock_instances):
+            mock_instances.return_value = [instance1, instance2]
+            mock_glance.images.list.side_effect = fake_list
+            output = za._get_project_images()
+            self.assertEqual(2, mock_glance.images.list.call_count)
+            self.assertEqual([image1, image2, image3], output)
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
