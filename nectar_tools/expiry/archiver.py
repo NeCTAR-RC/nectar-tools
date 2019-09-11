@@ -377,6 +377,19 @@ class ZoneInstanceArchiver(NovaArchiver):
             self.ks_session, self.allocation, self.project)
         return instances
 
+    def _get_project_images(self):
+        if self.images is None:
+            instances = self._all_instances()
+            archived_images = []
+            for instance in instances:
+                images = self.g_client.images.list(
+                    filters={'owner_id': self.project.id,
+                             'nectar_archive': 'True',
+                             'instance_uuid': instance.id})
+                archived_images.extend(images)
+            self.images = archived_images
+        return self.images
+
 
 class CinderArchiver(Archiver):
 
