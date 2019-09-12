@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7f7f9ade_764e1ac3",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-12T12:49:01Z",
+      "side": 1,
+      "message": "considering in instance and image expiry, we don\u0027t have to make sure the calculated next_step_date must be later than the allocation end_time",
+      "range": {
+        "startLine": 535,
+        "startChar": 0,
+        "endLine": 537,
+        "endChar": 44
+      },
+      "revId": "001c361b99e8d6a2a5e0556d883257fe0dae6cd6",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4446bfea_19abae08",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 546,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-12T12:49:01Z",
+      "side": 1,
+      "message": "Similarly, we need to change here as well. Alternatively, I think we could not change it here, just keep the \"wrong\" expiry_date, but update it with the correct one in _send_notification context update. But it will be more confusing I think.",
+      "range": {
+        "startLine": 543,
+        "startChar": 0,
+        "endLine": 546,
+        "endChar": 59
+      },
+      "revId": "001c361b99e8d6a2a5e0556d883257fe0dae6cd6",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
