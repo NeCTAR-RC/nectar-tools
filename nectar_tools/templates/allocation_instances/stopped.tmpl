@@ -1,0 +1,37 @@
+Hi,
+<br />
+Your following out of zone instances which are from project <b>{{ project.name }}</b>, has now been <b>disabled</b>.
+<br />
+<br />
+Since your allocation has been approved as a {{ allocation.allocation_home_display }} allocation. You will be able to use the cloud resources provided by the {{ allocation.allocation_home_display }} Nectar site.
+<br />
+<br />
+You will need to arrange to <a href="https://support.ehelp.edu.au/support/solutions/articles/6000    191165-migrating-instances-between-availability-zones">move</a> this
+to be within the following compute availability zones available to you:
+<ul>
+<li>{{ compute_zones }}</li>
+</ul>
+Affected instance:
+<table  style="border:1px solid black;border-collapse:collapse;padding:0 5px 0 5px;">
+<thead>
+<th style="border:1px solid black;padding:0 5px 0 5px;">ID</th>
+<th style="border:1px solid black;padding:0 5px 0 5px;">Name</th>
+<th style="border:1px solid black;padding:0 5px 0 5px;">Availability Zone</th>
+</thead>
+<tbody>
+{% for instance in out_of_zone_instances %}
+<tr>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ instance.id }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ instance.name }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ instance['OS-EXT-AZ:availability_zone'] }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<br />
+If the instances move is not completed in time, they will be archived at <b>{{ expiry_date }}</b>
+<br />
+<br />
+Kind Regards,
+<br />
+Nectar Research Cloud Team.
