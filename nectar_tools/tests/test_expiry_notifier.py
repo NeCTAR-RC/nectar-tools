@@ -18,7 +18,7 @@ INST = fakes.FakeInstance(name='fake')
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ExpiryNotifierTests(test.TestCase):
 
-    def _test_send_message(self, stage, template):
+    def _test_send_message(self, stage):
         n = notifier.ExpiryNotifier(resource_type='project',
             resource=PROJECT, template_dir='allocations',
             group_id=1, subject='Ticket-Subject %s' % PROJECT.name)
@@ -34,10 +34,13 @@ class ExpiryNotifierTests(test.TestCase):
                            extra_context={'foo': 'bar'},
                            extra_recipients=['manager1@fake.org',
                                              'manager2@fake.org'])
+            self.assertIsNotNone(n.render_template(
+                    '%s.tmpl' % stage, {'foo': 'bar'}))
             mock_create.assert_called_with(
                 email='owner@fake.org',
                 cc_emails=['manager1@fake.org', 'manager2@fake.org'],
-                description=n.render_template(template, {'foo': 'bar'}),
+                description=n.render_template(
+                    '%s.tmpl' % stage, {'foo': 'bar'}),
                 extra_context={'foo': 'bar'},
                 tags=['expiry'])
             mock_note.assert_called_with(
@@ -45,13 +48,13 @@ class ExpiryNotifierTests(test.TestCase):
             mock_id.assert_called_with(32)
 
     def test_send_message_first(self, mock_api):
-        self._test_send_message('first', 'first-warning.tmpl')
+        self._test_send_message('first-warning')
 
-    def test_send_message_second(self, mock_api):
-        self._test_send_message('second', 'second-warning.tmpl')
+    def test_send_message_restrict(self, mock_api):
+        self._test_send_message('restrict')
 
-    def test_send_message_final(self, mock_api):
-        self._test_send_message('final', 'final-warning.tmpl')
+    def test_send_message_archived(self, mock_api):
+        self._test_send_message('archived')
 
     def test_send_message_update(self, mock_api):
         project = PROJECT

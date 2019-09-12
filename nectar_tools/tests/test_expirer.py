@@ -698,9 +698,9 @@ class AllocationExpiryTests(test.TestCase):
                 expiry_next_step=next_step_date,
                 expiry_status=expiry_states.WARNING)
             extra_context = {'expiry_date': ex.allocation.end_date}
-            mock_notification.assert_called_with('first',
+            mock_notification.assert_called_with('first-warning',
                                                  extra_context=extra_context)
-            mock_event.assert_called_once_with('warning',
+            mock_event.assert_called_once_with('first-warning',
                                                extra_context=extra_context)
 
     @freeze_time('2018-02-01')
@@ -721,9 +721,9 @@ class AllocationExpiryTests(test.TestCase):
                 expiry_next_step=next_step_date,
                 expiry_status=expiry_states.WARNING)
             extra_context = {'expiry_date': ex.allocation.end_date}
-            mock_notification.assert_called_with('first',
+            mock_notification.assert_called_with('first-warning',
                                                  extra_context=extra_context)
-            mock_event.assert_called_once_with('warning',
+            mock_event.assert_called_once_with('first-warning',
                                                extra_context=extra_context)
 
     def test_send_event(self):
@@ -786,7 +786,7 @@ class AllocationExpiryTests(test.TestCase):
                                         expiry_status=expiry_states.RESTRICTED)
 
             mock_archiver.zero_quota.assert_called_once_with()
-            mock_notification.assert_called_with('final')
+            mock_notification.assert_called_with('restrict')
             mock_event.assert_called_once_with('restrict')
 
     def test_stop_project(self):
@@ -1014,7 +1014,7 @@ class PTExpiryTests(test.TestCase):
             mock.patch.object(ex, 'send_event'),
         ) as (mock_update_project, mock_notification, mock_event):
             ex.notify_near_limit()
-            mock_notification.assert_called_with('first')
+            mock_notification.assert_called_with('first-warning')
             mock_event.assert_called_once_with('first-warning')
             next_step = datetime.datetime.now() + relativedelta(days=18)
             next_step = next_step.strftime(expirer.DATE_FORMAT)
@@ -1036,7 +1036,7 @@ class PTExpiryTests(test.TestCase):
         ) as (mock_update_project, mock_notification, mock_archiver,
               mock_event):
             ex.notify_at_limit()
-            mock_notification.assert_called_with('second')
+            mock_notification.assert_called_with('second-warning')
             mock_event.assert_called_once_with('second-warning')
             mock_update_project.assert_called_with(
                 expiry_status='pending suspension',
@@ -1058,7 +1058,7 @@ class PTExpiryTests(test.TestCase):
         ) as (mock_update_project, mock_notification, mock_archiver,
               mock_event):
             ex.notify_over_limit()
-            mock_notification.assert_called_with('final')
+            mock_notification.assert_called_with('suspended')
             mock_event.assert_called_once_with('suspended')
             mock_update_project.assert_called_with(
                 expiry_status='suspended',

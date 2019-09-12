@@ -538,8 +538,8 @@ class AllocationExpirer(ProjectExpirer):
                          self.NEXT_STEP_KEY: next_step_date}
         self._update_project(**update_kwargs)
         extra_context = {'expiry_date': self.allocation.end_date}
-        self._send_notification('first', extra_context=extra_context)
-        self.send_event('warning', extra_context=extra_context)
+        self._send_notification('first-warning', extra_context=extra_context)
+        self.send_event('first-warning', extra_context=extra_context)
 
     def send_event(self, event, extra_context={}):
         event_type = '%s.%s' % (self.EVENT_PREFIX, event)
@@ -563,7 +563,7 @@ class AllocationExpirer(ProjectExpirer):
         restrict_kwargs = {self.STATUS_KEY: expiry_states.RESTRICTED,
                            self.NEXT_STEP_KEY: expiry_date}
         self._update_project(**restrict_kwargs)
-        self._send_notification('final')
+        self._send_notification('restrict')
         self.send_event('restrict')
 
     def stop_project(self):
@@ -703,7 +703,7 @@ class PTExpirer(ProjectExpirer):
 
         LOG.info("%s: Usage is over 80%% - setting status to quota warning",
                  self.project.id)
-        self._send_notification('first')
+        self._send_notification('first-warning')
         self.send_event('first-warning')
         # 18 days minimum time for 2 cores usage 80% -> 100%
         next_step = (self.now + relativedelta(days=18)).strftime(DATE_FORMAT)
@@ -723,7 +723,7 @@ class PTExpirer(ProjectExpirer):
         expiry_date = self.make_next_step_date(self.now)
         self._update_project(expiry_status=expiry_states.PENDING_SUSPENSION,
                              expiry_next_step=expiry_date)
-        self._send_notification('second')
+        self._send_notification('second-warning')
         self.send_event('second-warning')
         return True
 
@@ -742,7 +742,7 @@ class PTExpirer(ProjectExpirer):
         expiry_date = self.make_next_step_date(self.now)
         self._update_project(expiry_status=expiry_states.SUSPENDED,
                              expiry_next_step=expiry_date)
-        self._send_notification('final')
+        self._send_notification('suspended')
         self.send_event('suspended')
         return True
 
