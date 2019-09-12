@@ -150,12 +150,12 @@ class Expirer(object):
             return False
 
     @staticmethod
-    def make_next_step_date(now, unit=1):
+    def make_next_step_date(now, days=14):
         # If date within 15 December and 31 January, allow more 16 days
         if (now.month == 12 and now.day >= 15) or now.month == 1:
-            next_step_date = now + relativedelta(days=14 * unit + 16)
+            next_step_date = now + relativedelta(days=days + 16)
         else:
-            next_step_date = now + relativedelta(weeks=2 * unit)
+            next_step_date = now + relativedelta(days=days)
         return next_step_date.strftime(DATE_FORMAT)
 
 
@@ -266,15 +266,17 @@ class AllocationExpirer(ProjectExpirer):
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  force_no_allocation=False, force_delete=False,
-                 disable_project=True):
-        archivers = ['nova', 'cinder', 'neutron', 'projectimages', 'swift']
+                 disable_project=True, archivers=['nova', 'cinder', 'neutron',
+                 'projectimages', 'swift'], template_dir='allocations',
+                 subject='Nectar Project Allocation Renewal - '):
 
         notifier = expiry_notifier.ExpiryNotifier(
             resource_type='project', resource=project,
-            template_dir='allocations',
+            template_dir=template_dir,
             group_id=CONF.freshdesk.allocation_group,
-            subject="Nectar Project Allocation Renewal - %s" % project.name,
-            ks_session=ks_session, dry_run=dry_run)
+            subject=subject + project.name,
+            ks_session=ks_session, dry_run=dry_run,
+            ticket_id_key=self.TICKET_ID_KEY)
 
         super(AllocationExpirer, self).__init__(
             project, archivers, notifier, ks_session, dry_run, disable_project)
@@ -418,6 +420,15 @@ class AllocationExpirer(ProjectExpirer):
 
         return notice_days
 
+    def get_expiry_date(self):
+        allocation_end = datetime.datetime.strptime(
+            self.allocation.end_date, DATE_FORMAT)
+        notice_days = self.get_notice_period_days()
+        next_step_date = self.now + datetime.timedelta(days=notice_days)
+        if allocation_end > next_step_date:
+            next_step_date = allocation_end
+        return next_step_date.strftime(DATE_FORMAT)
+
     def get_warning_date(self):
         notice_period = self.get_notice_period_days()
         allocation_end = datetime.datetime.strptime(
@@ -516,34 +527,25 @@ class AllocationExpirer(ProjectExpirer):
     def _get_notification_context(self):
         managers = self._get_project_managers()
         members = self._get_project_members()
-        context = {'managers': managers,
-                   'members': members,
-                   'allocation': self.allocation}
+        context = {'managers': [i.to_dict() for i in managers],
+                   'members': [i.to_dict() for i in members],
+                   'allocation': self.allocation.to_dict()}
         return context
 
     def send_warning(self):
         LOG.info("%s: Sending warning", self.project.id)
-        expiry_date = datetime.datetime.strptime(
-            self.allocation.end_date, DATE_FORMAT)
+        next_step_date = self.get_expiry_date()
 
-        # Need minimum notice time, not necessarily actual end date
-        notice_period = self.get_notice_period_days()
-        next_step_date = self.now + datetime.timedelta(days=notice_period)
-
-        if expiry_date > next_step_date:
-            next_step_date = expiry_date
-
-        next_step_date = next_step_date.strftime(DATE_FORMAT)
         update_kwargs = {self.STATUS_KEY: expiry_states.WARNING,
                          self.NEXT_STEP_KEY: next_step_date}
         self._update_project(**update_kwargs)
-        extra_context = {'expiry_date': self.allocation.end_date}
+        extra_context = {'expiry_date': next_step_date}
         self._send_notification('first-warning', extra_context=extra_context)
         self.send_event('first-warning', extra_context=extra_context)
 
     def send_event(self, event, extra_context={}):
         event_type = '%s.%s' % (self.EVENT_PREFIX, event)
-        event_notification = {'allocation': self.allocation.to_dict()}
+        event_notification = self._get_notification_context()
         event_notification.update(extra_context)
         self._send_event(event_type, event_notification)
 
