@@ -150,12 +150,12 @@ class Expirer(object):
             return False
 
     @staticmethod
-    def make_next_step_date(now, unit=1):
+    def make_next_step_date(now, days=14):
         # If date within 15 December and 31 January, allow more 16 days
         if (now.month == 12 and now.day >= 15) or now.month == 1:
-            next_step_date = now + relativedelta(days=14 * unit + 16)
+            next_step_date = now + relativedelta(days=days + 16)
         else:
-            next_step_date = now + relativedelta(weeks=2 * unit)
+            next_step_date = now + relativedelta(days=days)
         return next_step_date.strftime(DATE_FORMAT)
 
 
@@ -266,15 +266,17 @@ class AllocationExpirer(ProjectExpirer):
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  force_no_allocation=False, force_delete=False,
-                 disable_project=True):
-        archivers = ['nova', 'cinder', 'neutron', 'projectimages', 'swift']
+                 disable_project=True, archivers=['nova', 'cinder', 'neutron',
+                 'projectimages', 'swift'], template_dir='allocations',
+                 subject='Nectar Project Allocation Renewal - '):
 
         notifier = expiry_notifier.ExpiryNotifier(
             resource_type='project', resource=project,
-            template_dir='allocations',
+            template_dir=template_dir,
             group_id=CONF.freshdesk.allocation_group,
-            subject="Nectar Project Allocation Renewal - %s" % project.name,
-            ks_session=ks_session, dry_run=dry_run)
+            subject=subject + project.name,
+            ks_session=ks_session, dry_run=dry_run,
+            ticket_id_key=self.TICKET_ID_KEY)
 
         super(AllocationExpirer, self).__init__(
             project, archivers, notifier, ks_session, dry_run, disable_project)
@@ -516,12 +518,12 @@ class AllocationExpirer(ProjectExpirer):
     def _get_notification_context(self):
         managers = self._get_project_managers()
         members = self._get_project_members()
-        context = {'managers': managers,
-                   'members': members,
-                   'allocation': self.allocation}
+        context = {'managers': [i.to_dict() for i in managers],
+                   'members': [i.to_dict() for i in members],
+                   'allocation': self.allocation.to_dict()}
         return context
 
-    def send_warning(self):
+    def send_warning(self, after_expiry_date=True):
         LOG.info("%s: Sending warning", self.project.id)
         expiry_date = datetime.datetime.strptime(
             self.allocation.end_date, DATE_FORMAT)
@@ -530,20 +532,24 @@ class AllocationExpirer(ProjectExpirer):
         notice_period = self.get_notice_period_days()
         next_step_date = self.now + datetime.timedelta(days=notice_period)
 
-        if expiry_date > next_step_date:
-            next_step_date = expiry_date
+        if after_expiry_date:
+            if expiry_date > next_step_date:
+                next_step_date = expiry_date
 
         next_step_date = next_step_date.strftime(DATE_FORMAT)
         update_kwargs = {self.STATUS_KEY: expiry_states.WARNING,
                          self.NEXT_STEP_KEY: next_step_date}
         self._update_project(**update_kwargs)
-        extra_context = {'expiry_date': self.allocation.end_date}
+        if after_expiry_date:
+            extra_context = {'expiry_date': self.allocation.end_date}
+        else:
+            extra_context = {'expiry_date': next_step_date}
         self._send_notification('first', extra_context=extra_context)
         self.send_event('warning', extra_context=extra_context)
 
     def send_event(self, event, extra_context={}):
         event_type = '%s.%s' % (self.EVENT_PREFIX, event)
-        event_notification = {'allocation': self.allocation.to_dict()}
+        event_notification = self._get_notification_context()
         event_notification.update(extra_context)
         self._send_event(event_type, event_notification)
 
@@ -566,7 +572,7 @@ class AllocationExpirer(ProjectExpirer):
         self._send_notification('final')
         self.send_event('restrict')
 
-    def stop_project(self):
+    def stop_project(self, send_notification=False):
         LOG.info("%s: Stopping project", self.project.id)
         self.archiver.stop_resources()
         expiry_date = self.make_next_step_date(self.now)
@@ -574,6 +580,8 @@ class AllocationExpirer(ProjectExpirer):
                          self.NEXT_STEP_KEY: expiry_date}
         self._update_project(**update_kwargs)
         self.send_event('stop')
+        if send_notification:
+            self._send_notification('stopped')
 
     def set_project_archived(self):
         super(AllocationExpirer, self).set_project_archived()
