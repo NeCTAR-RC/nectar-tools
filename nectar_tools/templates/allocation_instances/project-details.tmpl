@@ -1,0 +1,77 @@
+Out-of-zone instances expiry for project <b>{{ project.name }}</b> ({{ project.id }})
+<br />
+<br />
+{% if allocation %}
+<b>Allocation Details:</b><br />
+ID: {{ allocation.id}}<br />
+Owner: {{ allocation.contact_email }}<br />
+Approver: {{ allocation.approver_email }}<br />
+Allocation Home: {{ allocation.allocation_home }}<br />
+Start Date: {{ allocation.start_date}}<br />
+End Date: {{ allocation.end_date}}<br />
+<br />
+{% endif %}
+
+<b>Affected instance(s)</b>
+<table style="border:1px solid black;border-collapse:collapse;padding:0 5px 0 5px;">
+<thead>
+<th style="border:1px solid black;padding:0 5px 0 5px;">ID</th>
+<th style="border:1px solid black;padding:0 5px 0 5px;">Name</th>
+<th style="border:1px solid black;padding:0 5px 0 5px;">Availability Zone</th>
+</thead>
+<tbody>
+{% for instance in out_of_zone_instances %}
+<tr>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ instance.id }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ instance.name }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ instance['OS-EXT-AZ:availability_zone'] }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<br />
+
+<b>Managers</b>
+<table style="border:1px solid black;border-collapse:collapse;padding:0 5px 0 5px;">
+<thead>
+<tr>
+<td style="border:1px solid black;padding:0 5px 0 5px;"><i>Username</i></td>
+<td style="border:1px solid black;padding:0 5px 0 5px;"><i>Full Name</i></td>
+<td style="border:1px solid black;padding:0 5px 0 5px;"><i>Email</i></td>
+</tr>
+</thead>
+<tbody>
+{% for manager in managers %}
+<tr>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ manager.name }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ manager.full_name }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ manager.email }}</td>
+</tr>
+{% else %}
+<tr><td>No Managers</td><td></td><td></td></tr>
+{% endfor %}
+</tbody>
+</table>
+<br />
+
+<b>Members</b>
+<table style="border:1px solid black;border-collapse:collapse;padding:0 5px 0 5px;">
+<thead>
+<tr>
+<td style="border:1px solid black;padding:0 5px 0 5px;"><i>Username</i></td>
+<td style="border:1px solid black;padding:0 5px 0 5px;"><i>Full Name</i></td>
+<td style="border:1px solid black;padding:0 5px 0 5px;"><i>Email</i></td>
+</tr>
+</thead>
+<tbody>
+{% for member in members %}
+<tr>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ member.name }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ member.full_name }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ member.email }}</td>
+</tr>
+{% else %}
+<tr><td>No Members</td><td></td><td></td></tr>
+{% endfor %}
+</tbody>
+</table>

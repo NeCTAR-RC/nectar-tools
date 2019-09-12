@@ -1,0 +1,36 @@
+Hi,
+<br />
+<br />
+Since your allocation has been approved as a {{ allocation.allocation_home_display }} allocation. You will be able to use the cloud resources provided by the {{ allocation.allocation_home_display }} Nectar site. But it looks like you have instance(s) that are outside your approved allocation home location.
+<br />
+<br />
+You will need to arrange to <a href="https://support.ehelp.edu.au/support/solutions/articles/6000191165-migrating-instances-between-availability-zones">move</a> this
+to be within the following compute availability zones available to you:
+<ul>
+<li>{{ compute_zones }}</li>
+</ul>
+Affected instance(s):
+<table style="border:1px solid black;border-collapse:collapse;padding:0 5px 0 5px;">
+<thead>
+<th style="border:1px solid black;padding:0 5px 0 5px;">ID</th>
+<th style="border:1px solid black;padding:0 5px 0 5px;">Name</th>
+<th style="border:1px solid black;padding:0 5px 0 5px;">Availability Zone</th>
+</thead>
+<tbody>
+{% for instance in out_of_zone_instances %}
+<tr>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ instance.id }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ instance.name }}</td>
+<td style="border:1px solid black;padding:0 5px 0 5px;">{{ instance['OS-EXT-AZ:availability_zone'] }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<br />
+Your instances(s) need to be moved by <b>{{ expiry_date }}</b>, after this date we will shut down and begin archiving your data.
+<br />
+<br />
+<br />
+Kind Regards,
+<br />
+Nectar Research Cloud Team.
