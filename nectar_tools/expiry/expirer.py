@@ -114,8 +114,8 @@ class Expirer(object):
             return
         self.event_notifier.audit(OSLO_CONTEXT, event_type, payload)
 
-    def delete_resources(self):
-        resources = self.archiver.delete_resources()
+    def delete_resources(self, force=False):
+        resources = self.archiver.delete_resources(force=force)
         return resources
 
     def get_status(self, resource):
@@ -759,3 +759,123 @@ class PTExpirer(ProjectExpirer):
         event_notification = {'project': self.project.to_dict()}
         event_notification.update(extra_context)
         self._send_event(event_type, event_notification)
+
+
+class AllocationInstanceExpirer(AllocationExpirer):
+
+    STATUS_KEY = 'zone_expiry_status'
+    NEXT_STEP_KEY = 'zone_expiry_next_step'
+    TICKET_ID_KEY = 'zone_expiry_ticket_id'
+    UPDATED_AT_KEY = 'zone_expiry_updated_at'
+    EVENT_PREFIX = 'expiry.allocation.instance'
+
+    def __init__(self, project, ks_session=None, dry_run=False,
+                 force_delete=False):
+        archivers = ['zoneinstance']
+
+        super(AllocationInstanceExpirer, self).__init__(
+            project, ks_session=ks_session, dry_run=dry_run,
+            force_delete=force_delete, archivers=archivers,
+            template_dir='allocation_instances',
+            subject="Nectar Allocation Instances Expiry - ")
+
+        self._instances = None
+
+    @property
+    def instances(self):
+        if self._instances is None:
+            self._instances = utils.get_out_of_zone_instances(
+                self.ks_session, self.allocation, self.project)
+        return self._instances
+
+    def project_set_defaults(self):
+        super(AllocationInstanceExpirer, self).project_set_defaults()
+        self.project.compute_zones = getattr(self.project,
+            'compute_zones', '')
+        self.project.zone_expiry_status = getattr(self.project,
+            'zone_expiry_status', '')
+        self.project.zone_expiry_next_step = getattr(self.project,
+            'zone_expiry_next_step', '')
+        self.project.zone_expiry_ticket_id = getattr(self.project,
+            'zone_expiry_ticket_id', 0)
+
+    def _get_notification_context(self):
+        context = super(AllocationInstanceExpirer,
+                        self)._get_notification_context()
+        extra_context = {'compute_zones': self.project.compute_zones,
+                         'out_of_zone_instances': [
+                             i.to_dict() for i in self.instances]}
+        context.update(extra_context)
+        return context
+
+    def get_expiry_date(self):
+        return self.make_next_step_date(self.now, days=30)
+
+    def get_warning_date(self):
+        start_date = datetime.datetime.strptime(self.allocation.start_date,
+                                                DATE_FORMAT)
+        return start_date + relativedelta(days=60)
+
+    def should_process(self):
+        # (rocky) if user moves instances away when the project in 'archiving'
+        # or 'archived' we should continue to delete the archives.
+        if not self.instances and \
+           self.project.zone_expiry_status not in [expiry_states.ARCHIVING,
+                                                   expiry_states.ARCHIVED]:
+            if self.project.zone_expiry_status != '' or \
+               self.project.zone_expiry_ticket_id != '0' or \
+               self.project.zone_expiry_next_step != '':
+                self.finish_expiry(
+                    message='Out-of-zone instances expiry is complete')
+            return False
+        return True
+
+    def process(self):
+
+        zone_expiry_status = self.get_status(self.project)
+        zone_expiry_next_step = self.get_next_step_date(self.project)
+        LOG.debug("%s: Processing out of zone instances project=%s "
+                  "status=%s next_step=%s number_of_instances=%s",
+                  self.project.id, self.project.name, zone_expiry_status,
+                  zone_expiry_next_step, len(self.instances))
+
+        if self.force_delete:
+            LOG.info("%s: Force deleting out of zone instances=%s",
+                     self.project.id, self.instances)
+            self.delete_resources()
+            return True
+
+        if not self.should_process():
+            return False
+
+        if zone_expiry_status == expiry_states.ACTIVE:
+            if self.ready_for_warning():
+                self.send_warning()
+                return True
+            return False
+        elif zone_expiry_status == expiry_states.WARNING:
+            if self.at_next_step(self.project):
+                self.stop_project()
+                return True
+            return False
+        elif zone_expiry_status == expiry_states.STOPPED:
+            if self.at_next_step(self.project):
+                self.archive_project()
+                return True
+            return False
+        elif zone_expiry_status == expiry_states.ARCHIVING:
+            if self.at_next_step(self.project):
+                LOG.debug("%s: Archiving longer than next step, move on",
+                          self.project.id)
+                self.set_project_archived()
+            else:
+                self.check_archiving_status()
+            return True
+        elif zone_expiry_status == expiry_states.ARCHIVED:
+            if self.at_next_step(self.project):
+                self.archiver.delete_archives()
+                self.delete_resources(force=True)
+                self.finish_expiry(
+                    message='Out-of-zone instances expiry is complete')
+                return True
+            return False
