@@ -53,8 +53,8 @@ class ExpiryNotifierTests(test.TestCase):
     def test_send_message_restrict(self, mock_api):
         self._test_send_message('restrict')
 
-    def test_send_message_archived(self, mock_api):
-        self._test_send_message('archived')
+    def test_send_message_stop(self, mock_api):
+        self._test_send_message('stop')
 
     def test_send_message_update(self, mock_api):
         project = PROJECT
