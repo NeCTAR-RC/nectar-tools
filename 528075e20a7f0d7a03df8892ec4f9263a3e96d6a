@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "09e4efa8_fa40c192",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 581,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-13T04:02:15Z",
+      "side": 1,
+      "message": "add this to the parent method and then this method can go completely",
+      "range": {
+        "startLine": 581,
+        "startChar": 8,
+        "endLine": 581,
+        "endChar": 35
+      },
+      "revId": "528075e20a7f0d7a03df8892ec4f9263a3e96d6a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "079c8dd4_fda285ce",
+        "filename": "nectar_tools/templates/allocations/restrict.tmpl",
+        "patchSetId": 3
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-13T04:02:15Z",
+      "side": 1,
+      "message": "Your project allocation has been set to zero, which means no new virtual machines or cloud storage can be used.  After 2 weeks, if you have not applied for an extension of your allocation, our system will stop any instances and data in this project allocation. After a further 2 weeks our system will terminate and archive any instances and data in this project allocation, releasing the resources for other users of the cloud. The archived instances and data will be safely stored, and will remain available to you for 3 months from the date when the project expires. However after this time they will be deleted. \u003cb\u003eSome resources that have been made public (for example Community images or public Object store data) will remain accessible and not be deleted.\u003c/b\u003e",
+      "range": {
+        "startLine": 13,
+        "startChar": 0,
+        "endLine": 13,
+        "endChar": 598
+      },
+      "revId": "528075e20a7f0d7a03df8892ec4f9263a3e96d6a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7271257c_8463c558",
+        "filename": "nectar_tools/templates/allocations/stop.tmpl",
+        "patchSetId": 3
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-13T04:02:15Z",
+      "side": 1,
+      "message": "It has been 2 weeks since your project allocation expired and you have not applied for an extension of your allocation, as previously advised our system has now stopped all instances. In 2 weeks we will terminate and archive any instances and data in this project allocation, releasing the resources for other users of the cloud. The archived instances and data will be safely stored, and will remain available to you for 3 months from the date when the project expired. However after this time they will be deleted. \u003cb\u003eData that has been shared or made public on Object store will not be archived or deleted. It will remain accessible.\u003c/b\u003e",
+      "revId": "528075e20a7f0d7a03df8892ec4f9263a3e96d6a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
