@@ -22,6 +22,30 @@
       "revId": "4790428f8089afb1e018fafc06027eecf31d04b7",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d802d437_92bc43f4",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-09-13T02:17:34Z",
+      "side": 1,
+      "message": "oh, I was not aware that they need to collect these events.  So probably not change it.",
+      "parentUuid": "f9679c2e_303c0f2c",
+      "range": {
+        "startLine": 577,
+        "startChar": 25,
+        "endLine": 577,
+        "endChar": 32
+      },
+      "revId": "4790428f8089afb1e018fafc06027eecf31d04b7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
