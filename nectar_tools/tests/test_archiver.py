@@ -203,9 +203,7 @@ class NovaArchiverTests(test.TestCase):
               mock_archive):
             mock_has_archive.return_value = True
             na.archive_resources()
-            mock_delete.assert_has_calls([mock.call(instance1),
-                                          mock.call(instance2)])
-            self.assertEqual(mock_delete.call_count, 2)
+            mock_delete.assert_not_called()
 
     def test_delete_resources_ready(self):
         na = archiver.NovaArchiver(PROJECT)

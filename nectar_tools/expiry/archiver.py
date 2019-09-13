@@ -168,9 +168,7 @@ class NovaArchiver(Archiver):
     def archive_resources(self):
         instances = self._all_instances()
         for instance in instances:
-            if self._instance_has_archive(instance):
-                self._delete_instance(instance)
-            else:
+            if not self._instance_has_archive(instance):
                 self._archive_instance(instance)
 
     def delete_resources(self, force=False):
