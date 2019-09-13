@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5e86c699_2bba6c56",
+        "filename": "nectar_tools/tests/test_expiry_notifier.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-13T05:12:59Z",
+      "side": 0,
+      "message": "change this to stopped so we test that?",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 57,
+        "endChar": 43
+      },
+      "revId": "e7d89db4c1f1bd61363eb32cb2eace02f9087da4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}

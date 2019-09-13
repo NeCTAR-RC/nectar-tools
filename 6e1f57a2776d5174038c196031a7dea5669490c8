@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1312b780_dd287e44",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 300,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-13T05:12:59Z",
+      "side": 1,
+      "message": "I don\u0027t think you need this here. There are a million things that aren\u0027t called and send_notification isn\u0027t in this code at all so can leave this out",
+      "range": {
+        "startLine": 300,
+        "startChar": 12,
+        "endLine": 300,
+        "endChar": 54
+      },
+      "revId": "6e1f57a2776d5174038c196031a7dea5669490c8",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
