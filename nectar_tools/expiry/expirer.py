@@ -573,11 +573,11 @@ class AllocationExpirer(ProjectExpirer):
         update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
                          self.NEXT_STEP_KEY: expiry_date}
         self._update_project(**update_kwargs)
-        self.send_event('stop')
+        self._send_notification('stopped')
+        self.send_event('stopped')
 
     def set_project_archived(self):
         super(AllocationExpirer, self).set_project_archived()
-        self._send_notification('archived')
         self.send_event('archived')
 
     def delete_project(self):
