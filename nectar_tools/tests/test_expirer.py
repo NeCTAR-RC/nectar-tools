@@ -639,7 +639,8 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, 'finish_expiry'),
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_finish.assert_called_once_with()
+            mock_finish.assert_called_once_with(
+                message='Allocation has been renewed')
             mock_archiver.reset_quota.assert_not_called()
             mock_archiver.enable_resources.assert_called_once_with()
 
@@ -654,7 +655,8 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, 'finish_expiry'),
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_finish.assert_called_once_with()
+            mock_finish.assert_called_once_with(
+                message='Allocation has been renewed')
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
 
@@ -669,7 +671,8 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, 'finish_expiry'),
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_finish.assert_called_once_with()
+            mock_finish.assert_called_once_with(
+                message='Allocation has been renewed')
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
 
@@ -684,7 +687,8 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, 'finish_expiry'),
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_finish.assert_called_once_with()
+            mock_finish.assert_called_once_with(
+                message='Allocation has been renewed')
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
 
