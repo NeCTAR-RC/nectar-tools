@@ -238,6 +238,25 @@ class ExpiryTests(test.TestCase):
                 expiry_updated_at=today)
             mock_keystone_update.assert_not_called()
 
+    def test_finish_expiry(self):
+        resource = mock.Mock()
+        resource.expiry_status = 'status'
+        resource.expiry_next_step = 'step'
+        resource.expiry_ticket_id = 'id'
+
+        ex = expirer.Expirer('fake_type', resource, notifier='fake')
+        message = 'expiry is finished'
+
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, '_update_resource'),
+        ) as (mock_notifier, mock_update_resource):
+            ex.finish_expiry(message=message)
+            mock_notifier.finish.assert_called_once_with(message=message)
+            mock_update_resource.assert_called_once_with(expiry_status='',
+                                                         expiry_next_step='',
+                                                         expiry_ticket_id=0)
+
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
@@ -664,7 +683,8 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, 'finish_expiry'),
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_finish.assert_called_once_with()
+            mock_finish.assert_called_once_with(
+                message='Allocation has been renewed')
             mock_archiver.reset_quota.assert_not_called()
             mock_archiver.enable_resources.assert_called_once_with()
 
@@ -679,7 +699,8 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, 'finish_expiry'),
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_finish.assert_called_once_with()
+            mock_finish.assert_called_once_with(
+                message='Allocation has been renewed')
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
 
@@ -694,7 +715,8 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, 'finish_expiry'),
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_finish.assert_called_once_with()
+            mock_finish.assert_called_once_with(
+                message='Allocation has been renewed')
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
 
@@ -709,26 +731,10 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, 'finish_expiry'),
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
-            mock_finish.assert_called_once_with()
+            mock_finish.assert_called_once_with(
+                message='Allocation has been renewed')
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
-
-    def test_finish_expiry(self):
-        project = fakes.FakeProject(expiry_status=expiry_states.STOPPED,
-                                    expiry_next_step=BEFORE,
-                                    expiry_ticket_id='20')
-        ex = expirer.AllocationExpirer(project)
-        message = 'expiry is finished'
-
-        with test.nested(
-            mock.patch.object(ex, 'notifier'),
-            mock.patch.object(ex, '_update_resource'),
-        ) as (mock_notifier, mock_update_resource):
-            ex.finish_expiry(message=message)
-            mock_notifier.finish.assert_called_once_with(message=message)
-            mock_update_resource.assert_called_once_with(expiry_status='',
-                                                        expiry_next_step='',
-                                                        expiry_ticket_id=0)
 
     def test_send_warning(self):
         project = fakes.FakeProject()
