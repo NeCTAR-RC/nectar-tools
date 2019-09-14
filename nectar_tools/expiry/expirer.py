@@ -205,6 +205,16 @@ class Expirer(object):
         if update:
             self._update_resource(**update)
 
+    def stop_resource(self):
+        LOG.info("%s: Stopping %s", self.resource.id, self.resource_type)
+        self.archiver.stop_resources()
+        expiry_date = self.make_next_step_date(self.now)
+        update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
+                         self.NEXT_STEP_KEY: expiry_date}
+        self._update_resource(**update_kwargs)
+        self._send_notification('stop')
+        self.send_event('stop')
+
 
 class ProjectExpirer(Expirer):
 
@@ -408,7 +418,7 @@ class AllocationExpirer(ProjectExpirer):
 
         elif expiry_status == expiry_states.RESTRICTED:
             if self.at_next_step(self.project):
-                self.stop_project()
+                self.stop_resource()
                 return True
 
         elif expiry_status == expiry_states.STOPPED:
@@ -581,15 +591,10 @@ class AllocationExpirer(ProjectExpirer):
         self._send_notification('restrict')
         self.send_event('restrict')
 
-    def stop_project(self):
-        LOG.info("%s: Stopping project", self.project.id)
-        self.archiver.stop_resources()
-        expiry_date = self.make_next_step_date(self.now)
-        update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
-                         self.NEXT_STEP_KEY: expiry_date}
-        self._update_resource(**update_kwargs)
-        self._send_notification('stop')
-        self.send_event('stop')
+    def set_project_archived(self):
+        super(AllocationExpirer, self).set_project_archived()
+        self._send_notification('archived')
+        self.send_event('archived')
 
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()
@@ -864,7 +869,7 @@ class AllocationInstanceExpirer(AllocationExpirer):
             return False
         elif zone_expiry_status == expiry_states.WARNING:
             if self.at_next_step(self.project):
-                self.stop_project()
+                self.stop_resource()
                 return True
             return False
         elif zone_expiry_status == expiry_states.STOPPED:
