@@ -38,6 +38,7 @@ class FakeProjectWithOwner(object):
 
 
 @freeze_time("2017-01-01")
+@mock.patch('nectar_tools.expiry.expirer.Expirer.get_project', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ExpiryTests(test.TestCase):
     def setUp(self):
