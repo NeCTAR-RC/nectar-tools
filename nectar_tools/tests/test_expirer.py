@@ -43,6 +43,13 @@ class ExpiryTests(test.TestCase):
     def setUp(self):
         super(ExpiryTests, self).setUp()
 
+    def test_project_property(self):
+        project = fakes.FakeProject()
+        ex = expirer.Expirer('project', project, notifier='fake')
+        with mock.patch.object(ex, 'get_project') as mock_project:
+            mock_project.return_value = 'fake project'
+            self.assertEqual('fake project', ex.project)
+
     def test_get_project_managers(self):
         project = fakes.FakeProject()
         ex = expirer.Expirer('project', project, notifier='fake')
