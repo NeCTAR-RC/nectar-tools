@@ -49,6 +49,7 @@ class Expirer(object):
     def __init__(self, resource_type, resource, notifier,
                  ks_session=None, dry_run=False):
         self.k_client = auth.get_keystone_client(ks_session)
+        self.g_client = auth.get_glance_client(ks_session)
         self.dry_run = dry_run
         self.ks_session = ks_session
         self.now = datetime.datetime.now()
@@ -170,6 +171,24 @@ class Expirer(object):
     def get_warning_date(self):
         raise NotImplementedError
 
+    def _update_resource(self, **kwargs):
+        today = self.now.strftime(DATE_FORMAT)
+        kwargs.update({self.UPDATED_AT_KEY: today})
+        if not self.dry_run:
+            if self.resource_type == 'project':
+                self.k_client.projects.update(self.resource.id, **kwargs)
+            if self.resource_type == 'image':
+                self.g_client.images.update(self.resource.id, **kwargs)
+        if self.STATUS_KEY in kwargs.keys():
+            setattr(self.resource, self.STATUS_KEY,
+                    kwargs[self.STATUS_KEY])
+        if self.NEXT_STEP_KEY in kwargs.keys():
+            setattr(self.resource, self.NEXT_STEP_KEY,
+                    kwargs[self.NEXT_STEP_KEY])
+        msg = '%s - %s: Updating %s' % (self.resource_type, self.resource.id,
+                                        kwargs)
+        LOG.debug(msg)
+
 
 class ProjectExpirer(Expirer):
 
@@ -195,20 +214,6 @@ class ProjectExpirer(Expirer):
         self.project.expiry_ticket_id = getattr(self.project,
                                                 'expiry_ticket_id', 0)
 
-    def _update_project(self, **kwargs):
-        today = self.now.strftime(DATE_FORMAT)
-        kwargs.update({self.UPDATED_AT_KEY: today})
-        if not self.dry_run:
-            self.k_client.projects.update(self.project.id, **kwargs)
-        if self.STATUS_KEY in kwargs.keys():
-            setattr(self.project, self.STATUS_KEY,
-                    kwargs[self.STATUS_KEY])
-        if self.NEXT_STEP_KEY in kwargs.keys():
-            setattr(self.project, self.NEXT_STEP_KEY,
-                    kwargs[self.NEXT_STEP_KEY])
-        msg = '%s: Updating %s' % (self.project.id, kwargs)
-        LOG.debug(msg)
-
     def check_archiving_status(self):
         LOG.debug("%s: Checking archive status", self.project.id)
         if self.archiver.is_archive_successful():
@@ -228,7 +233,7 @@ class ProjectExpirer(Expirer):
                     DATE_FORMAT)
             update_kwargs = {self.STATUS_KEY: expiry_states.ARCHIVING,
                              self.NEXT_STEP_KEY: next_step}
-            self._update_project(**update_kwargs)
+            self._update_resource(**update_kwargs)
 
         self.archiver.archive_resources()
 
@@ -249,7 +254,7 @@ class ProjectExpirer(Expirer):
 
     def set_project_archived(self):
         update_kwargs = {self.STATUS_KEY: expiry_states.ARCHIVED}
-        self._update_project(**update_kwargs)
+        self._update_resource(**update_kwargs)
         self.send_event('archived')
 
     def delete_project(self):
@@ -264,11 +269,11 @@ class ProjectExpirer(Expirer):
         delete_kwargs = {self.STATUS_KEY: expiry_states.DELETED,
                          self.NEXT_STEP_KEY: '',
                          'expiry_deleted_at': today}
-        self._update_project(**delete_kwargs)
+        self._update_resource(**delete_kwargs)
 
         if self.disable_project:
             LOG.info("%s: Disabling project", self.project.id)
-            self._update_project(enabled=False)
+            self._update_resource(enabled=False)
         self.send_event('delete')
 
 
@@ -470,14 +475,14 @@ class AllocationExpirer(ProjectExpirer):
             pass
 
         update = {}
-        if hasattr(self.project, self.STATUS_KEY):
+        if hasattr(self.resource, self.STATUS_KEY):
             update[self.STATUS_KEY] = ''
-        if hasattr(self.project, self.NEXT_STEP_KEY):
+        if hasattr(self.resource, self.NEXT_STEP_KEY):
             update[self.NEXT_STEP_KEY] = ''
-        if hasattr(self.project, self.TICKET_ID_KEY):
+        if hasattr(self.resource, self.TICKET_ID_KEY):
             update[self.TICKET_ID_KEY] = 0
         if update:
-            self._update_project(**update)
+            self._update_resource(**update)
 
     def should_process(self):
 
@@ -546,7 +551,7 @@ class AllocationExpirer(ProjectExpirer):
 
         update_kwargs = {self.STATUS_KEY: expiry_states.WARNING,
                          self.NEXT_STEP_KEY: next_step_date}
-        self._update_project(**update_kwargs)
+        self._update_resource(**update_kwargs)
         extra_context = {'expiry_date': next_step_date}
         self._send_notification('first-warning', extra_context=extra_context)
         self.send_event('first-warning', extra_context=extra_context)
@@ -572,7 +577,7 @@ class AllocationExpirer(ProjectExpirer):
         expiry_date = self.make_next_step_date(self.now)
         restrict_kwargs = {self.STATUS_KEY: expiry_states.RESTRICTED,
                            self.NEXT_STEP_KEY: expiry_date}
-        self._update_project(**restrict_kwargs)
+        self._update_resource(**restrict_kwargs)
         self._send_notification('restrict')
         self.send_event('restrict')
 
@@ -582,7 +587,7 @@ class AllocationExpirer(ProjectExpirer):
         expiry_date = self.make_next_step_date(self.now)
         update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
                          self.NEXT_STEP_KEY: expiry_date}
-        self._update_project(**update_kwargs)
+        self._update_resource(**update_kwargs)
         self._send_notification('stop')
         self.send_event('stop')
 
@@ -713,7 +718,7 @@ class PTExpirer(ProjectExpirer):
         self.send_event('first-warning')
         # 18 days minimum time for 2 cores usage 80% -> 100%
         next_step = (self.now + relativedelta(days=18)).strftime(DATE_FORMAT)
-        self._update_project(expiry_status=expiry_states.QUOTA_WARNING,
+        self._update_resource(expiry_status=expiry_states.QUOTA_WARNING,
                              expiry_next_step=next_step)
         return True
 
@@ -727,7 +732,7 @@ class PTExpirer(ProjectExpirer):
         self.archiver.zero_quota()
 
         expiry_date = self.make_next_step_date(self.now)
-        self._update_project(expiry_status=expiry_states.PENDING_SUSPENSION,
+        self._update_resource(expiry_status=expiry_states.PENDING_SUSPENSION,
                              expiry_next_step=expiry_date)
         self._send_notification('second-warning')
         self.send_event('second-warning')
@@ -746,7 +751,7 @@ class PTExpirer(ProjectExpirer):
         self.archiver.stop_resources()
 
         expiry_date = self.make_next_step_date(self.now)
-        self._update_project(expiry_status=expiry_states.SUSPENDED,
+        self._update_resource(expiry_status=expiry_states.SUSPENDED,
                              expiry_next_step=expiry_date)
         self._send_notification('suspended')
         self.send_event('suspended')
