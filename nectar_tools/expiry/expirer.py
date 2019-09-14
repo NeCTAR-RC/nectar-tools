@@ -57,6 +57,7 @@ class Expirer(object):
         self.members = None
         self.resource_type = resource_type
         self.resource = resource
+        self.project = self.get_project()
 
         transport = oslo_messaging.get_notification_transport(OSLO_CONF)
         self.event_notifier = oslo_messaging.Notifier(transport, 'expiry')
@@ -69,15 +70,13 @@ class Expirer(object):
     def _get_project_managers(self):
         if self.managers is None:
             role = CONF.keystone.manager_role_id
-            project = self.get_project()
-            self.managers = self._get_users_by_role(project, role)
+            self.managers = self._get_users_by_role(self.project, role)
         return self.managers
 
     def _get_project_members(self):
         if self.members is None:
             role = CONF.keystone.member_role_id
-            project = self.get_project()
-            self.members = self._get_users_by_role(project, role)
+            self.members = self._get_users_by_role(self.project, role)
         return self.members
 
     def _get_users_by_role(self, project, role):
@@ -173,7 +172,6 @@ class ProjectExpirer(Expirer):
                  dry_run=False, disable_project=False):
         super(ProjectExpirer, self).__init__(
             'project', project, notifier, ks_session, dry_run)
-        self.project = project
         self.project_set_defaults()
         self.disable_project = disable_project
         self.archiver = archiver.ResourceArchiver(project,
@@ -182,7 +180,7 @@ class ProjectExpirer(Expirer):
                                                   dry_run=dry_run)
 
     def get_project(self):
-        return self.project
+        return self.resource
 
     def project_set_defaults(self):
         self.project.owner = getattr(self.project, 'owner', None)
