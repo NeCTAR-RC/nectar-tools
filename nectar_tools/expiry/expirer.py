@@ -164,6 +164,22 @@ class Expirer(object):
     def get_warning_date(self):
         raise NotImplementedError
 
+    def finish_expiry(self, message='Expiry work flow is complete'):
+        try:
+            self.notifier.finish(message=message)
+        except Exception:
+            pass
+
+        update = {}
+        if hasattr(self.project, self.STATUS_KEY):
+            update[self.STATUS_KEY] = ''
+        if hasattr(self.project, self.NEXT_STEP_KEY):
+            update[self.NEXT_STEP_KEY] = ''
+        if hasattr(self.project, self.TICKET_ID_KEY):
+            update[self.TICKET_ID_KEY] = 0
+        if update:
+            self._update_project(**update)
+
 
 class ProjectExpirer(Expirer):
 
@@ -455,23 +471,7 @@ class AllocationExpirer(ProjectExpirer):
                       expiry_states.RENEWED]:
             self.archiver.reset_quota()
 
-        self.finish_expiry()
-
-    def finish_expiry(self, message='Allocation has been renewed'):
-        try:
-            self.notifier.finish(message=message)
-        except Exception:
-            pass
-
-        update = {}
-        if hasattr(self.project, self.STATUS_KEY):
-            update[self.STATUS_KEY] = ''
-        if hasattr(self.project, self.NEXT_STEP_KEY):
-            update[self.NEXT_STEP_KEY] = ''
-        if hasattr(self.project, self.TICKET_ID_KEY):
-            update[self.TICKET_ID_KEY] = 0
-        if update:
-            self._update_project(**update)
+        self.finish_expiry(message='Allocation has been renewed')
 
     def should_process(self):
 
