@@ -719,13 +719,13 @@ class ImageArchiverTests(test.TestCase):
     @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._delete_image')
     def test_delete_resources(self, mock_delete):
         ia = archiver.ImageArchiver(IMAGE)
-        ia.delete_resources(force=True)
+        ia.delete_resources()
         self.assertEqual(mock_delete.call_count, 1)
 
     @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._restrict_image')
-    def test_restrict_resources(self, mock_restrict):
+    def test_stop_resources(self, mock_restrict):
         ia = archiver.ImageArchiver(IMAGE)
-        ia.restrict_resources(force=True)
+        ia.stop_resources()
         self.assertEqual(mock_restrict.call_count, 1)
 
     def test_delete_image(self):
