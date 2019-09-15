@@ -34,6 +34,9 @@ class Archiver(object):
     def stop_resources(self):
         raise NotImplementedError
 
+    def start_resources(self):
+        raise NotImplementedError
+
     def archive_resources(self):
         raise NotImplementedError
 
@@ -102,6 +105,23 @@ class ImageArchiver(Archiver):
             else:
                 LOG.info("Image %s was already hidden", image.id)
 
+    def _unhide_image(self, image):
+        LOG.debug("Found image %s", image.id)
+
+        if image.protected:
+            LOG.warn("Can't unhide protected image %s", image.id)
+            return
+        else:
+            if image.os_hidden is True:
+                if not self.dry_run:
+                    LOG.info("Making image %s unhidden", image.id)
+                    self.g_client.images.update(
+                        image.id, os_hidden=False)
+                else:
+                    LOG.info("Would make image %s unhidden", image.id)
+            else:
+                LOG.info("Image %s was already unhidden", image.id)
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -112,6 +132,9 @@ class ImageArchiver(Archiver):
 
     def stop_resources(self):
         self._hide_image(self.image)
+
+    def start_resources(self):
+        self._unhide_image(self.image)
 
 
 class NovaArchiver(Archiver):
@@ -747,6 +770,13 @@ class ResourceArchiver(object):
         for archiver in self.archivers:
             try:
                 archiver.reset_quota()
+            except NotImplementedError:
+                continue
+
+    def start_resources(self):
+        for archiver in self.archivers:
+            try:
+                archiver.start_resources()
             except NotImplementedError:
                 continue
 
