@@ -89,16 +89,10 @@ class ImageArchiver(Archiver):
             else:
                 LOG.info("Image %s was already private", image.id)
 
-    def delete_resources(self, force=False):
-        if not force:
-            return
-
+    def delete_resources(self):
         self._delete_image(self.image)
 
-    def restrict_resources(self, force=False):
-        if not force:
-            return
-
+    def stop_resources(self):
         self._restrict_image(self.image)
 
 
