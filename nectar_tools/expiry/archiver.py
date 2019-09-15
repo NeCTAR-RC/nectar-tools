@@ -85,22 +85,26 @@ class ImageArchiver(Archiver):
             else:
                 LOG.info("Image %s was already private", image.id)
 
-    def _hide_image(self, image):
+    def _hide_unhide_image(self, image, hide=True):
         LOG.debug("Found image %s", image.id)
 
         if image.protected:
-            LOG.warn("Can't hide protected image %s", image.id)
+            LOG.warn("Can't %s protected image %s",
+                     "hide" if hide else "unhide", image.id)
             return
         else:
-            if image.os_hidden is False:
+            if image.os_hidden is not hide:
                 if not self.dry_run:
-                    LOG.info("Making image %s hidden", image.id)
+                    LOG.info("Making image %s %s",
+                             image.id, "hidden" if hide else "unhidden")
                     self.g_client.images.update(
-                        image.id, os_hidden=True)
+                        image.id, os_hidden=hide)
                 else:
-                    LOG.info("Would make image %s hidden", image.id)
+                    LOG.info("Would make image %s %s",
+                             image.id, "hidden" if hide else "unhidden")
             else:
-                LOG.info("Image %s was already hidden", image.id)
+                LOG.info("Image %s was already %s",
+                         image.id, "hidden" if hide else "unhidden")
 
     def delete_resources(self, force=False):
         if not force:
@@ -111,7 +115,10 @@ class ImageArchiver(Archiver):
         self._restrict_image(self.image)
 
     def stop_resources(self):
-        self._hide_image(self.image)
+        self._hide_unhide_image(self.image, hide=True)
+
+    def unstop_resources(self):
+        self._hide_unhide_image(self.image, hide=False)
 
 
 class NovaArchiver(Archiver):
