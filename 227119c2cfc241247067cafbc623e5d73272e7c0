@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "bece02c3_e58cc848",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 21
+      },
+      "lineNbr": 790,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-15T22:32:11Z",
+      "side": 1,
+      "message": "A good way to do self.instances would be to use a property. It\u0027s not pythonic to define a property of a class outside of the init method like what\u0027s done in process()\n\ndef __init__(self):\n  self._instances \u003d None\n\n@property\ndef instances(self):\n  if _self.instances is None:\n      self._instances \u003d utils.get_out_of_zone_instance()\n  return self._instances",
+      "revId": "227119c2cfc241247067cafbc623e5d73272e7c0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "39d2ba00_4dda531f",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 21
+      },
+      "lineNbr": 843,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-15T22:32:11Z",
+      "side": 1,
+      "message": "this should go in a method called should_process_project() like the other classes have done (might make process method the same as allocation expirer maybe too)",
+      "range": {
+        "startLine": 833,
+        "startChar": 8,
+        "endLine": 843,
+        "endChar": 24
+      },
+      "revId": "227119c2cfc241247067cafbc623e5d73272e7c0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
