@@ -40,6 +40,7 @@ setup(
             'nectar-compute-audit = nectar_tools.audit.cmd.compute:main',
             'nectar-dns-audit = nectar_tools.audit.cmd.dns:main',
             'nectar-identity-audit = nectar_tools.audit.cmd.identity:main',
+            'nectar-image-expiry = nectar_tools.expiry.cmd.image_expirer:main',
             'nectar-metric-audit = nectar_tools.audit.cmd.metric:main',
             'nectar-placement-audit = nectar_tools.audit.cmd.placement:main',
             'nectar-project-allocation-audit = nectar_tools.audit.cmd.project:main',
