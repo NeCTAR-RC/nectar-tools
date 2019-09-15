@@ -35,6 +35,7 @@ setup(
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
             'nectar-allocation-expiry = nectar_tools.expiry.cmd.allocation_expirer:main',
             'nectar-allocation-instance-expiry = nectar_tools.expiry.cmd.allocation_instance_expirer:main',
+            'nectar-image-expiry = nectar_tools.expiry.cmd.image_expirer:main',
             'nectar-allocation-provisioner = nectar_tools.provisioning.cmd.provision:main',
             'nectar-pt-audit = nectar_tools.audit.cmd.pt:main',
             'nectar-allocation-audit = nectar_tools.audit.cmd.allocation:main',
