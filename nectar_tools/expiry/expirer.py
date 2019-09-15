@@ -101,7 +101,24 @@ class Expirer(object):
         return {}
 
     def _get_recipients(self):
-        return (None, [])
+        managers = self._get_project_managers()
+        members = self._get_project_members()
+        manager_emails = []
+        member_emails = []
+        for manager in managers:
+            if manager.enabled and utils.is_email_address(manager.email):
+                manager_emails.append(manager.email.lower())
+        for member in members:
+            if member.enabled and utils.is_email_address(member.email):
+                member_emails.append(member.email.lower())
+
+        extra_emails = list(set(manager_emails + member_emails))
+        if not extra_emails:
+            return (None, [])
+
+        first_email = manager_emails[0] if manager_emails else member_emails[0]
+        extra_emails.remove(first_email)
+        return (first_email, extra_emails)
 
     def _send_notification(self, stage, extra_context={}):
         context = self._get_notification_context()
@@ -540,20 +557,12 @@ class AllocationExpirer(ProjectExpirer):
     def _get_recipients(self):
         owner_email = self.allocation.contact_email.lower()
         approver_email = self.allocation.approver_email.lower()
-        managers = self._get_project_managers()
 
-        manager_emails = []
-        member_emails = []
-        for manager in managers:
-            if manager.enabled and utils.is_email_address(manager.email):
-                manager_emails.append(manager.email.lower())
+        first_email, extra_emails = super(AllocationExpirer,
+                                          self)._get_recipients()
+        if first_email:
+            extra_emails.append(first_email)
 
-        members = self._get_project_members()
-        for member in members:
-            if member.enabled and utils.is_email_address(member.email):
-                member_emails.append(member.email.lower())
-
-        extra_emails = list(set(manager_emails + member_emails))
         if utils.is_email_address(approver_email) \
             and approver_email not in extra_emails:
             extra_emails.append(approver_email)

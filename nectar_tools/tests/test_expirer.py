@@ -101,6 +101,19 @@ class ExpiryTests(test.TestCase):
                                                       mock.call('fakeuser2')])
             self.assertEqual(['fakeuser1', 'fakeuser2'], [x.id for x in users])
 
+    def test_get_recipients(self):
+        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
+        with test.nested(
+            mock.patch.object(ex, '_get_project_managers',
+                              return_value=fakes.MANAGERS),
+            mock.patch.object(ex, '_get_project_members',
+                              return_value=fakes.MEMBERS)):
+            to, cc = ex._get_recipients()
+            self.assertEqual('manager1@example.org', to)
+            cc.sort()
+            self.assertEqual(['manager2@example.org', 'member1@example.org'],
+                             cc)
+
     def test_send_notification(self):
         project = fakes.FakeProject()
         ex = expirer.Expirer('project', project, notifier='fake')
