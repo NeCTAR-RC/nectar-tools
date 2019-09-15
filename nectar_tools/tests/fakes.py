@@ -1,5 +1,3 @@
-from unittest import mock
-
 from nectarallocationclient import exceptions as allocation_exceptions
 from nectarallocationclient.v1 import allocations
 
@@ -75,24 +73,36 @@ ALLOCATIONS = {
                 'contact_email': 'fake@fake.org'},
 }
 
-MANAGERS = [mock.Mock(id='manager1',
-                      enabled=True,
-                      email='manager1@example.org'),
-            mock.Mock(id='manager2',
-                      enabled=True,
-                      email='manager2@example.org')
-        ]
 
-MEMBERS = [mock.Mock(id='member1',
+class FakeUser(object):
+
+    def __init__(self, id='dummy', enabled=True, email='fake'):
+        self.id = id
+        self.enabled = enabled
+        self.email = email
+
+    def to_dict(self):
+        return self.__dict__
+
+
+MANAGERS = [FakeUser(id='manager1',
                      enabled=True,
-                     email='member1@example.org'),
-           mock.Mock(id='member2',
-                     enabled=False,
-                     email='member2@example.org'),
-           mock.Mock(id='manager1',
+                     email='manager1@example.org'),
+            FakeUser(id='manager2',
                      enabled=True,
-                     email='manager1@example.org')
-       ]
+                     email='manager2@example.org')
+           ]
+
+MEMBERS = [FakeUser(id='member1',
+                    enabled=True,
+                    email='member1@example.org'),
+           FakeUser(id='member2',
+                    enabled=False,
+                    email='member2@example.org'),
+           FakeUser(id='manager1',
+                    enabled=True,
+                    email='manager1@example.org')
+          ]
 
 
 class FakeProject(object):
@@ -104,7 +114,7 @@ class FakeProject(object):
         self.id = id
         self.name = name
         self.domain_id = domain_id
-        self.enabled = True
+        self.enabled = enabled
 
     def to_dict(self):
         return self.__dict__
@@ -165,6 +175,9 @@ class FakeImage(object):
 
     def get(self, key, default=None):
         return getattr(self, key, default)
+
+    def items(self):
+        return self.__dict__
 
 
 class FakeVolume(object):
