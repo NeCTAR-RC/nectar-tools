@@ -215,6 +215,20 @@ class Expirer(object):
         self._send_notification('stop')
         self.send_event('stop')
 
+    def send_warning(self):
+        LOG.info("%s: Sending warning", self.resource.id)
+        next_step_date = self.get_expiry_date()
+
+        update_kwargs = {self.STATUS_KEY: expiry_states.WARNING,
+                         self.NEXT_STEP_KEY: next_step_date}
+        self._update_resource(**update_kwargs)
+        extra_context = {'expiry_date': next_step_date}
+        self._send_notification('first-warning', extra_context=extra_context)
+        self.send_event('first-warning', extra_context=extra_context)
+
+    def get_expiry_date():
+        raise NotImplementedError
+
 
 class ProjectExpirer(Expirer):
 
@@ -554,17 +568,6 @@ class AllocationExpirer(ProjectExpirer):
                    'members': [i.to_dict() for i in members],
                    'allocation': self.allocation.to_dict()}
         return context
-
-    def send_warning(self):
-        LOG.info("%s: Sending warning", self.project.id)
-        next_step_date = self.get_expiry_date()
-
-        update_kwargs = {self.STATUS_KEY: expiry_states.WARNING,
-                         self.NEXT_STEP_KEY: next_step_date}
-        self._update_resource(**update_kwargs)
-        extra_context = {'expiry_date': next_step_date}
-        self._send_notification('first-warning', extra_context=extra_context)
-        self.send_event('first-warning', extra_context=extra_context)
 
     def send_event(self, event, extra_context={}):
         event_type = '%s.%s' % (self.EVENT_PREFIX, event)
