@@ -30,6 +30,7 @@ DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
 PT_RE = re.compile(r'^pt-\d+$')
 USAGE_LIMIT_HOURS = 4383  # 6 months in hours
+THREE_YEARS = 1095  # 3 years in days
 
 
 class CPULimit(enum.Enum):
@@ -94,7 +95,8 @@ class Expirer(object):
             users.append(self.k_client.users.get(member.user['id']))
         return users
 
-    def get_project(self):
+    @staticmethod
+    def get_project():
         raise NotImplementedError
 
     def _get_notification_context(self):
@@ -252,7 +254,7 @@ class Expirer(object):
         self._send_notification('first-warning', extra_context=extra_context)
         self.send_event('first-warning', extra_context=extra_context)
 
-    def get_expiry_date():
+    def get_expiry_date(self):
         raise NotImplementedError
 
 
@@ -924,4 +926,163 @@ class AllocationInstanceExpirer(AllocationExpirer):
                 self.finish_expiry(
                     message='Out-of-zone instances expiry is complete')
                 return True
+            return False
+
+
+class ImageExpirer(Expirer):
+
+    STATUS_KEY = 'nectar_expiry_status'
+    NEXT_STEP_KEY = 'nectar_expiry_next_step'
+    TICKET_ID_KEY = 'nectar_expiry_ticket_id'
+    UPDATED_AT_KEY = 'nectar_expiry_updated_at'
+    EVENT_PREFIX = 'expiry.image'
+
+    def __init__(self, image, ks_session=None, dry_run=False,
+                 force_delete=False):
+
+        notifier = expiry_notifier.ExpiryNotifier(
+            resource_type='image', resource=image, template_dir='images',
+            group_id=CONF.freshdesk.image_group,
+            subject="Nectar Image Expiry - %s" % image.name,
+            ks_session=ks_session, dry_run=dry_run,
+            ticket_id_key=self.TICKET_ID_KEY)
+
+        self.archiver = archiver.ImageArchiver(image, ks_session=ks_session,
+                                               dry_run=dry_run)
+
+        self.image = image
+        self.force_delete = force_delete
+        self.image_set_defaults()
+        self.g_client = auth.get_glance_client(ks_session)
+        self.n_client = auth.get_nova_client(ks_session)
+        super(ImageExpirer, self).__init__('image', image, notifier,
+                                           ks_session, dry_run)
+
+    def get_project(self):
+        if not hasattr(self.image, 'owner'):
+            raise exceptions.InvalidImage
+        return self.k_client.projects.get(self.image.owner)
+
+    def image_set_defaults(self):
+        self.image.nectar_expiry_status = getattr(
+            self.image, self.STATUS_KEY, '')
+        self.image.nectar_expiry_next_step = getattr(
+            self.image, self.NEXT_STEP_KEY, '')
+        self.image.nectar_expiry_ticket_id = getattr(
+            self.image, self.TICKET_ID_KEY, '0')
+
+    def get_expiry_date(self):
+        return self.make_next_step_date(self.now, days=30)
+
+    def _get_notification_context(self):
+        managers = self._get_project_managers()
+        members = self._get_project_members()
+        context = {'managers': [i.to_dict() for i in managers],
+                   'members': [i.to_dict() for i in members],
+                   'project': self.project.to_dict(),
+                   'image': dict(self.image.items()),
+                   'expiry_date': self.make_next_step_date(self.now)}
+        return context
+
+    def _is_ignored_image(self):
+        official_projects = CONF.image_expiry.official_project_ids.split(',')
+        if self.image.owner in official_projects:
+            LOG.debug("Image %s: Ignoring official image", self.image.id)
+            return True
+        return False
+
+    def _has_no_running_instance(self):
+        search_opts = {'image': self.image.id,
+                       'all_tenants': True}
+        try:
+            instances = self.n_client.servers.list(search_opts=search_opts)
+            if len(instances):
+                LOG.info("Image %s: Has running instances", self.image.id)
+                return False
+            return True
+        except Exception:
+            LOG.error(
+                "Image %s: Can't get related instance", self.image.id)
+            return False
+
+    def _has_no_recent_boot(self, days=THREE_YEARS):
+        changes_since = self.now - relativedelta(days=days)
+        # changes_since needs ISO 8061 formatted time
+        changes_since = changes_since.isoformat()
+        search_opts = {'image': self.image.id,
+                       'all_tenants': True,
+                       'deleted': True,
+                       'limit': 1,  # aviod too many returns
+                       'changes_since': changes_since}
+        try:
+            instances = self.n_client.servers.list(search_opts=search_opts)
+            if len(instances):
+                LOG.info("Image %s: Has been booted recently", self.image.id)
+                return False
+            return True
+        except Exception:
+            LOG.error("Image %s: Can't get related instance", self.image.id)
+            return False
+
+    def get_warning_date(self):
+        created_at = datetime.datetime.strptime(
+            self.image.created_at, DATETIME_FORMAT)
+        return created_at + datetime.timedelta(days=THREE_YEARS)
+
+    def should_process(self):
+
+        if self.ready_for_warning() \
+            and self.project.enabled \
+            and not self._is_ignored_image() \
+            and self._has_no_running_instance() \
+            and self._has_no_recent_boot():
+
+            LOG.info("Image %s: Expiry process is in progress!", self.image.id)
+            return True
+
+        LOG.debug("Image %s: Expiry process is not triggered", self.image.id)
+        return False
+
+    def process(self):
+        if self.force_delete:
+            LOG.info("Image %s: Force deleting image", self.image.id)
+            self.delete_resources(force=True)
+            return True
+        expiry_status = self.get_status(self.image)
+        expiry_next_step = self.get_next_step_date(self.image)
+
+        LOG.debug("Image %s: Processing image=%s status=%s next_step=%s",
+                  self.image.id, self.image.name, expiry_status,
+                  expiry_next_step)
+
+        if not self.should_process():
+            if self.image.nectar_expiry_status != expiry_states.ACTIVE or \
+               self.image.nectar_expiry_ticket_id != '0' or \
+               self.image.nectar_expiry_next_step != '':
+                if self.image.os_hidden:
+                    self.archiver.start_resources()
+                self.finish_expiry(
+                    'Reset status, expiry work flow is complete')
+            return False
+
+        if expiry_status == expiry_states.ACTIVE:
+            self.send_warning()
+            return True
+        elif expiry_status == expiry_states.WARNING:
+            if self.at_next_step(self.image):
+                self.stop_resource()
+                return True
+            return False
+        elif expiry_status == expiry_states.STOPPED:
+            if self.image.os_hidden is not True:
+                self.archiver.stop_resources()
+                return True
+            elif self.at_next_step(self.image):
+                self.finish_expiry()
+                self.delete_resources(force=True)
+                return True
+            return False
+        else:
+            LOG.warn("Image %s: Unspecified status %s",
+                     self.image.id, expiry_status)
             return False

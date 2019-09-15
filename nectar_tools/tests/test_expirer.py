@@ -1497,3 +1497,433 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
             mock_delete.assert_called_with(force=True)
             mock_archiver.delete_archives.assert_called_with()
             mock_finish.assert_called_with(message=message)
+
+
+@freeze_time("2017-01-01")
+@mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
+            new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class ImageExpiryTests(test.TestCase):
+    def setUp(self):
+        super(ImageExpiryTests, self).setUp()
+
+    def test_get_project(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        with mock.patch.object(ex, 'k_client') as mock_k_client:
+            ex.get_project()
+            mock_k_client.projects.get.assert_called_with('fake')
+
+    def test_project_property(self):
+        image = fakes.FakeImage()
+        ex = expirer.ImageExpirer(image)
+        with mock.patch.object(ex, 'get_project') as mock_project:
+            mock_project.return_value = 'fake project'
+            self.assertEqual('fake project', ex.project)
+
+    def test_get_expiry_date(self):
+        image = fakes.FakeImage()
+        ex = expirer.ImageExpirer(image)
+        with mock.patch.object(ex, 'make_next_step_date') as mock_make:
+            ex.get_expiry_date()
+            mock_make.assert_called_with(datetime.datetime(2017, 1, 1),
+                                         days=30)
+
+    def test_get_notification_context(self):
+        image = fakes.FakeImage()
+        project = fakes.FakeProject()
+        ex = expirer.ImageExpirer(image)
+
+        with test.nested(
+            mock.patch.object(ex, '_get_project_managers'),
+            mock.patch.object(ex, '_get_project_members'),
+            mock.patch.object(ex, 'get_project'),
+            mock.patch.object(ex, 'make_next_step_date'),
+        ) as (mock_get_managers, mock_get_members,
+              mock_get_project, mock_make_date):
+            mock_get_managers.return_value = fakes.MANAGERS
+            mock_get_members.return_value = fakes.MEMBERS
+            mock_get_project.return_value = project
+            mock_make_date.return_value = 'fake'
+            expected = {
+                'expiry_date': 'fake',
+                'image': {
+                    'id': 'fake',
+                    'name': 'fake_archive',
+                    'nectar_expiry_next_step': '',
+                    'nectar_expiry_status': '',
+                    'nectar_expiry_ticket_id': '0',
+                    'owner': 'fake_owner',
+                    'protected': False,
+                    'status': 'active'},
+                'managers': [
+                    {'email': 'manager1@example.org',
+                     'enabled': True,
+                     'id': 'manager1'},
+                    {'email': 'manager2@example.org',
+                     'enabled': True,
+                     'id': 'manager2'}],
+                'members': [
+                    {'email': 'member1@example.org',
+                     'enabled': True,
+                     'id': 'member1'},
+                    {'email': 'member2@example.org',
+                     'enabled': False,
+                     'id': 'member2'},
+                    {'email': 'manager1@example.org',
+                     'enabled': True,
+                     'id': 'manager1'}],
+                'project': {
+                    'domain_id': 'default',
+                    'enabled': True,
+                    'id': 'dummy',
+                    'name': 'MyProject'}
+            }
+
+            actual = ex._get_notification_context()
+            mock_get_managers.assert_called_with()
+            mock_get_members.assert_called_with()
+            mock_make_date.assert_called_with(datetime.datetime(2017, 1, 1))
+            self.assertEqual(expected, actual)
+
+    def test_is_ignored_image(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        self.assertFalse(ex._is_ignored_image())
+
+        image2 = fakes.FakeImage(owner='11112222')
+        ex2 = expirer.ImageExpirer(image2)
+        self.assertTrue(ex2._is_ignored_image())
+        image3 = fakes.FakeImage(owner='22223333')
+        ex3 = expirer.ImageExpirer(image3)
+        self.assertTrue(ex3._is_ignored_image())
+
+    def test_has_no_running_instance_no_instance(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        with mock.patch.object(ex, 'n_client') as mock_nova:
+            mock_nova.servers.list.return_value = []
+            actual = ex._has_no_running_instance()
+            mock_nova.servers.list.assert_called_with(
+                search_opts= {
+                    'image': image.id,
+                    'all_tenants': True}
+            )
+            self.assertTrue(actual)
+
+    def test_has_no_running_instance_has_instance(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        with mock.patch.object(ex, 'n_client') as mock_nova:
+            mock_nova.servers.list.return_value = ['fake']
+            actual = ex._has_no_running_instance()
+            mock_nova.servers.list.assert_called_with(
+                search_opts= {
+                    'image': image.id,
+                    'all_tenants': True}
+            )
+            self.assertFalse(actual)
+
+    @freeze_time("2019-01-01")
+    def test_has_no_recent_boot_no_instance(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        days = 365 * 3
+        with mock.patch.object(ex, 'n_client') as mock_nova:
+            mock_nova.servers.list.return_value = []
+            actual = ex._has_no_recent_boot(days)
+            mock_nova.servers.list.assert_called_with(
+                search_opts= {
+                    'image': image.id,
+                    'all_tenants': True,
+                    'deleted': True,
+                    'limit': 1,
+                    'changes_since': '2016-01-02T00:00:00'}
+            )
+            self.assertTrue(actual)
+
+    @freeze_time("2019-01-01")
+    def test_has_no_recent_boot_has_instance(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        days = 365 * 3
+        with mock.patch.object(ex, 'n_client') as mock_nova:
+            mock_nova.servers.list.return_value = ['fake']
+            actual = ex._has_no_recent_boot(days)
+            mock_nova.servers.list.assert_called_with(
+                search_opts= {
+                    'image': image.id,
+                    'all_tenants': True,
+                    'deleted': True,
+                    'limit': 1,
+                    'changes_since': '2016-01-02T00:00:00'}
+            )
+            self.assertFalse(actual)
+
+    def test_get_warning_date(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        image.created_at = '2017-01-01T23:37:45Z'
+        expected = datetime.datetime(2020, 1, 1, 23, 37, 45)
+        self.assertEqual(expected, ex.get_warning_date())
+
+    def test_should_process_image(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        project = fakes.FakeProject()
+        with test.nested(
+            mock.patch.object(ex, 'ready_for_warning'),
+            mock.patch.object(ex, 'get_project'),
+            mock.patch.object(ex, '_is_ignored_image'),
+            mock.patch.object(ex, '_has_no_running_instance'),
+            mock.patch.object(ex, '_has_no_recent_boot'),
+        ) as (mock_warning, mock_project, mock_ignored,
+              mock_no_running, mock_no_booting):
+
+            mock_warning.return_value = True
+            mock_project.return_value = project
+            mock_ignored.return_value = False
+            mock_no_running.return_value = True
+            mock_no_booting.return_value = True
+            self.assertTrue(ex.should_process())
+
+    def test_should_process_image_warning_not_ready(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        project = fakes.FakeProject()
+        with test.nested(
+            mock.patch.object(ex, 'ready_for_warning'),
+            mock.patch.object(ex, 'get_project'),
+            mock.patch.object(ex, '_is_ignored_image'),
+            mock.patch.object(ex, '_has_no_running_instance'),
+            mock.patch.object(ex, '_has_no_recent_boot'),
+        ) as (mock_warning, mock_project, mock_ignored,
+              mock_no_running, mock_no_booting):
+
+            mock_warning.return_value = False
+            mock_project.return_value = project
+            mock_ignored.return_value = False
+            mock_no_running.return_value = True
+            mock_no_booting.return_value = True
+
+            self.assertFalse(ex.should_process())
+
+    def test_should_process_image_project_disabled(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        project = fakes.FakeProject(enabled=False)
+        with test.nested(
+            mock.patch.object(ex, 'ready_for_warning'),
+            mock.patch.object(ex, 'get_project'),
+            mock.patch.object(ex, '_is_ignored_image'),
+            mock.patch.object(ex, '_has_no_running_instance'),
+            mock.patch.object(ex, '_has_no_recent_boot'),
+        ) as (mock_warning, mock_project, mock_ignored,
+              mock_no_running, mock_no_booting):
+
+            mock_warning.return_value = True
+            mock_project.return_value = project
+            mock_ignored.return_value = False
+            mock_no_running.return_value = True
+            mock_no_booting.return_value = True
+
+            self.assertFalse(ex.should_process())
+
+    def test_should_process_image_ignored_image(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        project = fakes.FakeProject()
+        with test.nested(
+            mock.patch.object(ex, 'ready_for_warning'),
+            mock.patch.object(ex, 'get_project'),
+            mock.patch.object(ex, '_is_ignored_image'),
+            mock.patch.object(ex, '_has_no_running_instance'),
+            mock.patch.object(ex, '_has_no_recent_boot'),
+        ) as (mock_warning, mock_project, mock_ignored,
+              mock_no_running, mock_no_booting):
+
+            mock_warning.return_value = True
+            mock_project.return_value = project
+            mock_ignored.return_value = True
+            mock_no_running.return_value = True
+            mock_no_booting.return_value = True
+
+            self.assertFalse(ex.should_process())
+
+    def test_should_process_image_has_instance(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        project = fakes.FakeProject()
+        with test.nested(
+            mock.patch.object(ex, 'ready_for_warning'),
+            mock.patch.object(ex, 'get_project'),
+            mock.patch.object(ex, '_is_ignored_image'),
+            mock.patch.object(ex, '_has_no_running_instance'),
+            mock.patch.object(ex, '_has_no_recent_boot'),
+        ) as (mock_warning, mock_project, mock_ignored,
+              mock_no_running, mock_no_booting):
+
+            mock_warning.return_value = True
+            mock_project.return_value = project
+            mock_ignored.return_value = False
+            mock_no_running.return_value = False
+            mock_no_booting.return_value = True
+
+            self.assertFalse(ex.should_process())
+
+    def test_should_process_image_has_booting(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        project = fakes.FakeProject()
+        with test.nested(
+            mock.patch.object(ex, 'ready_for_warning'),
+            mock.patch.object(ex, 'get_project'),
+            mock.patch.object(ex, '_is_ignored_image'),
+            mock.patch.object(ex, '_has_no_running_instance'),
+            mock.patch.object(ex, '_has_no_recent_boot'),
+        ) as (mock_warning, mock_project, mock_ignored,
+              mock_no_running, mock_no_booting):
+
+            mock_warning.return_value = True
+            mock_project.return_value = project
+            mock_ignored.return_value = False
+            mock_no_running.return_value = True
+            mock_no_booting.return_value = False
+
+            self.assertFalse(ex.should_process())
+
+    def test_process_force_delete(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image, force_delete=True)
+        with mock.patch.object(ex, 'delete_resources') as mock_delete:
+            self.assertTrue(ex.process())
+            mock_delete.assert_called_with(force=True)
+
+    def test_process_should_not_process(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        with test.nested(
+            mock.patch.object(ex, 'should_process'),
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_should_process, mock_finish):
+            mock_should_process.return_value = False
+            self.assertFalse(ex.process())
+            mock_finish.assert_not_called()
+
+    def test_process_should_not_process_finish_expiry(self):
+        image = fakes.FakeImage(owner='fake', os_hidden=False,
+                                nectar_expiry_status=expiry_states.WARNING)
+        ex = expirer.ImageExpirer(image)
+        with test.nested(
+            mock.patch.object(ex, 'should_process'),
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_should_process, mock_finish):
+            mock_should_process.return_value = False
+            self.assertFalse(ex.process())
+            mock_finish.assert_called_with(
+                'Reset status, expiry work flow is complete')
+
+    def test_process_should_not_process_unhide_image_finish_expiry(self):
+        image = fakes.FakeImage(owner='fake', os_hidden=True,
+                                nectar_expiry_status=expiry_states.WARNING)
+        ex = expirer.ImageExpirer(image)
+        with test.nested(
+            mock.patch.object(ex, 'should_process'),
+            mock.patch.object(ex.archiver, 'start_resources'),
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_should_process, mock_start, mock_finish):
+            mock_should_process.return_value = False
+            self.assertFalse(ex.process())
+            mock_start.assert_called_with()
+            mock_finish.assert_called_with(
+                'Reset status, expiry work flow is complete')
+
+    @mock.patch(
+        'nectar_tools.expiry.expirer.ImageExpirer.should_process')
+    def test_process_active_send_warning(self, mock_should_process):
+        mock_should_process.return_value = True
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image)
+        with mock.patch.object(ex, 'send_warning') as mock_send_warning:
+            self.assertTrue(ex.process())
+            mock_send_warning.assert_called_with()
+
+    @freeze_time("2018-12-11")
+    @mock.patch(
+        'nectar_tools.expiry.expirer.ImageExpirer.should_process')
+    def test_process_warning_not_at_next_step(self, mock_should_process):
+        mock_should_process.return_value = True
+        image = fakes.FakeImage(owner='fake',
+                                nectar_expiry_status=expiry_states.WARNING,
+                                nectar_expiry_next_step='2018-12-12')
+        ex = expirer.ImageExpirer(image)
+        with mock.patch.object(ex, 'stop_resource') as mock_stop:
+            self.assertFalse(ex.process())
+            mock_stop.assert_not_called()
+
+    @freeze_time("2018-12-13")
+    @mock.patch(
+        'nectar_tools.expiry.expirer.ImageExpirer.should_process')
+    def test_process_warning_at_next_step(self, mock_should_process):
+        mock_should_process.return_value = True
+        image = fakes.FakeImage(owner='fake',
+                                nectar_expiry_status=expiry_states.WARNING,
+                                nectar_expiry_next_step='2018-12-12')
+        ex = expirer.ImageExpirer(image)
+        with mock.patch.object(ex, 'stop_resource') as mock_stop:
+            self.assertTrue(ex.process())
+            mock_stop.assert_called_with()
+
+    @mock.patch(
+        'nectar_tools.expiry.expirer.ImageExpirer.should_process')
+    def test_process_stopped_not_hidden_image(self, mock_should_process):
+        mock_should_process.return_value = True
+        image = fakes.FakeImage(owner='fake', os_hidden=False,
+                                nectar_expiry_status=expiry_states.STOPPED)
+        ex = expirer.ImageExpirer(image)
+        with mock.patch.object(ex.archiver, 'stop_resources') as mock_stop:
+            self.assertTrue(ex.process())
+            mock_stop.assert_called_with()
+
+    @freeze_time("2019-01-01")
+    @mock.patch(
+        'nectar_tools.expiry.expirer.ImageExpirer.should_process')
+    def test_process_stopped_not_at_next_step(self, mock_should_process):
+        mock_should_process.return_value = True
+        image = fakes.FakeImage(owner='fake', os_hidden=True,
+                                nectar_expiry_status=expiry_states.STOPPED,
+                                nectar_expiry_next_step='2019-01-02')
+        ex = expirer.ImageExpirer(image)
+        with test.nested(
+            mock.patch.object(ex, 'delete_resources'),
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_delete, mock_finish):
+            self.assertFalse(ex.process())
+            mock_delete.assert_not_called()
+            mock_finish.assert_not_called()
+
+    @freeze_time("2019-01-03")
+    @mock.patch(
+        'nectar_tools.expiry.expirer.ImageExpirer.should_process')
+    def test_process_stopped_at_next_step(self, mock_should_process):
+        mock_should_process.return_value = True
+        image = fakes.FakeImage(owner='fake', os_hidden=True,
+                                nectar_expiry_status=expiry_states.STOPPED,
+                                nectar_expiry_next_step='2019-01-02')
+        ex = expirer.ImageExpirer(image)
+        with test.nested(
+            mock.patch.object(ex, 'delete_resources'),
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_delete, mock_finish):
+            self.assertTrue(ex.process())
+            mock_delete.assert_called_with(force=True)
+            mock_finish.assert_called_with()
+
+    @mock.patch(
+        'nectar_tools.expiry.expirer.ImageExpirer.should_process')
+    def test_process_unspecified_status(self, mock_should_process):
+        mock_should_process.return_value = True
+        image = fakes.FakeImage(owner='fake',
+                                nectar_expiry_status='unspecified')
+        ex = expirer.ImageExpirer(image)
+        self.assertFalse(ex.process())
