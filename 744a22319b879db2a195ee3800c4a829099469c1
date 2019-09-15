@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "34ba393a_ea0ecdb8",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 423,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-15T22:14:45Z",
+      "side": 1,
+      "message": "I think this should be called get_expiry_date ? As it\u0027s used to determine when the expiry is from warning as opposed to when to notice?",
+      "range": {
+        "startLine": 423,
+        "startChar": 8,
+        "endLine": 423,
+        "endChar": 23
+      },
+      "revId": "744a22319b879db2a195ee3800c4a829099469c1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "ad8e1f50_f20cd231",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-15T22:14:45Z",
+      "side": 1,
+      "message": "don\u0027t think this is meant to be part of this commit",
+      "range": {
+        "startLine": 578,
+        "startChar": 8,
+        "endLine": 578,
+        "endChar": 39
+      },
+      "revId": "744a22319b879db2a195ee3800c4a829099469c1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95b0eec6_482a49fa",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 683,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-15T22:14:45Z",
+      "side": 1,
+      "message": "should be mocking out get_notice_date for all the send warning tests",
+      "range": {
+        "startLine": 683,
+        "startChar": 9,
+        "endLine": 683,
+        "endChar": 25
+      },
+      "revId": "744a22319b879db2a195ee3800c4a829099469c1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
