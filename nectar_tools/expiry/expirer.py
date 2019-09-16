@@ -353,7 +353,7 @@ class AllocationExpirer(ProjectExpirer):
             self.delete_project()
             return True
 
-        if not self.should_process_project():
+        if not self.should_process():
             raise exceptions.InvalidProjectAllocation()
 
         if expiry_status == expiry_states.RENEWED:
@@ -471,7 +471,7 @@ class AllocationExpirer(ProjectExpirer):
         if update:
             self._update_project(**update)
 
-    def should_process_project(self):
+    def should_process(self):
 
         if not self.project.enabled:
             LOG.debug("%s: Project is disabled", self.project.id)
@@ -607,7 +607,7 @@ class PTExpirer(ProjectExpirer):
         self.n_client = auth.get_nova_client(ks_session)
         self.force_delete = force_delete
 
-    def should_process_project(self):
+    def should_process(self):
         has_owner = self.project.owner is not None
         personal = self.is_personal_project()
         if personal and not has_owner:
@@ -622,7 +622,7 @@ class PTExpirer(ProjectExpirer):
             self.delete_project()
             return True
 
-        if not self.should_process_project():
+        if not self.should_process():
             raise exceptions.InvalidProjectTrial()
 
         status = self.get_status(self.project)

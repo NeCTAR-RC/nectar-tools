@@ -597,25 +597,25 @@ class AllocationExpiryTests(test.TestCase):
         ex.allocation = mock_allocations.get_current('warning2')
         self.assertTrue(ex.allocation_ready_for_warning())
 
-    def test_should_process_project(self):
+    def test_should_process(self):
         project = fakes.FakeProject(name='Allocation')
         ex = expirer.AllocationExpirer(project)
-        self.assertTrue(ex.should_process_project())
+        self.assertTrue(ex.should_process())
 
         project = fakes.FakeProject(name='pt-33')
         ex = expirer.AllocationExpirer(project)
-        self.assertFalse(ex.should_process_project())
+        self.assertFalse(ex.should_process())
 
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
         mock_allocations = fakes.FakeAllocationManager()
         ex.allocation = mock_allocations.get_current('active')
-        self.assertTrue(ex.should_process_project())
+        self.assertTrue(ex.should_process())
 
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
         ex.allocation = mock_allocations.get_current('pending1')
-        self.assertFalse(ex.should_process_project())
+        self.assertFalse(ex.should_process())
 
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
@@ -623,10 +623,10 @@ class AllocationExpiryTests(test.TestCase):
 
         with mock.patch.object(ex, 'is_ignored_project') as mock_ignore:
             mock_ignore.return_value = True
-            self.assertFalse(ex.should_process_project())
+            self.assertFalse(ex.should_process())
             mock_ignore.reset_mock()
             mock_ignore.return_value = False
-            self.assertTrue(ex.should_process_project())
+            self.assertTrue(ex.should_process())
 
     def test_revert_expiry_warning(self):
         project = fakes.FakeProject(expiry_status=expiry_states.WARNING,
@@ -898,34 +898,34 @@ class AllocationExpiryTests(test.TestCase):
 @mock.patch('nectar_tools.auth.get_session')
 class PTExpiryTests(test.TestCase):
 
-    def test_should_process_project(self, mock_session):
+    def test_should_process(self, mock_session):
         project = FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
-        should = ex.should_process_project()
+        should = ex.should_process()
         self.assertTrue(should)
 
-    def test_should_process_project_admin(self, mock_session):
+    def test_should_process_admin(self, mock_session):
         project = FakeProjectWithOwner(expiry_status='admin')
         ex = expirer.PTExpirer(project)
-        should = ex.should_process_project()
+        should = ex.should_process()
         self.assertFalse(should)
 
-    def test_should_process_project_no_owner(self, mock_session):
+    def test_should_process_no_owner(self, mock_session):
         project = FakeProjectWithOwner(owner=None)
         ex = expirer.PTExpirer(project)
-        should = ex.should_process_project()
+        should = ex.should_process()
         self.assertFalse(should)
 
-    def test_should_process_project_non_pt(self, mock_session):
+    def test_should_process_non_pt(self, mock_session):
         project = FakeProjectWithOwner(name='MeritAllocation')
         ex = expirer.PTExpirer(project)
-        should = ex.should_process_project()
+        should = ex.should_process()
         self.assertFalse(should)
 
     def test_process_invalid(self, mock_session):
         project = FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, 'should_process_project') as mock_should:
+        with mock.patch.object(ex, 'should_process') as mock_should:
             mock_should.return_value = False
             self.assertRaises(exceptions.InvalidProjectTrial, ex.process)
 
