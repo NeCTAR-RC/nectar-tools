@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16428749_3147304f",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 613,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-16T10:02:42Z",
+      "side": 1,
+      "message": "I think this whole test can go",
+      "range": {
+        "startLine": 599,
+        "startChar": 1,
+        "endLine": 613,
+        "endChar": 47
+      },
+      "revId": "e14da24eb093ffe85c6e214891ef7e278b1ab2c0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
