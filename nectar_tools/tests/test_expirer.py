@@ -188,6 +188,17 @@ class ExpiryTests(test.TestCase):
         actual = expirer.Expirer.make_next_step_date(now)
         self.assertEqual('2019-03-02', actual)
 
+    @freeze_time('2018-02-01')
+    def test_ready_for_warning(self):
+        project = fakes.FakeProject()
+        ex = expirer.Expirer('project', project, notifier='fake')
+        with mock.patch.object(ex, 'get_warning_date') as mock_warning_date:
+            mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
+            self.assertTrue(ex.ready_for_warning())
+            mock_warning_date.reset_mock()
+            mock_warning_date.return_value = datetime.datetime(2018, 3, 1)
+            self.assertFalse(ex.ready_for_warning())
+
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
@@ -590,16 +601,16 @@ class AllocationExpiryTests(test.TestCase):
         ex = expirer.AllocationExpirer(project)
         mock_allocations = fakes.FakeAllocationManager()
         ex.allocation = mock_allocations.get_current('active')
-        self.assertFalse(ex.allocation_ready_for_warning())
+        self.assertFalse(ex.ready_for_warning())
 
         ex.allocation = mock_allocations.get_current('expired')
-        self.assertTrue(ex.allocation_ready_for_warning())
+        self.assertTrue(ex.ready_for_warning())
 
         ex.allocation = mock_allocations.get_current('warning1')
-        self.assertTrue(ex.allocation_ready_for_warning())
+        self.assertTrue(ex.ready_for_warning())
 
         ex.allocation = mock_allocations.get_current('warning2')
-        self.assertTrue(ex.allocation_ready_for_warning())
+        self.assertTrue(ex.ready_for_warning())
 
     def test_should_process(self):
         project = fakes.FakeProject(name='Allocation')

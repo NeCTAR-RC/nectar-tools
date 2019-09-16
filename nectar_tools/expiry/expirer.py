@@ -158,6 +158,13 @@ class Expirer(object):
             next_step_date = now + relativedelta(days=days)
         return next_step_date.strftime(DATE_FORMAT)
 
+    def ready_for_warning(self):
+        warning_date = self.get_warning_date()
+        return warning_date < self.now
+
+    def get_warning_date(self):
+        raise NotImplementedError
+
 
 class ProjectExpirer(Expirer):
 
@@ -365,7 +372,7 @@ class AllocationExpirer(ProjectExpirer):
             return False
 
         elif expiry_status == expiry_states.ACTIVE:
-            if self.allocation_ready_for_warning():
+            if self.ready_for_warning():
                 self.send_warning()
                 return True
 
@@ -435,10 +442,6 @@ class AllocationExpirer(ProjectExpirer):
         allocation_end = datetime.datetime.strptime(
             self.allocation.end_date, DATE_FORMAT)
         return allocation_end - datetime.timedelta(days=notice_period)
-
-    def allocation_ready_for_warning(self):
-        warning_date = self.get_warning_date()
-        return warning_date < self.now
 
     def revert_expiry(self):
         status = self.get_status(self.project)
