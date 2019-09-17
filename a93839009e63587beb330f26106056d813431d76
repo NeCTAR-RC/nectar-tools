@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b6c3e175_1c26a0c9",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-09-17T07:11:59Z",
+      "side": 1,
+      "message": "That is a matter of opinion.  In my opinion spelling out the word \"allocation\" makes the code longer and (hence) harder to read.  And in this case there is the confusion that we have used allocation_id and allocation earlier to mean \"the allocation that the user chose\".\n\nI view \u0027a\u0027 as a loop variable, and I was taught many years ago that one letter loop variable names are just fine.",
+      "parentUuid": "4e1ac09e_1c4021d7",
+      "range": {
+        "startLine": 43,
+        "startChar": 12,
+        "endLine": 43,
+        "endChar": 13
+      },
+      "revId": "a93839009e63587beb330f26106056d813431d76",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "f8de7d2a_86217413",
         "filename": "nectar_tools/audit/allocation/allocation.py",
         "patchSetId": 3
@@ -45,6 +69,30 @@
       "revId": "a93839009e63587beb330f26106056d813431d76",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "3d9bb5a0_f27f1da7",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-09-17T07:11:59Z",
+      "side": 1,
+      "message": "Ditto of my previous ... and also for consistency with \u0027a\u0027.",
+      "parentUuid": "f8de7d2a_86217413",
+      "range": {
+        "startLine": 64,
+        "startChar": 24,
+        "endLine": 64,
+        "endChar": 25
+      },
+      "revId": "a93839009e63587beb330f26106056d813431d76",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "3358db26_57961572",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-09-17T07:11:59Z",
+      "side": 1,
+      "message": "It is not impossible.  The field is not declared as \"null\u003dFalse\" in the model.  (IIRC, I haven\u0027t seen examples, but I haven\u0027t run the audits in test or prod yet,)\n\nI could put the test in check-basics audit, but then that could lead to this audit crashing due to an unexpected None.\n\nSo is it better to have a more complex but bomb-proof audit, or one that might crash due to bad data?",
+      "parentUuid": "79a993d0_15f6eca2",
+      "range": {
+        "startLine": 74,
+        "startChar": 12,
+        "endLine": 74,
+        "endChar": 39
+      },
+      "revId": "a93839009e63587beb330f26106056d813431d76",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "fd4b4e65_13f942ee",
         "filename": "nectar_tools/audit/allocation/allocation.py",
         "patchSetId": 3
@@ -91,6 +163,30 @@
       "revId": "a93839009e63587beb330f26106056d813431d76",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "21cf27dd_03aad614",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-09-17T07:11:59Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "fd4b4e65_13f942ee",
+      "range": {
+        "startLine": 82,
+        "startChar": 16,
+        "endLine": 85,
+        "endChar": 52
+      },
+      "revId": "a93839009e63587beb330f26106056d813431d76",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }

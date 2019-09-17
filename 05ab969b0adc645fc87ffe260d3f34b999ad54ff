@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "803d6fe8_e19c5875",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-09-17T07:11:59Z",
+      "side": 1,
+      "message": "I think so.  There are places in the rcallocation codebase where either uppercase or lowercase statuses are tested.  (And other places where the status tests are case sensitive.)  I don\u0027t know that we can say definitively that it is impossible.",
+      "parentUuid": "534f41a8_1728893f",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 68
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "32b7ff86_beca7b24",
         "filename": "nectar_tools/audit/allocation/allocation.py",
         "patchSetId": 1
@@ -45,6 +69,30 @@
       "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "75c0b4d5_b2727789",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-09-17T07:11:59Z",
+      "side": 1,
+      "message": "Good point.  Add a.provisioned to the test",
+      "parentUuid": "32b7ff86_beca7b24",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 76
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
