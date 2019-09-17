@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e30484ac_d1a8390c",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 26
+      },
+      "lineNbr": 811,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T01:14:05Z",
+      "side": 1,
+      "message": "I don\u0027t think we need to do any of this. expiry-date is set in context for send warning and we don\u0027t need it for the other steps?",
+      "range": {
+        "startLine": 805,
+        "startChar": 8,
+        "endLine": 811,
+        "endChar": 72
+      },
+      "revId": "7927d2cfa0409f98fb1e908e8607b3eb2056445a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "696c92e0_7fec856a",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 26
+      },
+      "lineNbr": 837,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T01:14:05Z",
+      "side": 1,
+      "message": "is complete",
+      "range": {
+        "startLine": 837,
+        "startChar": 58,
+        "endLine": 837,
+        "endChar": 75
+      },
+      "revId": "7927d2cfa0409f98fb1e908e8607b3eb2056445a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "81737753_511f52c5",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 26
+      },
+      "lineNbr": 851,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T01:14:05Z",
+      "side": 1,
+      "message": "this should go below force delete bit",
+      "range": {
+        "startLine": 850,
+        "startChar": 1,
+        "endLine": 851,
+        "endChar": 24
+      },
+      "revId": "7927d2cfa0409f98fb1e908e8607b3eb2056445a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "76c78f76_af071163",
+        "filename": "nectar_tools/templates/allocation_instances/first-warning.tmpl",
+        "patchSetId": 26
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T01:14:05Z",
+      "side": 1,
+      "message": "Your instances(s) need to be moved by \u003cb\u003e{{ expiry_date }}\u003c/b\u003e, after this date we will shut down and begin archiving your data.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 97
+      },
+      "revId": "7927d2cfa0409f98fb1e908e8607b3eb2056445a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c0fcfcab_d0195457",
+        "filename": "nectar_tools/templates/allocation_instances/first-warning.tmpl",
+        "patchSetId": 26
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T01:14:05Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 35,
+        "endChar": 6
+      },
+      "revId": "7927d2cfa0409f98fb1e908e8607b3eb2056445a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f68fcf01_76cfbbc7",
+        "filename": "nectar_tools/templates/allocation_instances/project-details.tmpl",
+        "patchSetId": 26
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T01:14:05Z",
+      "side": 1,
+      "message": "can we list the instances ids and their zone in this template somewhere",
+      "revId": "7927d2cfa0409f98fb1e908e8607b3eb2056445a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
