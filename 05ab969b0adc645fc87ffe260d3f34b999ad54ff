@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "534f41a8_1728893f",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T02:28:11Z",
+      "side": 1,
+      "message": "I don\u0027t think this is possible? Is it worth a check?",
+      "range": {
+        "startLine": 44,
+        "startChar": 1,
+        "endLine": 45,
+        "endChar": 68
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "32b7ff86_beca7b24",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T02:28:11Z",
+      "side": 1,
+      "message": "this is valid as it just means it hasn\u0027t been provisioned yet",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 48,
+        "endChar": 76
+      },
+      "revId": "05ab969b0adc645fc87ffe260d3f34b999ad54ff",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b5645bda_b41fa314",
         "filename": "nectar_tools/audit/allocation/allocation.py",
         "patchSetId": 1

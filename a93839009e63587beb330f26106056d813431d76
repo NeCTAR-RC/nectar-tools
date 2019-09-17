@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "4e1ac09e_1c4021d7",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T02:28:11Z",
+      "side": 1,
+      "message": "nit: would rather keep nicer variable names, prob ok in this case but don\u0027t know why need to change.",
+      "range": {
+        "startLine": 43,
+        "startChar": 12,
+        "endLine": 43,
+        "endChar": 13
+      },
+      "revId": "a93839009e63587beb330f26106056d813431d76",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f8de7d2a_86217413",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T02:28:11Z",
+      "side": 1,
+      "message": "ditto, grant is easier to read than g",
+      "range": {
+        "startLine": 64,
+        "startChar": 24,
+        "endLine": 64,
+        "endChar": 25
+      },
+      "revId": "a93839009e63587beb330f26106056d813431d76",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "79a993d0_15f6eca2",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T02:28:11Z",
+      "side": 1,
+      "message": "Think we should get rid of the checking if modified time is None, we know this can\u0027t be possible and it adds more complexity to this method than is needed. Could add a check in the check-basics if you were really concerned but I think it\u0027s not needed at all.",
+      "range": {
+        "startLine": 74,
+        "startChar": 12,
+        "endLine": 74,
+        "endChar": 39
+      },
+      "revId": "a93839009e63587beb330f26106056d813431d76",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fd4b4e65_13f942ee",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-17T02:28:11Z",
+      "side": 1,
+      "message": "essentially this all could go",
+      "range": {
+        "startLine": 82,
+        "startChar": 16,
+        "endLine": 85,
+        "endChar": 52
+      },
+      "revId": "a93839009e63587beb330f26106056d813431d76",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
