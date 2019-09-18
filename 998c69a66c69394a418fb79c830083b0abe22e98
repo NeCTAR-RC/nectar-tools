@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cde96bb4_b463675c",
+        "filename": "nectar_tools/notifier.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-18T23:24:36Z",
+      "side": 1,
+      "message": "Set",
+      "range": {
+        "startLine": 99,
+        "startChar": 26,
+        "endLine": 99,
+        "endChar": 32
+      },
+      "revId": "998c69a66c69394a418fb79c830083b0abe22e98",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8931c8f6_a4a2e6e9",
+        "filename": "nectar_tools/notifier.py",
+        "patchSetId": 7
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-18T23:24:36Z",
+      "side": 1,
+      "message": "think this should be at debug level",
+      "range": {
+        "startLine": 99,
+        "startChar": 16,
+        "endLine": 99,
+        "endChar": 20
+      },
+      "revId": "998c69a66c69394a418fb79c830083b0abe22e98",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
