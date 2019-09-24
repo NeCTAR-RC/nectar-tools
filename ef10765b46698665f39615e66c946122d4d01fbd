@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8c73346d_f85ec466",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 29
+      },
+      "lineNbr": 845,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T06:54:42Z",
+      "side": 1,
+      "message": "should this be force\u003dtrue",
+      "range": {
+        "startLine": 845,
+        "startChar": 33,
+        "endLine": 845,
+        "endChar": 35
+      },
+      "revId": "ef10765b46698665f39615e66c946122d4d01fbd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a8ee4baa_4b5e8ec0",
+        "filename": "nectar_tools/templates/allocation_instances/first-warning.tmpl",
+        "patchSetId": 29
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T06:54:42Z",
+      "side": 1,
+      "message": "For instructions on how to move your instance(s) between availability zones please refer to our \u003ca href\u003d\"https://support.ehelp.edu.au/support/solutions/articles/6000191165-migrating-instances-between-availability-zones\"\u003esupport documentation\u003c/a\u003e.",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 31,
+        "endChar": 259
+      },
+      "revId": "ef10765b46698665f39615e66c946122d4d01fbd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97b7d1e3_1bccc7c1",
+        "filename": "nectar_tools/templates/allocation_instances/stop.tmpl",
+        "patchSetId": 29
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T06:54:42Z",
+      "side": 1,
+      "message": "change to be same as other comment",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 259
+      },
+      "revId": "ef10765b46698665f39615e66c946122d4d01fbd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1cd82a5_bd6fd7b1",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 29
+      },
+      "lineNbr": 1123,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T06:54:42Z",
+      "side": 1,
+      "message": "I think this test could be better, should just mock out utils.get_out_of_zone_instances and test that ex.instances \u003d\u003d what that was mocked out to return",
+      "range": {
+        "startLine": 1117,
+        "startChar": 2,
+        "endLine": 1123,
+        "endChar": 59
+      },
+      "revId": "ef10765b46698665f39615e66c946122d4d01fbd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e8443162_b7aceda9",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 29
+      },
+      "lineNbr": 1124,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T06:54:42Z",
+      "side": 1,
+      "message": "print statement",
+      "range": {
+        "startLine": 1124,
+        "startChar": 12,
+        "endLine": 1124,
+        "endChar": 31
+      },
+      "revId": "ef10765b46698665f39615e66c946122d4d01fbd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
