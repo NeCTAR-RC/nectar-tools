@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56b4449c_3470a39d",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 30
+      },
+      "lineNbr": 1176,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T22:58:49Z",
+      "side": 1,
+      "message": "I think it would be better to split these out to separate tests instead of reseting the mock each time",
+      "range": {
+        "startLine": 1176,
+        "startChar": 8,
+        "endLine": 1176,
+        "endChar": 39
+      },
+      "revId": "155679acddc29c472f66a6606021740699fd2b3e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4374c963_337eceee",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 30
+      },
+      "lineNbr": 1178,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T22:58:49Z",
+      "side": 1,
+      "message": "does this need to be set?",
+      "range": {
+        "startLine": 1178,
+        "startChar": 36,
+        "endLine": 1178,
+        "endChar": 51
+      },
+      "revId": "155679acddc29c472f66a6606021740699fd2b3e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9f3f5d38_64db3020",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 30
+      },
+      "lineNbr": 1192,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T22:58:49Z",
+      "side": 1,
+      "message": "Looks like this is the same as above",
+      "range": {
+        "startLine": 1186,
+        "startChar": 0,
+        "endLine": 1192,
+        "endChar": 37
+      },
+      "revId": "155679acddc29c472f66a6606021740699fd2b3e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e9ed55c1_7a7c2b80",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 30
+      },
+      "lineNbr": 1212,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T22:58:49Z",
+      "side": 1,
+      "message": "use  expiry_states.ARCHIVING",
+      "range": {
+        "startLine": 1212,
+        "startChar": 55,
+        "endLine": 1212,
+        "endChar": 66
+      },
+      "revId": "155679acddc29c472f66a6606021740699fd2b3e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d9612925_e4115ddd",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 30
+      },
+      "lineNbr": 1219,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T22:58:49Z",
+      "side": 1,
+      "message": "use constant",
+      "range": {
+        "startLine": 1219,
+        "startChar": 56,
+        "endLine": 1219,
+        "endChar": 64
+      },
+      "revId": "155679acddc29c472f66a6606021740699fd2b3e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1399031f_18d903ce",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 30
+      },
+      "lineNbr": 1257,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-24T22:58:49Z",
+      "side": 1,
+      "message": "use constant",
+      "range": {
+        "startLine": 1257,
+        "startChar": 56,
+        "endLine": 1257,
+        "endChar": 63
+      },
+      "revId": "155679acddc29c472f66a6606021740699fd2b3e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
