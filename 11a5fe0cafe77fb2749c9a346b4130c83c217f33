@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "215639d7_03196767",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-09-25T05:55:49Z",
+      "side": 1,
+      "message": "relocate your resources to one of the following availability zones available to you",
+      "range": {
+        "startLine": 20,
+        "startChar": 152,
+        "endLine": 21,
+        "endChar": 70
+      },
+      "revId": "11a5fe0cafe77fb2749c9a346b4130c83c217f33",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7048c0fe_38f05f85",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-09-25T05:55:49Z",
+      "side": 1,
+      "message": "instances",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 10
+      },
+      "revId": "11a5fe0cafe77fb2749c9a346b4130c83c217f33",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b732ec0e_f4b24f52",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-09-25T05:55:49Z",
+      "side": 1,
+      "message": "For more information about local and national project allocations, please our \u003ca href\u003d\"https://support.ehelp.edu.au/support/solutions/articles/6000226889-national-and-local-allocations\"\u003eLocal and National Nectar Research Cloud allocations\u003c/a\u003e support page.",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 187
+      },
+      "revId": "11a5fe0cafe77fb2749c9a346b4130c83c217f33",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
