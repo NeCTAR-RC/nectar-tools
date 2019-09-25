@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b2ab935a_debd1acb",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-25T07:23:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "215639d7_03196767",
+      "range": {
+        "startLine": 20,
+        "startChar": 152,
+        "endLine": 21,
+        "endChar": 70
+      },
+      "revId": "11a5fe0cafe77fb2749c9a346b4130c83c217f33",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7048c0fe_38f05f85",
         "filename": "nectar_tools/templates/provisioning/base.tmpl",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "11689e98_a61641a8",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-25T07:23:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7048c0fe_38f05f85",
+      "range": {
+        "startLine": 62,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 10
+      },
+      "revId": "11a5fe0cafe77fb2749c9a346b4130c83c217f33",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "b732ec0e_f4b24f52",
         "filename": "nectar_tools/templates/provisioning/base.tmpl",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2019-09-25T05:55:49Z",
       "side": 1,
       "message": "For more information about local and national project allocations, please our \u003ca href\u003d\"https://support.ehelp.edu.au/support/solutions/articles/6000226889-national-and-local-allocations\"\u003eLocal and National Nectar Research Cloud allocations\u003c/a\u003e support page.",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 187
+      },
+      "revId": "11a5fe0cafe77fb2749c9a346b4130c83c217f33",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc0535b0_36df1e78",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-25T07:23:17Z",
+      "side": 1,
+      "message": "I think this can be better, for more info about X please see the X page I don\u0027t think is that great",
+      "parentUuid": "b732ec0e_f4b24f52",
       "range": {
         "startLine": 65,
         "startChar": 0,
