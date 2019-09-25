@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6c29204f_0a89e1d3",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-25T01:33:40Z",
+      "side": 1,
+      "message": "this patch should go before the finish_expiry patch just to make it a more logical flow",
+      "range": {
+        "startLine": 183,
+        "startChar": 4,
+        "endLine": 184,
+        "endChar": 44
+      },
+      "revId": "4f895f3ee0289ed331a3b33ae6ae79e3069e2bb4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
