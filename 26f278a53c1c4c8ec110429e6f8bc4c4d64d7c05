@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3102a3d0_ad8f31dd",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-09-25T01:32:07Z",
+      "side": 1,
+      "message": "I feel this should be a property (like self.instances in the archiver)\n\nReason is that this class currently can\u0027t be used like  e \u003d Expirer() as get_project() method not in this class",
+      "range": {
+        "startLine": 60,
+        "startChar": 28,
+        "endLine": 60,
+        "endChar": 41
+      },
+      "revId": "26f278a53c1c4c8ec110429e6f8bc4c4d64d7c05",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
