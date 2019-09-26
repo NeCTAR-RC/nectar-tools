@@ -13,6 +13,7 @@ from nectarallocationclient import client as allocationclient
 from neutronclient.neutron import client as neutronclient
 from novaclient import client as novaclient
 from openstack import connection as sdkconnection
+from placementclient import client as placementclient
 from swiftclient import client as swiftclient
 from troveclient import client as troveclient
 
@@ -120,3 +121,9 @@ def get_murano_client(sess=None):
         sess = get_session()
     return muranoclient.Client(version='1', session=sess,
                                service_type='application-catalog')
+
+
+def get_placement_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return placementclient.Client(version='1', session=sess)
