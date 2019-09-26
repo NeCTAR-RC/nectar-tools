@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3fa466e7_5c31c0bd",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2019-09-26T05:37:04Z",
+      "side": 1,
+      "message": "Half finished sentence",
+      "range": {
+        "startLine": 65,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 188
+      },
+      "revId": "86af2decf61823561b0f5edc2a61092362d0e409",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
