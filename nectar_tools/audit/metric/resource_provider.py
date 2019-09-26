@@ -23,6 +23,7 @@ class ResourceProviderAuditor(base.ResourceAuditor):
             'intersect': 'intersect',
             'tpac.org.au': 'tasmania',
             'mgmt.sut': 'swinburne',
+            'test.rc.nectar.org.au': 'coreservices',
         }
 
         for rp in resources:
@@ -30,10 +31,11 @@ class ResourceProviderAuditor(base.ResourceAuditor):
             old_resources = self.g_client.resource.search(
                 resource_type='resource_provider',
                 query="site!=null and name='%s'" % rp['name'])
-            if old_resources and self.repair:
+            if old_resources:
+                LOG.warn("Recreated resource providers found %s",
+                         rp['name'])
                 site = old_resources[0]['site']
-                if not self.dry_run:
-                    LOG.info("Site should be %s", site)
+                if self.repair:
                     for old in old_resources:
                         LOG.info("Deleting old RP %s", old['id'])
                         self.g_client.resource.delete(old['id'])
@@ -41,20 +43,17 @@ class ResourceProviderAuditor(base.ResourceAuditor):
                         resource_type='resource_provider',
                         resource_id=rp['id'],
                         resource={'site': site})
-                else:
-                    LOG.info("Would replace old RPs for site %s", site)
             else:
                 for domain_search, site in domain_site_mapping.items():
                     if domain_search in rp['name']:
-                        if not self.repair:
-                            pass
-                        elif not self.dry_run:
+                        if self.repair:
                             self.g_client.resource.update(
                                 resource_type='resource_provider',
                                 resource_id=rp['id'], resource={'site': site})
                             LOG.info("Set %s to %s", rp['name'], site)
                         else:
-                            LOG.info("Would set %s to %s", rp['name'], site)
+                            LOG.info("No site set for %s should be %s",
+                                     rp['name'], site)
                         break
                 else:
                     LOG.info("No old resource_provider so don't know which "
