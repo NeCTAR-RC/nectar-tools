@@ -13,8 +13,8 @@ LOG = logging.getLogger(__name__)
 
 class AllocationAuditor(base.Auditor):
 
-    def __init__(self, ks_session):
-        super(AllocationAuditor, self).__init__(ks_session=ks_session)
+    def __init__(self, ks_session, repair=False):
+        super().__init__(ks_session, repair)
         self.client = auth.get_allocation_client(sess=ks_session)
 
     def check_allocation_classification(self, allocation_id=None):
