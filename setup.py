@@ -43,6 +43,7 @@ setup(
             'nectar-compute-audit = nectar_tools.audit.cmd.compute:main',
             'nectar-dns-audit = nectar_tools.audit.cmd.dns:main',
             'nectar-app-audit = nectar_tools.audit.cmd.app_catalog:main',
+            'nectar-placement-audit = nectar_tools.audit.cmd.placement:main',
         ],
     },
     include_package_data=True,
