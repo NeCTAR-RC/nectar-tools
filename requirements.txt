@@ -10,6 +10,7 @@ python-swiftclient
 python-troveclient
 python-manilaclient
 gnocchiclient
+placementclient
 jinja2
 prettytable
 python-freshdesk
@@ -17,4 +18,3 @@ nectarallocationclient
 oslo.messaging
 oslo.context
 openstacksdk
-git+https://github.com/NeCTAR-RC/python-placementclient.git
