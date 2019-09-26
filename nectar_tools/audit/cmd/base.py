@@ -23,7 +23,8 @@ class AuditCmdBase(cmd_base.CmdBase):
                 class_str, method_str = class_method_str.split('.')
                 module = importlib.import_module(module_str)
                 auditor_class = getattr(module, class_str)
-                auditor = auditor_class(ks_session=self.session)
+                auditor = auditor_class(ks_session=self.session,
+                                        repair=self.args.repair)
                 method = getattr(auditor, method_str)
                 method()
                 sys.exit(0)
@@ -33,7 +34,7 @@ class AuditCmdBase(cmd_base.CmdBase):
 
     def run_audits(self, **kwargs):
         for auditor in self.AUDITORS:
-            a = auditor(ks_session=self.session)
+            a = auditor(ks_session=self.session, repair=self.args.repair)
             a.run_all(list_not_run=self.list_not_run, **kwargs)
 
     def add_args(self):
