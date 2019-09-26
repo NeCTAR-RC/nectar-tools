@@ -33,7 +33,7 @@ class AuditCmdBase(cmd_base.CmdBase):
 
     def run_audits(self, **kwargs):
         for auditor in self.AUDITORS:
-            a = auditor(ks_session=self.session)
+            a = auditor(ks_session=self.session, repair=self.args.repair)
             a.run_all(list_not_run=self.list_not_run, **kwargs)
 
     def add_args(self):

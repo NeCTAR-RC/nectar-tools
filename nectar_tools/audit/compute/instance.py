@@ -29,9 +29,6 @@ def chunks(l, n):
 
 class InstanceAuditor(base.Auditor):
 
-    def __init__(self, ks_session):
-        super(InstanceAuditor, self).__init__(ks_session=ks_session)
-
     def check_instance_states(self):
         # NOTE: trying to get more than 4 states at once seems to
         # also return ACTIVE instances so work around it for now
