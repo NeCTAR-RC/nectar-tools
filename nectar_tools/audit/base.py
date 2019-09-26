@@ -11,6 +11,9 @@ class Auditor(object):
     def __init__(self, ks_session, repair=False):
         self.ks_session = ks_session
         self.repair = repair
+        self.setup_clients()
+
+    def setup_clients(self):
         self.sdk_client = auth.get_openstacksdk(sess=self.ks_session)
 
     def run_all(self, list_not_run=False, **kwargs):

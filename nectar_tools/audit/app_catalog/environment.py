@@ -14,9 +14,9 @@ TIME_DIFF = datetime.now() - timedelta(days=DAYS)
 
 class EnvironmentAuditor(base.Auditor):
 
-    def __init__(self, ks_session, repair=False):
-        super().__init__(ks_session, repair)
-        self.mc = auth.get_murano_client(sess=ks_session)
+    def setup_clients(self):
+        super().setup_clients()
+        self.mc = auth.get_murano_client(sess=self.ks_session)
 
     def check_environment_states(self):
         for env in self.mc.environments.list(all_tenants=True):
