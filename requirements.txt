@@ -17,3 +17,4 @@ nectarallocationclient
 oslo.messaging
 oslo.context
 openstacksdk
+git+https://github.com/NeCTAR-RC/python-placementclient.git
