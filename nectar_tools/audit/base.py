@@ -8,8 +8,10 @@ LOG = logging.getLogger(__name__)
 
 class Auditor(object):
 
-    def __init__(self, ks_session):
-        self.sdk_client = auth.get_openstacksdk(sess=ks_session)
+    def __init__(self, ks_session, repair=False):
+        self.ks_session = ks_session
+        self.repair = repair
+        self.sdk_client = auth.get_openstacksdk(sess=self.ks_session)
 
     def run_all(self, list_not_run=False, **kwargs):
         public_method_names = [method for method in dir(self)

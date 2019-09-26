@@ -14,8 +14,8 @@ STATES = ['ERROR', 'PENDING']
 
 class DnsAuditor(base.Auditor):
 
-    def __init__(self, ks_session):
-        super(DnsAuditor, self).__init__(ks_session=ks_session)
+    def __init__(self, ks_session, repair=False):
+        super().__init__(ks_session, repair)
         self.dc = auth.get_designate_client(sess=ks_session,
                                             all_projects=True)
 

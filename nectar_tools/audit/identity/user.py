@@ -10,8 +10,8 @@ LOG = logging.getLogger(__name__)
 
 class UserAuditor(base.IdentityAuditor):
 
-    def __init__(self, ks_session):
-        super(UserAuditor, self).__init__(ks_session=ks_session)
+    def __init__(self, ks_session, repair=False):
+        super().__init__(ks_session, repair)
         self.users = self.k_client.users.list(domain='default')
 
     def check_users_no_projects(self):

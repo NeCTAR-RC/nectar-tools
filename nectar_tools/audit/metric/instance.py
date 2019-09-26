@@ -11,8 +11,8 @@ LOG = logging.getLogger(__name__)
 
 class InstanceAuditor(base.ResourceAuditor):
 
-    def __init__(self, ks_session):
-        super(InstanceAuditor, self).__init__(ks_session)
+    def __init__(self, ks_session, repair=False):
+        super().__init__(ks_session, repair)
         self.n_client = auth.get_nova_client(sess=ks_session)
 
     def ensure_flavor_name(self):
