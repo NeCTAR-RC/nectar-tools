@@ -13,9 +13,9 @@ LOG = logging.getLogger(__name__)
 
 class ProjectAllocationAuditor(base.ProjectAuditor):
 
-    def __init__(self, ks_session, project, repair=False):
-        super().__init__(ks_session, project, repair=repair)
-        self.a_client = auth.get_allocation_client(sess=ks_session)
+    def setup_clients(self):
+        super().setup_clients()
+        self.a_client = auth.get_allocation_client(sess=self.ks_session)
 
     def check_allocation_id(self):
         allocation_id = getattr(self.project, 'allocation_id', None)

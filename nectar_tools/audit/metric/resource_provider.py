@@ -12,9 +12,9 @@ LOG = logging.getLogger(__name__)
 
 class ResourceProviderAuditor(base.ResourceAuditor):
 
-    def __init__(self, ks_session, repair=False):
-        super().__init__(ks_session, repair)
-        self.p_client = auth.get_placement_client(sess=ks_session)
+    def setup_clients(self):
+        super().setup_clients()
+        self.p_client = auth.get_placement_client(sess=self.ks_session)
 
     def ensure_site(self):
         resources = self.g_client.resource.search(

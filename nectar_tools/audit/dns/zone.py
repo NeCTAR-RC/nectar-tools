@@ -14,9 +14,9 @@ STATES = ['ERROR', 'PENDING']
 
 class DnsAuditor(base.Auditor):
 
-    def __init__(self, ks_session, repair=False):
-        super().__init__(ks_session, repair)
-        self.dc = auth.get_designate_client(sess=ks_session,
+    def setup_clientas(self):
+        super().setup_clients()
+        self.dc = auth.get_designate_client(sess=self.ks_session,
                                             all_projects=True)
 
     def check_zone_states(self):
