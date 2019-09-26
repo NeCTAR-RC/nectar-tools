@@ -1,13 +1,20 @@
+import datetime
 import logging
 
+import placementclient
 
 from nectar_tools.audit.metric import base
+from nectar_tools import auth
 
 
 LOG = logging.getLogger(__name__)
 
 
 class ResourceProviderAuditor(base.ResourceAuditor):
+
+    def __init__(self, ks_session, repair=False):
+        super().__init__(ks_session, repair)
+        self.p_client = auth.get_placement_client(sess=ks_session)
 
     def ensure_site(self):
         resources = self.g_client.resource.search(
@@ -61,3 +68,21 @@ class ResourceProviderAuditor(base.ResourceAuditor):
                              "self.g_client resource update "
                              "--type resource_provider"
                              "-a 'site:<site>' %s", rp['id'])
+
+    def ensure_exists(self):
+        now = datetime.datetime.now()
+        resources = self.g_client.resource.search(
+            resource_type='resource_provider', query='ended_at=null')
+        for resource in resources:
+            try:
+                self.p_client.resource_providers.get(resource['id'])
+            except placementclient.exceptions.NotFound:
+                LOG.warn("Resource provider %s no longer exists",
+                         resource['name'])
+                if self.repair:
+                    self.g_client.resource.update(
+                        resource_type='resource_provider',
+                        resource_id=resource['id'],
+                        resource={'ended_at': now})
+                    LOG.info("Marked resource provider %s as ended",
+                             resource['name'])
