@@ -10,6 +10,7 @@ python-swiftclient
 python-troveclient
 python-manilaclient
 gnocchiclient
+placementclient
 jinja2
 prettytable
 python-freshdesk
