@@ -22,6 +22,30 @@
       "revId": "26f278a53c1c4c8ec110429e6f8bc4c4d64d7c05",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fb11f747_3c4d5f94",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-10-04T05:30:27Z",
+      "side": 1,
+      "message": "definitely it is the correct way to use property here.",
+      "parentUuid": "3102a3d0_ad8f31dd",
+      "range": {
+        "startLine": 60,
+        "startChar": 28,
+        "endLine": 60,
+        "endChar": 41
+      },
+      "revId": "26f278a53c1c4c8ec110429e6f8bc4c4d64d7c05",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
