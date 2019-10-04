@@ -822,8 +822,8 @@ class AllocationInstanceExpirer(AllocationExpirer):
         if not self.instances and \
            self.project.zone_expiry_status not in [expiry_states.ARCHIVING,
                                                    expiry_states.ARCHIVED]:
-            if self.project.zone_expiry_status != '' or \
-               self.project.zone_expiry_ticket_id != '0' or \
+            if self.project.zone_expiry_status != 'active' or \
+               self.project.zone_expiry_ticket_id != 0 or \
                self.project.zone_expiry_next_step != '':
                 self.finish_expiry(
                     message='Out-of-zone instances expiry is complete')
