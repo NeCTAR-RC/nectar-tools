@@ -1221,8 +1221,8 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     def test_should_process_no_instance_finished_expiry(self, mock_instances):
         mock_instances.return_value = []
         project = fakes.FakeProject(allocation_id=1,
-                                    zone_expiry_status='',
-                                    zone_expiry_ticket_id='0',
+                                    zone_expiry_status=expiry_states.ACTIVE,
+                                    zone_expiry_ticket_id=0,
                                     zone_expiry_next_step='')
         ex = expirer.AllocationInstanceExpirer(project)
         self.assertFalse(ex.should_process())
