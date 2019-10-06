@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0b3892be_55e7fc1b",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-06T21:50:43Z",
+      "side": 1,
+      "message": "should we have 2 tests here, 1 for update_resource_project and 1 for update_resource_image",
+      "range": {
+        "startLine": 216,
+        "startChar": 9,
+        "endLine": 216,
+        "endChar": 34
+      },
+      "revId": "42c940de2ad1961b6fb7caa15531cf3ce3b60a61",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
