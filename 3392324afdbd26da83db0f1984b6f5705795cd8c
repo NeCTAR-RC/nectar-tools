@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "982f4300_441b827c",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 825,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-07T00:03:23Z",
+      "side": 1,
+      "message": "I think you should use expiry_states.ACTIVE",
+      "range": {
+        "startLine": 825,
+        "startChar": 50,
+        "endLine": 825,
+        "endChar": 57
+      },
+      "revId": "3392324afdbd26da83db0f1984b6f5705795cd8c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
