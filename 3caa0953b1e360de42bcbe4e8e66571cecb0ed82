@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "59b50ef8_9794c56a",
+        "filename": "nectar_tools/audit/dns/zone.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-10-08T23:39:56Z",
+      "side": 1,
+      "message": "Incorrect method name",
+      "revId": "3caa0953b1e360de42bcbe4e8e66571cecb0ed82",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
