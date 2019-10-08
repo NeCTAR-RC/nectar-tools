@@ -46,6 +46,30 @@
       "revId": "6149f0abbec96a5c00fe06fcf668bea3300cb524",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e84db609_703c3477",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-08T22:26:32Z",
+      "side": 1,
+      "message": "Sorry I thought my change had already merged but it hadn\u0027t https://review.rc.nectar.org.au/c/NeCTAR-RC/nectar-tools/+/19724\n\nThis should just make it a lot easier if we ever need to add another arg to the init method like we had to for repair",
+      "parentUuid": "4335f2fd_08a6aa73",
+      "range": {
+        "startLine": 18,
+        "startChar": 8,
+        "endLine": 18,
+        "endChar": 65
+      },
+      "revId": "6149f0abbec96a5c00fe06fcf668bea3300cb524",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
