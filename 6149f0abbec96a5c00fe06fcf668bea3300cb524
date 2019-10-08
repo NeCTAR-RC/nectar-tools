@@ -22,6 +22,30 @@
       "revId": "6149f0abbec96a5c00fe06fcf668bea3300cb524",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "4335f2fd_08a6aa73",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-10-08T01:23:01Z",
+      "side": 1,
+      "message": "Please explain.  This pattern is the same as the other auditor classes ... and I can\u0027t see any method anywhere called setup_clients",
+      "parentUuid": "01a3cce4_3bc063b9",
+      "range": {
+        "startLine": 18,
+        "startChar": 8,
+        "endLine": 18,
+        "endChar": 65
+      },
+      "revId": "6149f0abbec96a5c00fe06fcf668bea3300cb524",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
