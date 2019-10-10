@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a33026d9_c2cc6485",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-10-10T02:35:41Z",
+      "side": 1,
+      "message": "have a little concern here, since the base class does not have the archiver attribute. But we moved those archiver attribute assignment into the subclass in order to use different archiver class for project and image.\n\nSo I put the test case for stop_resource function into the ProjectExpirer subclass. And will do that similar test in ImageExpirer when adding the ImageExpirer subclass in the late changes.",
+      "range": {
+        "startLine": 210,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 38
+      },
+      "revId": "ec771932d45d708b73519d20df845e382f800e3a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
