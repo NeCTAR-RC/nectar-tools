@@ -22,6 +22,30 @@
       "revId": "ec771932d45d708b73519d20df845e382f800e3a",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "004f5691_8d2a6988",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-10T21:47:04Z",
+      "side": 1,
+      "message": "yeah I think that is fine. We also  have the same for delete_resources",
+      "parentUuid": "a33026d9_c2cc6485",
+      "range": {
+        "startLine": 210,
+        "startChar": 0,
+        "endLine": 210,
+        "endChar": 38
+      },
+      "revId": "ec771932d45d708b73519d20df845e382f800e3a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
