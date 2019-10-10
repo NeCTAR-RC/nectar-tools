@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1b140d28_2807add3",
+        "filename": "nectar_tools/cmd_base.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-10T22:04:10Z",
+      "side": 1,
+      "message": "can\u0027t this just be in the image class? __init__ is overridden already there?",
+      "range": {
+        "startLine": 27,
+        "startChar": 8,
+        "endLine": 27,
+        "endChar": 60
+      },
+      "revId": "10e200dc5d15b71e1235865273d7091e0d2d07d9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2991bbaf_168b8ae3",
+        "filename": "nectar_tools/expiry/cmd/base.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-10T22:04:10Z",
+      "side": 1,
+      "message": "Is there a need for a base class, will there be multiple image expiry commands?",
+      "range": {
+        "startLine": 135,
+        "startChar": 6,
+        "endLine": 135,
+        "endChar": 24
+      },
+      "revId": "10e200dc5d15b71e1235865273d7091e0d2d07d9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
