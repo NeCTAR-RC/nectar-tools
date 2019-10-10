@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b5d810a0_bffcc414",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-10T22:00:14Z",
+      "side": 1,
+      "message": "call this recipient and maybe put a comment about the logic here",
+      "range": {
+        "startLine": 119,
+        "startChar": 8,
+        "endLine": 119,
+        "endChar": 19
+      },
+      "revId": "8fe482b6ad89a193f733d3afeaec2365bb96d063",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08e5e137_5df3fc3d",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 561,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-10T22:00:14Z",
+      "side": 1,
+      "message": "recipient",
+      "range": {
+        "startLine": 561,
+        "startChar": 8,
+        "endLine": 561,
+        "endChar": 19
+      },
+      "revId": "8fe482b6ad89a193f733d3afeaec2365bb96d063",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
