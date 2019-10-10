@@ -44,15 +44,14 @@ class ExpiryTests(test.TestCase):
         super(ExpiryTests, self).setUp()
 
     def test_project_property(self):
-        project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
+        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
         with mock.patch.object(ex, 'get_project') as mock_project:
             mock_project.return_value = 'fake project'
             self.assertEqual('fake project', ex.project)
 
     def test_get_project_managers(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
+        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
         self.assertIsNone(ex.managers)
         with test.nested(
             mock.patch.object(ex, '_get_users_by_role',
@@ -65,7 +64,7 @@ class ExpiryTests(test.TestCase):
 
     def test_get_project_members(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
+        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
         self.assertIsNone(ex.members)
         with test.nested(
             mock.patch.object(ex, '_get_users_by_role',
@@ -78,7 +77,7 @@ class ExpiryTests(test.TestCase):
 
     def test_get_users_by_role(self):
         project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
+        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
         role = 'fakerole'
         role_assignments = [mock.Mock(), mock.Mock()]
         role_assignments[0].user = {}
@@ -91,7 +90,11 @@ class ExpiryTests(test.TestCase):
             mock_user.id = value
             return mock_user
 
-        with mock.patch.object(ex, 'k_client') as mock_keystone:
+        with test.nested(
+            mock.patch.object(ex, 'k_client'),
+            mock.patch.object(ex, 'get_project'),
+        ) as (mock_keystone, mock_project):
+            mock_project.return_value = project
             mock_keystone.role_assignments.list.return_value = role_assignments
             mock_keystone.users.get.side_effect = user_side_effect
             users = ex._get_users_by_role(project, 'fakerole')
@@ -115,8 +118,7 @@ class ExpiryTests(test.TestCase):
                              cc)
 
     def test_send_notification(self):
-        project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
+        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
         with test.nested(
             mock.patch.object(ex, 'notifier'),
             mock.patch.object(ex, '_get_notification_context',
@@ -135,53 +137,58 @@ class ExpiryTests(test.TestCase):
     def test_send_event(self, mock_oslo_messaging):
         mock_notifier = mock.Mock()
         mock_oslo_messaging.Notifier.return_value = mock_notifier
-        project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
+        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
         ex._send_event('foo', 'bar')
         mock_notifier.audit.assert_called_once_with(mock.ANY, 'foo', 'bar')
 
     def test_get_status(self):
         expected = 'archived'
-        project = fakes.FakeProject(expiry_status=expected)
-        ex = expirer.Expirer('project', project, notifier='fake')
-        actual = ex.get_status(project)
+        resource = mock.Mock()
+        resource.expiry_status = expected
+        ex = expirer.Expirer('fake_type', resource, notifier='fake')
+        actual = ex.get_status(ex.resource)
         self.assertEqual(expected, actual)
 
     def test_get_status_none(self):
-        project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
-        actual = ex.get_status(project)
+        resource = mock.Mock()
+        resource.expiry_status = None
+        ex = expirer.Expirer('fake_type', resource, notifier='fake')
+        actual = ex.get_status(ex.resource)
         self.assertEqual('active', actual)
 
     def test_get_next_step_date(self):
-        project = fakes.FakeProject(expiry_next_step='2017-01-01')
         expected = datetime.datetime(2017, 1, 1)
-        ex = expirer.Expirer('project', project, notifier='fake')
-        actual = ex.get_next_step_date(project)
+        resource = mock.Mock()
+        resource.expiry_next_step = '2017-01-01'
+        ex = expirer.Expirer('fake_type', resource, notifier='fake')
+        actual = ex.get_next_step_date(ex.resource)
         self.assertEqual(expected, actual)
 
     def test_get_next_step_date_none(self):
-        project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
-        actual = ex.get_next_step_date(project)
+        resource = mock.Mock()
+        resource.expiry_next_step = None
+        ex = expirer.Expirer('fake_type', resource, notifier='fake')
+        actual = ex.get_next_step_date(ex.resource)
         self.assertIsNone(actual)
 
     def test_at_next_step(self):
-        project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
+        resource = mock.Mock()
+        resource.id = 'fake'
+        ex = expirer.Expirer('fake_type', resource, notifier='fake')
         with mock.patch.object(ex, 'get_next_step_date') as mock_next:
             mock_next.return_value = datetime.datetime(2016, 1, 1)
-            self.assertTrue(ex.at_next_step(project))
+            self.assertTrue(ex.at_next_step(ex.resource))
 
     def test_at_next_step_negative(self):
-        project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
+        resource = mock.Mock()
+        resource.id = 'fake'
+        ex = expirer.Expirer('fake_type', resource, notifier='fake')
         with mock.patch.object(ex, 'get_next_step_date') as mock_next:
             mock_next.return_value = datetime.datetime(2018, 1, 1)
-            self.assertFalse(ex.at_next_step(project))
+            self.assertFalse(ex.at_next_step(ex.resource))
             mock_next.reset_mock()
             mock_next.return_value = None
-            self.assertTrue(ex.at_next_step(project))
+            self.assertTrue(ex.at_next_step(ex.resource))
 
     def test_make_next_step_date_feb_1(self):
         now = datetime.datetime(2018, 2, 1)
@@ -210,8 +217,7 @@ class ExpiryTests(test.TestCase):
 
     @freeze_time('2018-02-01')
     def test_ready_for_warning(self):
-        project = fakes.FakeProject()
-        ex = expirer.Expirer('project', project, notifier='fake')
+        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
         with mock.patch.object(ex, 'get_warning_date') as mock_warning_date:
             mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
             self.assertTrue(ex.ready_for_warning())
