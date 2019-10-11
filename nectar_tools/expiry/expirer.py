@@ -205,6 +205,30 @@ class Expirer(object):
         if update:
             self._update_resource(**update)
 
+    def stop_resource(self):
+        LOG.info("%s: Stopping %s", self.resource.id, self.resource_type)
+        self.archiver.stop_resources()
+        expiry_date = self.make_next_step_date(self.now)
+        update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
+                         self.NEXT_STEP_KEY: expiry_date}
+        self._update_resource(**update_kwargs)
+        self._send_notification('stop')
+        self.send_event('stop')
+
+    def send_warning(self):
+        LOG.info("%s: Sending warning", self.resource.id)
+        next_step_date = self.get_expiry_date()
+
+        update_kwargs = {self.STATUS_KEY: expiry_states.WARNING,
+                         self.NEXT_STEP_KEY: next_step_date}
+        self._update_resource(**update_kwargs)
+        extra_context = {'expiry_date': next_step_date}
+        self._send_notification('first-warning', extra_context=extra_context)
+        self.send_event('first-warning', extra_context=extra_context)
+
+    def get_expiry_date():
+        raise NotImplementedError
+
 
 class ProjectExpirer(Expirer):
 
@@ -408,7 +432,7 @@ class AllocationExpirer(ProjectExpirer):
 
         elif expiry_status == expiry_states.RESTRICTED:
             if self.at_next_step(self.project):
-                self.stop_project()
+                self.stop_resource()
                 return True
 
         elif expiry_status == expiry_states.STOPPED:
@@ -545,17 +569,6 @@ class AllocationExpirer(ProjectExpirer):
                    'allocation': self.allocation.to_dict()}
         return context
 
-    def send_warning(self):
-        LOG.info("%s: Sending warning", self.project.id)
-        next_step_date = self.get_expiry_date()
-
-        update_kwargs = {self.STATUS_KEY: expiry_states.WARNING,
-                         self.NEXT_STEP_KEY: next_step_date}
-        self._update_resource(**update_kwargs)
-        extra_context = {'expiry_date': next_step_date}
-        self._send_notification('first-warning', extra_context=extra_context)
-        self.send_event('first-warning', extra_context=extra_context)
-
     def send_event(self, event, extra_context={}):
         event_type = '%s.%s' % (self.EVENT_PREFIX, event)
         event_notification = self._get_notification_context()
@@ -580,16 +593,6 @@ class AllocationExpirer(ProjectExpirer):
         self._update_resource(**restrict_kwargs)
         self._send_notification('restrict')
         self.send_event('restrict')
-
-    def stop_project(self):
-        LOG.info("%s: Stopping project", self.project.id)
-        self.archiver.stop_resources()
-        expiry_date = self.make_next_step_date(self.now)
-        update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
-                         self.NEXT_STEP_KEY: expiry_date}
-        self._update_resource(**update_kwargs)
-        self._send_notification('stop')
-        self.send_event('stop')
 
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()
@@ -864,7 +867,7 @@ class AllocationInstanceExpirer(AllocationExpirer):
             return False
         elif zone_expiry_status == expiry_states.WARNING:
             if self.at_next_step(self.project):
-                self.stop_project()
+                self.stop_resource()
                 return True
             return False
         elif zone_expiry_status == expiry_states.STOPPED:

@@ -382,6 +382,30 @@ class ProjectExpirerTests(test.TestCase):
             ex.delete_resources()
             mock_archiver.delete_resources.assert_called_with(force=False)
 
+    def test_stop_resource_project(self):
+        project = fakes.FakeProject()
+        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
+        one_month = (datetime.datetime.now()
+                     + datetime.timedelta(days=30)).strftime(
+                         expirer.DATE_FORMAT)
+
+        with test.nested(
+            mock.patch.object(ex, '_update_resource'),
+            mock.patch.object(ex, 'archiver'),
+            mock.patch.object(ex, 'send_event'),
+            mock.patch.object(ex, '_send_notification'),
+        ) as (mock_update_resource, mock_archiver, mock_event,
+              mock_send_notification):
+
+            ex.stop_resource()
+            mock_update_resource.assert_called_with(
+                expiry_next_step=one_month,
+                expiry_status=expiry_states.STOPPED)
+
+            mock_archiver.stop_resources.assert_called_once_with()
+            mock_send_notification.assert_called_once_with('stop')
+            mock_event.assert_called_once_with('stop')
+
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
@@ -525,9 +549,9 @@ class AllocationExpiryTests(test.TestCase):
                                     expiry_next_step=BEFORE)
         ex = expirer.AllocationExpirer(project)
 
-        with mock.patch.object(ex, 'stop_project') as mock_stop_project:
+        with mock.patch.object(ex, 'stop_resource') as mock_stop_resource:
             self.assertTrue(ex.process())
-            mock_stop_project.assert_called_with()
+            mock_stop_resource.assert_called_with()
 
     def test_process_stopped(self):
         project = fakes.FakeProject(expiry_status=expiry_states.STOPPED,
@@ -857,30 +881,6 @@ class AllocationExpiryTests(test.TestCase):
             mock_archiver.zero_quota.assert_called_once_with()
             mock_notification.assert_called_with('restrict')
             mock_event.assert_called_once_with('restrict')
-
-    def test_stop_project(self):
-        project = fakes.FakeProject()
-        ex = expirer.AllocationExpirer(project)
-        one_month = (datetime.datetime.now()
-                     + datetime.timedelta(days=30)).strftime(
-                         expirer.DATE_FORMAT)
-
-        with test.nested(
-            mock.patch.object(ex, '_update_resource'),
-            mock.patch.object(ex, 'archiver'),
-            mock.patch.object(ex, 'send_event'),
-            mock.patch.object(ex, '_send_notification'),
-        ) as (mock_update_resource, mock_archiver, mock_event,
-              mock_send_notification):
-
-            ex.stop_project()
-            mock_update_resource.assert_called_with(
-                expiry_next_step=one_month,
-                expiry_status=expiry_states.STOPPED)
-
-            mock_archiver.stop_resources.assert_called_once_with()
-            mock_send_notification.assert_called_once_with('stop')
-            mock_event.assert_called_once_with('stop')
 
     def test_get_recipients(self):
         project = fakes.FakeProject()
@@ -1324,7 +1324,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
                                     zone_expiry_next_step=AFTER)
         ex = expirer.AllocationInstanceExpirer(project)
         mock_instances.return_value = ['fake']
-        with mock.patch.object(ex, 'stop_project') as mock_stop:
+        with mock.patch.object(ex, 'stop_resource') as mock_stop:
             self.assertFalse(ex.process())
             mock_stop.assert_not_called()
 
@@ -1335,7 +1335,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
                                     zone_expiry_next_step=BEFORE)
         ex = expirer.AllocationInstanceExpirer(project)
         mock_instances.return_value = ['fake']
-        with mock.patch.object(ex, 'stop_project') as mock_stop:
+        with mock.patch.object(ex, 'stop_resource') as mock_stop:
             self.assertTrue(ex.process())
             mock_stop.assert_called_with()
 
