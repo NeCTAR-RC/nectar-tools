@@ -725,8 +725,14 @@ class ImageArchiverTests(test.TestCase):
     @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._restrict_image')
     def test_restrict_resources(self, mock_restrict):
         ia = archiver.ImageArchiver(IMAGE)
-        ia.restrict_resources(force=True)
+        ia.restrict_resources()
         self.assertEqual(mock_restrict.call_count, 1)
+
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._hide_image')
+    def test_stop_resources(self, mock_hide):
+        ia = archiver.ImageArchiver(IMAGE)
+        ia.stop_resources()
+        self.assertEqual(mock_hide.call_count, 1)
 
     def test_delete_image(self):
         image = fakes.FakeImage(visibility='private', owner='123')
@@ -755,6 +761,21 @@ class ImageArchiverTests(test.TestCase):
         ia = archiver.ImageArchiver(image)
         with mock.patch.object(ia, 'g_client') as mock_image:
             ia._restrict_image(image)
+            mock_image.images.update.assert_not_called()
+
+    def test_hide_image(self):
+        image = fakes.FakeImage(os_hidden=False)
+        ia = archiver.ImageArchiver(image)
+        with mock.patch.object(ia, 'g_client') as mock_image:
+            ia._hide_image(image)
+            mock_image.images.update.assert_called_once_with(
+                image.id, os_hidden=True)
+
+    def test_hide_image_hidden(self):
+        image = fakes.FakeImage(os_hidden=True)
+        ia = archiver.ImageArchiver(image)
+        with mock.patch.object(ia, 'g_client') as mock_image:
+            ia._hide_image(image)
             mock_image.images.update.assert_not_called()
 
 
