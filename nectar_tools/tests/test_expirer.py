@@ -274,7 +274,7 @@ class ExpiryTests(test.TestCase):
             mock_notifier.finish.assert_called_once_with(message=message)
             mock_update_resource.assert_called_once_with(expiry_status='',
                                                          expiry_next_step='',
-                                                         expiry_ticket_id=0)
+                                                         expiry_ticket_id='0')
 
 
 @freeze_time("2017-01-01")
@@ -1273,7 +1273,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
         mock_instances.return_value = []
         project = fakes.FakeProject(allocation_id=1,
                                     zone_expiry_status=expiry_states.ACTIVE,
-                                    zone_expiry_ticket_id=0,
+                                    zone_expiry_ticket_id='0',
                                     zone_expiry_next_step='')
         ex = expirer.AllocationInstanceExpirer(project)
         self.assertFalse(ex.should_process())

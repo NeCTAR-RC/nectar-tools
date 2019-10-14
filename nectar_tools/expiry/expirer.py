@@ -221,7 +221,7 @@ class Expirer(object):
         if hasattr(self.resource, self.NEXT_STEP_KEY):
             update[self.NEXT_STEP_KEY] = ''
         if hasattr(self.resource, self.TICKET_ID_KEY):
-            update[self.TICKET_ID_KEY] = 0
+            update[self.TICKET_ID_KEY] = '0'
         if update:
             self._update_resource(**update)
 
@@ -272,7 +272,7 @@ class ProjectExpirer(Expirer):
         self.project.expiry_next_step = getattr(self.project,
                                                 'expiry_next_step', '')
         self.project.expiry_ticket_id = getattr(self.project,
-                                                'expiry_ticket_id', 0)
+                                                'expiry_ticket_id', '0')
 
     def check_archiving_status(self):
         LOG.debug("%s: Checking archive status", self.project.id)
@@ -823,7 +823,7 @@ class AllocationInstanceExpirer(AllocationExpirer):
         self.project.zone_expiry_next_step = getattr(self.project,
             'zone_expiry_next_step', '')
         self.project.zone_expiry_ticket_id = getattr(self.project,
-            'zone_expiry_ticket_id', 0)
+            'zone_expiry_ticket_id', '0')
 
     def _get_notification_context(self):
         context = super(AllocationInstanceExpirer,
@@ -849,7 +849,7 @@ class AllocationInstanceExpirer(AllocationExpirer):
            self.project.zone_expiry_status not in [expiry_states.ARCHIVING,
                                                    expiry_states.ARCHIVED]:
             if self.project.zone_expiry_status != expiry_states.ACTIVE or \
-               self.project.zone_expiry_ticket_id != 0 or \
+               self.project.zone_expiry_ticket_id != '0' or \
                self.project.zone_expiry_next_step != '':
                 self.finish_expiry(
                     message='Out-of-zone instances expiry is complete')
