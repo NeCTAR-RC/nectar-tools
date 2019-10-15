@@ -56,7 +56,7 @@ def get_nova_client(sess=None):
 def get_cinder_client(sess=None):
     if not sess:
         sess = get_session()
-    return cinderclient.Client('2', session=sess)
+    return cinderclient.Client('3', session=sess)
 
 
 def get_manila_client(sess=None):
