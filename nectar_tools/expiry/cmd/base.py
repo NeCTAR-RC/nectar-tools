@@ -61,6 +61,7 @@ class ProjectExpiryBaseCmd(cmd_base.CmdBase):
                 offset_count += 1
                 if offset is None or offset_count > offset:
                     try:
+                        LOG.debug("------------------")
                         ex = self.get_expirer(p)
                         if ex.process():
                             processed += 1

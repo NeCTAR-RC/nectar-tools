@@ -199,15 +199,19 @@ class Expirer(object):
                 self.k_client.projects.update(self.resource.id, **kwargs)
             if self.resource_type == 'image':
                 self.g_client.images.update(self.resource.id, **kwargs)
+            msg = '%s - %s: Updating %s' % (self.resource_type,
+                                            self.resource.id, kwargs)
+        else:
+            msg = '%s - %s: Would update %s' % (self.resource_type,
+                                                self.resource.id, kwargs)
+        LOG.debug(msg)
+
         if self.STATUS_KEY in kwargs.keys():
             setattr(self.resource, self.STATUS_KEY,
                     kwargs[self.STATUS_KEY])
         if self.NEXT_STEP_KEY in kwargs.keys():
             setattr(self.resource, self.NEXT_STEP_KEY,
                     kwargs[self.NEXT_STEP_KEY])
-        msg = '%s - %s: Updating %s' % (self.resource_type, self.resource.id,
-                                        kwargs)
-        LOG.debug(msg)
 
     def finish_expiry(self, message='Expiry work flow is complete'):
         try:
@@ -596,6 +600,9 @@ class AllocationExpirer(ProjectExpirer):
         elif self.allocation.notifications:
             super(AllocationExpirer, self)._send_notification(
                 stage, extra_context)
+        else:
+            LOG.info("%s: Skipping notification due to allocation "
+                     "notifications being set False", self.project.id)
 
     def restrict_project(self):
         LOG.info("%s: Restricting project", self.project.id)
