@@ -810,8 +810,10 @@ class AllocationInstanceExpirer(AllocationExpirer):
     @property
     def instances(self):
         if self._instances is None:
-            self._instances = utils.get_out_of_zone_instances(
+            instances = utils.get_out_of_zone_instances(
                 self.ks_session, self.allocation, self.project)
+            self._instances = [inst for inst in instances
+                if getattr(inst, 'OS-EXT-AZ:availability_zone')]
         return self._instances
 
     def project_set_defaults(self):
