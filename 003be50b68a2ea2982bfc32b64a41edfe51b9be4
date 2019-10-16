@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "213e58a3_694754b3",
+        "filename": "nectar_tools/expiry/cmd/allocation_instance_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-16T22:31:01Z",
+      "side": 1,
+      "message": "compute zones may be empty/none etc. too to indicate they are national so I think this needs to be handled too? Could be set by set_defaults method to be national if not existing",
+      "range": {
+        "startLine": 20,
+        "startChar": 38,
+        "endLine": 20,
+        "endChar": 46
+      },
+      "revId": "003be50b68a2ea2982bfc32b64a41edfe51b9be4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
