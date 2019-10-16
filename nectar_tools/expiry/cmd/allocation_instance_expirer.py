@@ -10,10 +10,11 @@ class AllocationInstanceExpiryCmd(base.ProjectExpiryBaseCmd):
 
     @staticmethod
     def valid_project(project):
+        # rule out following projects:
+        # pt project, project without compute_zones provisioned,
+        # allocation expiry on-going project,
         if expirer.PT_RE.match(project.name) or \
            not hasattr(project, 'compute_zones') or \
-           not project.compute_zones or \
-           project.compute_zones == 'national' or \
            (hasattr(project, 'expiry_status')
             and project.expiry_status != ''):
             return False
