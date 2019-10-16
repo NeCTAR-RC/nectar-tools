@@ -843,6 +843,12 @@ class AllocationInstanceExpirer(AllocationExpirer):
         return start_date + relativedelta(days=60)
 
     def should_process(self):
+        # finish up the expiry process if allocation changes to national
+        if self.project.compute_zones == 'national':
+            self.finish_expiry(
+                message='Out-of-zone instances expiry is complete')
+            return False
+
         # (rocky) if user moves instances away when the project in 'archiving'
         # or 'archived' we should continue to delete the archives.
         if not self.instances and \
