@@ -1227,6 +1227,20 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     @mock.patch(
         'nectar_tools.expiry.expirer.AllocationInstanceExpirer.instances',
         new_callable=mock.PropertyMock)
+    def test_should_process_change_to_national(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1, compute_zones='national')
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = 'fake instances list'
+        self.assertFalse(ex.should_process())
+        ex.finish_expiry.assert_called_once_with(
+            message='Out-of-zone instances expiry is complete')
+
+    @mock.patch(
+        'nectar_tools.expiry.expirer.AllocationInstanceExpirer.finish_expiry',
+        new=mock.Mock())
+    @mock.patch(
+        'nectar_tools.expiry.expirer.AllocationInstanceExpirer.instances',
+        new_callable=mock.PropertyMock)
     def test_should_process_no_instance_with_status(self, mock_instances):
         mock_instances.return_value = []
         project = fakes.FakeProject(allocation_id=1,
