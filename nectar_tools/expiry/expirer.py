@@ -106,17 +106,19 @@ class Expirer(object):
         manager_emails = []
         member_emails = []
         for manager in managers:
-            if manager.enabled and utils.is_email_address(manager.email):
+            if manager.enabled and hasattr(manager, 'email') \
+               and utils.is_email_address(manager.email):
                 manager_emails.append(manager.email.lower())
         for member in members:
-            if member.enabled and utils.is_email_address(member.email):
+            if member.enabled and hasattr(member, 'email') \
+               and utils.is_email_address(member.email):
                 member_emails.append(member.email.lower())
 
         extra_emails = list(set(manager_emails + member_emails))
         if not extra_emails:
             return (None, [])
 
-        # By default, recepient will be set as the first project manager
+        # By default, recipient will be set as the first project manager
         # or first project member. It will be passed into "to" field of the
         # notification email, while extra_emails will be into 'cc' field
         recipient = manager_emails[0] if manager_emails else member_emails[0]
