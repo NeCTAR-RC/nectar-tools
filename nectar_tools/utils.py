@@ -37,7 +37,7 @@ def get_out_of_zone_instances(session, allocation, project):
     out_of_zone = []
     for instance in instances:
         az = getattr(instance, 'OS-EXT-AZ:availability_zone')
-        if az not in zones:
+        if az and az not in zones:
             # We set this attribute so we can use it in templating
             setattr(instance, 'availability_zone', az)
             out_of_zone.append(instance)

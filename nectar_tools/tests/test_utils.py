@@ -62,7 +62,8 @@ class UtilsTests(test.TestCase):
             instance = fakes.FakeInstance(availability_zone='wrong')
             nova._all_instances.return_value = [
                 instance,
-                fakes.FakeInstance(availability_zone='nova')]
+                fakes.FakeInstance(availability_zone='nova'),
+                fakes.FakeInstance(availability_zone='')]
 
             instances = utils.get_out_of_zone_instances(None, self.allocation,
                                                         project)
