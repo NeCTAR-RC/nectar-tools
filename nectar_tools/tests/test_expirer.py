@@ -1213,10 +1213,26 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
         'nectar_tools.expiry.expirer.AllocationInstanceExpirer.instances',
         new_callable=mock.PropertyMock)
     def test_should_process(self, mock_instances):
-        project = fakes.FakeProject(allocation_id=1)
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status=expiry_states.ACTIVE)
         ex = expirer.AllocationInstanceExpirer(project)
         mock_instances.return_value = 'fake instances list'
-        self.assertTrue(ex.should_process())
+        self.assertFalse(ex.should_process())
+
+    @mock.patch(
+        'nectar_tools.expiry.expirer.AllocationInstanceExpirer.finish_expiry',
+        new=mock.Mock())
+    @mock.patch(
+        'nectar_tools.expiry.expirer.AllocationInstanceExpirer.instances',
+        new_callable=mock.PropertyMock)
+    def test_should_process_expiry_warning(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1,
+                                    zone_expiry_status=expiry_states.WARNING)
+        ex = expirer.AllocationInstanceExpirer(project)
+        mock_instances.return_value = 'fake instances list'
+        self.assertFalse(ex.should_process())
+        ex.finish_expiry.assert_called_once_with(
+            message='Out-of-zone instances expiry is complete')
 
     @mock.patch(
         'nectar_tools.expiry.expirer.AllocationInstanceExpirer.finish_expiry',
@@ -1227,6 +1243,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     def test_should_process_no_instance_with_status(self, mock_instances):
         mock_instances.return_value = []
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status='fake')
         ex = expirer.AllocationInstanceExpirer(project)
         self.assertFalse(ex.should_process())
@@ -1242,6 +1259,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     def test_should_process_no_instance_with_next_step(self, mock_instances):
         mock_instances.return_value = []
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_next_step='fake step')
         ex = expirer.AllocationInstanceExpirer(project)
         self.assertFalse(ex.should_process())
@@ -1257,6 +1275,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     def test_should_process_no_instance_with_ticket_id(self, mock_instances):
         mock_instances.return_value = []
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_ticket_id='134')
         ex = expirer.AllocationInstanceExpirer(project)
         self.assertFalse(ex.should_process())
@@ -1272,6 +1291,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     def test_should_process_no_instance_finished_expiry(self, mock_instances):
         mock_instances.return_value = []
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.ACTIVE,
                                     zone_expiry_ticket_id='0',
                                     zone_expiry_next_step='')
@@ -1288,6 +1308,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     def test_should_process_no_instance_archiving(self, mock_instances):
         mock_instances.return_value = []
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.ARCHIVING)
         ex = expirer.AllocationInstanceExpirer(project)
         self.assertTrue(ex.should_process())
@@ -1302,6 +1323,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     def test_should_process_no_instance_archived(self, mock_instances):
         mock_instances.return_value = []
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.ARCHIVED)
         ex = expirer.AllocationInstanceExpirer(project)
         self.assertTrue(ex.should_process())
@@ -1318,7 +1340,9 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
 
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_active_not_old(self, mock_instances):
-        project = fakes.FakeProject(allocation_id=1)
+        project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
+                                    zone_expiry_status=expiry_states.ACTIVE)
         ex = expirer.AllocationInstanceExpirer(project)
         ex.allocation.start_date = AFTER
         mock_instances.return_value = ['fake']
@@ -1328,7 +1352,9 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
 
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_active_old_enough(self, mock_instances):
-        project = fakes.FakeProject(allocation_id=1)
+        project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
+                                    zone_expiry_status=expiry_states.ACTIVE)
         ex = expirer.AllocationInstanceExpirer(project)
         ex.allocation.start_date = BEFORE
         mock_instances.return_value = ['fake']
@@ -1339,6 +1365,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_warning_not_old(self, mock_instances):
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.WARNING,
                                     zone_expiry_next_step=AFTER)
         ex = expirer.AllocationInstanceExpirer(project)
@@ -1350,6 +1377,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_warning_old_enough(self, mock_instances):
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.WARNING,
                                     zone_expiry_next_step=BEFORE)
         ex = expirer.AllocationInstanceExpirer(project)
@@ -1361,6 +1389,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_stopped_not_old(self, mock_instances):
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.STOPPED,
                                     zone_expiry_next_step=AFTER)
         ex = expirer.AllocationInstanceExpirer(project)
@@ -1372,6 +1401,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_stopped_old_enough(self, mock_instances):
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.STOPPED,
                                     zone_expiry_next_step=BEFORE)
         ex = expirer.AllocationInstanceExpirer(project)
@@ -1383,6 +1413,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_archiving_not_old_archived_success(self, mock_instances):
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.ARCHIVING,
                                     zone_expiry_next_step=AFTER)
         ex = expirer.AllocationInstanceExpirer(project)
@@ -1401,6 +1432,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     def test_process_archiving_not_old_archived_not_success(self,
                                                             mock_instances):
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.ARCHIVING,
                                     zone_expiry_next_step=AFTER)
         ex = expirer.AllocationInstanceExpirer(project)
@@ -1418,6 +1450,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_archiving_old_enough(self, mock_instances):
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.ARCHIVING,
                                     zone_expiry_next_step=BEFORE)
         ex = expirer.AllocationInstanceExpirer(project)
@@ -1429,6 +1462,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_archived_not_old(self, mock_instances):
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.ARCHIVED,
                                     zone_expiry_next_step=AFTER)
         ex = expirer.AllocationInstanceExpirer(project)
@@ -1446,6 +1480,7 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
     def test_process_archived_old_enough(self, mock_instances):
         project = fakes.FakeProject(allocation_id=1,
+                                    compute_zones='fake',
                                     zone_expiry_status=expiry_states.ARCHIVED,
                                     zone_expiry_next_step=BEFORE)
         ex = expirer.AllocationInstanceExpirer(project)
