@@ -22,6 +22,30 @@
       "revId": "003be50b68a2ea2982bfc32b64a41edfe51b9be4",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d89014a2_a56b504b",
+        "filename": "nectar_tools/expiry/cmd/allocation_instance_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2019-10-16T23:00:57Z",
+      "side": 1,
+      "message": "yes compute zone empty should be considered, but I think current logic has covered that. Because if the expiry process started, that means the national/local allocation has been provisioned. Then will no chance to set it as empty if the allocation turns to national?",
+      "parentUuid": "213e58a3_694754b3",
+      "range": {
+        "startLine": 20,
+        "startChar": 38,
+        "endLine": 20,
+        "endChar": 46
+      },
+      "revId": "003be50b68a2ea2982bfc32b64a41edfe51b9be4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
