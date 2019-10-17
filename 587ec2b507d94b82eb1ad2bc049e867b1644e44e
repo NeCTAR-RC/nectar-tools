@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cf605cb0_fa6a93ed",
+        "filename": "nectar_tools/expiry/cmd/allocation_instance_expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-17T02:01:12Z",
+      "side": 1,
+      "message": "could have this attribute but it could be an empty string",
+      "range": {
+        "startLine": 17,
+        "startChar": 33,
+        "endLine": 17,
+        "endChar": 46
+      },
+      "revId": "587ec2b507d94b82eb1ad2bc049e867b1644e44e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c31f6f60_e706552a",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 849,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-17T02:01:12Z",
+      "side": 1,
+      "message": "this isn\u0027t possible, we don\u0027t set compute_zones to the word `national` anywhere so it can go.\n\nCould do:\nif not self.project.compute_zones ? that would capture it being None or \u0027\u0027",
+      "range": {
+        "startLine": 849,
+        "startChar": 42,
+        "endLine": 849,
+        "endChar": 50
+      },
+      "revId": "587ec2b507d94b82eb1ad2bc049e867b1644e44e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
