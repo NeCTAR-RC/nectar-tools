@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1cb5730f_08b3b759",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-17T22:51:02Z",
+      "side": 1,
+      "message": "hide",
+      "range": {
+        "startLine": 96,
+        "startChar": 28,
+        "endLine": 96,
+        "endChar": 36
+      },
+      "revId": "57d4e35e4a3d799eb885cb336fb63d6fa094020c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
