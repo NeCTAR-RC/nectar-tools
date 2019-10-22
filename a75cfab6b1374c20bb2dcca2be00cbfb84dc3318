@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6f4d38e3_6b5ddd07",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-22T23:55:30Z",
+      "side": 1,
+      "message": "is it worth making this a separate method when it\u0027s only used once and is quite small/simple. Could just be put in has_no_recent_boots?",
+      "range": {
+        "startLine": 191,
+        "startChar": 3,
+        "endLine": 191,
+        "endChar": 31
+      },
+      "revId": "a75cfab6b1374c20bb2dcca2be00cbfb84dc3318",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9ee7b1d3_f4c90533",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 987,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-22T23:55:30Z",
+      "side": 1,
+      "message": "should make this a setting as opposed to hard coding",
+      "range": {
+        "startLine": 984,
+        "startChar": 28,
+        "endLine": 987,
+        "endChar": 64
+      },
+      "revId": "a75cfab6b1374c20bb2dcca2be00cbfb84dc3318",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a0eadd0a_dc2b4944",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 989,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-22T23:55:30Z",
+      "side": 1,
+      "message": "Ignoring official image.",
+      "range": {
+        "startLine": 989,
+        "startChar": 32,
+        "endLine": 989,
+        "endChar": 48
+      },
+      "revId": "a75cfab6b1374c20bb2dcca2be00cbfb84dc3318",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a24a5b53_8d876503",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 989,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-22T23:55:30Z",
+      "side": 1,
+      "message": "debug",
+      "range": {
+        "startLine": 989,
+        "startChar": 16,
+        "endLine": 989,
+        "endChar": 20
+      },
+      "revId": "a75cfab6b1374c20bb2dcca2be00cbfb84dc3318",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "73ba020c_cef0a289",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 997,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-22T23:55:30Z",
+      "side": 1,
+      "message": "does this need to be a method? self.project.enabled is a boolean anyway (I think?) so no need for this?",
+      "range": {
+        "startLine": 993,
+        "startChar": 0,
+        "endLine": 997,
+        "endChar": 20
+      },
+      "revId": "a75cfab6b1374c20bb2dcca2be00cbfb84dc3318",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f2799d18_bd465269",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1024,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-22T23:55:30Z",
+      "side": 1,
+      "message": "Has been booted recently",
+      "range": {
+        "startLine": 1024,
+        "startChar": 31,
+        "endLine": 1024,
+        "endChar": 69
+      },
+      "revId": "a75cfab6b1374c20bb2dcca2be00cbfb84dc3318",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "314046db_2f1810f1",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 1073,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-22T23:55:30Z",
+      "side": 1,
+      "message": "is this used anywhere? Think it can go?",
+      "range": {
+        "startLine": 1070,
+        "startChar": 0,
+        "endLine": 1073,
+        "endChar": 23
+      },
+      "revId": "a75cfab6b1374c20bb2dcca2be00cbfb84dc3318",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
