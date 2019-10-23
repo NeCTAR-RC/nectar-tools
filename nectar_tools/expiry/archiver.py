@@ -195,7 +195,7 @@ class NovaArchiver(Archiver):
             if force or self._instance_has_archive(instance):
                 self._delete_instance(instance)
             else:
-                LOG.error("Instance %s has no archive", instance.id)
+                LOG.warning("Instance %s has no archive", instance.id)
 
     def enable_resources(self):
         instances = self._all_instances()
