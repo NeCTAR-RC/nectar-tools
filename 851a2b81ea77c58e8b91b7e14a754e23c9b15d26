@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "3958a6de_ee08b164",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 987,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-24T04:12:03Z",
+      "side": 1,
+      "message": "CONF.image_expiry.official_project_ids",
+      "range": {
+        "startLine": 987,
+        "startChar": 28,
+        "endLine": 987,
+        "endChar": 54
+      },
+      "revId": "851a2b81ea77c58e8b91b7e14a754e23c9b15d26",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "de393271_1ea8087f",
+        "filename": "nectar_tools/tests/nectar-tools.conf",
+        "patchSetId": 6
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-24T04:12:03Z",
+      "side": 1,
+      "message": "see comment in other file",
+      "range": {
+        "startLine": 37,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 10
+      },
+      "revId": "851a2b81ea77c58e8b91b7e14a754e23c9b15d26",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
