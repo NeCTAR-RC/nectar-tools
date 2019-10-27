@@ -568,6 +568,9 @@ class ProjectImagesArchiver(ImageArchiver):
         for image in images:
             self._restrict_image(image)
 
+    def stop_resources(self):
+        raise NotImplementedError
+
 
 class SwiftArchiver(Archiver):
 
