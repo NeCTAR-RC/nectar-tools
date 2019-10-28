@@ -19,7 +19,8 @@ class Auditor(object):
     def run_all(self, list_not_run=False, **kwargs):
         public_method_names = [method for method in dir(self)
                                if callable(getattr(self, method))
-                               if not method.startswith('_')]
+                               if not method.startswith('_')
+                               and not method == 'setup_clients']
         for method in public_method_names:
             if method != 'run_all':
                 if list_not_run:
