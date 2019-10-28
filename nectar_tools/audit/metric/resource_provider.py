@@ -83,6 +83,6 @@ class ResourceProviderAuditor(base.ResourceAuditor):
                     self.g_client.resource.update(
                         resource_type='resource_provider',
                         resource_id=resource['id'],
-                        resource={'ended_at': now})
+                        resource={'ended_at': str(now)})
                     LOG.info("Marked resource provider %s as ended",
                              resource['name'])
