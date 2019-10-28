@@ -1,0 +1,159 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "aa830a76_7adf2301",
+        "filename": "nectar_tools/exceptions.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-28T23:38:11Z",
+      "side": 1,
+      "message": "think this should be in previous commit?",
+      "revId": "0426fba57d52d8e8dbde02ff19147589f8cd578c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "95b8c85a_8e77ab26",
+        "filename": "nectar_tools/expiry/cmd/base.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-28T23:38:11Z",
+      "side": 1,
+      "message": "maybe this class should live in expiry/cmd/image.py?",
+      "range": {
+        "startLine": 137,
+        "startChar": 6,
+        "endLine": 137,
+        "endChar": 20
+      },
+      "revId": "0426fba57d52d8e8dbde02ff19147589f8cd578c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5239744c_95346952",
+        "filename": "nectar_tools/expiry/cmd/base.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-28T23:38:11Z",
+      "side": 1,
+      "message": "image-expiry",
+      "range": {
+        "startLine": 140,
+        "startChar": 26,
+        "endLine": 140,
+        "endChar": 38
+      },
+      "revId": "0426fba57d52d8e8dbde02ff19147589f8cd578c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e899479c_64808b5d",
+        "filename": "nectar_tools/expiry/cmd/base.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-28T23:38:11Z",
+      "side": 1,
+      "message": "is this used?",
+      "range": {
+        "startLine": 220,
+        "startChar": 0,
+        "endLine": 222,
+        "endChar": 74
+      },
+      "revId": "0426fba57d52d8e8dbde02ff19147589f8cd578c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "08a2215a_7c9c01ee",
+        "filename": "nectar_tools/expiry/cmd/base.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-28T23:38:11Z",
+      "side": 1,
+      "message": "Can this just be removed?",
+      "range": {
+        "startLine": 243,
+        "startChar": 2,
+        "endLine": 244,
+        "endChar": 14
+      },
+      "revId": "0426fba57d52d8e8dbde02ff19147589f8cd578c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa7c5991_b2df7f52",
+        "filename": "nectar_tools/expiry/cmd/base.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-28T23:38:11Z",
+      "side": 1,
+      "message": "I don\u0027t think this method exists?",
+      "range": {
+        "startLine": 256,
+        "startChar": 20,
+        "endLine": 256,
+        "endChar": 39
+      },
+      "revId": "0426fba57d52d8e8dbde02ff19147589f8cd578c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "97d57dbc_1ed2fbcd",
+        "filename": "nectar_tools/expiry/cmd/image_expirer.py",
+        "patchSetId": 10
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-28T23:38:11Z",
+      "side": 1,
+      "message": "Ah ok just see there is another class :-) I think these 2 classes could be combined into one? Is there a use case where we would have another image expiry command?",
+      "range": {
+        "startLine": 7,
+        "startChar": 6,
+        "endLine": 7,
+        "endChar": 20
+      },
+      "revId": "0426fba57d52d8e8dbde02ff19147589f8cd578c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
