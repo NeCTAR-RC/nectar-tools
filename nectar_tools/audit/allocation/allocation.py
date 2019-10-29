@@ -47,13 +47,17 @@ class AllocationAuditor(base.Auditor):
                and a.provisioned and a.end_date is None:
                 LOG.info("Allocation %s is approved and provisioned with"
                          " no end_date", a.id)
+            if a.status == allocation_states.APPROVED \
+               and a.associated_site is None:
+                LOG.info("Allocation %s is approved with no associated site",
+                         a.id)
 
     def check_allocation_classification(self, allocation_id=None):
         allocations = self._get_allocations(allocation_id, current=True)
         for a in allocations:
             LOG.debug('Allocation: %s (%s)', a.id, a.project_name)
             grants = self.client.grants.list(allocation=a.id)
-            if a.allocation_home == 'national':
+            if a.national:
                 if not grants:
                     LOG.info("Allocation %s (%s): national allocation has no "
                              "grants", a.id, a.project_name)
@@ -61,7 +65,7 @@ class AllocationAuditor(base.Auditor):
                 if grants:
                     LOG.info("Allocation %s (%s): local allocation (%s) has "
                              "grants", a.id, a.project_name,
-                             a.allocation_home)
+                             a.associated_site)
                     for g in grants:
                         LOG.info("  - type: %s", g.grant_type)
                         LOG.info("  - funding: %s",
