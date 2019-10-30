@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "20857fbc_32f11c35",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-30T03:57:08Z",
+      "side": 1,
+      "message": "I think you should explicitly set expiry_status and next step to \u0027\u0027 when creating the fakeproject above to be more explicit here",
+      "range": {
+        "startLine": 450,
+        "startChar": 44,
+        "endLine": 450,
+        "endChar": 46
+      },
+      "revId": "67a66c45dd20584d127999f03d222a5f35bc3599",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f1ca9d7c_fb437d77",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1200,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-30T03:57:08Z",
+      "side": 1,
+      "message": "expiry_status.QUOTA_WARNING",
+      "range": {
+        "startLine": 1200,
+        "startChar": 45,
+        "endLine": 1200,
+        "endChar": 58
+      },
+      "revId": "67a66c45dd20584d127999f03d222a5f35bc3599",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9d8da82a_d8918af7",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1202,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-30T03:57:08Z",
+      "side": 1,
+      "message": "expiry_status.ACTIVE",
+      "range": {
+        "startLine": 1202,
+        "startChar": 45,
+        "endLine": 1202,
+        "endChar": 52
+      },
+      "revId": "67a66c45dd20584d127999f03d222a5f35bc3599",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "7ecb1eff_5dd6e45a",
+        "filename": "nectar_tools/tests/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1246,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-10-30T03:57:08Z",
+      "side": 1,
+      "message": "ditto and below for the states",
+      "range": {
+        "startLine": 1246,
+        "startChar": 45,
+        "endLine": 1246,
+        "endChar": 52
+      },
+      "revId": "67a66c45dd20584d127999f03d222a5f35bc3599",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
