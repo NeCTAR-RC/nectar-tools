@@ -746,7 +746,7 @@ class ImageArchiverTests(test.TestCase):
         ia = archiver.ImageArchiver(image)
         with mock.patch.object(ia, 'g_client') as mock_image:
             ia._delete_image(image)
-            mock_image.delete.assert_not_called()
+            mock_image.images.delete.assert_called_once_with(image.id)
 
     def test_restrict_image(self):
         image = fakes.FakeImage(visibility='public', owner='123')

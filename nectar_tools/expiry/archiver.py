@@ -62,15 +62,11 @@ class ImageArchiver(Archiver):
         if image.protected:
             LOG.warn("Can't delete protected image %s", image.id)
             return
-        if image.visibility == 'private':
-            if not self.dry_run:
-                LOG.info("Deleting image %s", image.id)
-                self.g_client.images.delete(image.id)
-            else:
-                LOG.info("Would delete image %s", image.id)
+        if not self.dry_run:
+            LOG.info("Deleting image %s", image.id)
+            self.g_client.images.delete(image.id)
         else:
-            LOG.warn("Can't delete image %s visibility=%s",
-                     image.id, image.visibility)
+            LOG.info("Would delete image %s", image.id)
 
     def _restrict_image(self, image):
         LOG.debug("Found image %s", image.id)
