@@ -741,12 +741,12 @@ class ImageArchiverTests(test.TestCase):
             ia._delete_image(image)
             mock_image.images.delete.assert_called_once_with(image.id)
 
-    def test_delete_image_not_public(self):
+    def test_delete_image_public(self):
         image = fakes.FakeImage(visibility='public', owner='123')
         ia = archiver.ImageArchiver(image)
         with mock.patch.object(ia, 'g_client') as mock_image:
             ia._delete_image(image)
-            mock_image.delete.assert_not_called()
+            mock_image.images.delete.assert_called_once_with(image.id)
 
     def test_restrict_image(self):
         image = fakes.FakeImage(visibility='public', owner='123')
@@ -782,34 +782,32 @@ class ImageArchiverTests(test.TestCase):
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ProjectImagesArchiverTests(test.TestCase):
 
-    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._delete_image')
-    def test_delete_resources(self, mock_delete):
+    def test_delete_resources(self):
         project = fakes.FakeProject(id='123')
         pia = archiver.ProjectImagesArchiver(project)
-        image1 = fakes.FakeImage(visibility='private', owner='123')
-        image2 = fakes.FakeImage(visibility='public', owner='123')
-        image3 = fakes.FakeImage(visibility='private', protected=True,
+        image1 = fakes.FakeImage(visibility='private', id=1, owner='123')
+        image2 = fakes.FakeImage(visibility='public', id=2, owner='123')
+        image3 = fakes.FakeImage(visibility='private', id=3, protected=True,
                                  owner='123')
         images = [image1, image2, image3]
         with mock.patch.object(pia, 'g_client') as mock_image:
             mock_image.images.list.return_value = images
             pia.delete_resources(force=True)
-            self.assertEqual(mock_delete.call_count, 3)
+            mock_image.images.delete.assert_has_calls([mock.call(image1.id)])
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._restrict_image')
-    def test_restrict_resources(self, mock_restrict):
+    def test_restrict_resources(self):
         project = fakes.FakeProject(id='123')
         pia = archiver.ProjectImagesArchiver(project)
-        image1 = fakes.FakeImage(visibility='private', project_id='123')
-        image2 = fakes.FakeImage(visibility='public', project_id='123')
-        image3 = fakes.FakeImage(visibility='private', protected=True,
+        image1 = fakes.FakeImage(visibility='private', id=1, project_id='123')
+        image2 = fakes.FakeImage(visibility='public', id=2, project_id='123')
+        image3 = fakes.FakeImage(visibility='private', id=3, protected=True,
                                  project_id='123')
         images = [image1, image2, image3]
         with mock.patch.object(pia, 'g_client') as mock_image:
             mock_image.images.list.return_value = images
             pia.restrict_resources(force=True)
-            self.assertEqual(mock_restrict.call_count, 3)
+            mock_image.images.update.assert_has_calls(
+                [mock.call(image2.id, visibility='private')])
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
