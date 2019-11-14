@@ -349,6 +349,7 @@ class ProvisionerTests(test.TestCase):
                 description=self.allocation.project_description,
                 allocation_id=self.allocation.id,
                 compute_zones='tasmania,tasmania-s',
+                zone_expiry_status='',
                 )
 
     def test_grant_owner_roles(self):

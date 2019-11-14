@@ -852,6 +852,9 @@ class AllocationInstanceExpirer(AllocationExpirer):
         return start_date + relativedelta(days=60)
 
     def should_process(self):
+        if self.project.zone_expiry_status == expiry_states.SKIPPED:
+            return False
+
         # if allocation changes to national, expiry should not continue
         # if there is ongoing expiry process, finish it up
         if not self.project.compute_zones:
@@ -887,6 +890,8 @@ class AllocationInstanceExpirer(AllocationExpirer):
             return True
 
         if not self.should_process():
+            if zone_expiry_status != expiry_states.SKIPPED:
+                self._update_resource(zone_expiry_status=expiry_states.SKIPPED)
             return False
 
         LOG.debug("%s: Processing out of zone instances project=%s "

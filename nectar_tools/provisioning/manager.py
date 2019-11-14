@@ -176,6 +176,8 @@ class ProvisioningManager(object):
                  allocation.project_id)
 
         metadata = self.get_project_metadata(allocation)
+        if metadata.get('compute_zones'):
+            metadata.update(zone_expiry_status='')
         project = self.k_client.projects.update(allocation.project_id,
                                                 **metadata)
         return project

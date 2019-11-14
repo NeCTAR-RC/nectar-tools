@@ -18,6 +18,8 @@ RENEWED = 'renewed'
 
 ADMIN = 'admin'
 
+SKIPPED = 'skipped'
+
 
 # Deprecated States
 QUOTA_WARNING = 'quota warning'
