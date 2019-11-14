@@ -30,14 +30,15 @@ class AllocationInstanceExpiryCmd(base.ProjectExpiryBaseCmd):
     def print_status(self):
         pt = prettytable.PrettyTable(['Name', 'Project ID', 'Allocation Zones',
                                       'Expiry date', 'Expiry status',
-                                      'Ticket ID'])
+                                      'Ticket ID', 'Instance Clear'])
         for project in self.projects:
             if self.valid_project(project):
                 self.project_zones_set_defaults(project)
                 pt.add_row([project.name, project.id, project.compute_zones,
                             project.zone_expiry_next_step,
                             project.zone_expiry_status,
-                            project.zone_expiry_ticket_id])
+                            project.zone_expiry_ticket_id,
+                            project.zone_instance_clear])
         print(pt)
 
     @staticmethod
@@ -49,6 +50,8 @@ class AllocationInstanceExpiryCmd(base.ProjectExpiryBaseCmd):
             project, 'zone_expiry_next_step', None)
         project.zone_expiry_ticket_id = getattr(
             project, 'zone_expiry_ticket_id', None)
+        project.zone_instance_clear = getattr(
+            project, 'zone_instance_clear', None)
 
 
 def main():

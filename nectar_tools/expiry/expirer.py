@@ -833,6 +833,8 @@ class AllocationInstanceExpirer(AllocationExpirer):
             'zone_expiry_next_step', '')
         self.project.zone_expiry_ticket_id = getattr(self.project,
             'zone_expiry_ticket_id', '0')
+        self.project.zone_instance_clear = getattr(self.project,
+            'zone_instance_clear', False)
 
     def _get_notification_context(self):
         context = super(AllocationInstanceExpirer,
@@ -851,6 +853,11 @@ class AllocationInstanceExpirer(AllocationExpirer):
                                                 DATE_FORMAT)
         return start_date + relativedelta(days=60)
 
+    def set_instance_clear(self, clear=True):
+        if self.project.compute_zones and not self.instances:
+            if self.project.zone_instance_clear != clear:
+                self._update_resource(zone_instance_clear=clear)
+
     def should_process(self):
         # if allocation changes to national, expiry should not continue
         # if there is ongoing expiry process, finish it up
@@ -860,7 +867,11 @@ class AllocationInstanceExpirer(AllocationExpirer):
                self.project.zone_expiry_next_step != '':
                 self.finish_expiry(
                     message='Out-of-zone instances expiry is complete')
+            self.set_instance_clear(clear=False)
             return False
+        else:
+            if self.project.zone_instance_clear:
+                return False
 
         # (rocky) if user moves instances away when the project in 'archiving'
         # or 'archived' we should continue to delete the archives.
@@ -872,6 +883,7 @@ class AllocationInstanceExpirer(AllocationExpirer):
                self.project.zone_expiry_next_step != '':
                 self.finish_expiry(
                     message='Out-of-zone instances expiry is complete')
+            self.set_instance_clear()
             return False
         return True
 
