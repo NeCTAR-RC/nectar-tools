@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8e0de954_8b7f48a4",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-11-14T22:33:11Z",
+      "side": 1,
+      "message": "instead of overriding this method could put this logic below in delete_resources, think it makes more sense to be in there",
+      "range": {
+        "startLine": 551,
+        "startChar": 0,
+        "endLine": 553,
+        "endChar": 48
+      },
+      "revId": "4ea9b993044f2ff7f19ef60798d556efc14d9935",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
