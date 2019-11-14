@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "e65f7f1e_bb362ff6",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-11-14T05:33:53Z",
+      "side": 1,
+      "message": "this will affect ProjectImagesArchiver so I think that logic needs to move to that class if not needed here?",
+      "revId": "6ccef8ad03ae13027dbd799a78f66b3f33b527a2",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
