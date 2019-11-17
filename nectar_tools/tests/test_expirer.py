@@ -995,7 +995,7 @@ class PTExpiryTests(test.TestCase):
             self.assertTrue(processed)
 
     def test_process_archived(self, mock_session):
-        project = FakeProjectWithOwner(expiry_status='archived',
+        project = FakeProjectWithOwner(expiry_status=expiry_states.ARCHIVED,
                                        expiry_next_step=BEFORE)
         ex = expirer.PTExpirer(project)
         with mock.patch.object(ex, 'delete_project') as mock_delete:
@@ -1004,7 +1004,7 @@ class PTExpiryTests(test.TestCase):
             self.assertTrue(processed)
 
     def test_process_archived_not_next_step(self, mock_session):
-        project = FakeProjectWithOwner(expiry_status='archived',
+        project = FakeProjectWithOwner(expiry_status=expiry_states.ARCHIVED,
                                        expiry_next_step=AFTER)
         ex = expirer.PTExpirer(project)
         with mock.patch.object(ex, 'delete_resources') as mock_delete:
@@ -1013,8 +1013,9 @@ class PTExpiryTests(test.TestCase):
             self.assertFalse(processed)
 
     def test_process_archive_error(self, mock_session):
-        project = FakeProjectWithOwner(expiry_status='archive error',
-                              expiry_next_step=BEFORE)
+        project = FakeProjectWithOwner(
+            expiry_status=expiry_states.ARCHIVE_ERROR,
+            expiry_next_step=BEFORE)
         ex = expirer.PTExpirer(project)
         with mock.patch.object(ex, 'delete_project') as mock_delete:
             processed = ex.process()
@@ -1022,8 +1023,8 @@ class PTExpiryTests(test.TestCase):
             self.assertTrue(processed)
 
     def test_process_suspended(self, mock_session):
-        project = FakeProjectWithOwner(expiry_status='suspended',
-                              expiry_next_step=BEFORE)
+        project = FakeProjectWithOwner(expiry_status=expiry_states.SUSPENDED,
+                                       expiry_next_step=BEFORE)
         ex = expirer.PTExpirer(project)
         with mock.patch.object(ex, 'archive_project') as mock_archive:
             processed = ex.process()
@@ -1095,7 +1096,7 @@ class PTExpiryTests(test.TestCase):
             next_step = datetime.datetime.now() + relativedelta(days=18)
             next_step = next_step.strftime(expirer.DATE_FORMAT)
             mock_update_resource.assert_called_with(
-                expiry_status='quota warning',
+                expiry_status=expiry_states.QUOTA_WARNING,
                 expiry_next_step=next_step)
 
     def test_notify_at_limit(self, mock_session):
@@ -1115,13 +1116,14 @@ class PTExpiryTests(test.TestCase):
             mock_notification.assert_called_with('second-warning')
             mock_event.assert_called_once_with('second-warning')
             mock_update_resource.assert_called_with(
-                expiry_status='pending suspension',
+                expiry_status=expiry_states.PENDING_SUSPENSION,
                 expiry_next_step=new_expiry)
             mock_archiver.zero_quota.assert_called_with()
 
     def test_notify_over_limit(self, mock_session):
-        project = FakeProjectWithOwner(expiry_status='pending suspension',
-                              expiry_next_step='2014-01-01')
+        project = FakeProjectWithOwner(
+            expiry_status=expiry_states.PENDING_SUSPENSION,
+            expiry_next_step='2014-01-01')
         ex = expirer.PTExpirer(project)
         new_expiry = datetime.datetime.now() + relativedelta(days=30)
         new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
@@ -1137,7 +1139,7 @@ class PTExpiryTests(test.TestCase):
             mock_notification.assert_called_with('suspended')
             mock_event.assert_called_once_with('suspended')
             mock_update_resource.assert_called_with(
-                expiry_status='suspended',
+                expiry_status=expiry_states.SUSPENDED,
                 expiry_next_step=new_expiry)
             mock_archiver.zero_quota.assert_called_with()
             mock_archiver.stop_resources.assert_called_with()
