@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "26b3ef6e_6502567e",
+        "filename": "nectar_tools/tests/test_archiver.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 744,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-11-17T23:15:18Z",
+      "side": 1,
+      "message": "think this name should be test_delete_image_public",
+      "range": {
+        "startLine": 744,
+        "startChar": 26,
+        "endLine": 744,
+        "endChar": 36
+      },
+      "revId": "15e72794eb3a9a4c57165520b3f7ddcfdaad07d4",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
