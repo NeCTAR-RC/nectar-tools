@@ -43,8 +43,8 @@ Affected instances:
 </table>
 {% endif %}
 <br />
-{% if allocation.approver_comment %}Approver comment:
-{{ allocation.approver_comment|safe }}{% endif %}
+{% if allocation.status_explanation %}Approver comment:
+{{ allocation.status_explanation|safe }}{% endif %}
 <br />
 Allocation ID: {{ allocation.id }}
 <br />
