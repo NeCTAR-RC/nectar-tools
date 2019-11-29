@@ -75,7 +75,7 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
                      self.project.id)
 
         if self.project.enabled:
-            if expiry_status != expiry_states.DELETED:
+            if expiry_status == expiry_states.DELETED:
                 LOG.info("%s: Expiry deleted project is not disabled",
                          self.project.id)
             elif allocation.status == allocation_states.DELETED:
