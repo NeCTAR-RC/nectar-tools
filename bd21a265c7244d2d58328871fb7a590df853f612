@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85543446_493bfc65",
+        "filename": "nectar_tools/audit/cmd/project_base.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2019-12-02T03:49:04Z",
+      "side": 1,
+      "message": "I think this needs to change to be the opposite of include-disabled then can get rid of the other elif?",
+      "range": {
+        "startLine": 28,
+        "startChar": 59,
+        "endLine": 28,
+        "endChar": 63
+      },
+      "revId": "bd21a265c7244d2d58328871fb7a590df853f612",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
