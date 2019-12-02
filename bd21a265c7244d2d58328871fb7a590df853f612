@@ -22,6 +22,30 @@
       "revId": "bd21a265c7244d2d58328871fb7a590df853f612",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6361105c_946c557a",
+        "filename": "nectar_tools/audit/cmd/project_base.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-12-02T04:41:41Z",
+      "side": 1,
+      "message": "Won\u0027t that *only* show the disabled projects?  The idea is to audit both deleted and undeleted projects.",
+      "parentUuid": "85543446_493bfc65",
+      "range": {
+        "startLine": 28,
+        "startChar": 59,
+        "endLine": 28,
+        "endChar": 63
+      },
+      "revId": "bd21a265c7244d2d58328871fb7a590df853f612",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
