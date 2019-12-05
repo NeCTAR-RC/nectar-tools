@@ -22,9 +22,8 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
         file_level = 'DEBUG'
     if CONF.args.quiet:
         console_level = None
-    if CONF.args.use_syslog:
+    if CONF.args.use_syslog or CONF.logging.use_syslog:
         use_syslog = True
-
     # When set via config this comes in as a string
     use_syslog = bool(use_syslog)
 
@@ -34,6 +33,9 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
         'formatters': {
             'simple': {
                 'format': log_format,
+            },
+            'rsyslog': {
+                'format': '%(filename)s: ' + log_format,
             },
         },
         'handlers': {
@@ -54,7 +56,7 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
             'syslog': {
                 'level': file_level,
                 'class': 'logging.handlers.SysLogHandler',
-                'formatter': 'simple',
+                'formatter': 'rsyslog',
                 'address': '/dev/log',
             },
         },
