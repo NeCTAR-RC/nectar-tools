@@ -22,7 +22,15 @@ def get_compute_zones(session, allocation):
     """
     a_client = auth.get_allocation_client(session)
     zone_map = a_client.zones.compute_homes()
-    return zone_map.get(allocation.allocation_home, [])
+    if allocation.national:
+        return []
+    elif allocation.associated_site is not None:
+        return zone_map.get(allocation.associated_site, [])
+    else:
+        # This should not happen.  A local allocation should always
+        # have a non-null associated site.  If it does happen, we
+        # treat it like a national allocation.
+        return []
 
 
 def get_out_of_zone_instances(session, allocation, project):
