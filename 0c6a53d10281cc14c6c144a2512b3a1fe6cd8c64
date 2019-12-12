@@ -22,6 +22,30 @@
       "revId": "0c6a53d10281cc14c6c144a2512b3a1fe6cd8c64",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bdb87ad_af4b8d70",
+        "filename": "nectar_tools/utils.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2019-12-12T01:44:05Z",
+      "side": 1,
+      "message": "I see your point.  However, by \"breaking out\" the logic, it makes it easier to explain the edge case.  (And maybe write a log message ... at some point.)",
+      "parentUuid": "f99744aa_a3388d8f",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 33,
+        "endChar": 17
+      },
+      "revId": "0c6a53d10281cc14c6c144a2512b3a1fe6cd8c64",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
