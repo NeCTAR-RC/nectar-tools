@@ -18,7 +18,9 @@ class UtilsTests(test.TestCase):
         super(UtilsTests, self).setUp(*args, **kwargs)
         self.allocation = fakes.get_allocation()
 
-    def test_get_compute_zones(self):
+    def test_get_compute_zones_national(self):
+        self.allocation.associated_site = 'monash'
+        self.allocation.national = True
         with mock.patch.object(auth, 'get_allocation_client') \
              as mock_get_client:
             a_client = mock_get_client.return_value
@@ -26,14 +28,36 @@ class UtilsTests(test.TestCase):
             zones = utils.get_compute_zones(None, self.allocation)
             self.assertEqual([], zones)
 
+    def test_get_compute_zones_local(self):
+        self.allocation.associated_site = 'qcif'
+        self.allocation.national = False
+        with mock.patch.object(auth, 'get_allocation_client') \
+             as mock_get_client:
+            a_client = mock_get_client.return_value
+            a_client.zones.compute_homes.return_value = fakes.COMPUTE_HOMES
+            zones = utils.get_compute_zones(None, self.allocation)
+            self.assertEqual(['QRIScloud'], zones)
+
     def test_get_compute_zones_multiple(self):
-        self.allocation.allocation_home = 'monash'
+        self.allocation.associated_site = 'monash'
+        self.allocation.national = False
         with mock.patch.object(auth, 'get_allocation_client') \
              as mock_get_client:
             a_client = mock_get_client.return_value
             a_client.zones.compute_homes.return_value = fakes.COMPUTE_HOMES
             zones = utils.get_compute_zones(None, self.allocation)
             self.assertEqual(['monash-01', 'monash-02', 'monash-03'], zones)
+
+    def test_get_compute_zones_local_no_site(self):
+        # Test for anomalous 'associated_site' setting ...
+        self.allocation.associated_site = None
+        self.allocation.national = False
+        with mock.patch.object(auth, 'get_allocation_client') \
+             as mock_get_client:
+            a_client = mock_get_client.return_value
+            a_client.zones.compute_homes.return_value = fakes.COMPUTE_HOMES
+            zones = utils.get_compute_zones(None, self.allocation)
+            self.assertEqual([], zones)
 
     def test_get_out_of_zone_instances_no_instances(self):
         project = fakes.FakeProject()
