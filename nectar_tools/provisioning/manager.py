@@ -60,6 +60,9 @@ class ProvisioningManager(object):
             if not self.force:
                 raise exceptions.InvalidProjectAllocation(
                     "Allocation already provisioned")
+        if allocation.parent_request:
+            raise exceptions.InvalidProjectAllocation(
+                "Allocation is historical")
         LOG.info("%s: Provisioning %s", allocation.id, allocation.project_name)
         project = None
         if allocation.project_id:

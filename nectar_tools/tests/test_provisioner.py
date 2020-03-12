@@ -90,6 +90,26 @@ class ProvisionerTests(test.TestCase):
             mock_notify.assert_not_called()
             mock_send_event.assert_not_called()
 
+    def test_provision_historical(self):
+        self.allocation.parent_request = 123
+        self.allocation.project_id = PROJECT.id
+
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'set_quota'),
+            mock.patch.object(self.manager, 'notify_provisioned'),
+            mock.patch.object(self.manager, 'send_event'),
+        ) as (mock_keystone, mock_quota, mock_notify, mock_send_event):
+            mock_keystone.projects.get.side_effect = \
+             keystone_exc.http.NotFound()
+            with testfixtures.ShouldRaise(
+                exceptions.InvalidProjectAllocation(
+                    "Allocation is historical")):
+                self.manager.provision(self.allocation)
+            mock_quota.assert_not_called()
+            mock_notify.assert_not_called()
+            mock_send_event.assert_not_called()
+
     def test_provision_force(self):
         self.manager.force = True
         self.allocation.provisioned = True

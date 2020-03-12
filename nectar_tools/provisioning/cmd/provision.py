@@ -28,7 +28,8 @@ class ProvisionCmd(cmd_base.CmdBase):
 
     def provision_all_pending(self):
         allocations = self.manager.client.allocations.list(
-            status=states.APPROVED, provisioned=False)
+            status=states.APPROVED, provisioned=False,
+            parent_request__isnull=True)
         for allocation in allocations:
             try:
                 self.provision_allocation(allocation.id)
