@@ -575,6 +575,7 @@ class ProjectImagesArchiver(ImageArchiver):
 class SwiftArchiver(Archiver):
 
     SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
+    SWIFT_MAX_RESULTS = 1000
 
     def __init__(self, project, ks_session=None, dry_run=False):
         super(SwiftArchiver, self).__init__(ks_session, dry_run)
@@ -600,13 +601,16 @@ class SwiftArchiver(Archiver):
                 LOG.warn("%s: Ignoring container %s due to read_acl %s",
                          self.project.id, c['name'], read_acl)
                 continue
-            self._delete_container(c, objects)
+            self._delete_objects(c)
+            self._delete_container(c)
 
-    def _delete_container(self, container, objects):
+    def _delete_objects(self, container):
+        container_stat, objects = self.s_client.get_container(
+            container['name'])
         for obj in objects:
             if not self.dry_run:
-                LOG.info("%s: Deleting object %s/%s", self.project.id,
-                         container['name'], obj['name'])
+                LOG.debug("%s: Deleting object %s/%s", self.project.id,
+                          container['name'], obj['name'])
                 try:
                     self.s_client.delete_object(container['name'], obj['name'])
                 except Exception:
@@ -615,6 +619,10 @@ class SwiftArchiver(Archiver):
             else:
                 LOG.info("%s: Would delete object %s/%s", self.project.id,
                          container['name'], obj['name'])
+        if len(objects) >= SwiftArchiver.SWIFT_MAX_RESULTS:
+            self._delete_objects(container)
+
+    def _delete_container(self, container):
         if not self.dry_run:
             LOG.info("%s: Deleting container %s", self.project.id,
                      container['name'])
