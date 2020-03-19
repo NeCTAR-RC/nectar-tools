@@ -18,16 +18,18 @@ CONF = config.CONFIG
 @mock.patch('freshdesk.v2.api.API', new=fake_clients.FAKE_FD_API_CLASS)
 @mock.patch('nectar_tools.auth.get_session', new=fake_clients.FAKE_GET_SESSION)
 @mock.patch('nectar_tools.auth.get_designate_client',
-    new=fake_clients.get_designate)
+            new=fake_clients.get_designate)
 @mock.patch('nectar_tools.auth.get_nova_client', new=fake_clients.get_nova)
 @mock.patch('nectar_tools.auth.get_cinder_client', new=fake_clients.get_cinder)
 @mock.patch('nectar_tools.auth.get_swift_client', new=fake_clients.get_swift)
 @mock.patch('nectar_tools.auth.get_neutron_client',
-    new=fake_clients.get_neutron)
+            new=fake_clients.get_neutron)
 @mock.patch('nectar_tools.auth.get_trove_client', new=fake_clients.get_trove)
 @mock.patch('nectar_tools.auth.get_manila_client', new=fake_clients.get_manila)
 @mock.patch('nectar_tools.auth.get_keystone_client',
-    new=fake_clients.get_keystone)
+            new=fake_clients.get_keystone)
+@mock.patch('nectar_tools.auth.get_openstacksdk',
+            new=fake_clients.get_openstacksdk)
 @mock.patch('nectar_tools.auth.get_allocation_client')
 class ProvisionerTests(test.TestCase):
 
