@@ -5,6 +5,7 @@ from unittest import mock
 from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
 import novaclient
+import openstack
 
 from nectar_tools import config
 from nectar_tools import exceptions
@@ -713,3 +714,27 @@ class ProvisionerTests(test.TestCase):
                           'router': 2, 'loadbalancer': 2}}
         neutron_client.update_quota.assert_called_once_with(
             self.allocation.project_id, body)
+
+    @mock.patch('nectar_tools.auth.get_openstacksdk')
+    def test_set_octavia_quota(self, mock_sdk):
+        client = mock.Mock()
+        mock_sdk.return_value = client
+
+        with test.nested(
+                mock.patch.object(self.allocation,
+                                  'get_allocated_octavia_quota'),
+                mock.patch('nectar_tools.provisioning.manager.lb_quota')
+        ) as (mock_allocated, mock_quota):
+
+            mock_allocated.return_value = {'load_balancers': 2}
+            quota_obj = mock.Mock()
+            mock_quota.Quota.return_value = quota_obj
+
+            self.manager.set_octavia_quota(self.allocation)
+
+            mock_quota.Quota.assert_called_once_with(
+                id=self.allocation.project_id, load_balancers=2)
+            client.load_balancer.delete_quota.assert_called_once_with(
+                self.allocation.project_id)
+            client.load_balancer.update_quota.assert_called_once_with(
+                quota_obj)
