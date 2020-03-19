@@ -1,8 +1,11 @@
 from unittest import mock
 
+from openstack.load_balancer.v2 import quota as lb_quota
+
 
 FAKE_DESIGNATE = mock.MagicMock()
 FAKE_KEYSTONE = mock.MagicMock()
+FAKE_OPENSTACKSDK = mock.MagicMock()
 FAKE_FD_API = mock.MagicMock()
 FAKE_FD_API_CLASS = mock.MagicMock(return_value=FAKE_FD_API)
 FAKE_GET_SESSION = mock.MagicMock()
@@ -101,6 +104,24 @@ class ManilaClient(object):
         self.share_types = self.ShareTypes()
 
 
+class Openstack(object):
+
+    fake_quota = lb_quota.Quota(id='fake', load_balancers=10)
+
+    class LoadBalancer(object):
+        def get_quota(self, project_id):
+            return Openstack.fake_quota
+
+        def delete_quota(self, project_id):
+            return
+
+        def update_quota(self, quota):
+            return Openstack.fake_quota
+
+    def __init__(self):
+        self.load_balancer = self.LoadBalancer()
+
+
 def get_keystone(session):
     return FAKE_KEYSTONE
 
@@ -135,3 +156,7 @@ def get_designate(sess, project_id):
 
 def get_manuka(session):
     return FAKE_MANUKA
+
+
+def get_openstacksdk(sess):
+    return Openstack()

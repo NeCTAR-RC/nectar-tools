@@ -7,6 +7,7 @@ from keystoneauth1 import exceptions as keystone_exc
 from nectarallocationclient import client
 import neutronclient
 import novaclient
+from openstack.load_balancer.v2 import quota as lb_quota
 from oslo_context import context
 import oslo_messaging
 import prettytable
@@ -280,6 +281,7 @@ class ProvisioningManager(object):
                    'manila.snapshot_gigabytes',
                    'nova.flavor:compute-v3',
                    'nova.flavor:memory-v3',
+                   'neutron.loadbalancer',
                ]
         resource_map = {
             'nova.instances': 'Instances',
@@ -300,7 +302,7 @@ class ProvisioningManager(object):
             'neutron.network': "Networks",
             'neutron.router': "Routers",
             'neutron.floatingip': "Floating IPs",
-            'neutron.loadbalancer': "Load Balancers",
+            'octavia.load_balancers': "Load Balancers",
             'manila.gigabytes_QRIScloud-GPFS':
                 'Shared Filesystem Storage QRIScloud (GB)',
             'manila.snapshot_gigabytes_QRIScloud-GPFS':
@@ -330,6 +332,8 @@ class ProvisioningManager(object):
                          'trove', current)
             _prefix_dict(self.get_current_manila_quota(allocation),
                          'manila', current)
+            _prefix_dict(self.get_current_octavia_quota(allocation),
+                         'octavia', current)
 
         _prefix_dict(allocation.get_allocated_nova_quota(),
                      'nova', allocated)
@@ -343,6 +347,8 @@ class ProvisioningManager(object):
                      'trove', allocated)
         _prefix_dict(allocation.get_allocated_manila_quota(),
                      'manila', allocated)
+        _prefix_dict(allocation.get_allocated_octavia_quota(),
+                     'octavia', allocated)
 
         table = prettytable.PrettyTable(
             ["Resource", "Current", "Allocated", "Diff"])
@@ -574,4 +580,26 @@ class ProvisioningManager(object):
                     body['quota'][quota] = current_quota[quota]
             client.update_quota(allocation.project_id, body)
             LOG.info("%s: Set Neutron Quota: %s", allocation.id,
+                     allocated_quota)
+
+    def get_current_octavia_quota(self, allocation):
+        if not allocation.project_id:
+            return {}
+        client = auth.get_openstacksdk(self.ks_session)
+        return client.load_balancer.get_quota(allocation.project_id)
+
+    def set_octavia_quota(self, allocation):
+        allocated_quota = allocation.get_allocated_octavia_quota()
+        if self.noop:
+            LOG.info("%s: Would set Octavia Quota: %s", allocation.id,
+                     allocated_quota)
+            return
+
+        client = auth.get_openstacksdk(self.ks_session)
+        client.load_balancer.delete_quota(allocation.project_id)
+
+        if allocated_quota:
+            quota = lb_quota.Quota(id=allocation.project_id, **allocated_quota)
+            client.load_balancer.update_quota(quota)
+            LOG.info("%s: Set Octavia Quota: %s", allocation.id,
                      allocated_quota)
