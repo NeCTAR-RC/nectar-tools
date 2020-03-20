@@ -557,6 +557,29 @@ class NeutronArchiverTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
+class OctaviaArchiverTests(test.TestCase):
+
+    def test_zero_quotas(self):
+        oa = archiver.OctaviaArchiver(PROJECT)
+        with mock.patch.object(oa, 'lb_client') as mock_octavia:
+            oa.zero_quota()
+            mock_octavia.delete_quota.assert_called_once_with()
+
+    def test_delete_resources(self):
+        oa = archiver.OctaviaArchiver(PROJECT)
+        lb1 = mock.Mock()
+        lb2 = mock.Mock()
+        with mock.patch.object(oa, 'lb_client') as mock_octavia:
+            mock_octavia.load_balancers.return_value = [lb1, lb2]
+
+            oa.delete_resources(force=True)
+
+            mock_octavia.delete_load_balancer.assert_has_calls(
+                [mock.call(lb1), mock.call(lb2)])
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class SwiftArchiverTests(test.TestCase):
 
     def test_zero_quota(self):
