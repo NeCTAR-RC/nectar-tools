@@ -39,6 +39,7 @@ class FakeProjectWithOwner(object):
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class ExpiryTests(test.TestCase):
     def setUp(self):
         super(ExpiryTests, self).setUp()
@@ -293,6 +294,7 @@ class ExpiryTests(test.TestCase):
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class ProjectExpirerTests(test.TestCase):
     def setUp(self):
         super(ProjectExpirerTests, self).setUp()
@@ -525,6 +527,7 @@ class ProjectExpirerTests(test.TestCase):
 @mock.patch('nectarallocationclient.v1.allocations.AllocationManager',
             new=fakes.FakeAllocationManager)
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class AllocationExpiryTests(test.TestCase):
 
     def test_init(self):
