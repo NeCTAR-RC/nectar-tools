@@ -456,8 +456,10 @@ class AllocationExpirer(ProjectExpirer):
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  force_no_allocation=False, force_delete=False,
-                 disable_project=True, archivers=['nova', 'cinder', 'neutron',
-                 'projectimages', 'swift'], template_dir='allocations',
+                 disable_project=True,
+                 archivers=['nova', 'cinder', 'octavia', 'neutron',
+                            'projectimages', 'swift'],
+                 template_dir='allocations',
                  subject='Nectar Project Allocation Renewal - '):
 
         notifier = expiry_notifier.ExpiryNotifier(
