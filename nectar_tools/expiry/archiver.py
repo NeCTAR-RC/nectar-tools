@@ -541,6 +541,32 @@ class NeutronArchiver(NeutronBasicArchiver):
                          router['id'])
 
 
+class OctaviaArchiver(Archiver):
+
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super().__init__(ks_session, dry_run)
+        self.lb_client = auth.get_openstacksdk(ks_session).load_balancer
+        self.project = project
+
+    def zero_quota(self):
+        if not self.dry_run:
+            LOG.info("%s: Zero octavia quota", self.project.id)
+            self.lb_client.delete_quota()
+        else:
+            LOG.info("%s: Would zero octavia quota", self.project.id)
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+        lbs = self.lb_client.load_balancers(project_id=self.project.id)
+        for lb in lbs:
+            if not self.dry_run:
+                LOG.info("%s: Deleting LB %s", self.project.id, lb.id)
+                self.lb_client.delete_load_balancer(lb)
+            else:
+                LOG.info("%s: Would delete LB %s", self.project.id, lb.id)
+
+
 class ProjectImagesArchiver(ImageArchiver):
 
     def __init__(self, project, ks_session=None, dry_run=False):
@@ -712,12 +738,15 @@ class ResourceArchiver(object):
     def __init__(self, project, archivers, ks_session=None, dry_run=False):
         enabled = []
         # project scope archiver, could be multiple archivers
+        # Ordering here can matter (eg. octavia goes before neutron)
         if 'nova' in archivers:
             enabled.append(NovaArchiver(project, ks_session, dry_run))
         if 'zoneinstance' in archivers:
             enabled.append(ZoneInstanceArchiver(project, ks_session, dry_run))
         if 'cinder' in archivers:
             enabled.append(CinderArchiver(project, ks_session, dry_run))
+        if 'octavia' in archivers:
+            enabled.append(OctaviaArchiver(project, ks_session, dry_run))
         if 'neutron_basic' in archivers:
             enabled.append(NeutronBasicArchiver(project, ks_session, dry_run))
         if 'neutron' in archivers:
