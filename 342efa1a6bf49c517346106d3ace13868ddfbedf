@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fd671447_a47ed530",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 593,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2020-03-23T22:50:15Z",
+      "side": 1,
+      "message": "is there any reason why we delete quota regardless? it\u0027s an extra API request if we are just updating.",
+      "range": {
+        "startLine": 593,
+        "startChar": 0,
+        "endLine": 593,
+        "endChar": 64
+      },
+      "revId": "342efa1a6bf49c517346106d3ace13868ddfbedf",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
