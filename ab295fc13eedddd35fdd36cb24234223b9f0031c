@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fe97927d_5720e9ac",
+        "filename": "nectar_tools/templates/images/stop.tmpl",
+        "patchSetId": 18
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2020-03-30T04:36:40Z",
+      "side": 1,
+      "message": "typo, image not imaged",
+      "revId": "ab295fc13eedddd35fdd36cb24234223b9f0031c",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
