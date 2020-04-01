@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "207213ac_ef1a8c7f",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 19
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-04-01T00:59:11Z",
+      "side": 1,
+      "message": "this method needs to be defined in the parent class. A better name for the method would be \"start_resources\" (opposite of stop)",
+      "range": {
+        "startLine": 133,
+        "startChar": 8,
+        "endLine": 133,
+        "endChar": 24
+      },
+      "revId": "99a1e9d80ac758fd85a179634eddd59b7496d29d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8ab59707_ea57d637",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 19
+      },
+      "lineNbr": 256,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-04-01T00:59:11Z",
+      "side": 1,
+      "message": "instead of passing self in here it should have\n\n@staticmethod\ndef get_expiry_date():",
+      "range": {
+        "startLine": 256,
+        "startChar": 4,
+        "endLine": 256,
+        "endChar": 30
+      },
+      "revId": "99a1e9d80ac758fd85a179634eddd59b7496d29d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "53a9a5f2_e4c624af",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 19
+      },
+      "lineNbr": 967,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-04-01T00:59:11Z",
+      "side": 1,
+      "message": "should use self.STATUS_KEY here and below",
+      "range": {
+        "startLine": 967,
+        "startChar": 25,
+        "endLine": 967,
+        "endChar": 46
+      },
+      "revId": "99a1e9d80ac758fd85a179634eddd59b7496d29d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "49cc050f_d9967d40",
+        "filename": "nectar_tools/notifier.py",
+        "patchSetId": 19
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-04-01T00:59:11Z",
+      "side": 1,
+      "message": "as discussed",
+      "range": {
+        "startLine": 44,
+        "startChar": 15,
+        "endLine": 44,
+        "endChar": 22
+      },
+      "revId": "99a1e9d80ac758fd85a179634eddd59b7496d29d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
