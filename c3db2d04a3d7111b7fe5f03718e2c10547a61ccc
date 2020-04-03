@@ -16,6 +16,24 @@
       "revId": "c3db2d04a3d7111b7fe5f03718e2c10547a61ccc",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3dcd832_c8b767d0",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 20
+      },
+      "lineNbr": 825,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2020-04-03T05:56:11Z",
+      "side": 1,
+      "message": "ImageExpirer will directly call ImageArchiver instead of ResourceArchiver, so it should be all right that the start_resource function is not added here. Or you intended to add it to other archiver classes?",
+      "parentUuid": "2dc35131_fcc3c27c",
+      "revId": "c3db2d04a3d7111b7fe5f03718e2c10547a61ccc",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
