@@ -22,6 +22,30 @@
       "revId": "d717c6c68e665e3383d1b9f1bc68dbca0922fa57",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "174c3c7a_dd4f8d0d",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 609,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-04-06T06:57:15Z",
+      "side": 1,
+      "message": "We don\u0027t really need \u003e\u003eany\u003c\u003c comments :-)",
+      "parentUuid": "7ea5c4e8_56d7b6c8",
+      "range": {
+        "startLine": 608,
+        "startChar": 15,
+        "endLine": 609,
+        "endChar": 44
+      },
+      "revId": "d717c6c68e665e3383d1b9f1bc68dbca0922fa57",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
