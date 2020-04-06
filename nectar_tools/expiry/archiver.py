@@ -605,8 +605,8 @@ class SwiftArchiver(Archiver):
     def _delete_container(self, container, objects):
         for obj in objects:
             if not self.dry_run:
-                LOG.info("%s: Deleting object %s/%s", self.project.id,
-                         container['name'], obj['name'])
+                LOG.debug("%s: Deleting object %s/%s", self.project.id,
+                          container['name'], obj['name'])
                 try:
                     self.s_client.delete_object(container['name'], obj['name'])
                 except Exception:
