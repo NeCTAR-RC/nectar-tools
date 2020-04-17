@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "0e01c058_d750e613",
+        "filename": "nectar_tools/tests/test_archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 563,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2020-04-17T06:10:12Z",
+      "side": 1,
+      "message": "-s?",
+      "revId": "a54991585b533b25a629b26d494d12c7101fa41d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
