@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "277e726f_9abaa7cf",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 565,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-04-21T23:04:59Z",
+      "side": 1,
+      "message": "need to cascade",
+      "range": {
+        "startLine": 565,
+        "startChar": 52,
+        "endLine": 565,
+        "endChar": 54
+      },
+      "revId": "69881cd5bc70c588d0b68290fd306e1e90a0dea6",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
