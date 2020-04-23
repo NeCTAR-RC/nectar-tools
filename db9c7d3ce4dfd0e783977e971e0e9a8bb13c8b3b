@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "cce0df00_5eb27e44",
+        "filename": "nectar_tools/expiry/cmd/image_expirer.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2020-04-23T02:17:38Z",
+      "side": 1,
+      "message": "So you always get hidden images even if you give a file of IDs. Is this intentional?",
+      "revId": "db9c7d3ce4dfd0e783977e971e0e9a8bb13c8b3b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
