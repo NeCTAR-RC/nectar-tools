@@ -16,6 +16,24 @@
       "revId": "db9c7d3ce4dfd0e783977e971e0e9a8bb13c8b3b",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1bb1d66b_c20313e9",
+        "filename": "nectar_tools/expiry/cmd/image_expirer.py",
+        "patchSetId": 24
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1000190
+      },
+      "writtenOn": "2020-04-23T02:36:22Z",
+      "side": 1,
+      "message": "good catch! Getting hidden images part should not be here anymore. It was from the old implementation where we change image from non-private to private during the expiry.",
+      "parentUuid": "cce0df00_5eb27e44",
+      "revId": "db9c7d3ce4dfd0e783977e971e0e9a8bb13c8b3b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
