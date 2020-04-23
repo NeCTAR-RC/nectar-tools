@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1437a0b4_135502e0",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 21
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2020-04-23T02:35:56Z",
+      "side": 1,
+      "message": "nit: it\u0027s good practice to add the units to the name - e.g., THREE_YEARS_IN_DAYS",
+      "revId": "f092f92d9a83b1e9bc0462a464f3326d5a9d584e",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
