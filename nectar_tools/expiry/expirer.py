@@ -131,8 +131,12 @@ class Expirer(object):
         context = self._get_notification_context()
         context.update(extra_context)
         recipient, extras = self._get_recipients()
-        self.notifier.send_message(stage, recipient, extra_context=context,
-                                   extra_recipients=extras)
+        if recipient:
+            self.notifier.send_message(stage, recipient, extra_context=context,
+                                       extra_recipients=extras)
+        else:
+            LOG.warn("%s: No valid recipient, skip notification!",
+                     self.resource.id)
 
     def send_event(self, event, extra_context={}):
         return

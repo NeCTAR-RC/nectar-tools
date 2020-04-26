@@ -133,6 +133,20 @@ class ExpiryTests(test.TestCase):
                 'fakestage', 'owner@fake.org', extra_context=expected_context,
                 extra_recipients=['manager1@fake.org'])
 
+    def test_send_notification_invalid_recipient(self):
+        fake_res = mock.Mock()
+        fake_res.id = 'fake_id'
+        ex = expirer.Expirer('fake_type', fake_res, notifier='fake')
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, '_get_notification_context',
+                              return_value={'foo': 'bar'}),
+            mock.patch.object(ex, '_get_recipients',
+                              return_value=(None, []))
+        ) as (mock_notifier, mock_context, mock_recipients):
+            ex._send_notification('fakestage', {'foo2': 'bar2'})
+            mock_notifier.send_message.assert_not_called()
+
     @mock.patch('nectar_tools.expiry.expirer.oslo_messaging')
     def test_send_event(self, mock_oslo_messaging):
         mock_notifier = mock.Mock()
