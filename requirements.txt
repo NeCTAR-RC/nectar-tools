@@ -1,3 +1,4 @@
+pbr
 python-dateutil
 python-designateclient
 python-keystoneclient

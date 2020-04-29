@@ -23,7 +23,8 @@ pip-log.txt
 logs/*
 
 # Unit test / coverage reports
-.coverage*
+.coverage/*
+.coverage
 .cache
 .tox
 nosetests.xml
@@ -33,7 +34,7 @@ htmlcov
 .venv/*
 cover/*
 coverage.xml
-
+.stestr/*
 # Translations
 *.mo
 

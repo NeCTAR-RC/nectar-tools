@@ -51,7 +51,7 @@ class ProvisioningManager(object):
         event_notification = {'allocation': allocation.to_dict()}
         event_notification.update(extra_context)
         if self.noop:
-            LOG.info('%s: Would send event %s' % (allocation.id, event_type))
+            LOG.info('%s: Would send event %s', allocation.id, event_type)
             return
         self.event_notifier.audit(OSLO_CONTEXT, event_type, event_notification)
 
