@@ -143,8 +143,7 @@ class Expirer(object):
 
     def _send_event(self, event_type, payload):
         if self.dry_run:
-            LOG.info('%s: Would send event %s' % (self.resource.id,
-                                                  event_type))
+            LOG.info('%s: Would send event %s', self.resource.id, event_type)
             return
         self.event_notifier.audit(OSLO_CONTEXT, event_type, payload)
 
