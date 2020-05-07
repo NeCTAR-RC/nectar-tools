@@ -704,12 +704,47 @@ class ProvisionerTests(test.TestCase):
     def test_set_neutron_quota(self, mock_neutron):
         neutron_client = mock.Mock()
         mock_neutron.return_value = neutron_client
-
+        current_quota = {'quota': {
+            'security_group': 10, 'security_group_rule': 50}}
+        neutron_client.show_quota = mock.Mock()
+        neutron_client.show_quota.return_value = current_quota
+        def_quota = {'quota': {
+            'security_group': 5, 'security_group_rule': 10}}
+        neutron_client.show_quota_default = mock.Mock()
+        neutron_client.show_quota_default.return_value = def_quota
         self.manager.set_neutron_quota(self.allocation)
-
         neutron_client.delete_quota.assert_called_once_with(
             self.allocation.project_id)
-        body = {'quota': {'floatingip': 1, 'network': 2, 'subnet': 2,
-                          'router': 2, 'loadbalancer': 2}}
+        body = {
+            'quota': {
+                'floatingip': 1, 'network': 2, 'subnet': 2,
+                'router': 2, 'loadbalancer': 2,
+                'security_group': 10, 'security_group_rule': 50
+            }
+        }
+        neutron_client.update_quota.assert_called_once_with(
+            self.allocation.project_id, body)
+
+    @mock.patch('nectar_tools.auth.get_neutron_client')
+    def test_set_neutron_quota_default_secgroup_increase(self, mock_neutron):
+        neutron_client = mock.Mock()
+        mock_neutron.return_value = neutron_client
+        current_quota = {'quota': {
+            'security_group': 10, 'security_group_rule': 50}}
+        neutron_client.show_quota = mock.Mock()
+        neutron_client.show_quota.return_value = current_quota
+        def_quota = {'quota': {
+            'security_group': 20, 'security_group_rule': 100}}
+        neutron_client.show_quota_default = mock.Mock()
+        neutron_client.show_quota_default.return_value = def_quota
+        self.manager.set_neutron_quota(self.allocation)
+        neutron_client.delete_quota.assert_called_once_with(
+            self.allocation.project_id)
+        body = {
+            'quota': {
+                'floatingip': 1, 'network': 2, 'subnet': 2,
+                'router': 2, 'loadbalancer': 2,
+            }
+        }
         neutron_client.update_quota.assert_called_once_with(
             self.allocation.project_id, body)
