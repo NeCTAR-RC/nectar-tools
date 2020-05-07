@@ -700,16 +700,24 @@ class ProvisionerTests(test.TestCase):
         manila_client.quotas.delete.assert_has_calls(delete_calls)
         manila_client.quotas.update.assert_has_calls(update_calls)
 
-    @mock.patch('nectar_tools.auth.get_neutron_client')
-    def test_set_neutron_quota(self, mock_neutron):
-        neutron_client = mock.Mock()
-        mock_neutron.return_value = neutron_client
-
-        self.manager.set_neutron_quota(self.allocation)
-
-        neutron_client.delete_quota.assert_called_once_with(
-            self.allocation.project_id)
-        body = {'quota': {'floatingip': 1, 'network': 2, 'subnet': 2,
-                          'router': 2, 'loadbalancer': 2}}
-        neutron_client.update_quota.assert_called_once_with(
-            self.allocation.project_id, body)
+    def test_set_neutron_quota(self):
+        with test.nested(
+            mock.patch.object(self.manager, 'get_current_neutron_quota'),
+            mock.patch('nectar_tools.auth.get_neutron_client')
+        ) as (mock_curr_neutron_quota, mock_neutron):
+            neutron_client = mock.Mock()
+            mock_neutron.return_value = neutron_client
+            current_quota = {'security_group': 10, 'security_group_rule': 50}
+            mock_curr_neutron_quota.return_value = current_quota
+            self.manager.set_neutron_quota(self.allocation)
+            neutron_client.delete_quota.assert_called_once_with(
+                self.allocation.project_id)
+            body = {
+                'quota': {
+                    'floatingip': 1, 'network': 2, 'subnet': 2,
+                    'router': 2, 'loadbalancer': 2,
+                    'security_group': 10, 'security_group_rule': 50
+                }
+            }
+            neutron_client.update_quota.assert_called_once_with(
+                self.allocation.project_id, body)

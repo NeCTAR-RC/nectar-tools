@@ -559,6 +559,7 @@ class ProvisioningManager(object):
             return
 
         client = auth.get_neutron_client(self.ks_session)
+        current_quota = self.get_current_neutron_quota(allocation)
         try:
             client.delete_quota(allocation.project_id)
         except neutronclient.common.exceptions.NotFound:
@@ -566,6 +567,9 @@ class ProvisioningManager(object):
 
         if allocated_quota:
             body = {'quota': allocated_quota}
+            for quota in ['security_group', 'security_group_rule']:
+                if quota in current_quota:
+                    body['quota'][quota] = current_quota[quota]
             client.update_quota(allocation.project_id, body)
             LOG.info("%s: Set Neutron Quota: %s", allocation.id,
                      allocated_quota)
