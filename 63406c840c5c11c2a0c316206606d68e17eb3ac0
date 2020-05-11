@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "163e1073_d19a4d82",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-05-11T10:15:30Z",
+      "side": 1,
+      "message": "select \u0027it\u0027? It might be me just not understanding the context, but this seems like it\u0027s missing something",
+      "range": {
+        "startLine": 61,
+        "startChar": 19,
+        "endLine": 61,
+        "endChar": 21
+      },
+      "revId": "63406c840c5c11c2a0c316206606d68e17eb3ac0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94f810d6_d28e4344",
+        "filename": "nectar_tools/templates/provisioning/base.tmpl",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-05-11T10:15:30Z",
+      "side": 1,
+      "message": "WS",
+      "range": {
+        "startLine": 65,
+        "startChar": 312,
+        "endLine": 65,
+        "endChar": 313
+      },
+      "revId": "63406c840c5c11c2a0c316206606d68e17eb3ac0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
