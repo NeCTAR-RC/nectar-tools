@@ -21,10 +21,10 @@ DAYS = 7
 TIME_DIFF = datetime.now() - timedelta(days=DAYS)
 
 
-def chunks(l, n):
-    """Yield successive n-sized chunks from l."""
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
+def chunks(seq, n):
+    """Yield successive n-sized chunks from seq."""
+    for i in range(0, len(seq), n):
+        yield seq[i:i + n]
 
 
 class InstanceAuditor(base.Auditor):
