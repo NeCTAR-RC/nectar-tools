@@ -69,6 +69,10 @@ class NeutronClient(object):
         return {'quota': {'network': 10}}
 
     @staticmethod
+    def show_quota_default(project_id):
+        return {'quota': {'network': 5}}
+
+    @staticmethod
     def delete_quota(*args, **kwargs):
         pass
 
