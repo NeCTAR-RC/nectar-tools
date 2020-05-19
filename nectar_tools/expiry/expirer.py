@@ -501,8 +501,8 @@ class AllocationExpirer(ProjectExpirer):
 
         elif expiry_status == expiry_states.ARCHIVING:
             if self.at_next_step(self.project):
-                LOG.debug("%s: Archiving longer than next step, move on",
-                          self.project.id)
+                LOG.warn("%s: Archiving longer than next step, move on",
+                         self.project.id)
                 self.set_project_archived()
             else:
                 self.check_archiving_status()
