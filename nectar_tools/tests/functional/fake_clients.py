@@ -6,6 +6,7 @@ FAKE_KEYSTONE = mock.MagicMock()
 FAKE_FD_API = mock.MagicMock()
 FAKE_FD_API_CLASS = mock.MagicMock(return_value=FAKE_FD_API)
 FAKE_GET_SESSION = mock.MagicMock()
+FAKE_MANUKA = mock.MagicMock()
 SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
 
@@ -130,3 +131,7 @@ def get_manila(session):
 
 def get_designate(sess, project_id):
     return FAKE_DESIGNATE
+
+
+def get_manuka(session):
+    return FAKE_MANUKA

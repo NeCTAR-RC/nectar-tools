@@ -8,6 +8,7 @@ from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client
 from manilaclient import client as manilaclient
+from manukaclient import client as manukaclient
 from muranoclient import client as muranoclient
 from nectarallocationclient import client as allocationclient
 from neutronclient.neutron import client as neutronclient
@@ -127,3 +128,9 @@ def get_placement_client(sess=None):
     if not sess:
         sess = get_session()
     return placementclient.Client(version='1', session=sess)
+
+
+def get_manuka_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return manukaclient.Client(version='1', session=sess)
