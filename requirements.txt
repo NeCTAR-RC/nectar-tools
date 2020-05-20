@@ -19,3 +19,4 @@ nectarallocationclient
 oslo.messaging
 oslo.context
 openstacksdk
+manukaclient

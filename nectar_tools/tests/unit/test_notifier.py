@@ -103,7 +103,7 @@ class FreshDeskNotifierTests(test.TestCase):
 
         n._update_ticket(44, 'some text', cc_emails=['manager1@fake.org'])
         mock_api.return_value.comments.create_reply.assert_called_with(
-            44, 'some text', cc_emails=['manager1@fake.org']
+            44, body='some text', cc_emails=['manager1@fake.org']
         )
 
     def test_add_note_to_ticket(self, mock_api):

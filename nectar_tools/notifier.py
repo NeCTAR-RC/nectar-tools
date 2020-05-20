@@ -86,7 +86,7 @@ class FreshDeskNotifier(Notifier):
             LOG.info("%s: Would send reply to ticket %s", self.resource.id,
                      ticket_id)
         else:
-            self.api.comments.create_reply(ticket_id, text,
+            self.api.comments.create_reply(ticket_id, body=text,
                                            cc_emails=cc_emails)
             LOG.info("%s: Sent reply to ticket %s",
                      self.resource.id, ticket_id)
