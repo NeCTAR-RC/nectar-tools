@@ -302,6 +302,68 @@ class ProjectExpirer(Expirer):
                                                   ks_session=ks_session,
                                                   dry_run=dry_run)
 
+    def process(self):
+
+        expiry_status = self.get_status(self.project)
+        expiry_next_step = self.get_next_step_date(self.project)
+
+        LOG.debug("%s: Processing project=%s status=%s next_step=%s",
+                  self.project.id, self.project.name, expiry_status,
+                  expiry_next_step)
+
+        if self.force_delete:
+            LOG.info("%s: Force deleting project", self.project.id)
+            self.delete_project()
+            return True
+
+        if not self.should_process():
+            raise exceptions.InvalidProject()
+
+        if expiry_status == expiry_states.RENEWED:
+            self.revert_expiry()
+            return True
+
+        if expiry_status == expiry_states.DELETED:
+            return False
+
+        elif expiry_status == expiry_states.ACTIVE:
+            if self.ready_for_warning():
+                self.send_warning()
+                return True
+
+        elif expiry_status == expiry_states.WARNING:
+            if self.at_next_step(self.project):
+                self.restrict_project()
+                return True
+
+        elif expiry_status == expiry_states.RESTRICTED:
+            if self.at_next_step(self.project):
+                self.stop_resource()
+                return True
+
+        elif expiry_status == expiry_states.STOPPED:
+            if self.at_next_step(self.project):
+                self.archive_project()
+                return True
+
+        elif expiry_status == expiry_states.ARCHIVING:
+            if self.at_next_step(self.project):
+                LOG.warn("%s: Archiving longer than next step, move on",
+                         self.project.id)
+                self.set_project_archived()
+            else:
+                self.check_archiving_status()
+            return True
+
+        elif expiry_status == expiry_states.ARCHIVED:
+            if self.at_next_step(self.project):
+                self.delete_project()
+            else:
+                self.delete_resources()
+            return True
+        else:
+            LOG.error("%s: Invalid status %s", self.project.id, expiry_status)
+
     def get_project(self):
         return self.resource
 
@@ -321,6 +383,18 @@ class ProjectExpirer(Expirer):
         else:
             LOG.debug("%s: Retrying archiving", self.project.id)
             self.archive_project()
+
+    def restrict_project(self):
+        LOG.info("%s: Restricting project", self.project.id)
+        self.archiver.zero_quota()
+
+        expiry_date = self.make_next_step_date(self.now)
+        restrict_kwargs = {self.STATUS_KEY: expiry_states.RESTRICTED,
+                           self.NEXT_STEP_KEY: expiry_date}
+        with ResourceRollback(self):
+            self._update_resource(**restrict_kwargs)
+            self._send_notification('restrict')
+        self.send_event('restrict')
 
     def archive_project(self, duration=90):
         """Archive a project's resources. Keep archive for `duration` days"""
@@ -455,68 +529,6 @@ class AllocationExpirer(ProjectExpirer):
                   allocation_start.date(), allocation_end.date())
         return allocation
 
-    def process(self):
-
-        expiry_status = self.get_status(self.project)
-        expiry_next_step = self.get_next_step_date(self.project)
-
-        LOG.debug("%s: Processing project=%s status=%s next_step=%s",
-                  self.project.id, self.project.name, expiry_status,
-                  expiry_next_step)
-
-        if self.force_delete:
-            LOG.info("%s: Force deleting project", self.project.id)
-            self.delete_project()
-            return True
-
-        if not self.should_process():
-            raise exceptions.InvalidProjectAllocation()
-
-        if expiry_status == expiry_states.RENEWED:
-            self.revert_expiry()
-            return True
-
-        if expiry_status == expiry_states.DELETED:
-            return False
-
-        elif expiry_status == expiry_states.ACTIVE:
-            if self.ready_for_warning():
-                self.send_warning()
-                return True
-
-        elif expiry_status == expiry_states.WARNING:
-            if self.at_next_step(self.project):
-                self.restrict_project()
-                return True
-
-        elif expiry_status == expiry_states.RESTRICTED:
-            if self.at_next_step(self.project):
-                self.stop_resource()
-                return True
-
-        elif expiry_status == expiry_states.STOPPED:
-            if self.at_next_step(self.project):
-                self.archive_project()
-                return True
-
-        elif expiry_status == expiry_states.ARCHIVING:
-            if self.at_next_step(self.project):
-                LOG.warn("%s: Archiving longer than next step, move on",
-                         self.project.id)
-                self.set_project_archived()
-            else:
-                self.check_archiving_status()
-            return True
-
-        elif expiry_status == expiry_states.ARCHIVED:
-            if self.at_next_step(self.project):
-                self.delete_project()
-            else:
-                self.delete_resources()
-            return True
-        else:
-            LOG.error("%s: Invalid status %s", self.project.id, expiry_status)
-
     def get_notice_period_days(self):
         """Get notice period in days.
 
@@ -639,18 +651,6 @@ class AllocationExpirer(ProjectExpirer):
             LOG.info("%s: Skipping notification due to allocation "
                      "notifications being set False", self.project.id)
 
-    def restrict_project(self):
-        LOG.info("%s: Restricting project", self.project.id)
-        self.archiver.zero_quota()
-
-        expiry_date = self.make_next_step_date(self.now)
-        restrict_kwargs = {self.STATUS_KEY: expiry_states.RESTRICTED,
-                           self.NEXT_STEP_KEY: expiry_date}
-        with ResourceRollback(self):
-            self._update_resource(**restrict_kwargs)
-            self._send_notification('restrict')
-        self.send_event('restrict')
-
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()
         LOG.info("%s: Deleting allocation", self.allocation.id)
@@ -674,6 +674,7 @@ class PTExpirer(ProjectExpirer):
         super(PTExpirer, self).__init__(project, archivers, notifier,
                                         ks_session, dry_run, disable_project)
         self.n_client = auth.get_nova_client(ks_session)
+        self.m_client = auth.get_manuka_client(ks_session)
         self.force_delete = force_delete
 
     def should_process(self):
@@ -686,55 +687,51 @@ class PTExpirer(ProjectExpirer):
     def is_personal_project(self):
         return PT_RE.match(self.project.name)
 
+    def ready_for_warning(self):
+        limit = None
+        try:
+            limit = self.check_cpu_usage()
+        except exceptions.NoUsageError:
+            LOG.debug("%s: Usage is None", self.project.id)
+        except Exception as e:
+            LOG.error("Failed to get usage for project %s",
+                      self.project.id)
+            LOG.error(e)
+
+        return limit == CPULimit.OVER_LIMIT or self.is_pt_too_old()
+
+    def is_pt_too_old(self):
+        user_id = self.project.owner.id
+        account = self.m_client.users.get(user_id)
+        one_year_ago = self.now - relativedelta(years=1)
+        return account.registered_at < one_year_ago
+
+    def get_expiry_date(self):
+        return self.make_next_step_date(self.now, days=30)
+
     def process(self):
-        if self.force_delete:
-            self.delete_project()
-            return True
-
-        if not self.should_process():
-            raise exceptions.InvalidProjectTrial()
-
         status = self.get_status(self.project)
         self.get_next_step_date(self.project)
 
         LOG.debug("%s: Processing project %s status: %s",
                   self.project.id, self.project.name, status)
 
-        if status in [expiry_states.ARCHIVED, expiry_states.ARCHIVE_ERROR]:
-            if self.at_next_step(self.project):
-                self.delete_project()
-                return True
-            else:
-                self.delete_resources()
-                return False
-
-        elif status == expiry_states.SUSPENDED:
+        # Support deprecated PT states while still around
+        if status == expiry_states.SUSPENDED:
             if self.at_next_step(self.project):
                 self.archive_project()
                 return True
 
-        elif status == expiry_states.ARCHIVING:
+        elif status == expiry_states.QUOTA_WARNING:
             if self.at_next_step(self.project):
-                LOG.debug("%s: Archiving longer than next step, move on",
-                          self.project.id)
-                self.set_project_archived()
-            else:
-                self.check_archiving_status()
-            return True
+                self.notify_at_limit()
 
-        elif status == expiry_states.DELETED:
-            return False
+        elif status == expiry_states.PENDING_SUSPENSION:
+            if self.at_next_step(self.project):
+                self.notify_over_limit()
 
         else:
-            try:
-                limit = self.check_cpu_usage()
-                return self.notify(limit)
-            except exceptions.NoUsageError:
-                LOG.debug("%s: Usage is None", self.project.id)
-            except Exception as e:
-                LOG.error("Failed to get usage for project %s",
-                          self.project.id)
-                LOG.error(e)
+            return super().process()
 
     def check_cpu_usage(self):
         limit = USAGE_LIMIT_HOURS
@@ -748,40 +745,9 @@ class PTExpirer(ProjectExpirer):
 
         LOG.debug("%s: Total VCPU hours: %s", self.project.id, cpu_hours)
 
-        if cpu_hours < limit * 0.8:
-            return CPULimit.UNDER_LIMIT
-        elif cpu_hours < limit:
-            return CPULimit.NEAR_LIMIT
-        elif cpu_hours < limit * 1.2:
-            return CPULimit.AT_LIMIT
-        elif cpu_hours >= limit * 1.2:
+        if cpu_hours > limit * 0.8:
             return CPULimit.OVER_LIMIT
-
-    def notify(self, event):
-        limits = {
-            CPULimit.UNDER_LIMIT: lambda *x: False,
-            CPULimit.NEAR_LIMIT: self.notify_near_limit,
-            CPULimit.AT_LIMIT: self.notify_at_limit,
-            CPULimit.OVER_LIMIT: self.notify_over_limit
-        }
-        if event != CPULimit.UNDER_LIMIT:
-            LOG.debug(event)
-        return limits[event]()
-
-    def notify_near_limit(self):
-        if self.get_status(self.project) == expiry_states.QUOTA_WARNING:
-            return False
-
-        LOG.info("%s: Usage is over 80%% - setting status to quota warning",
-                 self.project.id)
-        # 18 days minimum time for 2 cores usage 80% -> 100%
-        next_step = (self.now + relativedelta(days=18)).strftime(DATE_FORMAT)
-        with ResourceRollback(self):
-            self._update_resource(expiry_status=expiry_states.QUOTA_WARNING,
-                                  expiry_next_step=next_step)
-            self._send_notification('first-warning')
-        self.send_event('first-warning')
-        return True
+        return CPULimit.UNDER_LIMIT
 
     def notify_at_limit(self):
         if self.get_status(self.project) == expiry_states.PENDING_SUSPENSION:
