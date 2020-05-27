@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9f96dca7_139b0d14",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-05-27T02:42:30Z",
+      "side": 1,
+      "message": "I thought CONF.events.notifier_queues.split default to an empty list? \n\nIf not maybe we should figure that out and turn it into an empty list. What does it contain that it would end up iterating over something in the first place?",
+      "range": {
+        "startLine": 46,
+        "startChar": 11,
+        "endLine": 46,
+        "endChar": 21
+      },
+      "revId": "e841025a51e34ad15c43a1fa1bade33260436b61",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
