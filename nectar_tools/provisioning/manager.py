@@ -43,8 +43,9 @@ class ProvisioningManager(object):
         target = oslo_messaging.Target(exchange='openstack',
                                        topic='notifications')
         for queue in CONF.events.notifier_queues.split(','):
-            transport._driver.listen_for_notifications([(target, 'audit')],
-                                                       queue, 1, 1)
+            if queue:
+                transport._driver.listen_for_notifications([(target, 'audit')],
+                                                           queue, 1, 1)
 
     def send_event(self, allocation, event, extra_context={}):
         event_type = 'provisioning.%s' % event
