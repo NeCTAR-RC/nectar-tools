@@ -1017,14 +1017,20 @@ class AllocationExpiryTests(test.TestCase):
     def test_delete_project(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
+        allocations = fakes.FakeAllocationManager()
+        allocation = allocations.get_current('active')
 
         with test.nested(
-            mock.patch.object(ex, 'allocation'),
             mock.patch(
                 'nectar_tools.expiry.expirer.ProjectExpirer.delete_project'),
-        ) as (mock_allocation, mock_parent_delete):
+            mock.patch.object(ex, 'allocation',
+                              return_value=allocation),
+            mock.patch.object(ex, 'get_current_allocation'),
+        ) as (mock_parent_delete, mock_allocation, mock_get_current):
+            mock_get_current.return_value = mock_allocation
             ex.delete_project()
             mock_parent_delete.assert_called_once_with()
+            mock_get_current.assert_called_once_with()
             mock_allocation.delete.assert_called_once_with()
 
 

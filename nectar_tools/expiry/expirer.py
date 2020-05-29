@@ -402,10 +402,13 @@ class AllocationExpirer(ProjectExpirer):
         self.force_delete = force_delete
         self.allocation = self.get_allocation()
 
+    def get_current_allocation(self):
+        return self.a_client.allocations.get_current(
+            project_id=self.project.id)
+
     def get_allocation(self):
         try:
-            allocation = self.a_client.allocations.get_current(
-                project_id=self.project.id)
+            allocation = self.get_current_allocation()
         except allocation_exceptions.AllocationDoesNotExist:
             if self.is_ignored_project():
                 return
@@ -653,11 +656,19 @@ class AllocationExpirer(ProjectExpirer):
 
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()
-        LOG.info("%s: Deleting allocation", self.allocation.id)
+
+        # Refetch the project's current allocation record.  (At this point
+        # self.allocation may be a history record which cannot be deleted.)
+        allocation = self.get_current_allocation()
+        if allocation.id != self.allocation.id:
+            LOG.debug("%s: Change allocation back to %s for deletion",
+                      self.project.id, allocation.id)
+
+        LOG.info("%s: Deleting allocation", allocation.id)
         if self.dry_run or self.force_no_allocation:
-            LOG.info("%s: Would delete allocation", self.allocation.id)
+            LOG.info("%s: Would delete allocation", allocation.id)
         else:
-            self.allocation.delete()
+            allocation.delete()
 
 
 class PTExpirer(ProjectExpirer):
