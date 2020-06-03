@@ -22,27 +22,10 @@ BEFORE = '2016-01-01'
 AFTER = '2018-01-01'
 
 
-class FakeProjectWithOwner(object):
-
-    def __init__(self, id='dummy', name='pt-123',
-                 owner=mock.Mock(email='fake@fake.com', enabled=True),
-                 **kwargs):
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        self.id = id
-        self.name = name
-        self.owner = owner
-
-    def to_dict(self):
-        return self.__dict__
-
-
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class ExpiryTests(test.TestCase):
-    def setUp(self):
-        super(ExpiryTests, self).setUp()
 
     def test_project_property(self):
         ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
@@ -296,8 +279,6 @@ class ExpiryTests(test.TestCase):
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class ProjectExpirerTests(test.TestCase):
-    def setUp(self):
-        super(ProjectExpirerTests, self).setUp()
 
     def test_check_archiving_status_success(self):
         project = fakes.FakeProject()
@@ -1044,28 +1025,57 @@ class AllocationExpiryTests(test.TestCase):
 class PTExpiryTests(test.TestCase):
 
     def test_should_process(self):
-        project = FakeProjectWithOwner()
+        project = fakes.FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
-        should = ex.should_process()
+        with mock.patch.object(ex, 'pending_allocations') as allocations:
+            allocations.return_value = []
+            should = ex.should_process()
         self.assertTrue(should)
 
     def test_should_process_admin(self):
-        project = FakeProjectWithOwner(expiry_status='admin')
+        project = fakes.FakeProjectWithOwner(expiry_status='admin')
         ex = expirer.PTExpirer(project)
-        should = ex.should_process()
+        with mock.patch.object(ex, 'pending_allocations') as allocations:
+            allocations.return_value = []
+            should = ex.should_process()
         self.assertFalse(should)
 
     def test_should_process_no_owner(self):
-        project = FakeProjectWithOwner(owner=None)
+        project = fakes.FakeProjectWithOwner(owner=None)
         ex = expirer.PTExpirer(project)
-        should = ex.should_process()
+        with mock.patch.object(ex, 'pending_allocations') as allocations:
+            allocations.return_value = []
+            should = ex.should_process()
         self.assertFalse(should)
 
     def test_should_process_non_pt(self):
-        project = FakeProjectWithOwner(name='MeritAllocation')
+        project = fakes.FakeProjectWithOwner(name='MeritAllocation')
         ex = expirer.PTExpirer(project)
-        should = ex.should_process()
+        with mock.patch.object(ex, 'pending_allocations') as allocations:
+            allocations.return_value = []
+            should = ex.should_process()
         self.assertFalse(should)
+
+    def test_should_process_has_pending_allocations(self):
+        project = fakes.FakeProjectWithOwner()
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, 'pending_allocations') as allocations:
+            allocations.return_value = [mock.Mock(id='123')]
+            should = ex.should_process()
+        self.assertFalse(should)
+
+    @mock.patch('nectar_tools.auth.get_allocation_client')
+    def test_pending_allocation(self, mock_get_allocation):
+        mock_client = mock_get_allocation.return_value
+        project = fakes.FakeProjectWithOwner()
+        ex = expirer.PTExpirer(project)
+        allocations = ex.pending_allocations()
+        self.assertEqual(mock_client.allocations.list.return_value,
+                         allocations)
+        mock_client.allocations.list.assert_called_once_with(
+            contact_email=project.owner.name,
+            modified_time__gt='2016-07-01T00:00:00',
+            status='E')
 
     @mock.patch('nectar_tools.auth.get_manuka_client')
     def test_is_pt_too_old_negative(self, mock_get_manuka):
@@ -1074,7 +1084,7 @@ class PTExpiryTests(test.TestCase):
         fake_account.registered_at = datetime.datetime.strptime(
             AFTER, expirer.DATE_FORMAT)
 
-        project = FakeProjectWithOwner()
+        project = fakes.FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
 
         self.assertFalse(ex.is_pt_too_old())
@@ -1085,93 +1095,13 @@ class PTExpiryTests(test.TestCase):
         fake_account = mock_manuka.users.get.return_value
         fake_account.registered_at = datetime.datetime(2015, 1, 1)
 
-        project = FakeProjectWithOwner()
+        project = fakes.FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
 
         self.assertTrue(ex.is_pt_too_old())
 
-    def test_process_invalid(self):
-        project = FakeProjectWithOwner()
-        ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, 'should_process') as mock_should:
-            mock_should.return_value = False
-            self.assertRaises(exceptions.InvalidProject, ex.process)
-
-    @mock.patch('nectar_tools.auth.get_manuka_client')
-    def test_process_ok(self, mock_get_manuka):
-        mock_manuka = mock_get_manuka.return_value
-        fake_account = mock_manuka.users.get.return_value
-        fake_account.registered_at = datetime.datetime.strptime(
-            AFTER, expirer.DATE_FORMAT)
-        project = FakeProjectWithOwner()
-        ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, 'check_cpu_usage') as mock_limit:
-            mock_limit.return_value = CPULimit.UNDER_LIMIT
-            self.assertFalse(ex.process())
-
-    @mock.patch('nectar_tools.auth.get_manuka_client')
-    def test_process_project_too_old(self, mock_get_manuka):
-        mock_manuka = mock_get_manuka.return_value
-        fake_account = mock_manuka.users.get.return_value
-        fake_account.registered_at = datetime.datetime(2015, 1, 1)
-        project = FakeProjectWithOwner()
-        ex = expirer.PTExpirer(project)
-        with test.nested(
-                mock.patch.object(ex, 'check_cpu_usage'),
-                mock.patch.object(ex, 'send_warning'),
-        ) as (mock_limit, mock_send_warning):
-            mock_limit.return_value = CPULimit.UNDER_LIMIT
-            self.assertTrue(ex.process())
-            mock_send_warning.assert_called_once_with()
-
-    def test_process_archiving(self):
-        project = FakeProjectWithOwner(expiry_status=expiry_states.ARCHIVING,
-                                       expiry_next_step=AFTER)
-        ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, 'check_archiving_status') as mock_status:
-            processed = ex.process()
-            mock_status.assert_called_with()
-            self.assertTrue(processed)
-
-    def test_process_archiving_expired(self):
-        project = FakeProjectWithOwner(expiry_status=expiry_states.ARCHIVING,
-                                       expiry_next_step=BEFORE)
-        ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, '_update_resource') as mock_update:
-            processed = ex.process()
-            mock_update.assert_called_with(
-                expiry_status=expiry_states.ARCHIVED)
-            self.assertTrue(processed)
-
-    def test_process_archived(self):
-        project = FakeProjectWithOwner(expiry_status=expiry_states.ARCHIVED,
-                                       expiry_next_step=BEFORE)
-        ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, 'delete_project') as mock_delete:
-            processed = ex.process()
-            mock_delete.assert_called_with()
-            self.assertTrue(processed)
-
-    def test_process_archived_not_next_step(self):
-        project = FakeProjectWithOwner(expiry_status=expiry_states.ARCHIVED,
-                                       expiry_next_step=AFTER)
-        ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, 'delete_resources') as mock_delete:
-            processed = ex.process()
-            mock_delete.assert_called_with()
-            self.assertTrue(processed)
-
-    def test_process_suspended(self):
-        project = FakeProjectWithOwner(expiry_status=expiry_states.SUSPENDED,
-                                       expiry_next_step=BEFORE)
-        ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, 'archive_project') as mock_archive:
-            processed = ex.process()
-            mock_archive.assert_called_with()
-            self.assertTrue(processed)
-
     def _test_check_cpu_usage(self, usage, expect):
-        project = FakeProjectWithOwner()
+        project = fakes.FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
         mock_usage = mock.Mock()
         mock_usage.total_vcpus_usage = usage
@@ -1191,7 +1121,7 @@ class PTExpiryTests(test.TestCase):
         self._test_check_cpu_usage(15260, CPULimit.OVER_LIMIT)
 
     def test_check_cpu_usage_none(self):
-        project = FakeProjectWithOwner()
+        project = fakes.FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
         mock_usage = mock.Mock()
         mock_usage.total_vcpus_usage = None
@@ -1200,7 +1130,7 @@ class PTExpiryTests(test.TestCase):
             self.assertRaises(exceptions.NoUsageError, ex.check_cpu_usage)
 
     def test_notify_at_limit(self):
-        project = FakeProjectWithOwner()
+        project = fakes.FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
         new_expiry = datetime.datetime.now() + relativedelta(days=30)
         new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
@@ -1221,8 +1151,9 @@ class PTExpiryTests(test.TestCase):
             mock_archiver.zero_quota.assert_called_with()
 
     def test_notify_at_limit_notification_exception(self):
-        project = FakeProjectWithOwner(expiry_status=expiry_states.ACTIVE,
-                                       expiry_next_step='')
+        project = fakes.FakeProjectWithOwner(
+            expiry_status=expiry_states.ACTIVE,
+            expiry_next_step='')
         ex = expirer.PTExpirer(project)
         new_expiry = datetime.datetime.now() + relativedelta(days=30)
         new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
@@ -1247,7 +1178,7 @@ class PTExpiryTests(test.TestCase):
                 mock_event.assert_not_called()
 
     def test_notify_over_limit(self):
-        project = FakeProjectWithOwner(
+        project = fakes.FakeProjectWithOwner(
             expiry_status=expiry_states.PENDING_SUSPENSION,
             expiry_next_step='2014-01-01')
         ex = expirer.PTExpirer(project)
@@ -1271,7 +1202,7 @@ class PTExpiryTests(test.TestCase):
             mock_archiver.stop_resources.assert_called_with()
 
     def test_notify_over_limit_notification_exception(self):
-        project = FakeProjectWithOwner(
+        project = fakes.FakeProjectWithOwner(
             expiry_status=expiry_states.PENDING_SUSPENSION,
             expiry_next_step='2014-01-01')
         ex = expirer.PTExpirer(project)
@@ -1306,6 +1237,111 @@ class PTExpiryTests(test.TestCase):
             payload = {'project': project.to_dict(),
                        'uni': 'melb'}
             mock_send.assert_called_once_with('expiry.pt.foo', payload)
+
+
+MOCK_A_CLIENT = mock.Mock()
+
+
+@freeze_time("2017-01-01")
+@mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
+            new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_allocation_client', new=MOCK_A_CLIENT)
+class PTExpiryProcessTests(test.TestCase):
+
+    def setUp(self):
+        super(PTExpiryProcessTests, self).setUp()
+        client = MOCK_A_CLIENT.return_value
+        client.allocations.list.return_value = []
+
+    def tearDown(self):
+        super(PTExpiryProcessTests, self).tearDown()
+        MOCK_A_CLIENT.reset_mock()
+
+    def test_process_invalid(self):
+        project = fakes.FakeProjectWithOwner()
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, 'should_process') as mock_should:
+            mock_should.return_value = False
+            self.assertRaises(exceptions.InvalidProject, ex.process)
+
+    @mock.patch('nectar_tools.auth.get_manuka_client')
+    def test_process_ok(self, mock_get_manuka):
+        mock_manuka = mock_get_manuka.return_value
+        fake_account = mock_manuka.users.get.return_value
+        fake_account.registered_at = datetime.datetime.strptime(
+            AFTER, expirer.DATE_FORMAT)
+        project = fakes.FakeProjectWithOwner()
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, 'check_cpu_usage') as mock_limit:
+            mock_limit.return_value = CPULimit.UNDER_LIMIT
+            self.assertFalse(ex.process())
+
+    @mock.patch('nectar_tools.auth.get_manuka_client')
+    def test_process_project_too_old(self, mock_get_manuka):
+        mock_manuka = mock_get_manuka.return_value
+        fake_account = mock_manuka.users.get.return_value
+        fake_account.registered_at = datetime.datetime(2015, 1, 1)
+        project = fakes.FakeProjectWithOwner()
+        ex = expirer.PTExpirer(project)
+        with test.nested(
+                mock.patch.object(ex, 'check_cpu_usage'),
+                mock.patch.object(ex, 'send_warning'),
+        ) as (mock_limit, mock_send_warning):
+            mock_limit.return_value = CPULimit.UNDER_LIMIT
+            self.assertTrue(ex.process())
+            mock_send_warning.assert_called_once_with()
+
+    def test_process_archiving(self):
+        project = fakes.FakeProjectWithOwner(
+            expiry_status=expiry_states.ARCHIVING,
+            expiry_next_step=AFTER)
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, 'check_archiving_status') as mock_status:
+            processed = ex.process()
+            mock_status.assert_called_with()
+            self.assertTrue(processed)
+
+    def test_process_archiving_expired(self):
+        project = fakes.FakeProjectWithOwner(
+            expiry_status=expiry_states.ARCHIVING,
+            expiry_next_step=BEFORE)
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, '_update_resource') as mock_update:
+            processed = ex.process()
+            mock_update.assert_called_with(
+                expiry_status=expiry_states.ARCHIVED)
+            self.assertTrue(processed)
+
+    def test_process_archived(self):
+        project = fakes.FakeProjectWithOwner(
+            expiry_status=expiry_states.ARCHIVED,
+            expiry_next_step=BEFORE)
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, 'delete_project') as mock_delete:
+            processed = ex.process()
+            mock_delete.assert_called_with()
+            self.assertTrue(processed)
+
+    def test_process_archived_not_next_step(self):
+        project = fakes.FakeProjectWithOwner(
+            expiry_status=expiry_states.ARCHIVED,
+            expiry_next_step=AFTER)
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, 'delete_resources') as mock_delete:
+            processed = ex.process()
+            mock_delete.assert_called_with()
+            self.assertTrue(processed)
+
+    def test_process_suspended(self):
+        project = fakes.FakeProjectWithOwner(
+            expiry_status=expiry_states.SUSPENDED,
+            expiry_next_step=BEFORE)
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, 'archive_project') as mock_archive:
+            processed = ex.process()
+            mock_archive.assert_called_with()
+            self.assertTrue(processed)
 
 
 @freeze_time('2017-01-01')
@@ -1658,8 +1694,6 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
             new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ImageExpiryTests(test.TestCase):
-    def setUp(self):
-        super(ImageExpiryTests, self).setUp()
 
     def test_get_project(self):
         image = fakes.FakeImage(owner='fake')
