@@ -1,3 +1,5 @@
+from unittest import mock
+
 from nectarallocationclient import exceptions as allocation_exceptions
 from nectarallocationclient.v1 import allocations
 
@@ -115,6 +117,23 @@ class FakeProject(object):
         self.name = name
         self.domain_id = domain_id
         self.enabled = enabled
+
+    def to_dict(self):
+        return self.__dict__
+
+
+class FakeProjectWithOwner(object):
+
+    def __init__(self, id='dummy', name='pt-123',
+                 owner=mock.Mock(email='fake@fake.com', enabled=True),
+                 **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self.id = id
+        self.name = name
+        self.owner = owner
+        if self.owner is not None:
+            self.owner.name = self.owner.email
 
     def to_dict(self):
         return self.__dict__

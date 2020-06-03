@@ -13,6 +13,7 @@ from nectar_tools.tests.functional import fake_clients
 
 
 CONF = config.CONFIG
+FAKE_ALLOCATION_CLIENT = mock.MagicMock()
 FAKE_NOVA = mock.MagicMock()
 FAKE_NEUTRON = mock.MagicMock()
 FAKE_SWIFT = mock.MagicMock()
@@ -39,6 +40,10 @@ def get_glance(session):
     return FAKE_GLANCE
 
 
+def get_allocation_client(session):
+    return FAKE_ALLOCATION_CLIENT
+
+
 @freeze_time(TODAY)
 @mock.patch('nectar_tools.auth.get_session', new=fake_clients.FAKE_GET_SESSION)
 @mock.patch('freshdesk.v2.api.API', new=fake_clients.FAKE_FD_API_CLASS)
@@ -49,6 +54,8 @@ def get_glance(session):
             new=fake_clients.get_keystone)
 @mock.patch('nectar_tools.auth.get_nova_client', new=get_nova)
 @mock.patch('nectar_tools.auth.get_manuka_client', new=fake_clients.get_manuka)
+@mock.patch('nectar_tools.auth.get_allocation_client',
+            new=get_allocation_client)
 class PTExpiryTests(test.TestCase):
 
     def setUp(self, *args, **kwargs):
@@ -62,15 +69,14 @@ class PTExpiryTests(test.TestCase):
         FAKE_SWIFT.reset_mock()
         FAKE_GLANCE.reset_mock()
         # Set up a fake PT with an owner
-        owner = fakes.FakeUser()
-        project = fakes.FakeProject(id='q12w', name='pt-123',
-                                    description='abc',
-                                    domain_id='my-domain-id')
-        project.owner = owner
+        project = fakes.FakeProjectWithOwner(id='q12w', name='pt-123',
+                                             description='abc',
+                                             domain_id='my-domain-id')
         self.project = project
 
     def _test_process(self, invalid=False, usage=0,
                       registered_at=datetime.datetime(2016, 12, 1),
+                      pending_allocations=[],
                       keystone_calls=[], fd_calls=[],
                       nova_calls=[], neutron_calls=[],
                       swift_calls=[], glance_calls=[]):
@@ -94,9 +100,12 @@ class PTExpiryTests(test.TestCase):
         swift_client = FAKE_SWIFT
         glance_client = FAKE_GLANCE
         fd_client = fake_clients.FAKE_FD_API
+        allocation_client = FAKE_ALLOCATION_CLIENT
 
         fake_account = mock.Mock(registered_at=registered_at)
         manuka_client.users.get.return_value = fake_account
+
+        allocation_client.allocations.list.return_value = pending_allocations
 
         usage = mock.Mock(total_vcpus_usage=usage)
         nova_client.usage.get.return_value = usage
@@ -308,6 +317,17 @@ class PTExpiryTests(test.TestCase):
                            nova_calls=nova_calls,
                            neutron_calls=neutron_calls,
                            swift_calls=swift_calls)
+
+    def test_warning_pending_allocation(self):
+        """Project in warning state not ready for next step
+
+        Expected: Nothing
+        """
+
+        self.project.expiry_status = expiry_states.WARNING
+        self.project.expiry_next_step = PAST
+
+        self._test_process(pending_allocations=[mock.Mock()], invalid=True)
 
     def test_quota_warning_ok(self):
         """Project in deprecated quota warning state not ready for next step
