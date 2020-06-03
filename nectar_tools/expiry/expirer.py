@@ -301,6 +301,7 @@ class ProjectExpirer(Expirer):
                                                   archivers=archivers,
                                                   ks_session=ks_session,
                                                   dry_run=dry_run)
+        self.a_client = auth.get_allocation_client(ks_session)
 
     def process(self):
 
@@ -473,7 +474,6 @@ class AllocationExpirer(ProjectExpirer):
         super(AllocationExpirer, self).__init__(
             project, archivers, notifier, ks_session, dry_run, disable_project)
 
-        self.a_client = auth.get_allocation_client(ks_session)
         self.force_no_allocation = force_no_allocation
         self.force_delete = force_delete
         self.allocation = self.get_allocation()
@@ -695,10 +695,22 @@ class PTExpirer(ProjectExpirer):
         personal = self.is_personal_project()
         if personal and not has_owner:
             LOG.warn("%s: Project has no owner", self.project.id)
+        allocations = self.pending_allocations()
+        if allocations:
+            LOG.warn("%s: Skipping expiry due to pending allocations %s",
+                     self.project.id, [a.id for a in allocations])
+            return False
         return personal and has_owner and not self.is_ignored_project()
 
     def is_personal_project(self):
         return PT_RE.match(self.project.name)
+
+    def pending_allocations(self):
+        if self.project.owner is None:
+            return []
+        return self.a_client.allocations.list(
+            contact_email=self.project.owner.name,
+            status=allocation_states.SUBMITTED)
 
     def ready_for_warning(self):
         limit = None
