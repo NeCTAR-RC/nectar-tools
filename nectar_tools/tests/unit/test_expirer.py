@@ -1180,11 +1180,10 @@ class PTExpiryTests(test.TestCase):
     def test_check_cpu_usage_under(self):
         self._test_check_cpu_usage(0, CPULimit.UNDER_LIMIT)
         self._test_check_cpu_usage(1, CPULimit.UNDER_LIMIT)
-        self._test_check_cpu_usage(3506, CPULimit.UNDER_LIMIT)
+        self._test_check_cpu_usage(4383, CPULimit.UNDER_LIMIT)
 
     def test_check_cpu_usage_over(self):
-        self._test_check_cpu_usage(3507, CPULimit.OVER_LIMIT)
-        self._test_check_cpu_usage(4382, CPULimit.OVER_LIMIT)
+        self._test_check_cpu_usage(4384, CPULimit.OVER_LIMIT)
         self._test_check_cpu_usage(5260, CPULimit.OVER_LIMIT)
         self._test_check_cpu_usage(15260, CPULimit.OVER_LIMIT)
 
