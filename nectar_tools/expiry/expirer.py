@@ -768,7 +768,7 @@ class PTExpirer(ProjectExpirer):
 
         LOG.debug("%s: Total VCPU hours: %s", self.project.id, cpu_hours)
 
-        if cpu_hours > limit * 0.8:
+        if cpu_hours > limit:
             return CPULimit.OVER_LIMIT
         return CPULimit.UNDER_LIMIT
 
