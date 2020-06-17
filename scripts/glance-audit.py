@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 Does an audit of glance and it's swift image store.
@@ -11,14 +11,13 @@ uses.
 """
 import argparse
 from swiftclient import client as swiftclient
-#import swiftclient
+
 import glanceclient
 from keystoneauth1 import loading
 from keystoneauth1 import session
-from keystoneclient.v3 import client
 import os
-import sys
-import httplib
+import http
+
 
 SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
@@ -59,14 +58,6 @@ def get_glance_client(sess=None, endpoint=None):
     return glanceclient.Client('2', session=sess, endpoint=endpoint)
 
 
-def get_swift_connection():
-
-    return swiftclient.Connection(
-        auth_url, auth_username, auth_password,
-        tenant_name=auth_tenant,
-        auth_version='2')
-
-
 def delete_swift_image(connection, container, obj, noop=True):
     size = 0.0
     try:
@@ -80,7 +71,7 @@ def delete_swift_image(connection, container, obj, noop=True):
             size = float(headers.get('content-length'))
             manifest = headers.get('x-object-manifest')
         except swiftclient.ClientException as e:
-            if e.http_status != httplib.NOT_FOUND:
+            if e.http_status != http.client.NOT_FOUND:
                 raise
         segment_error = False
         if manifest:
@@ -93,43 +84,43 @@ def delete_swift_image(connection, container, obj, noop=True):
                     if not noop:
                         connection.delete_object(obj_container,
                                                  segment['name'])
-                    print "Deleted %s/%s" % (obj_container, segment['name'])
-                except swiftclient.ClientException as e:
+                    print("Deleted %s/%s" % (obj_container, segment['name']))
+                except swiftclient.ClientException:
                     msg = 'Unable to delete segment %(segment_name)s'
                     msg = msg % {'segment_name': segment['name']}
-                    print msg
+                    print(msg)
                     segment_error = True
         if not segment_error:
             # Only delete the manifest if no segment errors
             # Delete object (or, in segmented case, the manifest)
             if not noop:
                 connection.delete_object(container, obj)
-            print "Deleted %s/%s" % (container, obj)
+            print("Deleted %s/%s" % (container, obj))
 
     except swiftclient.ClientException as e:
-        if e.http_status == httplib.NOT_FOUND:
+        if e.http_status == http.client.NOT_FOUND:
             msg = "Swift could not find image at URI. %s/%s"
-            print msg % (container, obj)
+            print(msg % (container, obj))
             if not noop:
                 shotgun_segments(connection, container, obj)
         else:
-            print e
+            print(e)
     return size
 
 
 def shotgun_segments(connection, container, image_id):
-    limit = 100
+    limit = 200
     segment = 1
     while segment < limit:
         obj = "%s-%05d" % (image_id, segment)
         try:
             connection.delete_object(container, obj)
-            print "Deleted %s/%s" % (container, obj)
+            print("Deleted %s/%s" % (container, obj))
         except swiftclient.ClientException as e:
-            if e.http_status == httplib.NOT_FOUND:
+            if e.http_status == http.client.NOT_FOUND:
                 pass
             else:
-                print e
+                print(e)
         segment += 1
 
 
@@ -140,9 +131,9 @@ def delete_image_set(gc, connection, image_set, container, noop=True):
         try:
             try:
                 image = gc.images.get(image_id)
-            except Exception, e:
-                print "Failed to get image with ID %s" % image_id
-                print e
+            except Exception as e:
+                print("Failed to get image with ID %s" % image_id)
+                print(e)
                 image = None
             if image is None:
                 delete = True
@@ -150,10 +141,10 @@ def delete_image_set(gc, connection, image_set, container, noop=True):
                 delete = True
             else:
                 delete = False
-                #print "Skipping active image %s" % image_id
-                #print "Status: %s" % image.status
-                #print "Created: %s, Updated %s" % (image.created_at,
-                #                                   image.updated_at)
+                #print("Skipping active image %s" % image_id)
+                #print("Status: %s" % image.status)
+                #print("Created: %s, Updated %s" % (image.created_at,
+                #                                   image.updated_at))
 
         except glanceclient.exc.HTTPNotFound:
             delete = True
@@ -165,7 +156,7 @@ def delete_image_set(gc, connection, image_set, container, noop=True):
 
 
 def strip_segment(name):
-    """ Strips out segment part from image objects
+    """Strips out segment part from image objects
     Eg. xxx-xxx-xxx-xxxxxx-00001
     or old style int image ids xxxx-00001
     """
@@ -185,8 +176,8 @@ def get_swift_objects(connection, container):
     for obj in objects:
         try:
             name = strip_segment(obj['name'])
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
         object_set.add(name)
     return object_set
 
@@ -209,30 +200,33 @@ if __name__ == '__main__':
     noop = True
     if args.for_realsies:
         noop = False
-        print "Running for realsies!!"
+        print("Running for realsies!!")
     else:
-        print "Running Audit in noop mode, use -f to actually delete things"
+        print("Running Audit in noop mode, use -f to actually delete things")
 
     glance_project_id = args.glance_project_id
-    session = get_session()
-    connection = get_swift_client(session, project_id=glance_project_id)
-    gc = get_glance_client(session, endpoint=args.image_endpoint)
+    k_session = get_session()
+    connection = get_swift_client(k_session, project_id=glance_project_id)
+    gc = get_glance_client(k_session, endpoint=args.image_endpoint)
 
     try:
         s_glance = get_swift_objects(connection, 'glance')
-    except:
+    except Exception:
         s_glance = set([])
-    s_images = get_swift_objects(connection, 'images')
-    print "Swift: Found %s images in glance container" % len(s_glance)
-    print "Swift: Found %s images in images container" % len(s_images)
+    try:
+        s_images = get_swift_objects(connection, 'images')
+    except Exception:
+        s_images = set([])
+    print("Swift: Found %s images in glance container" % len(s_glance))
+    print("Swift: Found %s images in images container" % len(s_images))
     g_glance = set()
     g_images = set()
 
-    images = gc.images.list(is_public=None)
+    images = gc.images.list(visibility='all')
     for image in images:
         try:
             url = image.direct_url
-        except:
+        except Exception:
             continue
         container = url.split('/')[-2]
         object_name = url.split('/')[-1]
@@ -242,20 +236,20 @@ if __name__ == '__main__':
             g_glance.add(object_name)
         else:
             continue
-    print "Glance: Found %s images in glance container" % len(g_glance)
-    print "Glance: Found %s images in images container" % len(g_images)
-    print
-    print "Deleting all orphaned swift data"
+    print("Glance: Found %s images in glance" % len(g_glance))
+    print("Glance: Found %s images in images" % len(g_images))
+    print()
+    print("Deleting all orphaned swift data")
     bytes_deleted1 = delete_image_set(gc, connection, s_images - g_images,
                                       'images', noop=noop)
 
     bytes_deleted2 = delete_image_set(gc, connection, s_glance - g_glance,
                                       'glance', noop=noop)
     total_size = (bytes_deleted1 + bytes_deleted2) / 1024 / 1024 / 1024
-    print "Total size deleted %sGB" % total_size
-    print
+    print("Total size deleted %sGB" % total_size)
+    print()
     # Print out images where data is missing in swift
     missing = (g_images - s_images) | (g_glance - s_glance)
-    print "Listing image IDs where data is missing in swift"
+    print("Listing image IDs where data is missing in swift")
     for image_id in missing:
-        print image_id
+        print(image_id)
