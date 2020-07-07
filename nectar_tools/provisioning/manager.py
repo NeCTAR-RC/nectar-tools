@@ -270,6 +270,7 @@ class ProvisioningManager(object):
         self.set_swift_quota(allocation)
         self.set_trove_quota(allocation)
         self.set_manila_quota(allocation)
+        self.set_octavia_quota(allocation)
 
     def quota_report(self, allocation, show_current=True, html=False):
 
