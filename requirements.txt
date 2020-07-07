@@ -18,5 +18,5 @@ python-freshdesk
 nectarallocationclient>=1.1.0
 oslo.messaging
 oslo.context
-openstacksdk
+openstacksdk>=0.22.0
 manukaclient
