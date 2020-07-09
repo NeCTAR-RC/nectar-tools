@@ -564,7 +564,7 @@ class OctaviaArchiverTests(test.TestCase):
         oa = archiver.OctaviaArchiver(PROJECT)
         with mock.patch.object(oa, 'lb_client') as mock_octavia:
             oa.zero_quota()
-            mock_octavia.delete_quota.assert_called_once_with()
+            mock_octavia.delete_quota.assert_called_once_with(PROJECT.id)
 
     def test_delete_resources(self):
         oa = archiver.OctaviaArchiver(PROJECT)
