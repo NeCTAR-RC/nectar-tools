@@ -712,18 +712,25 @@ class ProvisionerTests(test.TestCase):
             'security_group': 5, 'security_group_rule': 10}}
         neutron_client.show_quota_default = mock.Mock()
         neutron_client.show_quota_default.return_value = def_quota
-        self.manager.set_neutron_quota(self.allocation)
-        neutron_client.delete_quota.assert_called_once_with(
-            self.allocation.project_id)
-        body = {
-            'quota': {
+        with mock.patch.object(
+                self.allocation,
+                'get_allocated_neutron_quota') as mock_allocated:
+            mock_allocated.return_value = {
                 'floatingip': 1, 'network': 2, 'subnet': 2,
-                'router': 2, 'loadbalancer': 2,
-                'security_group': 10, 'security_group_rule': 50
+                'router': 2,
             }
-        }
-        neutron_client.update_quota.assert_called_once_with(
-            self.allocation.project_id, body)
+            self.manager.set_neutron_quota(self.allocation)
+            neutron_client.delete_quota.assert_called_once_with(
+                self.allocation.project_id)
+            body = {
+                'quota': {
+                    'floatingip': 1, 'network': 2, 'subnet': 2,
+                    'router': 2, 'security_group': 10,
+                    'security_group_rule': 50
+                }
+            }
+            neutron_client.update_quota.assert_called_once_with(
+                self.allocation.project_id, body)
 
     @mock.patch('nectar_tools.auth.get_neutron_client')
     def test_set_neutron_quota_default_secgroup_increase(self, mock_neutron):
@@ -737,17 +744,25 @@ class ProvisionerTests(test.TestCase):
             'security_group': 20, 'security_group_rule': 100}}
         neutron_client.show_quota_default = mock.Mock()
         neutron_client.show_quota_default.return_value = def_quota
-        self.manager.set_neutron_quota(self.allocation)
-        neutron_client.delete_quota.assert_called_once_with(
-            self.allocation.project_id)
-        body = {
-            'quota': {
+
+        with mock.patch.object(
+                self.allocation,
+                'get_allocated_neutron_quota') as mock_allocated:
+            mock_allocated.return_value = {
                 'floatingip': 1, 'network': 2, 'subnet': 2,
-                'router': 2, 'loadbalancer': 2,
+                'router': 2,
             }
-        }
-        neutron_client.update_quota.assert_called_once_with(
-            self.allocation.project_id, body)
+            self.manager.set_neutron_quota(self.allocation)
+            neutron_client.delete_quota.assert_called_once_with(
+                self.allocation.project_id)
+            body = {
+                'quota': {
+                    'floatingip': 1, 'network': 2, 'subnet': 2,
+                    'router': 2,
+                }
+            }
+            neutron_client.update_quota.assert_called_once_with(
+                self.allocation.project_id, body)
 
     @mock.patch('nectar_tools.auth.get_openstacksdk')
     def test_set_octavia_quota(self, mock_sdk):
