@@ -573,7 +573,7 @@ class OctaviaArchiver(Archiver):
     def zero_quota(self):
         if not self.dry_run:
             LOG.info("%s: Zero octavia quota", self.project.id)
-            self.lb_client.delete_quota()
+            self.lb_client.delete_quota(self.project.id)
         else:
             LOG.info("%s: Would zero octavia quota", self.project.id)
 
