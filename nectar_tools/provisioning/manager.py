@@ -357,7 +357,7 @@ class ProvisioningManager(object):
         table.align["Resource"] = 'l'
         for resource, allocated in allocated.items():
             try:
-                current_quota = current[resource]
+                current_quota = current.get(resource, 0)
                 if current_quota < 0:
                     current_quota = 0
                 diff = allocated - current_quota
