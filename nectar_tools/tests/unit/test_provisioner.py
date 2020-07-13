@@ -632,7 +632,16 @@ class ProvisionerTests(test.TestCase):
         cinder_client = mock.Mock()
         mock_cinder.return_value = cinder_client
 
-        self.manager.set_cinder_quota(self.allocation)
+        with mock.patch.object(
+                self.allocation,
+                'get_allocated_cinder_quota') as mock_allocated:
+            mock_allocated.return_value = {
+                'gigabytes': 130, 'volumes': 130, 'snapshots': 130,
+                'gigabytes_melbourne': 30, 'gigabytes_monash': 100,
+                'volumes_melbourne': 30, 'volumes_monash': 100,
+                'snapshots_melbourne': 30, 'snapshots_monash': 100}
+            self.manager.set_cinder_quota(self.allocation)
+
         cinder_client.quotas.delete.assert_called_once_with(
             tenant_id=self.allocation.project_id)
         cinder_client.quotas.update.assert_called_once_with(
@@ -652,7 +661,13 @@ class ProvisionerTests(test.TestCase):
         swift_client = mock.Mock()
         mock_swift.return_value = swift_client
 
-        self.manager.set_swift_quota(self.allocation)
+        with mock.patch.object(
+                self.allocation,
+                'get_allocated_swift_quota') as mock_allocated:
+            mock_allocated.return_value = {
+                'object': 100}
+            self.manager.set_swift_quota(self.allocation)
+
         quota = 100 * 1024 * 1024 * 1024
         swift_client.post_account.assert_called_once_with(
             headers={'x-account-meta-quota-bytes': quota})
@@ -662,11 +677,17 @@ class ProvisionerTests(test.TestCase):
         trove_client = mock.Mock()
         mock_trove.return_value = trove_client
 
-        self.manager.set_trove_quota(self.allocation)
+        with mock.patch.object(
+                self.allocation,
+                'get_allocated_trove_quota') as mock_allocated:
+            mock_allocated.return_value = {
+                'instances': 2, 'volumes': 100}
+
+            self.manager.set_trove_quota(self.allocation)
 
         trove_client.quota.update.assert_called_once_with(
             self.allocation.project_id, {'instances': 2,
-                                    'volumes': 100})
+                                         'volumes': 100})
 
     @mock.patch('nectar_tools.auth.get_manila_client')
     def test_set_manila_quota(self, mock_manila):
@@ -676,9 +697,19 @@ class ProvisionerTests(test.TestCase):
         monash.name = 'monash'
         qld = mock.Mock(id='id-qld')
         qld.name = 'qld'
-        manila_client.share_types.list.return_value = [monash, qld]
 
-        self.manager.set_manila_quota(self.allocation)
+        with mock.patch.object(
+                self.allocation,
+                'get_allocated_manila_quota') as mock_allocated:
+            mock_allocated.return_value = {
+                'shares': 11, 'gigabytes': 150, 'snapshots': 5,
+                'snapshot_gigabytes': 100,
+                'shares_monash': 6, 'gigabytes_monash': 50,
+                'shares_qld': 5, 'gigabytes_qld': 100, 'snapshots_qld': 5,
+                'snapshot_gigabytes_qld': 100}
+            manila_client.share_types.list.return_value = [monash, qld]
+
+            self.manager.set_manila_quota(self.allocation)
 
         delete_calls = [
             mock.call(tenant_id=self.allocation.project_id),
