@@ -358,7 +358,7 @@ class ProvisioningManager(object):
         for resource, allocated in allocated.items():
             try:
                 current_quota = current.get(resource, 0)
-                if current_quota < 0:
+                if not current_quota or current_quota < 0:
                     current_quota = 0
                 diff = allocated - current_quota
                 if diff > 0:
