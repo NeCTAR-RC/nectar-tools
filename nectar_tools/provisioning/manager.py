@@ -30,9 +30,10 @@ OSLO_CONTEXT = context.RequestContext()
 class ProvisioningManager(object):
 
     def __init__(self, ks_session=None, noop=False, force=False,
-                 no_notify=False, *args, **kwargs):
+                 no_notify=False, keep_dates=False, *args, **kwargs):
         self.force = force
         self.no_notify = no_notify
+        self.keep_dates = keep_dates
         self.noop = noop
         self.ks_session = ks_session
         self.client = client.Client(1, session=ks_session)
@@ -106,7 +107,15 @@ class ProvisioningManager(object):
         report = self.quota_report(allocation, html=True,
                                    show_current=not is_new_project)
         self.set_quota(allocation)
-        allocation = self.set_allocation_start_end(allocation)
+
+        if self.force and self.keep_dates:
+            if not allocation.start_date and allocation.end_date:
+                raise exceptions.InvalidProjectAllocation("Cannot keep dates "
+                    "if allocation has not been provisioned yet")
+            LOG.info("%s: Keeping existing start/end dates", allocation.id)
+        else:
+            allocation = self.set_allocation_start_end(allocation)
+
         self.notify_provisioned(allocation, is_new_project, project, report)
         self.send_event(allocation, event_type)
         allocation = self.update_allocation(allocation, provisioned=True)

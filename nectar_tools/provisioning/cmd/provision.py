@@ -63,6 +63,9 @@ class ProvisionCmd(cmd_base.CmdBase):
                                  help='Only set quota')
         self.parser.add_argument('-f', '--force', action='store_true',
                                  help='Force processing of allocation')
+        self.parser.add_argument('-k', '--keep-dates', action='store_true',
+                                 help='Don\'t modify start/end dates '
+                                 '(requires --force)')
         self.parser.add_argument('-n', '--no-notify', action='store_true',
                                  help='Don\'t notify the user')
 
@@ -71,6 +74,8 @@ def main():
     cmd = ProvisionCmd()
     if cmd.args.force:
         cmd.manager.force = True
+        if cmd.args.keep_dates:
+            cmd.manager.keep_dates = True
     if cmd.args.no_notify:
         cmd.manager.no_notify = True
 
