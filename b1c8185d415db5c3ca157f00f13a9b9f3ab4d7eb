@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b1fff5e6_dd0a3400",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-16T04:57:10Z",
+      "side": 1,
+      "message": "Should we be notifying / sending event with keep_dates?",
+      "revId": "b1c8185d415db5c3ca157f00f13a9b9f3ab4d7eb",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "1a2f5956_6bc7cebf",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-07-16T04:57:10Z",
+      "side": 1,
+      "message": "Should we be reverting expiry with keep_dates?",
+      "revId": "b1c8185d415db5c3ca157f00f13a9b9f3ab4d7eb",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
