@@ -42,6 +42,7 @@ setuptools.setup(
             'nectar-project-allocation-audit = nectar_tools.audit.cmd.project:main',
             'nectar-pt-audit = nectar_tools.audit.cmd.pt:main',
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
+            'send-fd-outbound = nectar_tools.cli.send_fd_outbound:main',
         ],
     },
     include_package_data=True,
