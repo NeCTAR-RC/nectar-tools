@@ -99,9 +99,10 @@ class ProvisioningManager(object):
             is_new_project = False
             event_type = 'renewed'
 
-        designate_archiver = archiver.DesignateArchiver(
-            project, self.ks_session, dry_run=self.noop)
-        designate_archiver.create_resources()
+        if event_type != 'renewed':
+            designate_archiver = archiver.DesignateArchiver(
+                project, self.ks_session, dry_run=self.noop)
+            designate_archiver.create_resources()
 
         report = self.quota_report(allocation, html=True,
                                    show_current=not is_new_project)
