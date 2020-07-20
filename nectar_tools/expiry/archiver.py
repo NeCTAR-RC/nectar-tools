@@ -718,7 +718,7 @@ class DesignateArchiver(Archiver):
 
             try:
                 self.d_client.zones.get(zone_name)
-                LOG.info("%s: Zone already exists: %s", self.project.id,
+                LOG.debug("%s: Zone already exists: %s", self.project.id,
                          zone_name)
             except designate_exc.NotFound:
                 self._create_zone(zone_name)
