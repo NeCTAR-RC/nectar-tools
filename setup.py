@@ -36,6 +36,7 @@ setuptools.setup(
             'nectar-image-expiry = nectar_tools.expiry.cmd.image_expirer:main',
             'nectar-metric-audit = nectar_tools.audit.cmd.metric:main',
             'nectar-placement-audit = nectar_tools.audit.cmd.placement:main',
+            'nectar-coe-audit = nectar_tools.audit.cmd.coe:main',
             'nectar-project-allocation-audit = nectar_tools.audit.cmd.project:main',
             'nectar-pt-audit = nectar_tools.audit.cmd.pt:main',
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
