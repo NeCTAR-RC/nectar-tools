@@ -20,3 +20,4 @@ oslo.messaging
 oslo.context
 openstacksdk>=0.22.0
 manukaclient
+python-magnumclient

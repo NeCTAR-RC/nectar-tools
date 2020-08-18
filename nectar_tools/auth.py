@@ -7,6 +7,7 @@ from gnocchiclient import client as gnocchiclient
 from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client
+from magnumclient import client as magnumclient
 from manilaclient import client as manilaclient
 from manukaclient import client as manukaclient
 from muranoclient import client as muranoclient
@@ -134,3 +135,9 @@ def get_manuka_client(sess=None):
     if not sess:
         sess = get_session()
     return manukaclient.Client(version='1', session=sess)
+
+
+def get_magnum_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return magnumclient.Client(version='1', session=sess)
