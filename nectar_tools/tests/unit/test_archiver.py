@@ -579,6 +579,37 @@ class OctaviaArchiverTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class MagnumArchiverTests(test.TestCase):
+
+    def test_zero_quota(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_magnum:
+            ma.zero_quota()
+            mock_magnum.quotas.delete.assert_called_once_with(
+                PROJECT.id, "Cluster")
+
+    def test_delete_resources(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        c1 = mock.Mock()
+        c1.project_id = PROJECT.id
+        c1.uuid = "c1"
+        c2 = mock.Mock()
+        c2.project_id = PROJECT.id
+        c2.uuid = "c2"
+        c3 = mock.Mock()
+        c3.project_id = "fish"
+        c3.uuid = "c3"
+        with mock.patch.object(ma, 'm_client') as mock_magnum:
+            mock_magnum.clusters.list.return_value = [c1, c2, c3]
+
+            ma.delete_resources(force=True)
+
+            mock_magnum.clusters.list.assert_called_once_with(detail=True)
+            mock_magnum.clusters.delete.assert_has_calls(
+                [mock.call(c1), mock.call(c2)])
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class SwiftArchiverTests(test.TestCase):
 
     def test_zero_quota(self):
