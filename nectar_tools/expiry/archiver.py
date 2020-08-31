@@ -63,8 +63,8 @@ class ImageArchiver(Archiver):
         LOG.debug("Found image %s", image.id)
 
         if image.protected:
-            LOG.warn("Can't delete protected image %s", image.id)
-            return
+            self._unprotect_image(image)
+
         if not self.dry_run:
             LOG.info("Deleting image %s", image.id)
             self.g_client.images.delete(image.id)
@@ -75,52 +75,57 @@ class ImageArchiver(Archiver):
         LOG.debug("Found image %s", image.id)
 
         if image.protected:
-            LOG.warn("Can't restrict protected image %s", image.id)
-            return
-        else:
-            if image.visibility != 'private':
-                if not self.dry_run:
-                    LOG.info("Making image %s private", image.id)
-                    self.g_client.images.update(
-                        image.id, visibility='private')
-                else:
-                    LOG.info("Would make image %s private", image.id)
+            self._unprotect_image(image)
+
+        if image.visibility != 'private':
+            if not self.dry_run:
+                LOG.info("Making image %s private", image.id)
+                self.g_client.images.update(
+                    image.id, visibility='private')
             else:
-                LOG.info("Image %s was already private", image.id)
+                LOG.info("Would make image %s private", image.id)
+        else:
+            LOG.info("Image %s was already private", image.id)
 
     def _hide_image(self, image):
         LOG.debug("Found image %s", image.id)
 
         if image.protected:
-            LOG.warn("Can't hide protected image %s", image.id)
-            return
-        else:
-            if image.os_hidden is False:
-                if not self.dry_run:
-                    LOG.info("Making image %s hidden", image.id)
-                    self.g_client.images.update(
-                        image.id, os_hidden=True)
-                else:
-                    LOG.info("Would make image %s hidden", image.id)
+            self._unprotect_image(image)
+
+        if image.os_hidden is False:
+            if not self.dry_run:
+                LOG.info("Making image %s hidden", image.id)
+                self.g_client.images.update(
+                    image.id, os_hidden=True)
             else:
-                LOG.info("Image %s was already hidden", image.id)
+                LOG.info("Would make image %s hidden", image.id)
+        else:
+            LOG.info("Image %s was already hidden", image.id)
 
     def _unhide_image(self, image):
         LOG.debug("Found image %s", image.id)
 
         if image.protected:
-            LOG.warn("Can't unhide protected image %s", image.id)
-            return
-        else:
-            if image.os_hidden is True:
-                if not self.dry_run:
-                    LOG.info("Making image %s unhidden", image.id)
-                    self.g_client.images.update(
-                        image.id, os_hidden=False)
-                else:
-                    LOG.info("Would make image %s unhidden", image.id)
+            self._unprotect_image(image)
+
+        if image.os_hidden is True:
+            if not self.dry_run:
+                LOG.info("Making image %s unhidden", image.id)
+                self.g_client.images.update(
+                    image.id, os_hidden=False)
             else:
-                LOG.info("Image %s was already unhidden", image.id)
+                LOG.info("Would make image %s unhidden", image.id)
+        else:
+            LOG.info("Image %s was already unhidden", image.id)
+
+    def _unprotect_image(self, image):
+        LOG.debug("Unprotected image %s", image.id)
+        if not self.dry_run:
+            LOG.info("Making image %s unprotected", image.id)
+            self.g_client.images.update(image.id, protected=False)
+        else:
+            LOG.info("Would make image %s unprotected", image.id)
 
     def delete_resources(self, force=False):
         if not force:
