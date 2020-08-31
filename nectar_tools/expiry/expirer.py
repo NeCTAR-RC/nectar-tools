@@ -1015,9 +1015,10 @@ class ImageExpirer(Expirer):
                 LOG.info("Image %s: Has running instances", self.image.id)
                 return False
             return True
-        except Exception:
+        except Exception as e:
             LOG.error(
                 "Image %s: Can't get related instance", self.image.id)
+            LOG.error(e)
             return False
 
     def _has_no_recent_boot(self, days=THREE_YEARS_IN_DAYS):
@@ -1035,8 +1036,9 @@ class ImageExpirer(Expirer):
                 LOG.info("Image %s: Has been booted recently", self.image.id)
                 return False
             return True
-        except Exception:
+        except Exception as e:
             LOG.error("Image %s: Can't get related instance", self.image.id)
+            LOG.error(e)
             return False
 
     def get_warning_date(self):
@@ -1046,7 +1048,8 @@ class ImageExpirer(Expirer):
 
     def should_process(self):
 
-        if self.ready_for_warning() \
+        if not self.image.protected \
+            and self.ready_for_warning() \
             and self.project.enabled \
             and not self._is_ignored_image() \
             and self._has_no_running_instance() \
