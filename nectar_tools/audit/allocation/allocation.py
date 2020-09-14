@@ -17,7 +17,7 @@ class AllocationAuditor(base.Auditor):
         super().setup_clients()
         self.client = auth.get_allocation_client(sess=self.ks_session)
 
-    def _get_allocations(self, allocation_id=None, current=False):
+    def _get_allocations(self, allocation_id, current, all):
         if allocation_id:
             try:
                 allocation = self.client.allocations.get(allocation_id)
@@ -32,14 +32,16 @@ class AllocationAuditor(base.Auditor):
                            if a.end_date is None  # in dev or test
                            or datetime.strptime(a.end_date, "%Y-%M-%d")
                            > datetime.today()]
-        else:
+        elif all:
             allocations = self.client.allocations.list(
                 parent_request__isnull=True)
+        else:
+            allocations = []
         LOG.debug('Auditing %d allocations', len(allocations))
         return allocations
 
-    def check_allocation_basics(self, allocation_id=None):
-        allocations = self._get_allocations(allocation_id, current=False)
+    def check_allocation_basics(self, allocation_id=None, all=False):
+        allocations = self._get_allocations(allocation_id, False, all)
         for a in allocations:
             if not a.status.isupper():
                 LOG.info("Allocation %s status not uppercase", a.id)
@@ -52,8 +54,8 @@ class AllocationAuditor(base.Auditor):
                 LOG.info("Allocation %s is approved with no associated site",
                          a.id)
 
-    def check_allocation_classification(self, allocation_id=None):
-        allocations = self._get_allocations(allocation_id, current=True)
+    def check_allocation_classification(self, allocation_id=None, all=False):
+        allocations = self._get_allocations(allocation_id, True, all)
         for a in allocations:
             LOG.debug('Allocation: %s (%s)', a.id, a.project_name)
             grants = self.client.grants.list(allocation=a.id)
@@ -71,9 +73,9 @@ class AllocationAuditor(base.Auditor):
                         LOG.info("  - funding: %s",
                                  g.funding_body_scheme[:50])
 
-    def check_allocation_history(self, allocation_id=None):
+    def check_allocation_history(self, allocation_id=None, all=False):
         FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-        allocations = self._get_allocations(allocation_id, current=False)
+        allocations = self._get_allocations(allocation_id, False, all)
         for a in allocations:
             LOG.debug('Allocation: %s (%s)', a.id, a.project_name)
             history = self.client.allocations.list(parent_request=a.id)
