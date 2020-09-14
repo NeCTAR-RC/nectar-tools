@@ -22,6 +22,30 @@
       "revId": "467eb25bc6a54b92585ea76c06e9d1a1fd31b099",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "12ca2094_514ebcd5",
+        "filename": "nectar_tools/audit/cmd/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-09-14T07:56:13Z",
+      "side": 1,
+      "message": "But isn\u0027t it clearer this way?  Seriously why is every python programmer obsessed with writing things with the minimum number of lines of code?",
+      "parentUuid": "12c33bc0_f4b6d821",
+      "range": {
+        "startLine": 30,
+        "startChar": 37,
+        "endLine": 30,
+        "endChar": 59
+      },
+      "revId": "467eb25bc6a54b92585ea76c06e9d1a1fd31b099",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
