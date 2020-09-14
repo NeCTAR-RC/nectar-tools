@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb6be7cd_aa70941d",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-09-14T07:07:29Z",
+      "side": 1,
+      "message": "everything in this file shouldn\u0027t need to be changed at all to do what you want unless I\u0027m missing something?\n\nThe defaults for _get_allocations make sense and so I don\u0027t think it makes sense to remove them as now it looks like it is expecting you to pass in an allocation_id and current when you don\u0027t need to",
+      "revId": "878f100fca4baeea1fd8117ffbf672dbdb3c97e0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
