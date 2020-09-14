@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "12c33bc0_f4b6d821",
+        "filename": "nectar_tools/audit/cmd/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2020-09-14T07:36:26Z",
+      "side": 1,
+      "message": "Is this not None anyway if `-a` isn\u0027t set?",
+      "range": {
+        "startLine": 30,
+        "startChar": 37,
+        "endLine": 30,
+        "endChar": 59
+      },
+      "revId": "467eb25bc6a54b92585ea76c06e9d1a1fd31b099",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
