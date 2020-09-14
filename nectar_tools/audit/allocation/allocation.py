@@ -17,7 +17,7 @@ class AllocationAuditor(base.Auditor):
         super().setup_clients()
         self.client = auth.get_allocation_client(sess=self.ks_session)
 
-    def _get_allocations(self, allocation_id=None, current=False):
+    def _get_allocations(self, allocation_id, current):
         if allocation_id:
             try:
                 allocation = self.client.allocations.get(allocation_id)
@@ -39,7 +39,7 @@ class AllocationAuditor(base.Auditor):
         return allocations
 
     def check_allocation_basics(self, allocation_id=None):
-        allocations = self._get_allocations(allocation_id, current=False)
+        allocations = self._get_allocations(allocation_id, False)
         for a in allocations:
             if not a.status.isupper():
                 LOG.info("Allocation %s status not uppercase", a.id)
@@ -53,7 +53,7 @@ class AllocationAuditor(base.Auditor):
                          a.id)
 
     def check_allocation_classification(self, allocation_id=None):
-        allocations = self._get_allocations(allocation_id, current=True)
+        allocations = self._get_allocations(allocation_id, True)
         for a in allocations:
             LOG.debug('Allocation: %s (%s)', a.id, a.project_name)
             grants = self.client.grants.list(allocation=a.id)
@@ -73,7 +73,7 @@ class AllocationAuditor(base.Auditor):
 
     def check_allocation_history(self, allocation_id=None):
         FORMAT = "%Y-%m-%dT%H:%M:%SZ"
-        allocations = self._get_allocations(allocation_id, current=False)
+        allocations = self._get_allocations(allocation_id, False)
         for a in allocations:
             LOG.debug('Allocation: %s (%s)', a.id, a.project_name)
             history = self.client.allocations.list(parent_request=a.id)
