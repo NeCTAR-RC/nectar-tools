@@ -46,6 +46,30 @@
       "revId": "467eb25bc6a54b92585ea76c06e9d1a1fd31b099",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "5ac5a08a_83b9b325",
+        "filename": "nectar_tools/audit/cmd/allocation.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2020-09-14T08:28:25Z",
+      "side": 1,
+      "message": "Clearer for who? My point is about usability - \u0027--all\u0027 is redundant and I have a personal dislike for non-optional options. Anyway it\u0027s merged now and I have no stake in this.\n\nAlso, are you not by definition a Python programmer? ;-)",
+      "parentUuid": "12ca2094_514ebcd5",
+      "range": {
+        "startLine": 30,
+        "startChar": 37,
+        "endLine": 30,
+        "endChar": 59
+      },
+      "revId": "467eb25bc6a54b92585ea76c06e9d1a1fd31b099",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
