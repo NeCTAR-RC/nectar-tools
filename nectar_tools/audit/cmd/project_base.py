@@ -9,10 +9,10 @@ class ProjectAuditorCmd(base.AuditCmdBase):
         project_group = self.parser.add_mutually_exclusive_group(required=True)
         project_group.add_argument('--all', action='store_true',
                             help='Run over all projects')
-        project_group.add_argument('--include-disabled', action='store_true',
-                            help='Include disabled projects with --all')
         project_group.add_argument('-p', '--project-id',
                             help='Project ID to process')
+        self.parser.add_argument('--include-disabled', action='store_true',
+                            help='Include disabled projects with --all')
         self.parser.add_argument('--domain', default='default',
                             help='Project domain.')
 
