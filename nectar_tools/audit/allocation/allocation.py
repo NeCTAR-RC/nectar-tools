@@ -61,15 +61,6 @@ class AllocationAuditor(base.Auditor):
                 if not grants:
                     LOG.info("Allocation %s (%s): national allocation has no "
                              "grants", a.id, a.project_name)
-            else:
-                if grants:
-                    LOG.info("Allocation %s (%s): local allocation (%s) has "
-                             "grants", a.id, a.project_name,
-                             a.associated_site)
-                    for g in grants:
-                        LOG.info("  - type: %s", g.grant_type)
-                        LOG.info("  - funding: %s",
-                                 g.funding_body_scheme[:50])
 
     def check_allocation_history(self, allocation_id=None):
         FORMAT = "%Y-%m-%dT%H:%M:%SZ"
