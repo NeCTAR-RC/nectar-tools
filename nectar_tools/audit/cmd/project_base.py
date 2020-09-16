@@ -32,5 +32,7 @@ class ProjectAuditorCmd(base.AuditCmdBase):
 
         for project in projects:
             if self.is_valid_project(project):
-                auditor = manager(ks_session=self.session, project=project)
+                auditor = manager(ks_session=self.session, project=project,
+                                  repair=self.args.repair,
+                                  dry_run=self.dry_run)
                 auditor.run_all(list_not_run=self.list_not_run)

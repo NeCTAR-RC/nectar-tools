@@ -8,9 +8,10 @@ LOG = logging.getLogger(__name__)
 
 class Auditor(object):
 
-    def __init__(self, ks_session, repair=False):
+    def __init__(self, ks_session, repair=False, dry_run=True):
         self.ks_session = ks_session
         self.repair = repair
+        self.dry_run = dry_run
         self.setup_clients()
 
     def setup_clients(self):
