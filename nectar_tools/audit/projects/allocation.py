@@ -85,3 +85,16 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
             if allocation.status != allocation_states.DELETED:
                 LOG.info("%s: Disabled project with active allocation",
                          self.project.id)
+
+        if self.repair and not self.project.enabled \
+           and expiry_status == expiry_states.DELETED \
+           and allocation.status != allocation_states.DELETED:
+            if self.dry_run:
+                LOG.info("%s: Would mark allocation %s with expiry "
+                         "deleted project as deleted",
+                         self.project.id, allocation.id)
+            else:
+                self.a_client.allocations.delete(allocation.id)
+                LOG.info("%s: Marked allocation %s with expiry "
+                         "deleted project as deleted",
+                         self.project.id, allocation.id)
