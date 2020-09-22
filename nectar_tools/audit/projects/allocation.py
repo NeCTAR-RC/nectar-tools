@@ -51,13 +51,20 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
         if allocation.parent_request is not None:
             LOG.error("%s: Allocation link (%s) points to a history record",
                       self.project.id, allocation_id)
-
         elif not allocation.provisioned:
             LOG.info("%s: Linked allocation (%s) is not marked as provisioned",
                      self.project.id, allocation_id)
             if allocation.project_id == self.project.id:
                 LOG.info("%s: ... but it has this project's project_id",
                          self.project.id)
+                if self.repair:
+                    if not self.dry_run:
+                        allocation.update(provisioned=True)
+                        LOG.info("%s: Set allocation %s as provisioned",
+                                 self.project.id, allocation_id)
+                    else:
+                        LOG.info("%s: Would set allocation %s as provisioned",
+                                 self.project.id, allocation_id)
             elif allocation.project_id:
                 LOG.error("%s: ... and it has the wrong project_id (%s)",
                           self.project.id, allocation.project_id)
