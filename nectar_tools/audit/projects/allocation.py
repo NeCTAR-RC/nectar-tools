@@ -44,15 +44,29 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
         try:
             allocation = self.a_client.allocations.get(allocation_id)
         except allocation_exceptions.NotFound:
-            LOG.info("%s: Linked allocation_id not found", self.project.id)
+            LOG.info("%s: Linked allocation (%s) not found",
+                     self.project.id, allocation_id)
             return
 
-        if allocation.project_id is None or allocation.project_id == '':
-            LOG.info("%s: Linked allocation not linked back to project",
-                     self.project.id)
+        if allocation.parent_request is not None:
+            LOG.error("%s: Allocation link (%s) points to a history record",
+                      self.project.id, allocation_id)
+
+        elif not allocation.provisioned:
+            LOG.info("%s: Linked allocation (%s) is not marked as provisioned",
+                     self.project.id, allocation_id)
+            if allocation.project_id == self.project.id:
+                LOG.info("%s: ... but it has this project's project_id",
+                         self.project.id)
+            elif allocation.project_id:
+                LOG.error("%s: ... and it has the wrong project_id (%s)",
+                          self.project.id, allocation.project_id)
+        elif not allocation.project_id:
+            LOG.error("%s: Linked allocation (%s) has no project_id",
+                      self.project.id, allocation_id)
         elif allocation.project_id != self.project.id:
-            LOG.info("%s: Linked allocation_id project mismatch",
-                     self.project.id)
+            LOG.error("%s: Linked allocation (%s)'s project_id is wrong",
+                      self.project.id, allocation_id)
 
     def check_deleted_allocation(self):
         allocation_id = getattr(self.project, 'allocation_id', None)
@@ -63,6 +77,14 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
             allocation = self.a_client.allocations.get(allocation_id)
         except allocation_exceptions.NotFound:
             # Reported by another check
+            return
+
+        # These are also reported by another check.  If the linked allocation
+        # record has any of these problems, then we can't trust its allocation
+        # state information.  Skip it.
+        if not allocation.provisioned \
+           or allocation.project_id != self.project.id \
+           or allocation.parent_request is not None:
             return
 
         if allocation.status == allocation_states.DELETED \
