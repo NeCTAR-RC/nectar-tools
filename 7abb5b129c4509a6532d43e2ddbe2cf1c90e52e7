@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "25374997_a148cf27",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-09-23T21:53:46Z",
+      "side": 1,
+      "message": "no, this shouldn\u0027t be here. Something that isn\u0027t provisioned will be handled by the provisioner.",
+      "range": {
+        "startLine": 60,
+        "startChar": 1,
+        "endLine": 67,
+        "endChar": 64
+      },
+      "revId": "7abb5b129c4509a6532d43e2ddbe2cf1c90e52e7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
