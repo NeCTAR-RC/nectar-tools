@@ -477,7 +477,6 @@ class NeutronBasicArchiver(Archiver):
                           'router': 0,
                           'network': 0,
                           'subnet': 0,
-                          'loadbalancer': 0,
                       }
         }
 

@@ -291,8 +291,7 @@ class PTExpiryTests(test.TestCase):
                                    'floatingip': 0,
                                    'router': 0,
                                    'network': 0,
-                                   'subnet': 0,
-                                   'loadbalancer': 0}}
+                                   'subnet': 0}}
         neutron_calls = [
             mock.call.update_quota(self.project.id, neutron_quota)
         ]
@@ -343,8 +342,7 @@ class PTExpiryTests(test.TestCase):
                                    'floatingip': 0,
                                    'router': 0,
                                    'network': 0,
-                                   'subnet': 0,
-                                   'loadbalancer': 0}}
+                                   'subnet': 0}}
         neutron_calls = [
             mock.call.update_quota(self.project.id, neutron_quota)
         ]
@@ -415,8 +413,7 @@ class PTExpiryTests(test.TestCase):
                                    'floatingip': 0,
                                    'router': 0,
                                    'network': 0,
-                                   'subnet': 0,
-                                   'loadbalancer': 0}}
+                                   'subnet': 0}}
         neutron_calls = [
             mock.call.update_quota(self.project.id, neutron_quota)
         ]
