@@ -508,7 +508,6 @@ class NeutronBasicArchiverTests(test.TestCase):
                               'router': 0,
                               'network': 0,
                               'subnet': 0,
-                              'loadbalancer': 0,
                           }
             }
             mock_neutron.update_quota.assert_called_with(PROJECT.id, body)
