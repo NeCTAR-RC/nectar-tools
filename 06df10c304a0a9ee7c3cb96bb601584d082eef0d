@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "fcd18286_4222ea66",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-09-28T01:28:12Z",
+      "side": 1,
+      "message": "I don\u0027t think this is correct.  The problem is that if the project is renewed, and we reverse the restriction, we can\u0027t undo this.",
+      "revId": "06df10c304a0a9ee7c3cb96bb601584d082eef0d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
