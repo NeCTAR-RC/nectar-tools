@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5697d923_35127fa6",
+        "filename": "nectar_tools/audit/identity/user.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-09-29T22:31:16Z",
+      "side": 1,
+      "message": "this will log for all the service accounts etc. that aren\u0027t email addresses. Not sure how to address this. Ideally all these auditors will run periodically and we don\u0027t want them to print out stuff that isn\u0027t a problem or it\u0027ll just become noise",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 40
+      },
+      "revId": "5395d11289b4f2ff907eed80f1240a765a847cf1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
