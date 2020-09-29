@@ -4,6 +4,7 @@ import logging
 
 from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
+from magnumclient.common.apiclient import exceptions as magnum_exc
 from nectarallocationclient import client
 import neutronclient
 import novaclient
@@ -271,6 +272,7 @@ class ProvisioningManager(object):
         self.set_trove_quota(allocation)
         self.set_manila_quota(allocation)
         self.set_octavia_quota(allocation)
+        self.set_magnum_quota(allocation)
 
     def quota_report(self, allocation, show_current=True, html=False):
 
@@ -312,6 +314,7 @@ class ProvisioningManager(object):
                 'Shared Filesystem Snapshots QRIScloud',
             'manila.shares_QRIScloud-GPFS':
                 'Shared Filesystem Shares QRIScloud',
+            'magnum.cluster': 'Container Orchestration Engine Clusters',
         }
         current = collections.OrderedDict()
         allocated = collections.OrderedDict()
@@ -335,6 +338,8 @@ class ProvisioningManager(object):
                          'manila', current)
             _prefix_dict(self.get_current_octavia_quota(allocation),
                          'octavia', current)
+            _prefix_dict(self.get_current_magnum_quota(allocation),
+                         'magnum', current)
 
         _prefix_dict(allocation.get_allocated_nova_quota(),
                      'nova', allocated)
@@ -350,6 +355,8 @@ class ProvisioningManager(object):
                      'manila', allocated)
         _prefix_dict(allocation.get_allocated_octavia_quota(),
                      'octavia', allocated)
+        _prefix_dict(allocation.get_allocated_magnum_quota(),
+                     'magnum', allocated)
 
         table = prettytable.PrettyTable(
             ["Resource", "Current", "Allocated", "Diff"])
@@ -604,3 +611,29 @@ class ProvisioningManager(object):
             client.load_balancer.update_quota(quota)
             LOG.info("%s: Set Octavia Quota: %s", allocation.id,
                      allocated_quota)
+
+    def get_current_magnum_quota(self, allocation):
+        if not allocation.project_id:
+            return {}
+        client = auth.get_magnum_client(self.ks_session)
+        quota = client.quotas.get(allocation.project_id, 'Cluster')
+        return {'cluster': quota.hard_limit}
+
+    def set_magnum_quota(self, allocation):
+        allocated_quota = allocation.get_allocated_magnum_quota()
+        if self.noop:
+            LOG.info("%s: Would set Magnum Quota: %s", allocation.id,
+                     allocated_quota)
+            return
+
+        client = auth.get_magnum_client(self.ks_session)
+        try:
+            client.quotas.delete(allocation.project_id, 'Cluster')
+        except magnum_exc.NotFound:
+            pass
+        if allocated_quota['cluster']:
+            client.quotas.create(project_id=allocation.project_id,
+                                 resource='Cluster',
+                                 hard_limit=allocated_quota['cluster'])
+            LOG.info("%s: Set Magnum Quota: %s", allocation.id,
+                     allocated_quota['cluster'])
