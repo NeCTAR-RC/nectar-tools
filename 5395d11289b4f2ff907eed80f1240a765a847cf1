@@ -22,6 +22,30 @@
       "revId": "5395d11289b4f2ff907eed80f1240a765a847cf1",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "830cf640_3773dffd",
+        "filename": "nectar_tools/audit/identity/user.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-09-29T22:57:54Z",
+      "side": 1,
+      "message": "The thing is that some of the accounts that aren\u0027t emails aren\u0027t service accounts.  Isn\u0027t the principle that audits should log noteworthy but not necessarily wrong things as INFO?  Even properly set-up service accounts are noteworthy ... and worthy of review.",
+      "parentUuid": "5697d923_35127fa6",
+      "range": {
+        "startLine": 36,
+        "startChar": 1,
+        "endLine": 37,
+        "endChar": 40
+      },
+      "revId": "5395d11289b4f2ff907eed80f1240a765a847cf1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
