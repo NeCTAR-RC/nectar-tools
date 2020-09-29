@@ -25,6 +25,7 @@ CONF = config.CONFIG
 @mock.patch('nectar_tools.auth.get_neutron_client',
             new=fake_clients.get_neutron)
 @mock.patch('nectar_tools.auth.get_trove_client', new=fake_clients.get_trove)
+@mock.patch('nectar_tools.auth.get_magnum_client', new=fake_clients.get_magnum)
 @mock.patch('nectar_tools.auth.get_manila_client', new=fake_clients.get_manila)
 @mock.patch('nectar_tools.auth.get_keystone_client',
             new=fake_clients.get_keystone)

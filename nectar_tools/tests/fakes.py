@@ -295,6 +295,11 @@ ALLOCATION_RESPONSE = {
             "zone": "nectar",
             "quota": 2,
         },
+        {
+            "resource": "container-infra.cluster",
+            "zone": "nectar",
+            "quota": 2,
+        },
     ],
     "id": 1,
     "parent_request": None,

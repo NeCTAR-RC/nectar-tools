@@ -91,6 +91,28 @@ class TroveClient(object):
         self.quota = Quota()
 
 
+class MagnumQuota(object):
+    def __init__(self, limit):
+        self.hard_limit = limit
+
+
+class MagnumQuotaManager(object):
+    def get(self, *args):
+        return MagnumQuota(5)
+
+    def delete(self, *args):
+        pass
+
+    def create(self, *args, **kwargs):
+        pass
+
+
+class MagnumClient(object):
+
+    def __init__(self):
+        self.quotas = MagnumQuotaManager()
+
+
 class ManilaClient(object):
 
     class ShareTypes(object):
@@ -148,6 +170,10 @@ def get_trove(session):
 
 def get_manila(session):
     return ManilaClient()
+
+
+def get_magnum(session):
+    return MagnumClient()
 
 
 def get_designate(sess, project_id):
