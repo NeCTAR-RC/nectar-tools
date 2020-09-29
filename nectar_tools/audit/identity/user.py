@@ -1,4 +1,5 @@
 import logging
+import re
 
 import keystoneauth1
 
@@ -6,6 +7,9 @@ from nectar_tools.audit.identity import base
 
 
 LOG = logging.getLogger(__name__)
+
+# This regex matches an RFC822 addr-spec with a 2 to 4 char TLD
+EMAIL_RE = re.compile(r"^[\w.!#$%&'*+\-/=?^_`{|}~]+@([\w\-]+\.)+[\w\-]{2,4}$")
 
 
 class UserAuditor(base.IdentityAuditor):
@@ -19,6 +23,16 @@ class UserAuditor(base.IdentityAuditor):
             assignments = self.k_client.role_assignments.list(user=user)
             if not assignments:
                 LOG.info("User %s has no roles assigned", user.name)
+
+    def check_user_names(self):
+        for user in self.users:
+            if not hasattr(user, 'default_project_id') or not user.enabled:
+                continue
+            # Users with no "@" in the name are typically service or
+            # cloud operator a/c's
+            if "@" in user.name and not EMAIL_RE.match(user.name):
+                LOG.error("User name '%s' is a malformed email address",
+                          user.name)
 
     def check_default_project_id(self):
         for user in self.users:
