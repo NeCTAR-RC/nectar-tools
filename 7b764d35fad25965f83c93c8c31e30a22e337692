@@ -22,6 +22,30 @@
       "revId": "7b764d35fad25965f83c93c8c31e30a22e337692",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "89ac92df_a3446711",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-06T03:34:37Z",
+      "side": 1,
+      "message": "I prefer to put the normal / common case first.  It improves readability, IMO.",
+      "parentUuid": "991c25bc_a6dc330d",
+      "range": {
+        "startLine": 110,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 37
+      },
+      "revId": "7b764d35fad25965f83c93c8c31e30a22e337692",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
