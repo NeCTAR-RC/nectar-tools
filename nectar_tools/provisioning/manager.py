@@ -107,14 +107,23 @@ class ProvisioningManager(object):
         report = self.quota_report(allocation, html=True,
                                    show_current=not is_new_project)
         self.set_quota(allocation)
-        allocation = self.set_allocation_start_end(allocation)
-        self.notify_provisioned(allocation, is_new_project, project, report)
-        self.send_event(allocation, event_type)
-        allocation = self.update_allocation(allocation, provisioned=True)
-        LOG.info("%s: Allocation provisioned successfully", allocation.id)
+        if not allocation.provisioned:
+            allocation = self.set_allocation_start_end(allocation)
+            self.notify_provisioned(allocation, is_new_project,
+                                    project, report)
+            self.send_event(allocation, event_type)
+            allocation = self.update_allocation(allocation, provisioned=True)
+            LOG.info("%s: Allocation provisioned successfully", allocation.id)
 
-        if not is_new_project:
-            self.revert_expiry(project=project)
+            if not is_new_project:
+                self.revert_expiry(project=project)
+        else:
+            # If you don't want the notification to happen in this
+            # case, use --no-notify
+            self.notify_provisioned(allocation, is_new_project,
+                                    project, report)
+            LOG.info("%s: Allocation re-provisioned, not updating "
+                     "start/end date", allocation.id)
         return allocation
 
     def revert_expiry(self, project):
