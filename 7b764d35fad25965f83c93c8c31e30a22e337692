@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "991c25bc_a6dc330d",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2020-10-06T02:56:05Z",
+      "side": 1,
+      "message": "This looks good, but I\u0027d change the logic around so this if statement is not negative:\n\nif allocation.provisioned:\n  LOG.info()\nelse\n  do stuff",
+      "range": {
+        "startLine": 110,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 37
+      },
+      "revId": "7b764d35fad25965f83c93c8c31e30a22e337692",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
