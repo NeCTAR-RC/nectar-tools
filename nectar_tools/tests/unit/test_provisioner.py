@@ -133,8 +133,14 @@ class ProvisionerTests(test.TestCase):
             mock_update_project.return_value = project
             mock_designate.return_value = mock.Mock()
             self.manager.provision(self.allocation)
-            mock_update_project.assert_called_once_with(self.allocation)
-            mock_send_event.assert_called_once_with(self.allocation, 'renewed')
+            mock_update.assert_not_called()
+            mock_send_event.assert_not_called()
+            mock_revert.assert_not_called()
+            mock_notify.assert_called_once_with(self.allocation, False,
+                                                project,
+                                                mock_report.return_value)
+            mock_designate.create_resources.called_once_with()
+            mock_quota.assert_called_once_with(self.allocation)
 
     def test_provision_project_not_found(self):
         self.allocation.project_id = PROJECT.id
