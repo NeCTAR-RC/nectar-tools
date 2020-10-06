@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "717d2ade_d7495da6",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-10-06T21:39:16Z",
+      "side": 1,
+      "message": "Maybe instead say here\n\n\"Allocation re-provisioned, not updating start/end date.\"\n\nIt\u0027s not just quotas and DNS that change, eg. there is flavor stuff and potentially other stuff in the future",
+      "range": {
+        "startLine": 125,
+        "startChar": 26,
+        "endLine": 125,
+        "endChar": 76
+      },
+      "revId": "580a09902e5a4caa14cc3545a284adea7494b5ef",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}

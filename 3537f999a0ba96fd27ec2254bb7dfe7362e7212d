@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "d0e0bb74_df381218",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-10-06T21:39:16Z",
+      "side": 1,
+      "message": "Not sure if this is better but how about like this?\n\n\n        if not allocation.provisioned:\n            allocation \u003d self.set_allocation_start_end(allocation)\n        else:\n            LOG.info(\"%s: Not setting start/end on re-provision, allocation.id)\n\n        self.notify_provisioned(allocation, is_new_project,\n                                 project, report)\n        self.send_event(allocation, event_type)\n\n        if not allocation.provisioned:\n            allocation \u003d self.update_allocation(allocation, provisioned\u003dTrue)\n            LOG.info(\"%s: Allocation provisioned successfully\", allocation.id)\n            if not is_new_project:\n                self.revert_expiry(project\u003dproject)",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 35
+      },
+      "revId": "3537f999a0ba96fd27ec2254bb7dfe7362e7212d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
