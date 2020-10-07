@@ -762,6 +762,13 @@ class MagnumArchiver(Archiver):
         self.project = project
         self.m_client = auth.get_magnum_client(ks_session)
 
+    def zero_quota(self):
+        if not self.dry_run:
+            LOG.info("%s: Zero magnum quota", self.project.id)
+            self.m_client.quotas.delete(self.project.id, "Cluster")
+        else:
+            LOG.info("%s: Would zero magnum quota", self.project.id)
+
     def delete_resources(self, force=False):
         if not force:
             return
