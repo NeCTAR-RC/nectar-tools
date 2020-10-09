@@ -22,6 +22,30 @@
       "revId": "3537f999a0ba96fd27ec2254bb7dfe7362e7212d",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "91db06ad_3474a67f",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-09T02:03:40Z",
+      "side": 1,
+      "message": "I prefer my way.  The logic is clearer to me.  (It would also have a lower cyclomatic complexity ... if we cared about such things.)",
+      "parentUuid": "d0e0bb74_df381218",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 126,
+        "endChar": 35
+      },
+      "revId": "3537f999a0ba96fd27ec2254bb7dfe7362e7212d",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
