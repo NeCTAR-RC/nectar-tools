@@ -680,7 +680,9 @@ class PTExpiryTests(test.TestCase):
         swift_client.get_container.return_value = ('fake-container',
                                                    [o1])
 
-        secgroup_response = {'security_groups': [{'id': 'fake'}]}
+        secgroup_response = {'security_groups': [
+            {'id': 'fake', 'name': 'fake'},
+            {'id': 'fake2', 'name': 'default'}]}
         neutron_client.list_security_groups.return_value = secgroup_response
 
         nova_calls = [

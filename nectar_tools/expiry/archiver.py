@@ -509,6 +509,10 @@ class NeutronBasicArchiver(Archiver):
         if not resources:
             return
         for r in resources:
+            if name == 'security_groups' and r['name'] == 'default':
+                LOG.info("%s: Skip default security group", self.project.id)
+                continue
+
             if not self.dry_run:
                 delete_method(r['id'])
                 LOG.info("%s: Deleted %s %s", self.project.id, log_name,
