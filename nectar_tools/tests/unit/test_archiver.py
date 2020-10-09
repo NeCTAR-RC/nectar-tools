@@ -524,6 +524,18 @@ class NeutronBasicArchiverTests(test.TestCase):
         mock_delete.assert_has_calls([mock.call('fakeresource1'),
                                       mock.call('fakeresource2')])
 
+    def test_delete_neutron_resources_with_default_secgroup(self):
+        na = archiver.NeutronBasicArchiver(PROJECT)
+
+        mock_list = mock.Mock()
+        mock_list.return_value = {'security_groups': [
+            {'id': 'fakeresource1', 'name': 'default'},
+            {'id': 'fakeresource2', 'name': 'fakename'}]}
+        mock_delete = mock.Mock()
+        na._delete_neutron_resources('security_groups', mock_list, mock_delete)
+        mock_list.assert_called_once_with(tenant_id=PROJECT.id)
+        mock_delete.assert_has_calls([mock.call('fakeresource2')])
+
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class NeutronArchiverTests(test.TestCase):
