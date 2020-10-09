@@ -496,8 +496,11 @@ class NeutronBasicArchiver(Archiver):
             return
 
         self._delete_neutron_resources('security_groups',
-                                       self.ne_client.list_security_groups,
-                                       self.ne_client.delete_security_group)
+            self.ne_client.list_security_groups,
+            self.ne_client.delete_security_group)
+        self._delete_neutron_resources('security_group_rules',
+            self.ne_client.list_security_group_rules,
+            self.ne_client.delete_security_group_rule)
 
     def _delete_neutron_resources(self, name, list_method, delete_method,
                                   list_args={}, log_name=None):
@@ -509,6 +512,11 @@ class NeutronBasicArchiver(Archiver):
         if not resources:
             return
         for r in resources:
+            if name == 'security_groups' and r['name'] == 'default':
+                LOG.debug("%s: Skip default security group %s",
+                         self.project.id, r['id'])
+                continue
+
             if not self.dry_run:
                 delete_method(r['id'])
                 LOG.info("%s: Deleted %s %s", self.project.id, log_name,
