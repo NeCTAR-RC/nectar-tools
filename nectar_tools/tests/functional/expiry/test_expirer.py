@@ -650,7 +650,8 @@ class PTExpiryTests(test.TestCase):
 
         Environment: 1 instance archive,
                      1 private swift container with 1 object
-                     1 security group
+                     2 security groups
+                     3 security group rules
 
         Expected: Delete instance archive, status -> DELETED
 
@@ -680,8 +681,19 @@ class PTExpiryTests(test.TestCase):
         swift_client.get_container.return_value = ('fake-container',
                                                    [o1])
 
-        secgroup_response = {'security_groups': [{'id': 'fake'}]}
+        secgroup_response = {'security_groups': [
+            {'id': 'fake', 'name': 'fake'},
+            {'id': 'fake2', 'name': 'default'}]}
+        secgroup_rules_response = {'security_group_rules': [
+            {'id': 'rule1', 'security_group_id': 'secgrp1', 'protocol': None,
+             'remote_ip_prefix': None},
+            {'id': 'rule2', 'security_group_id': 'secgrp2', 'protocol': 'tcp',
+             'remote_ip_prefix': None},
+            {'id': 'rule3', 'security_group_id': 'secgrp3', 'protocol': None,
+             'remote_ip_prefix': '0.0.0.0/0'}]}
         neutron_client.list_security_groups.return_value = secgroup_response
+        neutron_client.list_security_group_rules.return_value = \
+                secgroup_rules_response
 
         nova_calls = [
             mock.call.servers.list(search_opts={'all_tenants': True,
@@ -696,6 +708,9 @@ class PTExpiryTests(test.TestCase):
         neutron_calls = [
             mock.call.list_security_groups(tenant_id=self.project.id),
             mock.call.delete_security_group('fake'),
+            mock.call.list_security_group_rules(tenant_id=self.project.id),
+            mock.call.delete_security_group_rule('rule2'),
+            mock.call.delete_security_group_rule('rule3'),
         ]
 
         fd_calls = [
