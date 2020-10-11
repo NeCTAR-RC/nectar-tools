@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "2c1074ca_83766db9",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 501,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-10-11T23:44:12Z",
+      "side": 1,
+      "message": "could add \n\n        self._delete_neutron_resources(\u0027security_group_rules\u0027,\n                                       self.ne_client.list_security_group_rules,\n                                       self.ne_client.delete_security_group_rule)\n\nAfterwards to clean up the rules in the default group",
+      "revId": "55ad709e089ad7365bb33b827036c600cdfa955f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "b1f59462_d290826d",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 512,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-10-11T23:44:12Z",
+      "side": 1,
+      "message": "The one thing this doesn’t address is all the rules in the default group, which could be a few",
+      "revId": "55ad709e089ad7365bb33b827036c600cdfa955f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
