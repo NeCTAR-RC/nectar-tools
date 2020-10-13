@@ -65,8 +65,8 @@ class ResourceProviderAuditor(base.ResourceAuditor):
                 else:
                     LOG.info("No old resource_provider so don't know which "
                              "site to assign to fix with: "
-                             "self.g_client resource update "
-                             "--type resource_provider"
+                             "gnocchi resource update "
+                             "--type resource_provider "
                              "-a 'site:<site>' %s", rp['id'])
 
     def ensure_exists(self):
