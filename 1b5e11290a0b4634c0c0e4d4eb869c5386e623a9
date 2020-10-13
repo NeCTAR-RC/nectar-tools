@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "5c5747ab_4c5edc53",
+        "filename": "nectar_tools/tests/unit/test_provisioner.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 716,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-10-13T05:59:56Z",
+      "side": 1,
+      "message": "this looks like its meant to be a separate test? \n\nThat would be the easier thing to do else you can reset the mock as opposed to redefining it\n\nhttps://docs.python.org/3/library/unittest.mock.html#unittest.mock.Mock.reset_mock",
+      "revId": "1b5e11290a0b4634c0c0e4d4eb869c5386e623a9",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
