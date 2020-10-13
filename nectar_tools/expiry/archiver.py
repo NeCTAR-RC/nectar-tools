@@ -2,6 +2,7 @@ import logging
 import re
 
 from designateclient import exceptions as designate_exc
+from magnumclient.common.apiclient import exceptions as magnum_exc
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -768,12 +769,47 @@ class DesignateArchiver(Archiver):
                           accept_req['status'])
 
 
+class MagnumArchiver(Archiver):
+
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super().__init__(ks_session, dry_run)
+        self.project = project
+        self.m_client = auth.get_magnum_client(ks_session)
+
+    def zero_quota(self):
+        if not self.dry_run:
+            LOG.info("%s: Zero magnum quota", self.project.id)
+            try:
+                self.m_client.quotas.delete(self.project.id, "Cluster")
+            except magnum_exc.NotFound:
+                pass
+        else:
+            LOG.info("%s: Would zero magnum quota", self.project.id)
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+
+        clusters = self.m_client.clusters.list(detail=True)
+        for cluster in clusters:
+            if cluster.project_id == self.project.id:
+                if self.dry_run:
+                    LOG.info("%s: Would delete COE cluster %s",
+                             self.project.id, cluster.uuid)
+                else:
+                    LOG.info("%s: Deleting COE cluster %s",
+                             self.project.id, cluster.uuid)
+                    self.m_client.clusters.delete(cluster)
+
+
 class ResourceArchiver(object):
 
     def __init__(self, project, archivers, ks_session=None, dry_run=False):
         enabled = []
         # project scope archiver, could be multiple archivers
         # Ordering here can matter (eg. octavia goes before neutron)
+        if 'magnum' in archivers:
+            enabled.append(MagnumArchiver(project, ks_session, dry_run))
         if 'nova' in archivers:
             enabled.append(NovaArchiver(project, ks_session, dry_run))
         if 'zoneinstance' in archivers:
