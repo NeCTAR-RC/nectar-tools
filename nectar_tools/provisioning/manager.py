@@ -640,7 +640,7 @@ class ProvisioningManager(object):
             client.quotas.delete(allocation.project_id, 'Cluster')
         except magnum_exc.NotFound:
             pass
-        if allocated_quota['cluster']:
+        if allocated_quota.get('cluster'):
             client.quotas.create(project_id=allocation.project_id,
                                  resource='Cluster',
                                  hard_limit=allocated_quota['cluster'])

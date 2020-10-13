@@ -713,6 +713,20 @@ class ProvisionerTests(test.TestCase):
             project_id=self.allocation.project_id,
             resource="Cluster", hard_limit=2)
 
+        # No allocated cluster quota
+        magnum_client = mock.Mock()
+        mock_magnum.return_value = magnum_client
+        with mock.patch.object(
+                self.allocation,
+                'get_allocated_magnum_quota') as mock_allocated:
+            mock_allocated.return_value = {}
+
+            self.manager.set_magnum_quota(self.allocation)
+
+        magnum_client.quotas.delete.assert_called_once_with(
+            self.allocation.project_id, "Cluster")
+        magnum_client.quotas.create.assert_not_called()
+
     @mock.patch('nectar_tools.auth.get_manila_client')
     def test_set_manila_quota(self, mock_manila):
         manila_client = mock.Mock()
