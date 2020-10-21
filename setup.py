@@ -34,6 +34,7 @@ setuptools.setup(
             'nectar-dns-audit = nectar_tools.audit.cmd.dns:main',
             'nectar-identity-audit = nectar_tools.audit.cmd.identity:main',
             'nectar-image-expiry = nectar_tools.expiry.cmd.image_expirer:main',
+            'nectar-image-audit = nectar_tools.audit.cmd.image:main',
             'nectar-metric-audit = nectar_tools.audit.cmd.metric:main',
             'nectar-placement-audit = nectar_tools.audit.cmd.placement:main',
             'nectar-coe-audit = nectar_tools.audit.cmd.coe:main',
