@@ -101,3 +101,28 @@ class AllocationAuditor(base.Auditor):
                     if r.parent_request not in all_allocation_ids:
                         LOG.info("Detached history record %s for missing "
                                  "allocation %s", r.id, r.parent_request)
+
+    def _check_percent(self, id, code, percent, ordinal):
+        if percent < 0 or percent > 100:
+            LOG.info("Allocation %s: FoR percent #%d is invalid (%d)",
+                     id, ordinal, percent)
+        elif code and not percent:
+            LOG.info("Allocation %s: FoR percent #%d should be non-zero",
+                     id, ordinal)
+        elif not code and percent:
+            LOG.info("Allocation %s: FoR percent #%d should be zero (is %d)",
+                     id, ordinal, percent)
+
+    def check_for_codes(self, allocation_id=None):
+        allocations = self._get_allocations(allocation_id, current=True)
+        for a in allocations:
+            self._check_percent(a.id, a.field_of_research_1,
+                                a.for_percentage_1, 1)
+            self._check_percent(a.id, a.field_of_research_2,
+                                a.for_percentage_2, 2)
+            self._check_percent(a.id, a.field_of_research_3,
+                                a.for_percentage_3, 3)
+            sum = a.for_percentage_1 + a.for_percentage_2 + a.for_percentage_3
+            if sum != 0 and sum != 100:
+                LOG.info("Allocation %s: FoR percent sum is incorrect (%d)",
+                         a.id, sum)
