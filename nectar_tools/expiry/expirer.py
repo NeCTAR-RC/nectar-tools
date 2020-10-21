@@ -431,7 +431,7 @@ class ProjectExpirer(Expirer):
         self.send_event('archived')
 
     def delete_project(self):
-        LOG.info("%s: Deleting project", self.project.id)
+        LOG.info("%s: Deleting project resources", self.project.id)
         self.archiver.delete_resources(force=True)
         self.archiver.delete_archives()
         try:
