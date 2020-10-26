@@ -1,0 +1,147 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "8c1d8ebe_aff286ce",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-26T00:54:47Z",
+      "side": 1,
+      "message": "Thinking out loud: 1) If the approver declines the allocation with the intention of getting the user to adjust the request, then expiry resumes.  But we would need different kinds of \"decline\" to address that.  2) What if the user isn\u0027t requesting conversion of the PT?  But what if they just forgot to do that?\n\nIn short, I can\u0027t think of a practical \"better\" way.",
+      "range": {
+        "startLine": 711,
+        "startChar": 0,
+        "endLine": 713,
+        "endChar": 1
+      },
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9a3e51fc_595db472",
+        "filename": "nectar_tools/tests/fakes.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-26T00:54:47Z",
+      "side": 1,
+      "message": "This could be a subclass of FakeProject",
+      "range": {
+        "startLine": 125,
+        "startChar": 0,
+        "endLine": 125,
+        "endChar": 6
+      },
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cd908b0_4dc05f54",
+        "filename": "nectar_tools/tests/functional/expiry/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-26T00:54:47Z",
+      "side": 1,
+      "message": "Is this new test related to the change?  It seems not.",
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6b241a87_9047874e",
+        "filename": "nectar_tools/tests/unit/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1041,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-26T00:54:47Z",
+      "side": 1,
+      "message": "Why the \u0027should\u0027 variable?",
+      "range": {
+        "startLine": 1040,
+        "startChar": 0,
+        "endLine": 1041,
+        "endChar": 32
+      },
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "69d68e85_4fc08d68",
+        "filename": "nectar_tools/tests/unit/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1048,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-26T00:54:47Z",
+      "side": 1,
+      "message": "Why the \u0027should\u0027 variable?",
+      "range": {
+        "startLine": 1048,
+        "startChar": 0,
+        "endLine": 1048,
+        "endChar": 18
+      },
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "506001e4_048de8d9",
+        "filename": "nectar_tools/tests/unit/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1056,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-26T00:54:47Z",
+      "side": 1,
+      "message": "Why the \u0027should\u0027 variable?",
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "bc0cca20_6120d802",
+        "filename": "nectar_tools/tests/unit/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1064,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-26T00:54:47Z",
+      "side": 1,
+      "message": "Why the \u0027should\u0027 variable?",
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
