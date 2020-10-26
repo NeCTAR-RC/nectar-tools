@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "39f2fe9f_10bf67fd",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-10-26T01:33:41Z",
+      "side": 1,
+      "message": "That wasn\u0027t what I was thinking.  But yes.  But ... that could be a separate changeset.\n\nAnd ... maybe a better way would be an audit for approvals, expiries, etc that have been stuck for too long.  Ticket holds are another case.  If the audit could then be used to trigger the appropriate people to do something ...",
+      "parentUuid": "24c6fa70_7d4f7c81",
+      "range": {
+        "startLine": 711,
+        "startChar": 0,
+        "endLine": 713,
+        "endChar": 1
+      },
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9a3e51fc_595db472",
         "filename": "nectar_tools/tests/fakes.py",
         "patchSetId": 3
