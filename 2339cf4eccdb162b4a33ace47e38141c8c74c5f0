@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "24c6fa70_7d4f7c81",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-10-26T01:23:58Z",
+      "side": 1,
+      "message": "Yes I need to add a time expiry too to this like we do for allocations",
+      "parentUuid": "8c1d8ebe_aff286ce",
+      "range": {
+        "startLine": 711,
+        "startChar": 0,
+        "endLine": 713,
+        "endChar": 1
+      },
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "9a3e51fc_595db472",
         "filename": "nectar_tools/tests/fakes.py",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2020-10-26T00:54:47Z",
       "side": 1,
       "message": "This could be a subclass of FakeProject",
+      "range": {
+        "startLine": 125,
+        "startChar": 0,
+        "endLine": 125,
+        "endChar": 6
+      },
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "e2774272_60ad8ec0",
+        "filename": "nectar_tools/tests/fakes.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-10-26T01:23:58Z",
+      "side": 1,
+      "message": "Good point",
+      "parentUuid": "9a3e51fc_595db472",
       "range": {
         "startLine": 125,
         "startChar": 0,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "896ab444_7c6db817",
+        "filename": "nectar_tools/tests/functional/expiry/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-10-26T01:23:58Z",
+      "side": 1,
+      "message": "Yes it is directly related to this, this is testing when there is pending allocations that we don\u0027t send a warning",
+      "parentUuid": "6cd908b0_4dc05f54",
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "6b241a87_9047874e",
         "filename": "nectar_tools/tests/unit/test_expirer.py",
         "patchSetId": 3
@@ -76,6 +142,30 @@
       "writtenOn": "2020-10-26T00:54:47Z",
       "side": 1,
       "message": "Why the \u0027should\u0027 variable?",
+      "range": {
+        "startLine": 1040,
+        "startChar": 0,
+        "endLine": 1041,
+        "endChar": 32
+      },
+      "revId": "2339cf4eccdb162b4a33ace47e38141c8c74c5f0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "94a2e3a2_5800997d",
+        "filename": "nectar_tools/tests/unit/test_expirer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 1041,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-10-26T01:23:58Z",
+      "side": 1,
+      "message": "Because that is what this test is testing, \"should we process something or not\", hence the assertFalse or True",
+      "parentUuid": "6b241a87_9047874e",
       "range": {
         "startLine": 1040,
         "startChar": 0,
