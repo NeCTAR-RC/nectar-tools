@@ -38,6 +38,7 @@ setuptools.setup(
             'nectar-metric-audit = nectar_tools.audit.cmd.metric:main',
             'nectar-placement-audit = nectar_tools.audit.cmd.placement:main',
             'nectar-coe-audit = nectar_tools.audit.cmd.coe:main',
+            'nectar-loadbalancer-audit = nectar_tools.audit.cmd.loadbalancer:main',
             'nectar-project-allocation-audit = nectar_tools.audit.cmd.project:main',
             'nectar-pt-audit = nectar_tools.audit.cmd.pt:main',
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
