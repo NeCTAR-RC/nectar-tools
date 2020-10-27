@@ -56,11 +56,29 @@ class AllocationAuditor(base.Auditor):
         allocations = self._get_allocations(allocation_id, current=True)
         for a in allocations:
             LOG.debug('Allocation: %s (%s)', a.id, a.project_name)
+            if a.associated_site in ('swinburne', 'auckland'):
+                continue
             grants = self.client.grants.list(allocation=a.id)
-            if a.national:
-                if not grants:
-                    LOG.info("Allocation %s (%s): national allocation has no "
-                             "grants", a.id, a.project_name)
+
+            # This does not take account of whether the grants were
+            # current at the last approval.
+            has_competitive_grant = any(
+                [g.grant_type in ('arc', 'nhmrc', 'comp') for g in grants])
+
+            # We can't tell if the Allocations ctty has made an exception or
+            # if the allocation has an international competitive grant.
+            qualifies = has_competitive_grant \
+                        or a.nectar_support \
+                        or a.ncris_support
+            if a.national and not qualifies:
+                LOG.info("Allocation %s (%s): national allocation (%s) has no "
+                         "national competitive grants, and no ARDC or "
+                         "NCRIS support",
+                         a.id, a.project_name, a.associated_site)
+            elif qualifies and not a.national:
+                LOG.info("Allocation %s (%s): local allocation (%s) qualifies "
+                         "for national funding",
+                         a.id, a.project_name, a.associated_site)
 
     def check_allocation_history(self, allocation_id=None):
         FORMAT = "%Y-%m-%dT%H:%M:%SZ"
