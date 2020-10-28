@@ -440,6 +440,7 @@ class CinderArchiver(Archiver):
         self.c_client = auth.get_cinder_client(ks_session)
         self.project = project
         self.volumes = None
+        self.backups = None
 
     def delete_resources(self, force=False):
         if not force:
@@ -448,6 +449,9 @@ class CinderArchiver(Archiver):
         volumes = self._all_volumes()
         for volume in volumes:
             self._delete_volume(volume)
+        backups = self._all_backups()
+        for backup in backups:
+            self._delete_backup(backup)
 
     def _all_volumes(self):
         if self.volumes is None:
@@ -464,6 +468,23 @@ class CinderArchiver(Archiver):
         else:
             LOG.info("%s: Deleting volume: %s", self.project.id, volume.id)
             self.c_client.volumes.delete(volume.id, cascade=True)
+
+    def _all_backups(self):
+        if self.backups is None:
+            opts = {'all_tenants': True,
+                    'project_id': self.project.id}
+            backups = self.c_client.backups.list(search_opts=opts)
+            self.backups = backups
+        return self.backups
+
+    def _delete_backup(self, backup):
+        if self.dry_run:
+            LOG.info("%s: Would delete volume backup: %s",
+                     self.project.id, backup.id)
+        else:
+            LOG.info("%s: Deleting volume backup: %s", self.project.id,
+                     backup.id)
+            self.c_client.backups.delete(backup.id, force=True)
 
 
 class NeutronBasicArchiver(Archiver):

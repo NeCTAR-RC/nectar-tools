@@ -433,27 +433,34 @@ class CinderArchiverTests(test.TestCase):
     def test_delete_resources(self):
         ca = archiver.CinderArchiver(PROJECT)
         volume1 = fakes.FakeVolume()
+        backup1 = mock.Mock()
         with test.nested(
             mock.patch.object(ca, '_all_volumes', return_value=[volume1]),
             mock.patch.object(ca, '_delete_volume'),
-        ) as (mock_volumes, mock_delete):
+            mock.patch.object(ca, '_all_backups', return_value=[backup1]),
+            mock.patch.object(ca, '_delete_backup'),
+        ) as (mock_volumes, mock_vdelete, mock_backups, mock_bdelete):
             ca.delete_resources()
-            mock_delete.assert_not_called()
+            mock_vdelete.assert_not_called()
+            mock_bdelete.assert_not_called()
 
     def test_delete_resources_force(self):
         ca = archiver.CinderArchiver(PROJECT)
         volume1 = fakes.FakeVolume()
         volume2 = fakes.FakeVolume(id='fake2')
+        backup1 = mock.Mock()
 
         with test.nested(
             mock.patch.object(ca, '_all_volumes',
                               return_value=[volume1, volume2]),
             mock.patch.object(ca, '_delete_volume'),
-        ) as (mock_volumes, mock_delete):
+            mock.patch.object(ca, '_all_backups', return_value=[backup1]),
+            mock.patch.object(ca, '_delete_backup'),
+        ) as (mock_volumes, mock_vdelete, mock_backups, mock_bdelete):
             ca.delete_resources(force=True)
-            mock_delete.assert_has_calls([mock.call(volume1),
+            mock_vdelete.assert_has_calls([mock.call(volume1),
                                           mock.call(volume2)])
-            self.assertEqual(mock_delete.call_count, 2)
+            mock_bdelete.assert_has_calls([mock.call(backup1)])
 
     def test_all_volumes(self):
         ca = archiver.CinderArchiver(PROJECT)
@@ -475,6 +482,27 @@ class CinderArchiverTests(test.TestCase):
             ca._delete_volume(volume)
             mock_cinder.volumes.delete.assert_called_once_with(
                 volume.id, cascade=True)
+
+    def test_all_backups(self):
+        ca = archiver.CinderArchiver(PROJECT)
+        backup1 = mock.Mock()
+        backup2 = mock.Mock()
+        backups = [backup1, backup2]
+        with mock.patch.object(ca, 'c_client') as mock_cinder:
+            mock_cinder.backups.list.return_value = backups
+            output = ca._all_backups()
+            opts = {'all_tenants': True, 'project_id': PROJECT.id}
+            mock_cinder.backups.list.assert_called_with(search_opts=opts)
+            self.assertEqual(backups, output)
+            self.assertEqual(backups, ca.backups)
+
+    def test_delete_backup(self):
+        ca = archiver.CinderArchiver(PROJECT)
+        backup = mock.Mock()
+        with mock.patch.object(ca, 'c_client') as mock_cinder:
+            ca._delete_backup(backup)
+            mock_cinder.backups.delete.assert_called_once_with(
+                backup.id, force=True)
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
