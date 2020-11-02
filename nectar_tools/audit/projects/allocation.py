@@ -1,4 +1,5 @@
 import logging
+import re
 
 from nectarallocationclient import exceptions as allocation_exceptions
 from nectarallocationclient import states as allocation_states
@@ -9,6 +10,7 @@ from nectar_tools.expiry import expiry_states
 
 
 LOG = logging.getLogger(__name__)
+TICKET_RE = re.compile(r'^ticket-.+$')
 
 
 class ProjectAllocationAuditor(base.ProjectAuditor):
@@ -58,16 +60,88 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
             LOG.error("%s: Linked allocation (%s)'s project_id is wrong",
                       self.project.id, allocation_id)
 
-    def check_deleted_allocation(self):
+    def _get_allocation_or_none(self):
         allocation_id = getattr(self.project, 'allocation_id', None)
-        expiry_status = getattr(self.project, 'expiry_status', '')
         if not allocation_id:
-            return
+            return None
         try:
-            allocation = self.a_client.allocations.get(allocation_id)
+            return self.a_client.allocations.get(allocation_id)
         except allocation_exceptions.NotFound:
-            # Reported by another check
+            return None
+
+    def check_expiry(self):
+        expiry_status = getattr(self.project, 'expiry_status', '')
+        if not expiry_status:
             return
+        expiry_next_step = getattr(self.project, 'expiry_next_step', None)
+        if self._past_next_step(expiry_next_step):
+            if expiry_status in (expiry_states.WARNING,
+                                 expiry_states.STOPPED,
+                                 expiry_states.RESTRICTED,
+                                 expiry_states.ARCHIVING,
+                                 expiry_states.ARCHIVED):
+                allocation = self._get_allocation_or_none()
+                if allocation and \
+                   allocation.status == allocation_states.UPDATE_PENDING:
+                    LOG.info("%s: Allocation expiry blocked on renewal "
+                             "decision: expiry status %s",
+                             self.project.id, expiry_status)
+                elif allocation:
+                    LOG.error("%s: Allocation expiry stuck: alloc status %s, "
+                              "expiry status %s",
+                              self.project.id, allocation.status,
+                              expiry_status)
+                else:
+                    LOG.error("%s: Allocation expiry for missing allocation: "
+                              "expiry status %s",
+                              self.project.id, expiry_status)
+            elif expiry_status in expiry_states.ALL_STATES:
+                LOG.info("%s: Allocation expiry in unexpected state: "
+                         "expiry status %s, next step %s",
+                         self.project.id, expiry_status, expiry_next_step)
+            elif TICKET_RE.match(expiry_status):
+                LOG.warn("%s: Allocation expiry overdue in ticket hold: "
+                         "expiry status %s",
+                         self.project.id, expiry_status)
+            else:
+                LOG.error("%s: Allocation expiry in unknown state: "
+                          "expiry status %s",
+                          self.project.id, expiry_status)
+
+    def check_zone_expiry(self):
+        zone_expiry_status = getattr(self.project, 'zone_expiry_status', '')
+        if not zone_expiry_status or \
+           not hasattr(self.project, 'compute_zones'):  # was reclassified ...
+            return
+        zone_expiry_next_step = getattr(
+            self.project, 'zone_expiry_next_step', None)
+        if self._past_next_step(zone_expiry_next_step):
+            if zone_expiry_status in (expiry_states.WARNING,
+                                      expiry_states.STOPPED,
+                                      expiry_states.ARCHIVING,
+                                      expiry_states.ARCHIVED):
+                LOG.error("%s: Instance zone expiry stuck: "
+                          "zone expiry status %s",
+                          self.project.id, zone_expiry_status)
+            elif zone_expiry_status in expiry_states.ALL_STATES:
+                LOG.info("%s: Instance zone expiry in unexpected state: "
+                         "expiry status %s, next_step %s",
+                         self.project.id, zone_expiry_status,
+                         zone_expiry_next_step)
+            elif TICKET_RE.match(zone_expiry_status):
+                LOG.warn("%s: Instance zone expiry overdue in "
+                         "ticket hold: expiry_status %s",
+                         self.project.id, zone_expiry_status)
+            else:
+                LOG.error("%s: Instance zone expiry in unknown state: "
+                          "expiry_status %s",
+                          self.project.id, zone_expiry_status)
+
+    def check_deleted_allocation(self):
+        allocation = self._get_allocation_or_none()
+        if not allocation:
+            return
+        expiry_status = getattr(self.project, 'expiry_status', '')
 
         # These are also reported by another check.  If the linked allocation
         # record has any of these problems, then we can't trust its allocation
