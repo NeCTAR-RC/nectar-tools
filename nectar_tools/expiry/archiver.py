@@ -375,9 +375,15 @@ class NovaArchiver(Archiver):
             LOG.info("Instance %s would be unlocked", instance.id)
         else:
             self.n_client.servers.unlock(instance.id)
-            self.n_client.servers.delete_meta(instance.id,
-                                              [EXPIRY_METADATA_KEY])
             LOG.info("%s: Unlocked instance %s", self.project.id, instance.id)
+            if instance.status != "ERROR":
+                try:
+                    self.n_client.servers.delete_meta(instance.id,
+                                                      [EXPIRY_METADATA_KEY])
+                except Exception as e:
+                    LOG.error("%s: Failed to delete meta for instance %s",
+                              self.project.id, instance.id)
+                    LOG.exception(e)
 
     def _delete_instance(self, instance):
         if self.dry_run:
