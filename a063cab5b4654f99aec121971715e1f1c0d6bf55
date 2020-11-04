@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "70f5a116_ebcd8150",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-04T03:06:37Z",
+      "side": 1,
+      "message": "_get_allocation_or_none() might be a better name for this method",
+      "range": {
+        "startLine": 61,
+        "startChar": 8,
+        "endLine": 61,
+        "endChar": 31
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "9c77236b_cad01442",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-04T03:06:37Z",
+      "side": 1,
+      "message": "do we care about this one, maybe just log at debug since its a valid state?",
+      "range": {
+        "startLine": 84,
+        "startChar": 19,
+        "endLine": 86,
+        "endChar": 60
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "2d1b5022_41c9f9a1",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-04T03:06:37Z",
+      "side": 1,
+      "message": "this looks like a catch all as opposed to checking the status for ticket- which might be better?",
+      "range": {
+        "startLine": 100,
+        "startChar": 17,
+        "endLine": 103,
+        "endChar": 52
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "112e5ee4_b48c94db",
+        "filename": "nectar_tools/audit/projects/pt.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-04T03:06:37Z",
+      "side": 1,
+      "message": "I think this should be debug as this is a valid state?",
+      "range": {
+        "startLine": 48,
+        "startChar": 24,
+        "endLine": 48,
+        "endChar": 28
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "a3f3cfd8_9489ef7e",
+        "filename": "nectar_tools/audit/projects/pt.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-04T03:06:37Z",
+      "side": 1,
+      "message": "should put this first to make processing faster",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 3
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6a9c064_c65d6e84",
+        "filename": "nectar_tools/audit/projects/pt.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-04T03:06:37Z",
+      "side": 1,
+      "message": "should this check to see if status has the ticket- value?",
+      "range": {
+        "startLine": 62,
+        "startChar": 16,
+        "endLine": 63,
+        "endChar": 44
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
