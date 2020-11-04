@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "b5277865_5bccdd70",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-11-04T07:12:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "70f5a116_ebcd8150",
+      "range": {
+        "startLine": 61,
+        "startChar": 8,
+        "endLine": 61,
+        "endChar": 31
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9c77236b_cad01442",
         "filename": "nectar_tools/audit/projects/allocation.py",
         "patchSetId": 4
@@ -45,6 +69,30 @@
       "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6cacaa7e_48725b0f",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-11-04T07:12:46Z",
+      "side": 1,
+      "message": "I think we do (should) care about this.  1) If an allocation stays in this state too long it gets automatically declined.  Approvers need reminding.  2) We (ARDC) should be concerned if too many expirations are being being blocked by slow approvers; e.g. when the state is restricted or stopped.\n\nIf anything, I think there is room for drilling down further on this.",
+      "parentUuid": "9c77236b_cad01442",
+      "range": {
+        "startLine": 84,
+        "startChar": 19,
+        "endLine": 86,
+        "endChar": 60
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "89b3c6ed_05d13e44",
+        "filename": "nectar_tools/audit/projects/allocation.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-11-04T07:12:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "2d1b5022_41c9f9a1",
+      "range": {
+        "startLine": 100,
+        "startChar": 17,
+        "endLine": 103,
+        "endChar": 52
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "112e5ee4_b48c94db",
         "filename": "nectar_tools/audit/projects/pt.py",
         "patchSetId": 4
@@ -91,6 +163,30 @@
       "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8fd3b1eb_356df1c3",
+        "filename": "nectar_tools/audit/projects/pt.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-11-04T07:12:46Z",
+      "side": 1,
+      "message": "See other comment",
+      "parentUuid": "112e5ee4_b48c94db",
+      "range": {
+        "startLine": 48,
+        "startChar": 24,
+        "endLine": 48,
+        "endChar": 28
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     },
     {
       "key": {
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "d3bb233e_c96f7ac7",
+        "filename": "nectar_tools/audit/projects/pt.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-11-04T07:12:46Z",
+      "side": 1,
+      "message": "Shrug.  We are probably only talking nanoseconds.  \"Premature optimization is the root of all evil\", etc.",
+      "parentUuid": "a3f3cfd8_9489ef7e",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 3
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "d6a9c064_c65d6e84",
         "filename": "nectar_tools/audit/projects/pt.py",
         "patchSetId": 4
@@ -137,6 +257,30 @@
       "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "8d0b435e_e3cf627f",
+        "filename": "nectar_tools/audit/projects/pt.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2020-11-04T07:12:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "d6a9c064_c65d6e84",
+      "range": {
+        "startLine": 62,
+        "startChar": 16,
+        "endLine": 63,
+        "endChar": 44
+      },
+      "revId": "a063cab5b4654f99aec121971715e1f1c0d6bf55",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
