@@ -255,9 +255,9 @@ ALLOCATION_RESPONSE = {
             "quota": 100,
         },
         {
-            "resource": "database.instances",
+            "resource": "database.ram",
             "zone": "nectar",
-            "quota": 2,
+            "quota": 8,
         },
         {
             "resource": "database.volumes",
