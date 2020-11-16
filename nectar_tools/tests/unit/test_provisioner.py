@@ -687,12 +687,12 @@ class ProvisionerTests(test.TestCase):
                 self.allocation,
                 'get_allocated_trove_quota') as mock_allocated:
             mock_allocated.return_value = {
-                'instances': 2, 'volumes': 100}
+                'ram': 8, 'volumes': 100}
 
             self.manager.set_trove_quota(self.allocation)
 
         trove_client.quota.update.assert_called_once_with(
-            self.allocation.project_id, {'instances': 2,
+            self.allocation.project_id, {'ram': 8192,
                                          'volumes': 100})
 
     @mock.patch('nectar_tools.auth.get_magnum_client')
