@@ -300,6 +300,7 @@ class ProvisioningManager(object):
             'nova.cores': 'VCPUs',
             'nova.ram': 'RAM (GB)',
             'swift.object': 'Object store (GB)',
+            'trove.ram': 'Database RAM (GB)',
             'trove.volumes': 'Database storage (GB)',
             'trove.instances': 'Database instances',
             'cinder.gigabytes_melbourne': "Volume storage Melbourne (GB)",
