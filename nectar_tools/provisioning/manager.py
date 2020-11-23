@@ -632,8 +632,12 @@ class ProvisioningManager(object):
         if not allocation.project_id:
             return {}
         client = auth.get_magnum_client(self.ks_session)
-        quota = client.quotas.get(allocation.project_id, 'Cluster')
-        return {'cluster': quota.hard_limit}
+        try:
+            quota = client.quotas.get(allocation.project_id, 'Cluster')
+            hard_limit = quota.hard_limit
+        except magnum_exc.BadRequest:
+            hard_limit = 0
+        return {'cluster': hard_limit}
 
     def set_magnum_quota(self, allocation):
         allocated_quota = allocation.get_allocated_magnum_quota()
