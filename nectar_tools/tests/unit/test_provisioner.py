@@ -4,6 +4,7 @@ from unittest import mock
 
 from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
+from magnumclient.common.apiclient import exceptions as magnum_exc
 import novaclient
 
 from nectar_tools import config
@@ -727,6 +728,32 @@ class ProvisionerTests(test.TestCase):
         magnum_client.quotas.delete.assert_called_once_with(
             self.allocation.project_id, "Cluster")
         magnum_client.quotas.create.assert_not_called()
+
+    @mock.patch('nectar_tools.auth.get_magnum_client')
+    def test_get_current_magnum_quota(self, mock_magnum):
+        magnum_client = mock.Mock()
+        mock_magnum.return_value = magnum_client
+        mock_quota = mock.Mock(hard_limit=42)
+        magnum_client.quotas.get.return_value = mock_quota
+        q = self.manager.get_current_magnum_quota(self.allocation)
+        self.assertEqual({}, q)
+
+        self.allocation.project_id = PROJECT.id
+        q = self.manager.get_current_magnum_quota(self.allocation)
+        self.assertEqual({'cluster': 42}, q)
+        magnum_client.quotas.get.assert_called_once_with(
+            self.allocation.project_id, "Cluster")
+
+    @mock.patch('nectar_tools.auth.get_magnum_client')
+    def test_get_current_magnum_quota_none(self, mock_magnum):
+        magnum_client = mock.Mock()
+        mock_magnum.return_value = magnum_client
+        magnum_client.quotas.get.side_effect = magnum_exc.BadRequest()
+        self.allocation.project_id = PROJECT.id
+        q = self.manager.get_current_magnum_quota(self.allocation)
+        self.assertEqual(q, {'cluster': 0})
+        magnum_client.quotas.get.assert_called_once_with(
+            self.allocation.project_id, "Cluster")
 
     @mock.patch('nectar_tools.auth.get_manila_client')
     def test_set_manila_quota(self, mock_manila):
