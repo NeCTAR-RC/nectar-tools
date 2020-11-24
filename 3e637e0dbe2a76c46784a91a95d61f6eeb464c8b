@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "f8808cb9_9ed1c792",
+        "filename": "nectar_tools/tests/unit/test_provisioner.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 737,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-24T21:31:50Z",
+      "side": 1,
+      "message": "no problem doing it this way but you can do\n\nmock_quota \u003d mock.Mock(hard_limit\u003d42)",
+      "range": {
+        "startLine": 736,
+        "startChar": 0,
+        "endLine": 737,
+        "endChar": 34
+      },
+      "revId": "3e637e0dbe2a76c46784a91a95d61f6eeb464c8b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "775b4343_1dc5bad0",
+        "filename": "nectar_tools/tests/unit/test_provisioner.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 740,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-24T21:31:50Z",
+      "side": 1,
+      "message": "This should be assertEqual(expected, actual) \n\nsame to below too",
+      "range": {
+        "startLine": 740,
+        "startChar": 25,
+        "endLine": 740,
+        "endChar": 30
+      },
+      "revId": "3e637e0dbe2a76c46784a91a95d61f6eeb464c8b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "fa553bad_132e017a",
+        "filename": "nectar_tools/tests/unit/test_provisioner.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 742,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-24T21:31:50Z",
+      "side": 1,
+      "message": "self.allocation.project_id \u003d PROJECT.id",
+      "range": {
+        "startLine": 742,
+        "startChar": 8,
+        "endLine": 742,
+        "endChar": 44
+      },
+      "revId": "3e637e0dbe2a76c46784a91a95d61f6eeb464c8b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "f4586e17_b437a818",
+        "filename": "nectar_tools/tests/unit/test_provisioner.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 753,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2020-11-24T21:31:50Z",
+      "side": 1,
+      "message": "self.allocation.project_id \u003d PROJECT.id",
+      "range": {
+        "startLine": 753,
+        "startChar": 8,
+        "endLine": 753,
+        "endChar": 44
+      },
+      "revId": "3e637e0dbe2a76c46784a91a95d61f6eeb464c8b",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
