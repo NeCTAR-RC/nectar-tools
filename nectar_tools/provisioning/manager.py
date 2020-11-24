@@ -645,4 +645,4 @@ class ProvisioningManager(object):
                                  resource='Cluster',
                                  hard_limit=allocated_quota['cluster'])
             LOG.info("%s: Set Magnum Quota: %s", allocation.id,
-                     allocated_quota['cluster'])
+                     allocated_quota)
