@@ -294,12 +294,14 @@ class ProvisioningManager(object):
                    'nova.flavor:compute-v3',
                    'nova.flavor:memory-v3',
                    'neutron.loadbalancer',
+                   'trove.instances',
                ]
         resource_map = {
             'nova.instances': 'Instances',
             'nova.cores': 'VCPUs',
             'nova.ram': 'RAM (GB)',
             'swift.object': 'Object store (GB)',
+            'trove.ram': 'Database RAM (GB)',
             'trove.volumes': 'Database storage (GB)',
             'trove.instances': 'Database instances',
             'cinder.gigabytes_melbourne': "Volume storage Melbourne (GB)",
@@ -505,11 +507,16 @@ class ProvisioningManager(object):
         current = client.quota.show(allocation.project_id)
         data = {}
         for resource in current:
-            data[resource.resource] = resource.limit
+            if resource.resource == 'ram':
+                limit = resource.limit / 1024
+            else:
+                limit = resource.limit
+            data[resource.resource] = limit
         return data
 
     def set_trove_quota(self, allocation):
         allocated_quota = allocation.get_allocated_trove_quota()
+        allocated_quota['ram'] = int(allocated_quota['ram']) * 1024
 
         if self.noop:
             LOG.info("%s: Would set Trove Quota: %s", allocation.id,
