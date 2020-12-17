@@ -19,18 +19,18 @@ class ImageAuditor(base.Auditor):
         self.n_client = auth.get_nova_client(sess=self.ks_session)
         self.t_client = auth.get_trove_client(sess=self.ks_session)
 
-    def _is_image_unused(self, image_id):
-        search_opts = {'image': image_id,
+    def _is_image_unused(self, image):
+        search_opts = {'image': image.id,
                        'all_tenants': True}
         try:
             instances = self.n_client.servers.list(search_opts=search_opts)
             if not instances:
                 return True
-            LOG.debug("Image %s is in use by %s instances", image_id,
-                     len(instances))
+            LOG.debug("Image %s (created %s) is in use by %s instances",
+                      image.id, image.created_at, len(instances))
         except Exception as e:
             LOG.error(
-                "Image %s: Can't get related instance", image_id)
+                "Image %s: Can't get related instance", image.id)
             LOG.error(e)
         return False
 
@@ -55,7 +55,7 @@ class ImageAuditor(base.Auditor):
         images = self._get_images(project_id)
         LOG.debug("Found %s images owned by octavia", len(images))
         for image in images:
-            if self._is_image_unused(image.id):
+            if self._is_image_unused(image):
                 self._delete_unused(image.id)
 
     def check_trove_images(self):
@@ -71,5 +71,5 @@ class ImageAuditor(base.Auditor):
         images = self._get_images(project_id)
         for image in images:
             if image.id not in active_images and self._is_image_unused(
-                    image.id):
+                    image):
                 self._delete_unused(image.id)
