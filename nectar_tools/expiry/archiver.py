@@ -520,6 +520,9 @@ class NeutronBasicArchiver(Archiver):
         if not force:
             return
 
+        self._delete_neutron_resources('ports',
+            self.ne_client.list_ports,
+            self.ne_client.delete_port)
         self._delete_neutron_resources('security_groups',
             self.ne_client.list_security_groups,
             self.ne_client.delete_security_group)
@@ -562,10 +565,6 @@ class NeutronArchiver(NeutronBasicArchiver):
                                        self.ne_client.list_floatingips,
                                        self.ne_client.delete_floatingip)
         self._delete_routers()
-
-        self._delete_neutron_resources('ports',
-                                       self.ne_client.list_ports,
-                                       self.ne_client.delete_port)
 
         super(NeutronArchiver, self).delete_resources(force=force)
 
