@@ -175,35 +175,35 @@ class Expirer(object):
         resources = self.archiver.delete_resources(force=force)
         return resources
 
-    def get_status(self, resource):
-        if not hasattr(resource, self.STATUS_KEY) or \
-           not getattr(resource, self.STATUS_KEY):
-            setattr(resource, self.STATUS_KEY, expiry_states.ACTIVE)
-        return getattr(resource, self.STATUS_KEY)
+    def get_status(self):
+        if not hasattr(self.resource, self.STATUS_KEY) or \
+           not getattr(self.resource, self.STATUS_KEY):
+            setattr(self.resource, self.STATUS_KEY, expiry_states.ACTIVE)
+        return getattr(self.resource, self.STATUS_KEY)
 
-    def get_next_step_date(self, resource):
-        if not hasattr(resource, self.NEXT_STEP_KEY) or \
-           not getattr(resource, self.NEXT_STEP_KEY):
+    def get_next_step_date(self):
+        if not hasattr(self.resource, self.NEXT_STEP_KEY) or \
+           not getattr(self.resource, self.NEXT_STEP_KEY):
             return None
         try:
-            expiry_next_step = getattr(resource, self.NEXT_STEP_KEY)
+            expiry_next_step = getattr(self.resource, self.NEXT_STEP_KEY)
             return datetime.datetime.strptime(expiry_next_step, DATE_FORMAT)
         except ValueError:
             LOG.error('%s: Invalid %s date: %s',
-                      resource.id, self.NEXT_STEP_KEY, expiry_next_step)
+                      self.resource.id, self.NEXT_STEP_KEY, expiry_next_step)
         return None
 
-    def at_next_step(self, resource):
-        next_step = self.get_next_step_date(resource)
+    def at_next_step(self):
+        next_step = self.get_next_step_date()
         if not next_step:
             return True
         if next_step <= datetime.datetime.now():
-            LOG.debug('%s: Ready for next step (%s)', resource.id,
+            LOG.debug('%s: Ready for next step (%s)', self.resource.id,
                       next_step)
             return True
         else:
             LOG.debug('%s: Not yet ready for next step (%s)',
-                      resource.id, next_step)
+                      self.resource.id, next_step)
             return False
 
     @staticmethod
@@ -305,8 +305,8 @@ class ProjectExpirer(Expirer):
 
     def process(self):
 
-        expiry_status = self.get_status(self.project)
-        expiry_next_step = self.get_next_step_date(self.project)
+        expiry_status = self.get_status()
+        expiry_next_step = self.get_next_step_date()
 
         LOG.debug("%s: Processing project=%s status=%s next_step=%s",
                   self.project.id, self.project.name, expiry_status,
@@ -333,22 +333,22 @@ class ProjectExpirer(Expirer):
                 return True
 
         elif expiry_status == expiry_states.WARNING:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.restrict_project()
                 return True
 
         elif expiry_status == expiry_states.RESTRICTED:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.stop_resource()
                 return True
 
         elif expiry_status == expiry_states.STOPPED:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.archive_project()
                 return True
 
         elif expiry_status == expiry_states.ARCHIVING:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 LOG.warn("%s: Archiving longer than next step, move on",
                          self.project.id)
                 self.set_project_archived()
@@ -357,7 +357,7 @@ class ProjectExpirer(Expirer):
             return True
 
         elif expiry_status == expiry_states.ARCHIVED:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.delete_project()
             else:
                 self.delete_resources()
@@ -399,7 +399,7 @@ class ProjectExpirer(Expirer):
 
     def archive_project(self, duration=90):
         """Archive a project's resources. Keep archive for `duration` days"""
-        status = self.get_status(self.project)
+        status = self.get_status()
         if status != expiry_states.ARCHIVING:
             LOG.info("%s: Archiving project", self.project.id)
             next_step = (self.now
@@ -412,7 +412,7 @@ class ProjectExpirer(Expirer):
         self.archiver.archive_resources()
 
     def is_ignored_project(self):
-        status = self.get_status(self.project)
+        status = self.get_status()
         if status is None:
             return False
         elif status == expiry_states.ADMIN:
@@ -569,7 +569,7 @@ class AllocationExpirer(ProjectExpirer):
         return allocation_end - datetime.timedelta(days=notice_period)
 
     def revert_expiry(self):
-        status = self.get_status(self.project)
+        status = self.get_status()
         if status == expiry_states.ACTIVE:
             return
 
@@ -595,7 +595,7 @@ class AllocationExpirer(ProjectExpirer):
         if self.is_ignored_project():
             return False
 
-        if self.get_status(self.project) == expiry_states.RENEWED:
+        if self.get_status() == expiry_states.RENEWED:
             return True
 
         allocation_status = self.allocation.status
@@ -734,24 +734,24 @@ class PTExpirer(ProjectExpirer):
         return account.registered_at < one_year_ago
 
     def process(self):
-        status = self.get_status(self.project)
-        self.get_next_step_date(self.project)
+        status = self.get_status()
+        self.get_next_step_date()
 
         LOG.debug("%s: Processing project %s status: %s",
                   self.project.id, self.project.name, status)
 
         # Support deprecated PT states while still around
         if status == expiry_states.SUSPENDED:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.archive_project()
                 return True
 
         elif status == expiry_states.QUOTA_WARNING:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.notify_at_limit()
 
         elif status == expiry_states.PENDING_SUSPENSION:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.notify_over_limit()
 
         else:
@@ -774,7 +774,7 @@ class PTExpirer(ProjectExpirer):
         return CPULimit.UNDER_LIMIT
 
     def notify_at_limit(self):
-        if self.get_status(self.project) == expiry_states.PENDING_SUSPENSION:
+        if self.get_status() == expiry_states.PENDING_SUSPENSION:
             LOG.debug("Usage OK for now, ignoring")
             return False
 
@@ -792,9 +792,9 @@ class PTExpirer(ProjectExpirer):
         return True
 
     def notify_over_limit(self):
-        if self.get_status(self.project) != expiry_states.PENDING_SUSPENSION:
+        if self.get_status() != expiry_states.PENDING_SUSPENSION:
             return self.notify_at_limit()
-        if not self.at_next_step(self.project):
+        if not self.at_next_step():
             return False
 
         LOG.info("%s: Usage is over 120%%, suspending project",
@@ -905,8 +905,8 @@ class AllocationInstanceExpirer(AllocationExpirer):
 
     def process(self):
 
-        zone_expiry_status = self.get_status(self.project)
-        zone_expiry_next_step = self.get_next_step_date(self.project)
+        zone_expiry_status = self.get_status()
+        zone_expiry_next_step = self.get_next_step_date()
 
         if self.force_delete:
             LOG.info("%s: Force deleting out of zone instances=%s",
@@ -928,17 +928,17 @@ class AllocationInstanceExpirer(AllocationExpirer):
                 return True
             return False
         elif zone_expiry_status == expiry_states.WARNING:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.stop_resource()
                 return True
             return False
         elif zone_expiry_status == expiry_states.STOPPED:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.archive_project()
                 return True
             return False
         elif zone_expiry_status == expiry_states.ARCHIVING:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 LOG.debug("%s: Archiving longer than next step, move on",
                           self.project.id)
                 self.set_project_archived()
@@ -946,7 +946,7 @@ class AllocationInstanceExpirer(AllocationExpirer):
                 self.check_archiving_status()
             return True
         elif zone_expiry_status == expiry_states.ARCHIVED:
-            if self.at_next_step(self.project):
+            if self.at_next_step():
                 self.archiver.delete_archives()
                 self.delete_resources(force=True)
                 self.finish_expiry(
@@ -1073,8 +1073,8 @@ class ImageExpirer(Expirer):
             LOG.info("Image %s: Force deleting image", self.image.id)
             self.delete_resources(force=True)
             return True
-        expiry_status = self.get_status(self.image)
-        expiry_next_step = self.get_next_step_date(self.image)
+        expiry_status = self.get_status()
+        expiry_next_step = self.get_next_step_date()
 
         LOG.debug("Image %s: Processing image=%s status=%s next_step=%s",
                   self.image.id, self.image.name, expiry_status,
@@ -1094,7 +1094,7 @@ class ImageExpirer(Expirer):
             self.send_warning()
             return True
         elif expiry_status == expiry_states.WARNING:
-            if self.at_next_step(self.image):
+            if self.at_next_step():
                 self.stop_resource()
                 return True
             return False
@@ -1102,7 +1102,7 @@ class ImageExpirer(Expirer):
             if self.image.os_hidden is not True:
                 self.archiver.stop_resources()
                 return True
-            elif self.at_next_step(self.image):
+            elif self.at_next_step():
                 self.finish_expiry()
                 self.delete_resources(force=True)
                 return True
