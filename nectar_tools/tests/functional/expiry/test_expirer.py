@@ -75,7 +75,7 @@ class PTExpiryTests(test.TestCase):
         self.project = project
 
     def _test_process(self, invalid=False, usage=0,
-                      registered_at=datetime.datetime(2016, 12, 1),
+                      registered_at=datetime.datetime(2017, 1, 1),
                       pending_allocations=[],
                       keystone_calls=[], fd_calls=[],
                       nova_calls=[], neutron_calls=[],
