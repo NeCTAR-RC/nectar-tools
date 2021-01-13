@@ -144,14 +144,14 @@ class ExpiryTests(test.TestCase):
         resource = mock.Mock()
         resource.expiry_status = expected
         ex = expirer.Expirer('fake_type', resource, notifier='fake')
-        actual = ex.get_status(ex.resource)
+        actual = ex.get_status()
         self.assertEqual(expected, actual)
 
     def test_get_status_none(self):
         resource = mock.Mock()
         resource.expiry_status = None
         ex = expirer.Expirer('fake_type', resource, notifier='fake')
-        actual = ex.get_status(ex.resource)
+        actual = ex.get_status()
         self.assertEqual('active', actual)
 
     def test_get_next_step_date(self):
@@ -159,14 +159,14 @@ class ExpiryTests(test.TestCase):
         resource = mock.Mock()
         resource.expiry_next_step = '2017-01-01'
         ex = expirer.Expirer('fake_type', resource, notifier='fake')
-        actual = ex.get_next_step_date(ex.resource)
+        actual = ex.get_next_step_date()
         self.assertEqual(expected, actual)
 
     def test_get_next_step_date_none(self):
         resource = mock.Mock()
         resource.expiry_next_step = None
         ex = expirer.Expirer('fake_type', resource, notifier='fake')
-        actual = ex.get_next_step_date(ex.resource)
+        actual = ex.get_next_step_date()
         self.assertIsNone(actual)
 
     def test_at_next_step(self):
@@ -175,7 +175,7 @@ class ExpiryTests(test.TestCase):
         ex = expirer.Expirer('fake_type', resource, notifier='fake')
         with mock.patch.object(ex, 'get_next_step_date') as mock_next:
             mock_next.return_value = datetime.datetime(2016, 1, 1)
-            self.assertTrue(ex.at_next_step(ex.resource))
+            self.assertTrue(ex.at_next_step())
 
     def test_at_next_step_negative(self):
         resource = mock.Mock()
@@ -183,10 +183,10 @@ class ExpiryTests(test.TestCase):
         ex = expirer.Expirer('fake_type', resource, notifier='fake')
         with mock.patch.object(ex, 'get_next_step_date') as mock_next:
             mock_next.return_value = datetime.datetime(2018, 1, 1)
-            self.assertFalse(ex.at_next_step(ex.resource))
+            self.assertFalse(ex.at_next_step())
             mock_next.reset_mock()
             mock_next.return_value = None
-            self.assertTrue(ex.at_next_step(ex.resource))
+            self.assertTrue(ex.at_next_step())
 
     def test_make_next_step_date_feb_1(self):
         now = datetime.datetime(2018, 2, 1)
