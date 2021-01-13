@@ -730,8 +730,8 @@ class PTExpirer(ProjectExpirer):
     def is_pt_too_old(self):
         user_id = self.project.owner.id
         account = self.m_client.users.get(user_id)
-        one_year_ago = self.now - relativedelta(years=1)
-        return account.registered_at < one_year_ago
+        six_months_ago = self.now - relativedelta(months=6)
+        return account.registered_at < six_months_ago
 
     def get_expiry_date(self):
         return self.make_next_step_date(self.now, days=30)
