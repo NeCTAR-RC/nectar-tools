@@ -274,6 +274,14 @@ class ExpiryTests(test.TestCase):
                                                          expiry_next_step='',
                                                          expiry_ticket_id='0')
 
+    def test_get_expiry_date(self):
+        image = fakes.FakeImage()
+        ex = expirer.Expirer(image)
+        with mock.patch.object(ex, 'make_next_step_date') as mock_make:
+            ex.get_expiry_date()
+            mock_make.assert_called_with(datetime.datetime(2017, 1, 1),
+                                         days=30)
+
 
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
@@ -1388,13 +1396,6 @@ class AllocationInstanceExpiryTests(AllocationExpiryTests):
                 foo='bar')
             self.assertEqual(expected, result)
 
-    def test_get_expiry_date(self):
-        project = fakes.FakeProject('dummy', allocation_id=1)
-        ex = expirer.AllocationInstanceExpirer(project)
-        with mock.patch.object(ex, 'make_next_step_date') as mock_next_step:
-            mock_next_step.return_value = 'fake date'
-            self.assertEqual('fake date', ex.get_expiry_date())
-
     def test_get_warning_date(self):
         project = fakes.FakeProject('dummy', allocation_id=1)
         ex = expirer.AllocationInstanceExpirer(project)
@@ -1708,14 +1709,6 @@ class ImageExpiryTests(test.TestCase):
         with mock.patch.object(ex, 'get_project') as mock_project:
             mock_project.return_value = 'fake project'
             self.assertEqual('fake project', ex.project)
-
-    def test_get_expiry_date(self):
-        image = fakes.FakeImage()
-        ex = expirer.ImageExpirer(image)
-        with mock.patch.object(ex, 'make_next_step_date') as mock_make:
-            ex.get_expiry_date()
-            mock_make.assert_called_with(datetime.datetime(2017, 1, 1),
-                                         days=30)
 
     def test_get_notification_context(self):
         image = fakes.FakeImage()
