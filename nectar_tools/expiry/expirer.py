@@ -163,7 +163,10 @@ class Expirer(object):
                      self.resource.id)
 
     def send_event(self, event, extra_context={}):
-        return
+        event_type = '%s.%s' % (self.EVENT_PREFIX, event)
+        event_notification = self._get_notification_context()
+        event_notification.update(extra_context)
+        self._send_event(event_type, event_notification)
 
     def _send_event(self, event_type, payload):
         if self.dry_run:
@@ -639,12 +642,6 @@ class AllocationExpirer(ProjectExpirer):
                    'allocation': self.allocation.to_dict()}
         return context
 
-    def send_event(self, event, extra_context={}):
-        event_type = '%s.%s' % (self.EVENT_PREFIX, event)
-        event_notification = self._get_notification_context()
-        event_notification.update(extra_context)
-        self._send_event(event_type, event_notification)
-
     def _send_notification(self, stage, extra_context={}):
         if self.force_no_allocation:
             LOG.info("%s: Skipping notification due to force no "
@@ -674,6 +671,8 @@ class AllocationExpirer(ProjectExpirer):
 
 
 class PTExpirer(ProjectExpirer):
+
+    EVENT_PREFIX = 'expiry.pt'
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  disable_project=False, force_delete=False):
@@ -815,13 +814,7 @@ class PTExpirer(ProjectExpirer):
         return (self.project.owner.email, [])
 
     def _get_notification_context(self):
-        return {}
-
-    def send_event(self, event, extra_context={}):
-        event_type = 'expiry.pt.%s' % event
-        event_notification = {'project': self.project.to_dict()}
-        event_notification.update(extra_context)
-        self._send_event(event_type, event_notification)
+        return {'project': self.project.to_dict()}
 
 
 class AllocationInstanceExpirer(AllocationExpirer):
