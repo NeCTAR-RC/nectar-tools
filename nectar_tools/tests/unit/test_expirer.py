@@ -307,28 +307,27 @@ class ProjectExpirerTests(test.TestCase):
         ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
 
         with test.nested(
-            mock.patch.object(ex, '_update_resource'),
+            mock.patch.object(ex, 'set_project_archived'),
             mock.patch.object(ex, 'archiver'),
-        ) as (mock_update_resource, mock_archiver):
+        ) as (mock_set_archived, mock_archiver):
             mock_archiver.is_archive_successful.return_value = True
             ex.check_archiving_status()
             mock_archiver.is_archive_successful.assert_called_once_with()
-            mock_update_resource.assert_called_with(
-                expiry_status=expiry_states.ARCHIVED)
+            mock_set_archived.assert_called_with()
 
     def test_check_archiving_status_nagative(self):
         project = fakes.FakeProject()
         ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
 
         with test.nested(
-            mock.patch.object(ex, '_update_resource'),
+            mock.patch.object(ex, 'set_project_archived'),
             mock.patch.object(ex, 'archiver'),
             mock.patch.object(ex, 'archive_project')
-        ) as (mock_update_resource, mock_archiver, mock_archive):
+        ) as (mock_set_archived, mock_archiver, mock_archive):
             mock_archiver.is_archive_successful.return_value = False
             ex.check_archiving_status()
             mock_archiver.is_archive_successful.assert_called_once_with()
-            mock_update_resource.assert_not_called()
+            mock_set_archived.assert_not_called()
             mock_archive.assert_called_with()
 
     def test_restrict_project(self):
