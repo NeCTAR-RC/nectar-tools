@@ -126,20 +126,26 @@ class Expirer(object):
     def _get_notification_context(self):
         return {}
 
+    @staticmethod
+    def _get_emails(users):
+        emails = []
+        for user in users:
+            LOG.error(user)
+            if not user.enabled:
+                if not getattr(user, 'inactive', False):
+                    continue
+            email = getattr(user, 'email', None)
+            if email:
+                if not utils.is_email_address(email):
+                    continue
+                emails.append(email.lower())
+        return emails
+
     def _get_recipients(self):
         managers = self._get_project_managers()
         members = self._get_project_members()
-        manager_emails = []
-        member_emails = []
-        for manager in managers:
-            if manager.enabled and hasattr(manager, 'email') \
-               and utils.is_email_address(manager.email):
-                manager_emails.append(manager.email.lower())
-        for member in members:
-            if member.enabled and hasattr(member, 'email') \
-               and utils.is_email_address(member.email):
-                member_emails.append(member.email.lower())
-
+        manager_emails = self._get_emails(managers)
+        member_emails = self._get_emails(members)
         extra_emails = list(set(manager_emails + member_emails))
         if not extra_emails:
             return (None, [])
