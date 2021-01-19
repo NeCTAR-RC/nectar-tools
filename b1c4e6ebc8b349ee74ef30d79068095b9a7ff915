@@ -45,6 +45,30 @@
       "revId": "b1c4e6ebc8b349ee74ef30d79068095b9a7ff915",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "6be2770c_634d4ce9",
+        "filename": "nectar_tools/templates/accounts/first-warning.tmpl",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-01-19T02:44:42Z",
+      "side": 1,
+      "message": "Sure, me and Jo worked on it. Suggest changes at bottom of https://docs.google.com/document/d/1i2VkeeAAogr7gC4UiiHTswKkGfbawNsCZuXfkvbYeXI/edit",
+      "parentUuid": "dca61cba_910d00bc",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 135
+      },
+      "revId": "b1c4e6ebc8b349ee74ef30d79068095b9a7ff915",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
