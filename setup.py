@@ -26,20 +26,21 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'nectar-allocation-audit = nectar_tools.audit.cmd.allocation:main',
-            'nectar-allocation-expiry = nectar_tools.expiry.cmd.allocation_expirer:main',
-            'nectar-allocation-instance-expiry = nectar_tools.expiry.cmd.allocation_instance_expirer:main',
-            'nectar-allocation-provisioner = nectar_tools.provisioning.cmd.provision:main',
+            'nectar-allocation-expiry = nectar_tools.expiry.cmd.allocation_expirer:main',  # noqa
+            'nectar-allocation-instance-expiry = nectar_tools.expiry.cmd.allocation_instance_expirer:main',  # noqa
+            'nectar-allocation-provisioner = nectar_tools.provisioning.cmd.provision:main',  # noqa
             'nectar-app-audit = nectar_tools.audit.cmd.app_catalog:main',
             'nectar-compute-audit = nectar_tools.audit.cmd.compute:main',
             'nectar-dns-audit = nectar_tools.audit.cmd.dns:main',
             'nectar-identity-audit = nectar_tools.audit.cmd.identity:main',
             'nectar-image-expiry = nectar_tools.expiry.cmd.image_expirer:main',
+            'nectar-account-expiry = nectar_tools.expiry.cmd.account_expirer:main',  # noqa
             'nectar-image-audit = nectar_tools.audit.cmd.image:main',
             'nectar-metric-audit = nectar_tools.audit.cmd.metric:main',
             'nectar-placement-audit = nectar_tools.audit.cmd.placement:main',
             'nectar-coe-audit = nectar_tools.audit.cmd.coe:main',
-            'nectar-loadbalancer-audit = nectar_tools.audit.cmd.loadbalancer:main',
-            'nectar-project-allocation-audit = nectar_tools.audit.cmd.project:main',
+            'nectar-loadbalancer-audit = nectar_tools.audit.cmd.loadbalancer:main',  # noqa
+            'nectar-project-allocation-audit = nectar_tools.audit.cmd.project:main',  # noqa
             'nectar-pt-audit = nectar_tools.audit.cmd.pt:main',
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
             'send-fd-outbound = nectar_tools.cli.send_fd_outbound:main',
