@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "52204136_b7c12cd2",
+        "filename": "nectar_tools/expiry/manager/account.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2021-01-19T02:06:37Z",
+      "side": 1,
+      "message": "Just wondering if we\u0027ve standardised on calling it the \u0027Nectar Research Cloud\u0027 instead?",
+      "range": {
+        "startLine": 24,
+        "startChar": 42,
+        "endLine": 24,
+        "endChar": 54
+      },
+      "revId": "b1c4e6ebc8b349ee74ef30d79068095b9a7ff915",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "dca61cba_910d00bc",
+        "filename": "nectar_tools/templates/accounts/first-warning.tmpl",
+        "patchSetId": 3
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2021-01-19T02:06:37Z",
+      "side": 1,
+      "message": "I\u0027m not sure I like how this reads. OK if I rewrite?",
+      "range": {
+        "startLine": 4,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 135
+      },
+      "revId": "b1c4e6ebc8b349ee74ef30d79068095b9a7ff915",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
