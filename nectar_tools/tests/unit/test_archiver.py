@@ -646,6 +646,34 @@ class MagnumArchiverTests(test.TestCase):
                 [mock.call(c1), mock.call(c2)])
 
 
+@mock.patch('nectar_tools.auth.get_manila_client', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class ManilaArchiverTests(test.TestCase):
+
+    def test_zero_quota(self):
+        ma = archiver.ManilaArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_manila:
+            ma.zero_quota()
+            mock_manila.quotas.delete.assert_called_once_with(
+                PROJECT.id)
+
+    def test_delete_resources(self):
+        ma = archiver.ManilaArchiver(PROJECT)
+        s1 = mock.Mock(project_id=PROJECT.id, uuid='s1')
+        s2 = mock.Mock(project_id=PROJECT.id, uuid='s2')
+        with mock.patch.object(ma, 'm_client') as mock_manila:
+            mock_manila.shares.list.return_value = [s1, s2]
+
+            ma.delete_resources(force=True)
+
+            mock_manila.shares.list.assert_called_once_with(
+                detailed=True, search_opts={
+                    "all_tenants": "1",
+                    "project_id": PROJECT.id})
+            mock_manila.shares.delete.assert_has_calls(
+                [mock.call(s1), mock.call(s2)])
+
+
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class SwiftArchiverTests(test.TestCase):
 
