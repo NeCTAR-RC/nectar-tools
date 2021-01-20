@@ -21,3 +21,4 @@ oslo.context
 openstacksdk>=0.22.0
 manukaclient
 python-magnumclient
+python-manilaclient
