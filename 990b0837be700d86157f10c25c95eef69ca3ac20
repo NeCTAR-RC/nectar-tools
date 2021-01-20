@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "404108ca_94dba805",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 837,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-01-20T02:46:29Z",
+      "side": 1,
+      "message": "prob better to just delete quota so it goes back to default",
+      "range": {
+        "startLine": 837,
+        "startChar": 33,
+        "endLine": 837,
+        "endChar": 39
+      },
+      "revId": "990b0837be700d86157f10c25c95eef69ca3ac20",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d8c5c9f7_d3f6193d",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 852,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-01-20T02:46:29Z",
+      "side": 1,
+      "message": "don\u0027t think this is needed if you already filtering by project above?",
+      "range": {
+        "startLine": 852,
+        "startChar": 12,
+        "endLine": 852,
+        "endChar": 51
+      },
+      "revId": "990b0837be700d86157f10c25c95eef69ca3ac20",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
