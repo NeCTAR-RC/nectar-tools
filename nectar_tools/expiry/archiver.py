@@ -825,6 +825,40 @@ class MagnumArchiver(Archiver):
                     self.m_client.clusters.delete(cluster)
 
 
+class ManilaArchiver(Archiver):
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super().__init__(ks_session, dry_run)
+        self.project = project
+        self.m_client = auth.get_manila_client(ks_session)
+
+    def zero_quota(self):
+        if not self.dry_run:
+            LOG.info("%s: Zero manila quota", self.project.id)
+            self.m_client.quotas.update(self.project.id, shares=0, snapshots=0,
+                                        gigabytes=0, snapshot_gigabytes=0,
+                                        share_networks=0, share_groups=0,
+                                        share_group_snapshots=0)
+        else:
+            LOG.info("%s: Would zero manila quota", self.project.id)
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+
+        shares = self.m_client.shares.list(detailed=True, search_opts={
+                                           "all_tenants": "1",
+                                           "project_id": self.project.id})
+        for share in shares:
+            if share.project_id == self.project.id:
+                if self.dry_run:
+                    LOG.info("%s: Would delete share %s", self.project.id,
+                             share.id)
+                else:
+                    LOG.info("%s: Deleting share %s", self.project.id,
+                             share.id)
+                    self.m_client.shares.delete(share)
+
+
 class ResourceArchiver(object):
 
     def __init__(self, project, archivers, ks_session=None, dry_run=False):
@@ -851,6 +885,8 @@ class ResourceArchiver(object):
             enabled.append(SwiftArchiver(project, ks_session, dry_run))
         if 'designate' in archivers:
             enabled.append(DesignateArchiver(project, ks_session, dry_run))
+        if 'manila' in archivers:
+            enabled.append(ManilaArchiver(project, ks_session, dry_run))
         self.archivers = enabled
 
     def is_archive_successful(self):
