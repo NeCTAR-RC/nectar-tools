@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "85a3c60c_a6d03338",
+        "filename": "nectar_tools/tests/unit/test_archiver.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 664,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-01-21T22:15:30Z",
+      "side": 1,
+      "message": "All good but you can do this more efficiently by doing\n\ns1 \u003d mock.Mock(project_id\u003dPROJECT.id, uuid\u003d\u0027s1\u0027)",
+      "range": {
+        "startLine": 662,
+        "startChar": 0,
+        "endLine": 664,
+        "endChar": 22
+      },
+      "revId": "0d2db389e18b79184484f1ce7779cf6b248203cb",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
