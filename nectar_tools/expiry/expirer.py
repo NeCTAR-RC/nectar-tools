@@ -286,7 +286,7 @@ class Expirer(object):
         self.send_event('first-warning', extra_context=extra_context)
 
     def get_expiry_date(self):
-        raise NotImplementedError
+        return self.make_next_step_date(self.now, days=30)
 
 
 class ProjectExpirer(Expirer):
@@ -733,9 +733,6 @@ class PTExpirer(ProjectExpirer):
         six_months_ago = self.now - relativedelta(months=6)
         return account.registered_at < six_months_ago
 
-    def get_expiry_date(self):
-        return self.make_next_step_date(self.now, days=30)
-
     def process(self):
         status = self.get_status(self.project)
         self.get_next_step_date(self.project)
@@ -875,7 +872,7 @@ class AllocationInstanceExpirer(AllocationExpirer):
         return context
 
     def get_expiry_date(self):
-        return self.make_next_step_date(self.now, days=30)
+        return super(ProjectExpirer, self).get_expiry_date()
 
     def get_warning_date(self):
         start_date = datetime.datetime.strptime(self.allocation.start_date,
@@ -999,9 +996,6 @@ class ImageExpirer(Expirer):
             self.image, self.NEXT_STEP_KEY, '')
         self.image.nectar_expiry_ticket_id = getattr(
             self.image, self.TICKET_ID_KEY, '0')
-
-    def get_expiry_date(self):
-        return self.make_next_step_date(self.now, days=30)
 
     def _get_notification_context(self):
         managers = self._get_project_managers()
