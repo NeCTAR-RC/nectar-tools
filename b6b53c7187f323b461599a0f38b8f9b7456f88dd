@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "889882f1_9a334f14",
+        "filename": "nectar_tools/templates/pts/first-warning.tmpl",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2021-01-28T02:27:27Z",
+      "side": 1,
+      "message": "This is incorrect I think.  This message is (typically) sent 1 month before the 6 month deadline.  The previous version of the template said 11 months (not 12).  But the messaging is (should be) more complicated.  One solution would be to use different text for the 100% usage warning and the 5 month age warning.",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 128
+      },
+      "revId": "b6b53c7187f323b461599a0f38b8f9b7456f88dd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
