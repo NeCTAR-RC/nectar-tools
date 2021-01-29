@@ -516,7 +516,16 @@ class ProvisioningManager(object):
 
     def set_trove_quota(self, allocation):
         allocated_quota = allocation.get_allocated_trove_quota()
-        allocated_quota['ram'] = int(allocated_quota['ram']) * 1024
+        allocated_quota['ram'] = int(allocated_quota.get('ram', 0)) * 1024
+        if 'volumes' not in allocated_quota:
+            allocated_quota['volumes'] = 0
+
+        current = self.get_current_trove_quota(allocation)
+        # Because no quota.delete method only set quota to 0 if it's not 0
+        # This avoids having to set all projects quota to 0 if they don't use
+        # trove, 0 is the default so no need.
+        if current.get('ram', 0) == 0 and allocated_quota['ram'] == 0:
+            return
 
         if self.noop:
             LOG.info("%s: Would set Trove Quota: %s", allocation.id,
