@@ -682,6 +682,7 @@ class ProvisionerTests(test.TestCase):
     def test_set_trove_quota(self, mock_trove):
         trove_client = mock.Mock()
         mock_trove.return_value = trove_client
+        self.allocation.project_id = 'fake'
 
         with mock.patch.object(
                 self.allocation,
@@ -689,11 +690,52 @@ class ProvisionerTests(test.TestCase):
             mock_allocated.return_value = {
                 'ram': 8, 'volumes': 100}
 
+            fake_quota = [mock.Mock(limit=0, resource='ram'),
+                          mock.Mock(limit=0, resource='volumes')]
+            trove_client.quota.show.return_value = fake_quota
             self.manager.set_trove_quota(self.allocation)
 
         trove_client.quota.update.assert_called_once_with(
             self.allocation.project_id, {'ram': 8192,
                                          'volumes': 100})
+
+    @mock.patch('nectar_tools.auth.get_trove_client')
+    def test_set_trove_quota_none(self, mock_trove):
+        trove_client = mock.Mock()
+        mock_trove.return_value = trove_client
+        self.allocation.project_id = 'fake'
+
+        with mock.patch.object(
+                self.allocation,
+                'get_allocated_trove_quota') as mock_allocated:
+            mock_allocated.return_value = {}
+
+            fake_quota = [mock.Mock(limit=0, resource='ram'),
+                          mock.Mock(limit=0, resource='volumes')]
+            trove_client.quota.show.return_value = fake_quota
+            self.manager.set_trove_quota(self.allocation)
+
+        trove_client.quota.update.assert_not_called()
+
+    @mock.patch('nectar_tools.auth.get_trove_client')
+    def test_set_trove_quota_remove(self, mock_trove):
+        trove_client = mock.Mock()
+        mock_trove.return_value = trove_client
+        self.allocation.project_id = 'fake'
+
+        with mock.patch.object(
+                self.allocation,
+                'get_allocated_trove_quota') as mock_allocated:
+            mock_allocated.return_value = {}
+
+            fake_quota = [mock.Mock(limit=4096, resource='ram'),
+                          mock.Mock(limit=100, resource='volumes')]
+            trove_client.quota.show.return_value = fake_quota
+            self.manager.set_trove_quota(self.allocation)
+
+        trove_client.quota.update.assert_called_once_with(
+            self.allocation.project_id, {'ram': 0,
+                                         'volumes': 0})
 
     @mock.patch('nectar_tools.auth.get_magnum_client')
     def test_set_magnum_quota(self, mock_magnum):
