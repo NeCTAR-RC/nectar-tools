@@ -516,6 +516,7 @@ class ProjectExpirerTests(test.TestCase):
 @mock.patch('nectarallocationclient.v1.allocations.AllocationManager',
             new=fakes.FakeAllocationManager)
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_manila_client', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class AllocationExpiryTests(test.TestCase):
 
