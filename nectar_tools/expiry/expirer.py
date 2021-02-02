@@ -695,12 +695,15 @@ class PTExpirer(ProjectExpirer):
         personal = self.is_personal_project()
         if personal and not has_owner:
             LOG.warn("%s: Project has no owner", self.project.id)
+        should = personal and has_owner and not self.is_ignored_project()
+        if not should:
+            return False
         allocations = self.pending_allocations()
         if allocations:
             LOG.warn("%s: Skipping expiry due to pending allocations %s",
                      self.project.id, [a.id for a in allocations])
             return False
-        return personal and has_owner and not self.is_ignored_project()
+        return True
 
     def is_personal_project(self):
         return PT_RE.match(self.project.name)
