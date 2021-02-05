@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "329220d1_9aed60b7",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 522,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2021-02-05T00:54:51Z",
+      "side": 1,
+      "message": "can this be replaced by\n allocated_quota \u003d int(allocated_quota.get(\u0027ram\u0027, 0)) * 1024",
+      "range": {
+        "startLine": 519,
+        "startChar": 0,
+        "endLine": 522,
+        "endChar": 38
+      },
+      "revId": "006a9c5a259ffb91910c21fa90fcb1ccc6c25072",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "d6db9a26_cacad29c",
+        "filename": "nectar_tools/provisioning/manager.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 529,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2021-02-05T00:54:51Z",
+      "side": 1,
+      "message": "I\u0027m trying to understand if there is a problem with setting quota to 0 for projects that doesn\u0027t use trove?",
+      "range": {
+        "startLine": 527,
+        "startChar": 0,
+        "endLine": 529,
+        "endChar": 45
+      },
+      "revId": "006a9c5a259ffb91910c21fa90fcb1ccc6c25072",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
