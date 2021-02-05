@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "67e97b6d_9662a1bf",
+        "filename": "nectar_tools/expiry/expirer.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-02-05T01:58:00Z",
+      "side": 1,
+      "message": "how about:            \n            if user.enabled or getattr(user, \u0027inactive\u0027, False):\n                email \u003d getattr(user, \u0027email\u0027, None)\n                if utils.is_email_address(email):\n                    emails.append(email.lower())",
+      "range": {
+        "startLine": 133,
+        "startChar": 0,
+        "endLine": 140,
+        "endChar": 44
+      },
+      "revId": "b53d022a5724118dad0447cda1745f0b9f3e8699",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
