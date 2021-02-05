@@ -690,16 +690,23 @@ class PTExpirer(ProjectExpirer):
         self.force_delete = force_delete
 
     def should_process(self):
-        has_owner = self.project.owner is not None
-        personal = self.is_personal_project()
-        if personal and not has_owner:
+        if not self.is_personal_project():
+            return False
+
+        if self.project.owner is None:
             LOG.warn("%s: Project has no owner", self.project.id)
+            return False
+
+        if self.is_ignored_project():
+            return False
+
         allocations = self.pending_allocations()
         if allocations:
             LOG.warn("%s: Skipping expiry due to pending allocations %s",
                      self.project.id, [a.id for a in allocations])
             return False
-        return personal and has_owner and not self.is_ignored_project()
+
+        return True
 
     def is_personal_project(self):
         return PT_RE.match(self.project.name)
