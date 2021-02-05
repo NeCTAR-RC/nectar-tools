@@ -88,6 +88,20 @@ class ExpiryTests(test.TestCase):
                                                       mock.call('fakeuser2')])
             self.assertEqual(['fakeuser1', 'fakeuser2'], [x.id for x in users])
 
+    def test_get_emails(self):
+        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
+        user1 = mock.Mock(email='fake1@fake.com', enabled=True)
+        user2 = mock.Mock(spec=['email', 'enabled'], email='fake2@fake.com',
+                          enabled=False)
+        user3 = mock.Mock(email='fake3@fake.com', enabled=False, inactive=True)
+        user4 = mock.Mock(email='fake4@fake.com', enabled=False,
+                          inactive=False)
+        user5 = mock.Mock(spec=['enabled'], enabled=True)
+        user6 = mock.Mock(email='fake6-bogus', enabled=True)
+        users = [user1, user2, user3, user4, user5, user6]
+        emails = ex._get_emails(users)
+        self.assertEqual(['fake1@fake.com', 'fake3@fake.com'], emails)
+
     def test_get_recipients(self):
         ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
         with test.nested(
