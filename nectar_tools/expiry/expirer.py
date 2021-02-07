@@ -744,30 +744,6 @@ class PTExpirer(ProjectExpirer):
         six_months_ago = self.now - relativedelta(months=6)
         return account.registered_at < six_months_ago
 
-    def process(self):
-        status = self.get_status()
-        self.get_next_step_date()
-
-        LOG.debug("%s: Processing project %s status: %s",
-                  self.project.id, self.project.name, status)
-
-        # Support deprecated PT states while still around
-        if status == expiry_states.SUSPENDED:
-            if self.at_next_step():
-                self.archive_project()
-                return True
-
-        elif status == expiry_states.QUOTA_WARNING:
-            if self.at_next_step():
-                self.notify_at_limit()
-
-        elif status == expiry_states.PENDING_SUSPENSION:
-            if self.at_next_step():
-                self.notify_over_limit()
-
-        else:
-            return super().process()
-
     def check_cpu_usage(self):
         limit = USAGE_LIMIT_HOURS
         start = datetime.datetime(2011, 1, 1)
@@ -783,44 +759,6 @@ class PTExpirer(ProjectExpirer):
         if cpu_hours > limit:
             return CPULimit.OVER_LIMIT
         return CPULimit.UNDER_LIMIT
-
-    def notify_at_limit(self):
-        if self.get_status() == expiry_states.PENDING_SUSPENSION:
-            LOG.debug("Usage OK for now, ignoring")
-            return False
-
-        LOG.info("%s: Usage is over 100%%, setting status to "
-                 "pending suspension", self.project.id)
-        self.archiver.zero_quota()
-
-        expiry_date = self.make_next_step_date(self.now)
-        with ResourceRollback(self):
-            self._update_resource(
-                expiry_status=expiry_states.PENDING_SUSPENSION,
-                expiry_next_step=expiry_date)
-            self._send_notification('second-warning')
-        self.send_event('second-warning')
-        return True
-
-    def notify_over_limit(self):
-        if self.get_status() != expiry_states.PENDING_SUSPENSION:
-            return self.notify_at_limit()
-        if not self.at_next_step():
-            return False
-
-        LOG.info("%s: Usage is over 120%%, suspending project",
-                 self.project.id)
-
-        self.archiver.zero_quota()
-        self.archiver.stop_resources()
-
-        expiry_date = self.make_next_step_date(self.now)
-        with ResourceRollback(self):
-            self._update_resource(expiry_status=expiry_states.SUSPENDED,
-                                  expiry_next_step=expiry_date)
-            self._send_notification('suspended')
-        self.send_event('suspended')
-        return True
 
     def _get_recipients(self):
         return (self.project.owner.email, [])

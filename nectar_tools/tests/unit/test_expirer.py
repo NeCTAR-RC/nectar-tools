@@ -1,5 +1,4 @@
 import datetime
-from dateutil.relativedelta import relativedelta
 from freezegun import freeze_time
 from unittest import mock
 
@@ -1157,106 +1156,6 @@ class PTExpiryTests(test.TestCase):
             mock_nova.usage.get.return_value = mock_usage
             self.assertRaises(exceptions.NoUsageError, ex.check_cpu_usage)
 
-    def test_notify_at_limit(self):
-        project = fakes.FakeProjectWithOwner()
-        ex = expirer.PTExpirer(project)
-        new_expiry = datetime.datetime.now() + relativedelta(days=30)
-        new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
-
-        with test.nested(
-                mock.patch.object(ex, '_update_resource'),
-                mock.patch.object(ex, '_send_notification'),
-                mock.patch.object(ex, 'archiver'),
-                mock.patch.object(ex, 'send_event'),
-        ) as (mock_update_resource, mock_notification, mock_archiver,
-              mock_event):
-            ex.notify_at_limit()
-            mock_notification.assert_called_with('second-warning')
-            mock_event.assert_called_once_with('second-warning')
-            mock_update_resource.assert_called_with(
-                expiry_status=expiry_states.PENDING_SUSPENSION,
-                expiry_next_step=new_expiry)
-            mock_archiver.zero_quota.assert_called_with()
-
-    def test_notify_at_limit_notification_exception(self):
-        project = fakes.FakeProjectWithOwner(
-            expiry_status=expiry_states.ACTIVE,
-            expiry_next_step='')
-        ex = expirer.PTExpirer(project)
-        new_expiry = datetime.datetime.now() + relativedelta(days=30)
-        new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
-
-        with test.nested(
-                mock.patch.object(ex, '_update_resource'),
-                mock.patch.object(ex, '_send_notification'),
-                mock.patch.object(ex, 'archiver'),
-                mock.patch.object(ex, 'send_event'),
-        ) as (mock_update_resource, mock_notification, mock_archiver,
-              mock_event):
-            mock_notification.side_effect = Exception('fake')
-            try:
-                ex.notify_at_limit()
-            except Exception:
-                mock_archiver.zero_quota.assert_called_with()
-                mock_update_resource.assert_has_calls([
-                    mock.call(expiry_status=expiry_states.PENDING_SUSPENSION,
-                              expiry_next_step=new_expiry),
-                    mock.call(expiry_status=expiry_states.ACTIVE,
-                              expiry_next_step='')])
-                mock_event.assert_not_called()
-
-    def test_notify_over_limit(self):
-        project = fakes.FakeProjectWithOwner(
-            expiry_status=expiry_states.PENDING_SUSPENSION,
-            expiry_next_step='2014-01-01')
-        ex = expirer.PTExpirer(project)
-        new_expiry = datetime.datetime.now() + relativedelta(days=30)
-        new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
-
-        with test.nested(
-                mock.patch.object(ex, '_update_resource'),
-                mock.patch.object(ex, '_send_notification'),
-                mock.patch.object(ex, 'archiver'),
-                mock.patch.object(ex, 'send_event'),
-        ) as (mock_update_resource, mock_notification, mock_archiver,
-              mock_event):
-            ex.notify_over_limit()
-            mock_notification.assert_called_with('suspended')
-            mock_event.assert_called_once_with('suspended')
-            mock_update_resource.assert_called_with(
-                expiry_status=expiry_states.SUSPENDED,
-                expiry_next_step=new_expiry)
-            mock_archiver.zero_quota.assert_called_with()
-            mock_archiver.stop_resources.assert_called_with()
-
-    def test_notify_over_limit_notification_exception(self):
-        project = fakes.FakeProjectWithOwner(
-            expiry_status=expiry_states.PENDING_SUSPENSION,
-            expiry_next_step='2014-01-01')
-        ex = expirer.PTExpirer(project)
-        new_expiry = datetime.datetime.now() + relativedelta(days=30)
-        new_expiry = new_expiry.strftime(expirer.DATE_FORMAT)
-
-        with test.nested(
-                mock.patch.object(ex, '_update_resource'),
-                mock.patch.object(ex, '_send_notification'),
-                mock.patch.object(ex, 'archiver'),
-                mock.patch.object(ex, 'send_event'),
-        ) as (mock_update_resource, mock_notification, mock_archiver,
-              mock_event):
-            mock_notification.side_effect = Exception('fake')
-            try:
-                ex.notify_over_limit()
-            except Exception:
-                mock_archiver.zero_quota.assert_called_with()
-                mock_archiver.stop_resources.assert_called_with()
-                mock_update_resource.assert_has_calls([
-                    mock.call(expiry_status=expiry_states.SUSPENDED,
-                              expiry_next_step=new_expiry),
-                    mock.call(expiry_status=expiry_states.PENDING_SUSPENSION,
-                              expiry_next_step='2014-01-01')])
-                mock_event.assert_not_called()
-
     def test_send_event(self):
         project = fakes.FakeProject()
         ex = expirer.PTExpirer(project)
@@ -1359,16 +1258,6 @@ class PTExpiryProcessTests(test.TestCase):
         with mock.patch.object(ex, 'delete_resources') as mock_delete:
             processed = ex.process()
             mock_delete.assert_called_with()
-            self.assertTrue(processed)
-
-    def test_process_suspended(self):
-        project = fakes.FakeProjectWithOwner(
-            expiry_status=expiry_states.SUSPENDED,
-            expiry_next_step=BEFORE)
-        ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, 'archive_project') as mock_archive:
-            processed = ex.process()
-            mock_archive.assert_called_with()
             self.assertTrue(processed)
 
 
