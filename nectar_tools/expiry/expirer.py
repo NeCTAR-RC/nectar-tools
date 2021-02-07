@@ -691,6 +691,10 @@ class PTExpirer(ProjectExpirer):
         self.force_delete = force_delete
 
     def should_process(self):
+        status = self.get_status()
+        if status == expiry_states.DELETED:
+            return False
+
         if not self.is_personal_project():
             return False
 
