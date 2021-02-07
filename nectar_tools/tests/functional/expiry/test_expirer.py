@@ -763,7 +763,7 @@ class PTExpiryTests(test.TestCase):
         self.project.expiry_next_step = PAST
         self.project.expiry_ticket_id = '2'
 
-        self._test_process()
+        self._test_process(invalid=True)
 
     def test_admin(self):
         """Project in admin state

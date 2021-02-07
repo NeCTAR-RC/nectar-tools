@@ -1054,6 +1054,12 @@ class PTExpiryTests(test.TestCase):
             should = ex.should_process()
         self.assertTrue(should)
 
+    def test_should_process_deleted(self):
+        project = fakes.FakeProjectWithOwner(expiry_status='deleted')
+        ex = expirer.PTExpirer(project)
+        should = ex.should_process()
+        self.assertFalse(should)
+
     def test_should_process_admin(self):
         project = fakes.FakeProjectWithOwner(expiry_status='admin')
         ex = expirer.PTExpirer(project)
