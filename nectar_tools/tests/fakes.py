@@ -1,4 +1,4 @@
-from unittest import mock
+import copy
 
 from nectarallocationclient import exceptions as allocation_exceptions
 from nectarallocationclient.v1 import allocations
@@ -78,10 +78,11 @@ ALLOCATIONS = {
 
 class FakeUser(object):
 
-    def __init__(self, id='dummy', enabled=True, email='fake'):
+    def __init__(self, id='dummy', enabled=True, email='fake@fake.com'):
         self.id = id
         self.enabled = enabled
         self.email = email
+        self.name = email
 
     def to_dict(self):
         return self.__dict__
@@ -119,24 +120,22 @@ class FakeProject(object):
         self.enabled = enabled
 
     def to_dict(self):
-        return self.__dict__
+        return copy.copy(self.__dict__)
 
 
 class FakeProjectWithOwner(object):
 
     def __init__(self, id='dummy', name='pt-123',
-                 owner=mock.Mock(email='fake@fake.com', enabled=True),
+                 owner=FakeUser(),
                  **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
         self.id = id
         self.name = name
         self.owner = owner
-        if self.owner is not None:
-            self.owner.name = self.owner.email
 
     def to_dict(self):
-        return self.__dict__
+        return copy.copy(self.__dict__)
 
 
 class FakeAllocationManager(object):
