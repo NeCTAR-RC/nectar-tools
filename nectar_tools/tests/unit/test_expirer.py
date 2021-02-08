@@ -1158,13 +1158,25 @@ class PTExpiryTests(test.TestCase):
             self.assertRaises(exceptions.NoUsageError, ex.check_cpu_usage)
 
     def test_send_event(self):
-        project = fakes.FakeProject()
+        project = fakes.FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
         with mock.patch.object(ex, '_send_event') as mock_send:
             ex.send_event('foo', {'uni': 'melb'})
             payload = {'project': project.to_dict(),
                        'uni': 'melb'}
             mock_send.assert_called_once_with('expiry.pt.foo', payload)
+
+    def test_get_notification_context(self):
+        project = fakes.FakeProjectWithOwner()
+        ex = expirer.PTExpirer(project)
+        actual = ex._get_notification_context()
+        expected = {'project': {'expiry_next_step': '',
+                                'expiry_status': '',
+                                'expiry_ticket_id': '0',
+                                'id': 'dummy',
+                                'name': 'pt-123',
+                                'owner': project.owner}}
+        self.assertEqual(expected, actual)
 
 
 MOCK_A_CLIENT = mock.Mock()
