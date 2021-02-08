@@ -761,10 +761,16 @@ class PTExpirer(ProjectExpirer):
         return CPULimit.UNDER_LIMIT
 
     def _get_recipients(self):
+        LOG.warn(self.project.owner)
         return (self.project.owner.email, [])
 
     def _get_notification_context(self):
-        return {'project': self.project.to_dict()}
+        LOG.warn(self.project.owner)
+        owner_dict = self.project.owner.to_dict()
+        project_dict = self.project.to_dict()
+        project_dict['owner'] = owner_dict
+        LOG.warn(self.project.owner)
+        return {'project': project_dict}
 
 
 class AllocationInstanceExpirer(AllocationExpirer):
