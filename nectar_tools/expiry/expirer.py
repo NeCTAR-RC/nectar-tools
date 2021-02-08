@@ -826,7 +826,10 @@ class PTExpirer(ProjectExpirer):
         return (self.project.owner.email, [])
 
     def _get_notification_context(self):
-        return {'project': self.project.to_dict()}
+        owner = self.project.owner.to_dict()
+        project = self.project.to_dict()
+        project['owner'] = owner
+        return {'project': project}
 
 
 class AllocationInstanceExpirer(AllocationExpirer):
