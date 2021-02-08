@@ -1,5 +1,4 @@
 import datetime
-from dateutil.relativedelta import relativedelta
 from freezegun import freeze_time
 from unittest import mock
 
@@ -1157,14 +1156,20 @@ class PTExpiryTests(test.TestCase):
             mock_nova.usage.get.return_value = mock_usage
             self.assertRaises(exceptions.NoUsageError, ex.check_cpu_usage)
 
-    def test_send_event(self):
-        project = fakes.FakeProject()
+    def test_get_notification_context(self):
+        project = fakes.FakeProjectWithOwner()
         ex = expirer.PTExpirer(project)
-        with mock.patch.object(ex, '_send_event') as mock_send:
-            ex.send_event('foo', {'uni': 'melb'})
-            payload = {'project': project.to_dict(),
-                       'uni': 'melb'}
-            mock_send.assert_called_once_with('expiry.pt.foo', payload)
+        actual = ex._get_notification_context()
+        expected = {'project': {'expiry_next_step': '',
+                                'expiry_status': '',
+                                'expiry_ticket_id': '0',
+                                'id': 'dummy',
+                                'name': 'pt-123',
+                                'owner': {'email': 'fake@fake.com',
+                                          'enabled': True,
+                                          'id': 'dummy',
+                                          'name': 'fake@fake.com'}}}
+        self.assertEqual(expected, actual)
 
 
 MOCK_A_CLIENT = mock.Mock()
@@ -1650,19 +1655,24 @@ class ImageExpiryTests(test.TestCase):
                 'managers': [
                     {'email': 'manager1@example.org',
                      'enabled': True,
+                     'name': 'manager1@example.org',
                      'id': 'manager1'},
                     {'email': 'manager2@example.org',
                      'enabled': True,
+                     'name': 'manager2@example.org',
                      'id': 'manager2'}],
                 'members': [
                     {'email': 'member1@example.org',
                      'enabled': True,
+                     'name': 'member1@example.org',
                      'id': 'member1'},
                     {'email': 'member2@example.org',
                      'enabled': False,
+                     'name': 'member2@example.org',
                      'id': 'member2'},
                     {'email': 'manager1@example.org',
                      'enabled': True,
+                     'name': 'manager1@example.org',
                      'id': 'manager1'}],
                 'project': {
                     'domain_id': 'default',
