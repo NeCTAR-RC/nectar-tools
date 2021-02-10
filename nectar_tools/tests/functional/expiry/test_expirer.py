@@ -372,9 +372,7 @@ class PTExpiryTests(test.TestCase):
             mock.call.servers.list(search_opts={'all_tenants': True,
                                                 'tenant_id': self.project.id,
                                                 'marker': 'fake'}),
-            mock.call.servers.lock(fake_instance.id),
-            mock.call.servers.set_meta(fake_instance.id,
-                                       {'expiry_locked': 'True'}),
+            mock.call.servers.lock(fake_instance.id, reason='expiry_locked'),
             mock.call.servers.stop(fake_instance.id),
         ]
 

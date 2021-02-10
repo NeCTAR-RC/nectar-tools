@@ -258,6 +258,26 @@ class NovaArchiverTests(test.TestCase):
 
     def test_enable_resources(self):
         na = archiver.NovaArchiver(PROJECT)
+        instance1 = fakes.FakeInstance(locked_reason='expiry_locked')
+        with test.nested(
+            mock.patch.object(na, '_all_instances', return_value=[instance1]),
+            mock.patch.object(na, '_unlock_instance'),
+        ) as (mock_all_instances, mock_unlock):
+            na.enable_resources()
+            mock_unlock.assert_called_once_with(instance1)
+
+    def test_enable_resources_bad_reason(self):
+        na = archiver.NovaArchiver(PROJECT)
+        instance1 = fakes.FakeInstance(locked_reason='Because of bad things')
+        with test.nested(
+            mock.patch.object(na, '_all_instances', return_value=[instance1]),
+            mock.patch.object(na, '_unlock_instance'),
+        ) as (mock_all_instances, mock_unlock):
+            na.enable_resources()
+            mock_unlock.assert_not_called()
+
+    def test_enable_resources_metadata(self):
+        na = archiver.NovaArchiver(PROJECT)
         instance1 = fakes.FakeInstance(metadata={'expiry_locked': 'True'})
         with test.nested(
             mock.patch.object(na, '_all_instances', return_value=[instance1]),
@@ -341,9 +361,8 @@ class NovaArchiverTests(test.TestCase):
         instance = fakes.FakeInstance()
         with mock.patch.object(na.n_client, 'servers') as mock_servers:
             na._lock_instance(instance)
-            mock_servers.lock.assert_called_with(instance.id)
-            mock_servers.set_meta.assert_called_with(instance.id,
-                                                     {'expiry_locked': 'True'})
+            mock_servers.lock.assert_called_with(instance.id,
+                                                 reason='expiry_locked')
 
     def test_unlock_instance(self):
         na = archiver.NovaArchiver(PROJECT)
@@ -351,8 +370,6 @@ class NovaArchiverTests(test.TestCase):
         with mock.patch.object(na.n_client, 'servers') as mock_servers:
             na._unlock_instance(instance)
             mock_servers.unlock.assert_called_with(instance.id)
-            mock_servers.delete_meta.assert_called_with(instance.id,
-                                                        ['expiry_locked'])
 
     def test_unlock_instance_already_unlocked(self):
         na = archiver.NovaArchiver(PROJECT)
