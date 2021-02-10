@@ -228,8 +228,10 @@ class NovaArchiver(Archiver):
         for instance in instances:
             # Don't unlock security locked instances
             security = instance.metadata.get('security_ticket')
-            expiry_locked = instance.metadata.get(EXPIRY_METADATA_KEY)
-            if not security and expiry_locked:
+            # Look for both old and new methods
+            locked_metadata = instance.metadata.get(EXPIRY_METADATA_KEY)
+            locked_reason = instance.locked_reason
+            if not security and (locked_metadata or locked_reason):
                 self._unlock_instance(instance)
 
     def delete_archives(self):
@@ -362,10 +364,7 @@ class NovaArchiver(Archiver):
         if self.dry_run:
             LOG.info("Instance %s would be locked", instance.id)
         else:
-            self.n_client.servers.lock(instance.id)
-            if instance.status != "ERROR":
-                self.n_client.servers.set_meta(instance.id,
-                                               {EXPIRY_METADATA_KEY: 'True'})
+            self.n_client.servers.lock(instance.id, reason=EXPIRY_METADATA_KEY)
             LOG.info("%s: Locked instance %s", self.project.id, instance.id)
 
     def _unlock_instance(self, instance):
@@ -376,14 +375,6 @@ class NovaArchiver(Archiver):
         else:
             self.n_client.servers.unlock(instance.id)
             LOG.info("%s: Unlocked instance %s", self.project.id, instance.id)
-            if instance.status != "ERROR":
-                try:
-                    self.n_client.servers.delete_meta(instance.id,
-                                                      [EXPIRY_METADATA_KEY])
-                except Exception as e:
-                    LOG.error("%s: Failed to delete meta for instance %s",
-                              self.project.id, instance.id)
-                    LOG.exception(e)
 
     def _delete_instance(self, instance):
         if self.dry_run:

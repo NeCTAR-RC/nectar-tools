@@ -164,10 +164,11 @@ class FakeInstance(object):
 
     def __init__(self, id='fake', status='ACTIVE', metadata={},
                  task_state='', vm_state='ACTIVE', host='fakehost',
-                 availability_zone='nova', **kwargs):
+                 availability_zone='nova', locked_reason=None, **kwargs):
         self.id = id
         self.status = status
         self.metadata = metadata
+        self.locked_reason = locked_reason
         setattr(self, 'OS-EXT-AZ:availability_zone', availability_zone)
         setattr(self, 'OS-EXT-STS:task_state', task_state)
         setattr(self, 'OS-EXT-STS:vm_state', vm_state)
