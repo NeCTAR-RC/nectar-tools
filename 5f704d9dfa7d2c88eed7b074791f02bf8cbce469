@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ef491b0c_fd244eaa",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-02-10T23:01:52Z",
+      "side": 1,
+      "message": "This need to also check locked reason now",
+      "revId": "5f704d9dfa7d2c88eed7b074791f02bf8cbce469",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
