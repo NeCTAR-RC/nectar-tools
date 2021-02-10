@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6d05ddea_b7b3bb6b",
+        "filename": "nectar_tools/expiry/manager/account.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2021-02-10T00:24:04Z",
+      "side": 1,
+      "message": "will a dry-run set this state and get this account skipped when run for real?",
+      "range": {
+        "startLine": 55,
+        "startChar": 0,
+        "endLine": 56,
+        "endChar": 52
+      },
+      "revId": "f55c554c855d5670f2b2496f352469441ad640d7",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
