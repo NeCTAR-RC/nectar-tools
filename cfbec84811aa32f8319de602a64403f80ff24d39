@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "b03af4c4_3f0b4a13",
+        "filename": "nectar_tools/templates/accounts/first-warning.tmpl",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2021-02-11T02:38:13Z",
+      "side": 1,
+      "message": "If you do happen to let your account expire, simply sign in again and we\u0027ll have it activated right away.",
+      "range": {
+        "startLine": 8,
+        "startChar": 0,
+        "endLine": 8,
+        "endChar": 91
+      },
+      "revId": "cfbec84811aa32f8319de602a64403f80ff24d39",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "dc5fb6b6_fac1694b",
         "filename": "nectar_tools/templates/accounts/first-warning.tmpl",
         "patchSetId": 1
