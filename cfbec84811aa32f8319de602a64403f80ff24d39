@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "dc5fb6b6_fac1694b",
+        "filename": "nectar_tools/templates/accounts/first-warning.tmpl",
+        "patchSetId": 1
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1000224
+      },
+      "writtenOn": "2021-02-11T02:30:29Z",
+      "side": 1,
+      "message": "Perhaps also mention what recourse is available if someone wants to later reactivate their account? I guess it will require them to raise a helpdesk ticket?",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 6
+      },
+      "revId": "cfbec84811aa32f8319de602a64403f80ff24d39",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
