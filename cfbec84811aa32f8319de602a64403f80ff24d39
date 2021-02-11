@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "f95c0309_47c79084",
+        "filename": "nectar_tools/templates/accounts/first-warning.tmpl",
+        "patchSetId": 1
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-02-11T02:41:15Z",
+      "side": 1,
+      "message": "Need to define exactly what the impact of this is I think. Could incorporate the second last para here too.",
+      "range": {
+        "startLine": 5,
+        "startChar": 110,
+        "endLine": 5,
+        "endChar": 133
+      },
+      "revId": "cfbec84811aa32f8319de602a64403f80ff24d39",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
         "uuid": "b03af4c4_3f0b4a13",
         "filename": "nectar_tools/templates/accounts/first-warning.tmpl",
         "patchSetId": 1
