@@ -463,7 +463,8 @@ class AllocationExpirer(ProjectExpirer):
                  force_no_allocation=False, force_delete=False,
                  disable_project=True,
                  archivers=['nova', 'cinder', 'octavia', 'neutron',
-                            'projectimages', 'swift', 'magnum', 'manila'],
+                            'projectimages', 'swift', 'magnum', 'manila',
+                            'murano'],
                  template_dir='allocations',
                  subject='Nectar Project Allocation Renewal - '):
 
