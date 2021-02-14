@@ -846,12 +846,37 @@ class ManilaArchiver(Archiver):
                 self.m_client.shares.delete(share)
 
 
+class MuranoArchiver(Archiver):
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super().__init__(ks_session, dry_run)
+        self.project = project
+        self.m_client = auth.get_murano_client(ks_session)
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+
+        environments = self.m_client.environments.list(
+            tenant_id=self.project.id)
+
+        for environment in environments:
+            if self.dry_run:
+                LOG.info("%s: Would delete environment %s", self.project.id,
+                         environment.id)
+            else:
+                LOG.info("%s: Deleting environment %s", self.project.id,
+                         environment.id)
+                self.m_client.environments.delete(environment.id)
+
+
 class ResourceArchiver(object):
 
     def __init__(self, project, archivers, ks_session=None, dry_run=False):
         enabled = []
         # project scope archiver, could be multiple archivers
         # Ordering here can matter (eg. octavia goes before neutron)
+        if 'murano' in archivers:
+            enabled.append(MuranoArchiver(project, ks_session, dry_run))
         if 'magnum' in archivers:
             enabled.append(MagnumArchiver(project, ks_session, dry_run))
         if 'nova' in archivers:

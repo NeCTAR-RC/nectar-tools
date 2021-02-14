@@ -692,6 +692,24 @@ class ManilaArchiverTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class MuranoArchiverTests(test.TestCase):
+
+    def test_delete_resources(self):
+        ma = archiver.MuranoArchiver(PROJECT)
+        e1 = mock.Mock()
+        e2 = mock.Mock()
+        with mock.patch.object(ma, 'm_client') as mock_murano:
+            mock_murano.environments.list.return_value = [e1, e2]
+
+            ma.delete_resources(force=True)
+
+            mock_murano.environments.list.assert_called_once_with(
+                tenant_id=PROJECT.id)
+            mock_murano.environments.delete.assert_has_calls(
+                [mock.call(e1.id), mock.call(e2.id)])
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class SwiftArchiverTests(test.TestCase):
 
     def test_zero_quota(self):
