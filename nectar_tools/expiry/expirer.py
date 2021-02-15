@@ -720,7 +720,7 @@ class PTExpirer(ProjectExpirer):
     def pending_allocations(self):
         if self.project.owner is None:
             return []
-        six_months_ago = self.now - relativedelta(months=6)
+        six_months_ago = self.now - relativedelta(months=3)
         return self.a_client.allocations.list(
             contact_email=self.project.owner.name,
             status=allocation_states.SUBMITTED,
