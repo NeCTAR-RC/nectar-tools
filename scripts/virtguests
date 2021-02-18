@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+"""get info for libvirt guest domains"""
+
+from __future__ import print_function
+import xml.etree.cElementTree as ET
+import sys
+import argparse
+import libvirt
+
+STATES = [
+    'NoState',
+    'Running',
+    'Blocked',
+    'Paused',
+    'Shutdown',
+    'Shutoff',
+    'Crashed',
+    'Suspended',
+    ]
+
+STATE = {
+    'all': 0,
+    'running': 16,
+    'paused': 32,
+    'shutoff': 64,
+    }
+
+parser = argparse.ArgumentParser()
+parser.add_argument('host', help='kvm host machine')
+parser.add_argument('-u', '--user', default='root',
+                    help='libvirt connection username')
+parser.add_argument('-s', '--state', default='all',
+                    choices=['all', 'running', 'paused', 'shutoff'],
+                    help='domain state (default: all)')
+parser.add_argument('-m', '--meta', action='store_true',
+                    help='show nova metadata')
+parser.add_argument('-n', '--name', help='domain name')
+args = parser.parse_args()
+
+connection = 'qemu+ssh://' + args.user + '@' + args.host + '/system'
+
+try:
+    conn = libvirt.openReadOnly(connection)
+except libvirt.libvirtError:
+    print("can't connect to hypervisor")
+    sys.exit(1)
+
+if not args.name:
+    domains = conn.listAllDomains(STATE[args.state])
+    if not domains:
+        if args.state == 'all':
+            print('no domains defined on hypervisor')
+        else:
+            print('no %s domains defined on hypervisor' % args.state)
+        conn.close()
+        sys.exit(0)
+else:
+    try:
+        domains = [conn.lookupByName(args.name)]
+    except libvirt.libvirtError:
+        print('domain %s not found' % args.name)
+        conn.close()
+        sys.exit(1)
+
+for domain in domains:
+    tree = ET.fromstring(domain.XMLDesc())
+    state, maxmem, mem, cpus, cput = domain.info()
+    print('name: %s  state: %s' % (tree.findtext('name'),
+                                   STATES[state]))
+    print('uuid: %s' % tree.findtext('uuid'))
+    print('cpu model: %s  vcpus: %s  ram: %s %s' % (
+        tree.find('cpu').attrib.get('mode'),
+        tree.findtext('vcpu'), tree.findtext('currentMemory'),
+        tree.find('currentMemory').attrib.get('unit'))
+         )
+
+    devs = tree.find('devices')
+    for disk in devs.findall('disk'):
+        print('%s: %s  target: %s  (%s)' % (
+            disk.attrib.get('device'),
+            disk.attrib.get('type'),
+            disk.find('target').attrib.get('dev'),
+            disk.find('target').attrib.get('bus')), end='')
+        if disk.attrib.get('type') == 'network':
+            print('  source: %s\n  path: %s' % (
+                disk.find('source').attrib.get('protocol'),
+                disk.find('source').attrib.get('name')))
+        else:
+            print()
+    for net in devs.findall('interface'):
+        print('%s: %s (%s)' % (
+            net.attrib.get('type'),
+            net.find('mac').attrib.get('address'),
+            net.find('target').attrib.get('dev')))
+
+
+    if args.meta and tree.find('metadata'):  # assume it's a nova instance
+        meta = tree.find('metadata')
+        ns = {'nova': 'http://openstack.org/xmlns/libvirt/nova/1.0'}
+        nv = meta.find('nova:instance', namespaces=ns)
+        # pointless @work as shows details of id that took last action ???
+        owner = nv.find('nova:owner', namespaces=ns)
+        print('os_name: %s' %
+              nv.findtext('nova:name', namespaces=ns), end='')
+        print('  os_flavor: %s' %
+              nv.find('nova:flavor', namespaces=ns).attrib.get('name'))
+        print('os_owner: %s (%s)' %
+              (owner.find('nova:user', namespaces=ns).attrib.get('uuid'),
+               owner.findtext('nova:user', namespaces=ns)))
+        print('os_project: %s (%s)' %
+              (owner.find('nova:project', namespaces=ns).attrib.get('uuid'),
+               owner.findtext('nova:project', namespaces=ns)))
+
+    print()
+
+conn.close()
