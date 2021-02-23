@@ -710,6 +710,24 @@ class MuranoArchiverTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class TroveArchiverTests(test.TestCase):
+
+    def test_delete_resources(self):
+        ta = archiver.TroveArchiver(PROJECT)
+        e1 = mock.Mock()
+        e2 = mock.Mock()
+        with mock.patch.object(ta, 't_client') as mock_trove:
+            mock_trove.mgmt_instances.list.return_value = [e1, e2]
+
+            ta.delete_resources(force=True)
+
+            mock_trove.mgmt_instances.list.assert_called_once_with(
+                project_id=PROJECT.id)
+            mock_trove.instances.delete.assert_has_calls(
+                [mock.call(e1), mock.call(e2)])
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class SwiftArchiverTests(test.TestCase):
 
     def test_zero_quota(self):
