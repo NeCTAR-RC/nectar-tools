@@ -869,6 +869,36 @@ class MuranoArchiver(Archiver):
                 self.m_client.environments.delete(environment.id)
 
 
+class TroveArchiver(Archiver):
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super().__init__(ks_session, dry_run)
+        self.project = project
+        self.t_client = auth.get_trove_client(ks_session)
+
+    def zero_quota(self):
+        body = {"backups": 0, "instances": 0, "ram": 0, "volumes": 0}
+        if not self.dry_run:
+            LOG.info("%s: Zero trove quota", self.project.id)
+            self.t_client.quota.update(self.project.id, body)
+        else:
+            LOG.info("%s: Would zero trove quota", self.project.id)
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+
+        dbs = self.t_client.mgmt_instances.list(project_id=self.project.id)
+
+        for db in dbs:
+            if self.dry_run:
+                LOG.info("%s: Would delete trove instance %s",
+                         self.project.id, db.id)
+            else:
+                LOG.info("%s: Deleting trove instance %s", self.project.id,
+                         db.id)
+                self.t_client.instances.delete(db)
+
+
 class ResourceArchiver(object):
 
     def __init__(self, project, archivers, ks_session=None, dry_run=False):
@@ -899,6 +929,8 @@ class ResourceArchiver(object):
             enabled.append(DesignateArchiver(project, ks_session, dry_run))
         if 'manila' in archivers:
             enabled.append(ManilaArchiver(project, ks_session, dry_run))
+        if 'trove' in archivers:
+            enabled.append(TroveArchiver(project, ks_session, dry_run))
         self.archivers = enabled
 
     def is_archive_successful(self):
