@@ -39,6 +39,8 @@ def print_diff(config, section, key):
         msg = "+{}={}".format(key, value)
     if args.ignore:
         ret = get_ignore(ignore, section, key, value)
+        if ret == '[default]':
+            return
         if ret:
             msg = msg + ' ({})'.format(ret)
     print(msg)
@@ -49,7 +51,7 @@ def iterate_keys(section, old, new):
     old_keys = set(old[section])
     new_keys = set(new[section])
     all_keys = old_keys | new_keys
-    for key in all_keys:
+    for key in sorted(all_keys):
         if key not in old_keys:
             if section != 'DEFAULT' and key in new['DEFAULT']:
                 continue
@@ -82,7 +84,7 @@ new_sections = set(new.sections())
 sections = old_sections & new_sections
 all_sections = old_sections | new_sections
 
-for section in all_sections:
+for section in sorted(all_sections):
     if section in old_sections - new_sections:
         print (" [{}]".format(section))
         for key in old[section]:
@@ -99,5 +101,5 @@ for section in all_sections:
         continue
 
 # Find the difference in the common sections
-for section in sections:
+for section in sorted(sections):
     iterate_keys(section, old, new)
