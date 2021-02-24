@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "a8795c6d_857ebe86",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 895,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-02-24T03:23:43Z",
+      "side": 1,
+      "message": "just get rid of this :-)",
+      "range": {
+        "startLine": 893,
+        "startChar": 0,
+        "endLine": 895,
+        "endChar": 47
+      },
+      "revId": "a230e034e42e7cf485545d8ae221435f5f7a0987",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
