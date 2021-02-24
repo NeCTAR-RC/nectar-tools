@@ -61,6 +61,12 @@ def iterate_keys(section, old, new):
             print_diff(old, section, key)
             continue
         if new[section][key] != old[section][key]:
+            # disregard booleans, e.g. make 'True' same as 'true'
+            # distutils.util.strtobool() doesn't seem to work
+            if (new[section][key].lower() == 'false' or
+                new[section][key].lower() == 'true'):
+                if new[section][key].lower() == old[section][key].lower():
+                    continue
             if section != 'DEFAULT' and key in old['DEFAULT']:
                 continue
             print_diff(old, section, key)
