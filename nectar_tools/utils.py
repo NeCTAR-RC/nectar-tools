@@ -1,4 +1,5 @@
 import re
+import time
 
 from nectar_tools import auth
 from nectar_tools.expiry import archiver
@@ -85,3 +86,26 @@ def is_email_address(mail):
         return False
     regex = re.compile(r"[^@]+@[^@]+\.[^@]+")
     return True if regex.match(mail) else False
+
+
+def poll_resource(method, object, property, state, timeout=30, delay=3):
+    """poll an object until property == state
+
+    :param func method: api call to return object
+    :param obj object: object to poll force
+    :param str property: object property name to check against
+    :param str state: property value to check against
+    :param int timeout (optional): max time to poll (in seconds)
+    :param int delay (optional): seconds delay between poll attempts
+    :return: propery.state output string
+    """
+    retries = 1
+    while retries <= timeout/delay:
+        time.sleep(delay)
+        res = method(object)
+        if getattr(res, property) == state:
+            break
+        retries += 1
+    return(getattr(res, property))
+
+ 
