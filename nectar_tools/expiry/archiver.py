@@ -1,7 +1,9 @@
 import logging
 import re
+import time
 
 from designateclient import exceptions as designate_exc
+from heatclient import exc as heat_exc
 from magnumclient.common.apiclient import exceptions as magnum_exc
 
 from nectar_tools import auth
@@ -52,6 +54,40 @@ class Archiver(object):
 
     def create_resources(self):
         raise NotImplementedError
+
+    def remove_resource(self, del_method, check_method, obj, exc,
+                        prop=None, state=None, timeout=32):
+        """poll an object until property == state or exc exception caught
+
+        :param func delete_method: api call to delete object
+        :param func check_method: api call to check object
+        :param obj obj: object to delete/poll for
+        :param exception exc: exception to check against
+        :param str prop (optional): object property name to check against
+        :param str state (optional): property value to check against
+        :param int timeout (optional): max time to poll (in seconds)
+                                       should be a power of 2
+        :return: True if matched prop/exc else False
+        """
+        delay = 2
+        del_method(obj)
+
+        while delay <= timeout:
+            try:
+                res = check_method(obj)
+            except exc:
+                return(True)
+            if prop:
+                try:
+                    if getattr(res, prop) == state:
+                        return(True)
+                except AttributeError:
+                    pass
+            time.sleep(delay)
+            delay *= 2
+
+        LOG.warn("%s has timed out or is in an unknown state", obj)
+        return(False)
 
 
 class ImageArchiver(Archiver):
@@ -899,6 +935,32 @@ class TroveArchiver(Archiver):
                 self.t_client.instances.delete(db)
 
 
+class HeatArchiver(Archiver):
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super().__init__(ks_session, dry_run)
+        self.project = project
+        self.h_client = auth.get_heat_client(ks_session)
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+
+        stacks = self.h_client.stacks.list(filters={'tenant': self.project.id})
+
+        for stack in stacks:
+            if self.dry_run:
+                LOG.info("%s: Would delete heat stack %s",
+                         self.project.id, stack.id)
+            else:
+                LOG.info("%s: Deleting heat stack %s", self.project.id,
+                         stack.id)
+                self.remove_resource(self.h_client.stacks.delete,
+                                    self.h_client.stacks.get, stack.id,
+                                    heat_exc.HTTPNotFound,
+                                    prop='stack_status',
+                                    state='DELETE_COMPLETE')
+
+
 class ResourceArchiver(object):
 
     def __init__(self, project, archivers, ks_session=None, dry_run=False):
@@ -909,6 +971,8 @@ class ResourceArchiver(object):
             enabled.append(MuranoArchiver(project, ks_session, dry_run))
         if 'magnum' in archivers:
             enabled.append(MagnumArchiver(project, ks_session, dry_run))
+        if 'heat' in archivers:
+            enabled.append(HeatArchiver(project, ks_session, dry_run))
         if 'nova' in archivers:
             enabled.append(NovaArchiver(project, ks_session, dry_run))
         if 'zoneinstance' in archivers:
