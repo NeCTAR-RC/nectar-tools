@@ -736,6 +736,24 @@ class TroveArchiverTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class HeatArchiverTests(test.TestCase):
+
+    def test_delete_resources(self):
+        ha = archiver.HeatArchiver(PROJECT)
+        e1 = mock.Mock()
+        e2 = mock.Mock()
+        with mock.patch.object(ha, 'h_client') as mock_heat:
+            mock_heat.stacks.list.return_value = [e1, e2]
+
+            ha.delete_resources(force=True)
+
+            mock_heat.stacks.list.assert_called_once_with(
+               filters={'tenant': PROJECT.id})
+            mock_heat.stacks.delete.assert_has_calls(
+                [mock.call(e1), mock.call(e2)])
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class SwiftArchiverTests(test.TestCase):
 
     def test_zero_quota(self):

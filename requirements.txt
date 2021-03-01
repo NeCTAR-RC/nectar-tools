@@ -10,6 +10,7 @@ python-neutronclient
 python-swiftclient
 python-troveclient
 python-manilaclient
+python-heatclient
 gnocchiclient
 placementclient
 jinja2

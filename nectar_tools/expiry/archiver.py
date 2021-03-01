@@ -1,7 +1,9 @@
 import logging
 import re
+import time
 
 from designateclient import exceptions as designate_exc
+from heatclient import exc as heat_exc
 from magnumclient.common.apiclient import exceptions as magnum_exc
 
 from nectar_tools import auth
@@ -899,6 +901,47 @@ class TroveArchiver(Archiver):
                 self.t_client.instances.delete(db)
 
 
+class HeatArchiver(Archiver):
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super().__init__(ks_session, dry_run)
+        self.project = project
+        self.h_client = auth.get_heat_client(ks_session)
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+
+        retry_num = 9  # 45 secs per stack
+        retry_time = 5
+
+        stacks = self.h_client.stacks.list(filters={'tenant': self.project.id})
+
+        for stack in stacks:
+            if self.dry_run:
+                LOG.info("%s: Would delete heat stack %s",
+                         self.project.id, stack.id)
+            else:
+                LOG.info("%s: Deleting heat stack %s", self.project.id,
+                         stack.id)
+                self.h_client.stacks.delete(stack.id)
+                retries = 1
+                while retries <= retry_num:  # 45 secs max
+                    time.sleep(retry_time)
+                    try:
+                        result = self.h_client.stacks.get(stack.id)
+                    except heat_exc.HTTPNotFound:
+                        break
+                    if result.stack_status == 'DELETE_COMPLETE':
+                        break
+                    retries += 1
+                if result.stack_status:
+                    LOG.info('stack %s is %s after %d seconds', stack.id,
+                             result.stack_status, retries * retry_time)
+                else:
+                    LOG.info('stack %s has gone after %d seconds', stack.id,
+                             retries * retry_time)
+
+
 class ResourceArchiver(object):
 
     def __init__(self, project, archivers, ks_session=None, dry_run=False):
@@ -909,6 +952,8 @@ class ResourceArchiver(object):
             enabled.append(MuranoArchiver(project, ks_session, dry_run))
         if 'magnum' in archivers:
             enabled.append(MagnumArchiver(project, ks_session, dry_run))
+        if 'heat' in archivers:
+            enabled.append(HeatArchiver(project, ks_session, dry_run))
         if 'nova' in archivers:
             enabled.append(NovaArchiver(project, ks_session, dry_run))
         if 'zoneinstance' in archivers:
