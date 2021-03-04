@@ -1081,3 +1081,42 @@ class ResourcerArchiverTests(test.TestCase):
         self.assertIs(archiver.NovaArchiver, type(ra.archivers[0]))
         self.assertIs(archiver.CinderArchiver, type(ra.archivers[1]))
         self.assertIs(archiver.ProjectImagesArchiver, type(ra.archivers[2]))
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class ArchiverTests(test.TestCase):
+
+    def test_remove_resource(self):
+        arc = archiver.Archiver()
+
+        id = 'fake'
+        res = mock.Mock()
+        res.state = 'fakestate'
+
+        del_method = mock.Mock()
+        check_method = mock.Mock()
+        check_method2 = mock.Mock()
+
+        check_method.side_effect = Exception
+        r = arc.remove_resource(del_method, check_method, id, Exception,
+                                timeout=2)
+        del_method.assert_called_once_with(id)
+        check_method.assert_called_once_with(id)
+        if not r:
+            raise Exception('remove_resource returned an unexpected value')
+
+        check_method2.return_value = res
+        r = arc.remove_resource(del_method, check_method2, id, Exception,
+                            prop='state', state=res.state, timeout=2)
+        del_method.assert_called_with(id)
+        check_method2.assert_called_with(id)
+        if not r:
+            raise Exception('remove_resource returned an unexpected value')
+
+        check_method2.return_value = res
+        r = arc.remove_resource(del_method, check_method2, id, Exception,
+                            prop='state', state='blah', timeout=2)
+        del_method.assert_called_with(id)
+        check_method2.assert_called_with(id)
+        if r:
+            raise Exception('remove_resource returned an unexpected value')
