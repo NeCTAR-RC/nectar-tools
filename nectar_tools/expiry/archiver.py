@@ -1,5 +1,6 @@
 import logging
 import re
+import time
 
 from designateclient import exceptions as designate_exc
 from magnumclient.common.apiclient import exceptions as magnum_exc
@@ -52,6 +53,40 @@ class Archiver(object):
 
     def create_resources(self):
         raise NotImplementedError
+
+    def remove_resource(self, del_method, check_method, obj, exc,
+                        prop=None, state=None, timeout=32):
+        """poll an object until property == state or exc exception caught
+
+        :param func delete_method: api call to delete object
+        :param func check_method: api call to check object
+        :param obj obj: object to delete/poll for
+        :param exception exc: exception to check against
+        :param str prop (optional): object property name to check against
+        :param str state (optional): property value to check against
+        :param int timeout (optional): max time to poll (in seconds)
+                                       should be a power of 2
+        :return: True if matched prop/exc else False
+        """
+        delay = 2
+        del_method(obj)
+
+        while delay <= timeout:
+            try:
+                res = check_method(obj)
+            except exc:
+                return(True)
+            if prop:
+                try:
+                    if getattr(res, prop) == state:
+                        return(True)
+                except AttributeError:
+                    pass
+            time.sleep(delay)
+            delay *= 2
+
+        LOG.warn("%s has timed out or is in an unknown state", obj)
+        return(False)
 
 
 class ImageArchiver(Archiver):

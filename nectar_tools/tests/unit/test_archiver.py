@@ -1081,3 +1081,48 @@ class ResourcerArchiverTests(test.TestCase):
         self.assertIs(archiver.NovaArchiver, type(ra.archivers[0]))
         self.assertIs(archiver.CinderArchiver, type(ra.archivers[1]))
         self.assertIs(archiver.ProjectImagesArchiver, type(ra.archivers[2]))
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class ArchiverTests(test.TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.myid = 'fake'
+        self.res = mock.Mock()
+        self.res.state = 'fakestate'
+
+        self.del_method = mock.Mock()
+        self.check_method = mock.Mock()
+
+    def test_remove_resource_with_exception(self):
+        arc = archiver.Archiver()
+        self.check_method.side_effect = Exception
+        r = arc.remove_resource(self.del_method, self.check_method,
+                                     self.myid, Exception, timeout=2)
+        self.del_method.assert_called_once_with(self.myid)
+        self.check_method.assert_called_once_with(self.myid)
+        if not r:
+            raise Exception('remove_resource returned an unexpected value')
+
+    def test_remove_resource_with_property(self):
+        arc = archiver.Archiver()
+        self.check_method.return_value = self.res
+        r = arc.remove_resource(self.del_method, self.check_method,
+                                   self.myid, Exception, prop='state',
+                                   state=self.res.state, timeout=2)
+        self.del_method.assert_called_with(self.myid)
+        self.check_method.assert_called_with(self.myid)
+        if not r:
+            raise Exception('remove_resource returned an unexpected value')
+
+    def test_remove_resource_with_timeout(self):
+        arc = archiver.Archiver()
+        self.check_method.return_value = self.res
+        r = arc.remove_resource(self.del_method, self.check_method,
+                                     self.myid, Exception, prop='state',
+                                     state='blah', timeout=2)
+        self.del_method.assert_called_with(self.myid)
+        self.check_method.assert_called_with(self.myid)
+        if r:
+            raise Exception('remove_resource returned an unexpected value')
