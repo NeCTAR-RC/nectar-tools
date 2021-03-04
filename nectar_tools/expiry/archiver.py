@@ -1,11 +1,13 @@
 import logging
 import re
+import time
 
 from designateclient import exceptions as designate_exc
 from magnumclient.common.apiclient import exceptions as magnum_exc
 
 from nectar_tools import auth
 from nectar_tools import config
+from nectar_tools import exceptions
 from nectar_tools import utils
 
 
@@ -52,6 +54,44 @@ class Archiver(object):
 
     def create_resources(self):
         raise NotImplementedError
+
+    @staticmethod
+    def remove_resource(delete_method, check_method, obj, exc,
+                        state_property=None, status=None, timeout=32):
+        """poll an object until property == state or exc exception caught
+
+        :param func delete_method: api call to delete object
+        :param func check_method: api call to check object
+        :param obj obj: object to delete/poll for
+        :param exception exc: exception to check against
+        :param str state_property (optional): property name to check against
+        :param str status (optional): property value to check against
+        :param int timeout (optional): max time to poll (in seconds)
+                                       should be a power of 2
+        :return: True if matched prop/exc else False
+        """
+        delay = 2
+        try:
+            delete_method(obj)
+        except Exception:
+            return
+
+        while delay <= timeout:
+            try:
+                res = check_method(obj)
+            except exc:
+                return
+            if state_property:
+                try:
+                    if getattr(res, state_property) == status:
+                        return
+                except AttributeError:
+                    pass
+            time.sleep(delay)
+            delay *= 2
+
+        raise exceptions.TimeoutError(
+            'remove resource for ' + obj + ' timed out')
 
 
 class ImageArchiver(Archiver):
