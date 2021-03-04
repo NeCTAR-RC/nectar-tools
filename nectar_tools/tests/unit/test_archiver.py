@@ -1,9 +1,11 @@
 from unittest import mock
 
 from designateclient import exceptions as designate_exc
+from heatclient import exc as heat_exc
 
 from nectar_tools import auth
 from nectar_tools import config
+from nectar_tools import exceptions
 from nectar_tools.expiry import archiver
 from nectar_tools import test
 from nectar_tools.tests import fakes
@@ -733,6 +735,35 @@ class TroveArchiverTests(test.TestCase):
                 project_id=PROJECT.id)
             mock_trove.instances.delete.assert_has_calls(
                 [mock.call(e1), mock.call(e2)])
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class HeatArchiverTests(test.TestCase):
+
+    def test_delete_resources(self):
+        ha = archiver.HeatArchiver(PROJECT)
+        e1 = mock.Mock()
+        e1.id = 'fake1'
+        e2 = mock.Mock()
+        e2.id = 'fake2'
+        with mock.patch.object(ha, 'h_client') as mock_heat:
+            with mock.patch.object(ha, 'remove_resource') as mock_rr:
+                mock_heat.stacks.list.return_value = [e1, e2]
+
+                ha.delete_resources(force=True)
+
+                mock_heat.stacks.list.assert_called_once_with(
+                   filters={'tenant': PROJECT.id})
+                mock_rr.assert_has_calls([
+                    mock.call(mock_heat.stacks.delete, mock_heat.stacks.get,
+                              e1.id, heat_exc.HTTPNotFound,
+                              state_property='stack_status',
+                              status='DELETE_COMPLETE'),
+                    mock.call(mock_heat.stacks.delete, mock_heat.stacks.get,
+                              e2.id, heat_exc.HTTPNotFound,
+                              state_property='stack_status',
+                              status='DELETE_COMPLETE')
+                ])
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
