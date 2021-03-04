@@ -1,11 +1,13 @@
 import logging
 import re
+import time
 
 from designateclient import exceptions as designate_exc
 from magnumclient.common.apiclient import exceptions as magnum_exc
 
 from nectar_tools import auth
 from nectar_tools import config
+from nectar_tools import exceptions
 from nectar_tools import utils
 
 
@@ -52,6 +54,44 @@ class Archiver(object):
 
     def create_resources(self):
         raise NotImplementedError
+
+    @staticmethod
+    def remove_resource(delete_method, check_method, resource_id,
+                        not_found_exception, state_property=None,
+                        status=None, timeout=32):
+        """poll an object until property == state or exc exception caught
+
+        :param func delete_method: Method used to delete the resource
+        :param func check_method: Method used to check if the resource exists
+        :param str resource_id: Resource ID to remove
+        :param exception not_found_exception: Exception raised when the
+                                              resource does not exist
+        :param str state_property (optional): Name of the state property for
+                                              the resource
+        :param str status (optional): The state of the resource when it is
+                                      deleted
+        :param int timeout (optional): max time to poll (in seconds)
+                                       should be a power of 2
+        """
+        delay = 2
+        try:
+            delete_method(resource_id)
+        except not_found_exception:
+            return
+
+        while delay <= timeout:
+            try:
+                res = check_method(resource_id)
+            except not_found_exception:
+                return
+            if state_property:
+                if getattr(res, state_property, None) == status:
+                    return
+            time.sleep(delay)
+            delay *= 2
+
+        raise exceptions.TimeoutError(
+            'Remove resource for ' + resource_id + ' timed out')
 
 
 class ImageArchiver(Archiver):

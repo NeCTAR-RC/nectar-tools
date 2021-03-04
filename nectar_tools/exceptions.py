@@ -23,3 +23,7 @@ class NoUsageError(Exception):
 
 class InvalidImage(Exception):
     pass
+
+
+class TimeoutError(Exception):
+    pass
