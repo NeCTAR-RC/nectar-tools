@@ -4,6 +4,7 @@ from cinderclient import client as cinderclient
 from designateclient import client as designateclient
 import glanceclient
 from gnocchiclient import client as gnocchiclient
+from heatclient import client as heatclient
 from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client
@@ -141,3 +142,9 @@ def get_magnum_client(sess=None):
     if not sess:
         sess = get_session()
     return magnumclient.Client(version='1', session=sess)
+
+
+def get_heat_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return heatclient.Client(version='1', session=sess)
