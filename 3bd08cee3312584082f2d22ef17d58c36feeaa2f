@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b1cfb9c4_461fc8e2",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-03-05T00:44:29Z",
+      "side": 1,
+      "message": "rename to delete_method (so it matches the docs too)",
+      "range": {
+        "startLine": 57,
+        "startChar": 30,
+        "endLine": 57,
+        "endChar": 40
+      },
+      "revId": "3bd08cee3312584082f2d22ef17d58c36feeaa2f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "25996406_eb5e13f5",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-03-05T00:44:29Z",
+      "side": 1,
+      "message": "this needs a try except in case it doesn\u0027t exist",
+      "range": {
+        "startLine": 72,
+        "startChar": 8,
+        "endLine": 72,
+        "endChar": 23
+      },
+      "revId": "3bd08cee3312584082f2d22ef17d58c36feeaa2f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c8ea7039_1d7b247b",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-03-05T00:44:29Z",
+      "side": 1,
+      "message": "I would just return here as opposed to returning True",
+      "range": {
+        "startLine": 78,
+        "startChar": 16,
+        "endLine": 78,
+        "endChar": 28
+      },
+      "revId": "3bd08cee3312584082f2d22ef17d58c36feeaa2f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "19a0dcfb_633c6eeb",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-03-05T00:44:29Z",
+      "side": 1,
+      "message": "maybe we should raise a timeout exception here and callers can then decide what they should do with that",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 89,
+        "endChar": 21
+      },
+      "revId": "3bd08cee3312584082f2d22ef17d58c36feeaa2f",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
