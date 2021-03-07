@@ -26,7 +26,7 @@ class ProjectTrialAuditor(base.ProjectAuditor):
             LOG.info("%s: No users", self.project.id)
 
     def _pending_allocations(self):
-        if self.project.owner is None:
+        if getattr(self.project, 'owner', None) is None:
             return []
         six_months_ago = self.now - relativedelta(months=6)
         return self.a_client.allocations.list(
