@@ -26,7 +26,11 @@ class ProjectTrialAuditor(base.ProjectAuditor):
             LOG.info("%s: No users", self.project.id)
 
     def _pending_allocations(self):
-        if self.project.owner is None:
+        try:
+            if self.project.owner is None:
+                return []
+        except AttributeError:
+            LOG.warn("%s: PT project has no owner attribute", self.project.id)
             return []
         six_months_ago = self.now - relativedelta(months=6)
         return self.a_client.allocations.list(
