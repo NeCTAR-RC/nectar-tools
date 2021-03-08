@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "6aefa476_95b6b089",
+        "filename": "nectar_tools/audit/projects/pt.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-03-08T22:10:10Z",
+      "side": 1,
+      "message": "This could be simplified to be:\n\nif getattr(self.project, \u0027owner\u0027, None) is None:\n   return []",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 21
+      },
+      "revId": "a60de69a2ab62c1ff655ca2df24ff60f427e72b0",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
