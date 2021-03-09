@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "adc226e7_0372f14f",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-03-09T03:18:44Z",
+      "side": 1,
+      "message": "Could you name `exc` something more descriptive? `not_found_exception`?",
+      "range": {
+        "startLine": 59,
+        "startChar": 66,
+        "endLine": 59,
+        "endChar": 69
+      },
+      "revId": "0cd48fa82b26976c466ea050c0e7804b1f00fdb1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "db81f90e_52c52f94",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 9
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-03-09T03:18:44Z",
+      "side": 1,
+      "message": "If an AttributeError is raised here it is probably because someone wrote the wrong code, so we don\u0027t want to silently ignore it. I wouldn\u0027t catch it at all unless you expect it to happen in situations that aren\u0027t a coding error.",
+      "revId": "0cd48fa82b26976c466ea050c0e7804b1f00fdb1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
