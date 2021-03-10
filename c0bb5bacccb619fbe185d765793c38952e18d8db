@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "b4babe52_e022bb92",
+        "filename": "nectar_tools/tests/unit/test_archiver.py",
+        "patchSetId": 11
+      },
+      "lineNbr": 1075,
+      "author": {
+        "id": 1000002
+      },
+      "writtenOn": "2021-03-10T23:08:03Z",
+      "side": 1,
+      "message": "This isn\u0027t very specific - ideally we\u0027d create a custom exception here and have cases that test that it only catches the one we told it about.",
+      "range": {
+        "startLine": 1075,
+        "startChar": 40,
+        "endLine": 1075,
+        "endChar": 49
+      },
+      "revId": "c0bb5bacccb619fbe185d765793c38952e18d8db",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
