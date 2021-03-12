@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "ee8c1b75_a8165ad3",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2021-03-12T03:22:06Z",
+      "side": 1,
+      "message": "feel like I\u0027m missing something here needing 2 exception imports ?",
+      "range": {
+        "startLine": 6,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 49
+      },
+      "revId": "7e3401e3c877950a66f480dcba570f1934fe7878",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "c826d2ef_e5393e34",
+        "filename": "nectar_tools/expiry/archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 863,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2021-03-12T03:22:06Z",
+      "side": 1,
+      "message": "in test I found it took 33 seconds to delete a cluster so setting to 64\nshould prob be a var but not sure how to ref same thing appropriately in code and test case",
+      "range": {
+        "startLine": 863,
+        "startChar": 41,
+        "endLine": 863,
+        "endChar": 51
+      },
+      "revId": "7e3401e3c877950a66f480dcba570f1934fe7878",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
+    }
+  ]
+}
