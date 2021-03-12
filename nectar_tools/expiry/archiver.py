@@ -3,7 +3,8 @@ import re
 import time
 
 from designateclient import exceptions as designate_exc
-from magnumclient.common.apiclient import exceptions as magnum_exc
+from magnumclient.common.apiclient import exceptions as magnum_api_exc
+from magnumclient import exceptions as magnum_exc
 from muranoclient.common import exceptions as murano_exc
 
 from nectar_tools import auth
@@ -836,7 +837,7 @@ class MagnumArchiver(Archiver):
             LOG.info("%s: Zero magnum quota", self.project.id)
             try:
                 self.m_client.quotas.delete(self.project.id, "Cluster")
-            except magnum_exc.NotFound:
+            except magnum_api_exc.NotFound:
                 pass
         else:
             LOG.info("%s: Would zero magnum quota", self.project.id)
@@ -845,6 +846,7 @@ class MagnumArchiver(Archiver):
         if not force:
             return
 
+        # TODO(cores): needs fixing since it's a generator of all clusters
         clusters = self.m_client.clusters.list(detail=True)
         for cluster in clusters:
             if cluster.project_id == self.project.id:
@@ -854,7 +856,10 @@ class MagnumArchiver(Archiver):
                 else:
                     LOG.info("%s: Deleting COE cluster %s",
                              self.project.id, cluster.uuid)
-                    self.m_client.clusters.delete(cluster)
+                    self.remove_resource(self.m_client.clusters.delete,
+                                         self.m_client.clusters.get,
+                                         cluster.uuid,
+                                         magnum_exc.HTTPNotFound)
 
 
 class ManilaArchiver(Archiver):
