@@ -1,6 +1,7 @@
 from unittest import mock
 
 from designateclient import exceptions as designate_exc
+from magnumclient import exceptions as magnum_exc
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -651,17 +652,25 @@ class MagnumArchiverTests(test.TestCase):
         c2 = mock.Mock()
         c2.project_id = PROJECT.id
         c2.uuid = "c2"
-        c3 = mock.Mock()
-        c3.project_id = "fish"
-        c3.uuid = "c3"
-        with mock.patch.object(ma, 'm_client') as mock_magnum:
-            mock_magnum.clusters.list.return_value = [c1, c2, c3]
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'remove_resource')
+        ) as (mock_magnum, mock_rr):
+            mock_magnum.clusters.list.return_value = [c1, c2]
 
             ma.delete_resources(force=True)
 
+            # TODO(ade): may be more than one once generator/marker fixed
             mock_magnum.clusters.list.assert_called_once_with(detail=True)
-            mock_magnum.clusters.delete.assert_has_calls(
-                [mock.call(c1), mock.call(c2)])
+
+            mock_rr.assert_has_calls([
+                mock.call(mock_magnum.clusters.delete,
+                          mock_magnum.clusters.get, c1.uuid,
+                          magnum_exc.NotFound),
+                mock.call(mock_magnum.clusters.delete,
+                          mock_magnum.clusters.get, c2.uuid,
+                          magnum_exc.NotFound)
+            ])
 
 
 @mock.patch('nectar_tools.auth.get_manila_client', new=mock.Mock())
