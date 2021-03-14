@@ -22,6 +22,30 @@
       "revId": "02cb2ea8f8b8f48237560828f6e112cf56179286",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "338614f0_445d9fe4",
+        "filename": "nectar_tools/tests/unit/test_archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 706,
+      "author": {
+        "id": 1000177
+      },
+      "writtenOn": "2021-03-14T09:09:27Z",
+      "side": 1,
+      "message": "interesting, docs suggested I could do it with comma separated items but that didn\u0027t work",
+      "parentUuid": "0d7ac4aa_8c358113",
+      "range": {
+        "startLine": 705,
+        "startChar": 1,
+        "endLine": 706,
+        "endChar": 69
+      },
+      "revId": "02cb2ea8f8b8f48237560828f6e112cf56179286",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": false
     }
   ]
 }
