@@ -50,4 +50,7 @@ output/*/index.html
 # Sphinx
 docs/_build
 
+# ctags
+tags
+
 etc/*
