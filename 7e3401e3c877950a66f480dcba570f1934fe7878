@@ -45,6 +45,29 @@
       "revId": "7e3401e3c877950a66f480dcba570f1934fe7878",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
       "unresolved": true
+    },
+    {
+      "key": {
+        "uuid": "70d167ec_4fd164ce",
+        "filename": "nectar_tools/tests/unit/test_archiver.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 658,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-03-15T08:50:50Z",
+      "side": 1,
+      "message": "see -1 comment in the heat patch",
+      "range": {
+        "startLine": 656,
+        "startChar": 0,
+        "endLine": 658,
+        "endChar": 65
+      },
+      "revId": "7e3401e3c877950a66f480dcba570f1934fe7878",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5",
+      "unresolved": true
     }
   ]
 }
