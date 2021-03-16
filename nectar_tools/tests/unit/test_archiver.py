@@ -1,9 +1,11 @@
 from unittest import mock
 
 from designateclient import exceptions as designate_exc
+from magnumclient import exceptions as magnum_exc
 
 from nectar_tools import auth
 from nectar_tools import config
+from nectar_tools import exceptions
 from nectar_tools.expiry import archiver
 from nectar_tools import test
 from nectar_tools.tests import fakes
@@ -650,17 +652,25 @@ class MagnumArchiverTests(test.TestCase):
         c2 = mock.Mock()
         c2.project_id = PROJECT.id
         c2.uuid = "c2"
-        c3 = mock.Mock()
-        c3.project_id = "fish"
-        c3.uuid = "c3"
-        with mock.patch.object(ma, 'm_client') as mock_magnum:
-            mock_magnum.clusters.list.return_value = [c1, c2, c3]
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'remove_resource')
+        ) as (mock_magnum, mock_rr):
+            mock_magnum.clusters.list.return_value = [c1, c2]
 
             ma.delete_resources(force=True)
 
+            # TODO(ade): may be more than one once generator/marker fixed
             mock_magnum.clusters.list.assert_called_once_with(detail=True)
-            mock_magnum.clusters.delete.assert_has_calls(
-                [mock.call(c1), mock.call(c2)])
+
+            mock_rr.assert_has_calls([
+                mock.call(mock_magnum.clusters.delete,
+                          mock_magnum.clusters.get, c1.uuid,
+                          magnum_exc.NotFound),
+                mock.call(mock_magnum.clusters.delete,
+                          mock_magnum.clusters.get, c2.uuid,
+                          magnum_exc.NotFound)
+            ])
 
 
 @mock.patch('nectar_tools.auth.get_manila_client', new=mock.Mock())
@@ -1081,3 +1091,42 @@ class ResourcerArchiverTests(test.TestCase):
         self.assertIs(archiver.NovaArchiver, type(ra.archivers[0]))
         self.assertIs(archiver.CinderArchiver, type(ra.archivers[1]))
         self.assertIs(archiver.ProjectImagesArchiver, type(ra.archivers[2]))
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class ArchiverTests(test.TestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.myid = 'fake'
+        self.res = mock.Mock()
+        self.res.state = 'fakestate'
+
+        self.del_method = mock.Mock()
+        self.check_method = mock.Mock()
+
+    def test_remove_resource_with_exception(self):
+        arc = archiver.Archiver()
+        self.check_method.side_effect = Exception
+        arc.remove_resource(self.del_method, self.check_method,
+                            self.myid, Exception, timeout=2)
+        self.del_method.assert_called_once_with(self.myid)
+        self.check_method.assert_called_once_with(self.myid)
+
+    def test_remove_resource_with_property(self):
+        arc = archiver.Archiver()
+        self.check_method.return_value = self.res
+        arc.remove_resource(self.del_method, self.check_method,
+                            self.myid, Exception, state_property='state',
+                            status=self.res.state, timeout=2)
+        self.del_method.assert_called_with(self.myid)
+        self.check_method.assert_called_with(self.myid)
+
+    def test_remove_resource_with_timeout(self):
+        arc = archiver.Archiver()
+        self.check_method.return_value = self.res
+        self.assertRaises(exceptions.TimeoutError,
+            arc.remove_resource, self.del_method, self.check_method, self.myid,
+            Exception, state_property='state', status='blah', timeout=2)
+        self.del_method.assert_called_with(self.myid)
+        self.check_method.assert_called_with(self.myid)
