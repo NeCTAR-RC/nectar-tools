@@ -513,10 +513,15 @@ class AllocationExpirer(ProjectExpirer):
                                  allocation_states.UPDATE_PENDING,
                                  allocation_states.DECLINED):
 
-            six_months_ago = self.now - relativedelta(months=6)
+            if allocation_status == allocation_states.UPDATE_PENDING:
+                cutoff = self.now - relativedelta(months=6)
+            else:
+                cutoff = self.now - relativedelta(months=1)
+
             mod_time = datetime.datetime.strptime(
                 allocation.modified_time, DATETIME_FORMAT)
-            if mod_time < six_months_ago:
+
+            if mod_time < cutoff:
                 approved = self.a_client.allocations.get_last_approved(
                     project_id=self.project.id)
                 if approved:
