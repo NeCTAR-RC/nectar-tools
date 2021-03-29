@@ -1134,6 +1134,7 @@ class PTExpiryTests(test.TestCase):
         mock_client.allocations.list.assert_called_once_with(
             contact_email=project.owner.name,
             modified_time__lt='2016-10-01T00:00:00',
+            convert_trial_project=True,
             status='E')
 
     @mock.patch('nectar_tools.auth.get_manuka_client')
