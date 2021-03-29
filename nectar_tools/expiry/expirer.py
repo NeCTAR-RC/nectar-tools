@@ -729,6 +729,8 @@ class PTExpirer(ProjectExpirer):
         return self.a_client.allocations.list(
             contact_email=self.project.owner.name,
             status=allocation_states.SUBMITTED,
+            convert_trial_project=True,
+            parent_request__isnull=True,
             modified_time__lt=three_months_ago.isoformat())
 
     def ready_for_warning(self):
