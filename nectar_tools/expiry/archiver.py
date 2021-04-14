@@ -5,6 +5,7 @@ import time
 from designateclient import exceptions as designate_exc
 from heatclient import exc as heat_exc
 from magnumclient import exceptions as magnum_exc
+from muranoclient.common import exceptions as murano_exc
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -912,7 +913,9 @@ class MuranoArchiver(Archiver):
             else:
                 LOG.info("%s: Deleting environment %s", self.project.id,
                          environment.id)
-                self.m_client.environments.delete(environment.id)
+                self.remove_resource(self.m_client.environments.delete,
+                                     self.m_client.environments.get,
+                                     environment.id, murano_exc.HTTPNotFound)
 
 
 class TroveArchiver(Archiver):
