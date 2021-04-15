@@ -990,7 +990,7 @@ class ImageExpirer(Expirer):
                        'all_tenants': True,
                        'deleted': True,
                        'limit': 1,  # aviod too many returns
-                       'changes_since': changes_since}
+                       'changes-since': changes_since}
         try:
             instances = self.n_client.servers.list(search_opts=search_opts)
             if len(instances):
