@@ -1773,7 +1773,7 @@ class ImageExpiryTests(test.TestCase):
                     'all_tenants': True,
                     'deleted': True,
                     'limit': 1,
-                    'changes_since': '2016-01-02T00:00:00'}
+                    'changes-since': '2016-01-02T00:00:00'}
             )
             self.assertTrue(actual)
 
@@ -1791,7 +1791,7 @@ class ImageExpiryTests(test.TestCase):
                     'all_tenants': True,
                     'deleted': True,
                     'limit': 1,
-                    'changes_since': '2016-01-02T00:00:00'}
+                    'changes-since': '2016-01-02T00:00:00'}
             )
             self.assertFalse(actual)
 
