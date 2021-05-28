@@ -313,6 +313,21 @@ class ProvisioningManager(object):
             'cinder.gigabytes_tasmania': "Volume storage Tasmania (GB)",
             'cinder.gigabytes_NCI': "Volume storage NCI (GB)",
             'cinder.gigabytes_pawsey': "Volume storage Pawsey (GB)",
+            'cinder.gigabytes_swinburne': "Volume storage Swinburne (GB)",
+            'cinder.gigabytes_encrypted-melbourne':
+                "Encrypted volume storage Melbourne (GB)",
+            'cinder.gigabytes_encrypted-monash':
+                "Encrypted volume storage Monash (GB)",
+            'cinder.gigabytes_encrypted-intersect':
+                "Encrypted volume storage Intersect (GB)",
+            'cinder.gigabytes_encrypted-QRIScloud':
+                "Encrypted volume storage QRIScloud (GB)",
+            'cinder.gigabytes_encrypted-auckland':
+                "Encrypted volume storage Auckland (GB)",
+            'cinder.gigabytes_encrypted-tasmania':
+                "Encrypted volume storage Tasmania (GB)",
+            'cinder.gigabytes_encrypted-swinburne':
+                "Encrypted volume storage Swinburne (GB)",
             'neutron.network': "Networks",
             'neutron.router': "Routers",
             'neutron.floatingip': "Floating IPs",
@@ -325,6 +340,14 @@ class ProvisioningManager(object):
                 'Shared Filesystem Snapshots QRIScloud',
             'manila.shares_QRIScloud-GPFS':
                 'Shared Filesystem Shares QRIScloud',
+            'manila.gigabytes_monash-02-cephfs':
+                'Shared Filesystem Storage Monash (GB)',
+            'manila.snapshot_gigabytes_monash-02-cephfs':
+                'Shared Filesystem Snapshot Storage Monash (GB)',
+            'manila.snapshots_monash-02-cephfs':
+                'Shared Filesystem Snapshots Monash',
+            'manila.shares_monash-02-cephfs':
+                'Shared Filesystem Shares Monash',
             'magnum.cluster': 'Container Orchestration Engine Clusters',
         }
         current = collections.OrderedDict()
