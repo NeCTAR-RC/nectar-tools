@@ -118,12 +118,14 @@ class ExpiryTests(test.TestCase):
         ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
         with test.nested(
             mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, 'get_status',
+                              return_value=expiry_states.ACTIVE),
             mock.patch.object(ex, '_get_notification_context',
                               return_value={'foo': 'bar'}),
             mock.patch.object(ex, '_get_recipients',
                               return_value=('owner@fake.org',
                                             ['manager1@fake.org']))
-        ) as (mock_notifier, mock_context, mock_recipients):
+        ) as (mock_notifier, mock_status, mock_context, mock_recipients):
             expected_context = {'foo': 'bar', 'foo2': 'bar2'}
             ex._send_notification('fakestage', {'foo2': 'bar2'})
             mock_notifier.send_message.assert_called_with(
@@ -141,6 +143,18 @@ class ExpiryTests(test.TestCase):
             mock.patch.object(ex, '_get_recipients',
                               return_value=(None, []))
         ) as (mock_notifier, mock_context, mock_recipients):
+            ex._send_notification('fakestage', {'foo2': 'bar2'})
+            mock_notifier.send_message.assert_not_called()
+
+    def test_send_notification_deleted_project(self):
+        fake_res = mock.Mock()
+        fake_res.id = 'fake_id'
+        ex = expirer.Expirer('fake_type', fake_res, notifier='fake')
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, 'get_status',
+                              return_value=expiry_states.DELETED),
+        ) as (mock_notifier, mock_status):
             ex._send_notification('fakestage', {'foo2': 'bar2'})
             mock_notifier.send_message.assert_not_called()
 
