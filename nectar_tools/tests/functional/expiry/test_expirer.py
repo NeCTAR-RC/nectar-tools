@@ -18,6 +18,7 @@ FAKE_NOVA = mock.MagicMock()
 FAKE_NEUTRON = mock.MagicMock()
 FAKE_SWIFT = mock.MagicMock()
 FAKE_GLANCE = mock.MagicMock()
+FAKE_HEAT = mock.MagicMock()
 TODAY = "2017-07-01"
 TODAY_DATE = datetime.datetime(2017, 7, 1)
 FUTURE = "2017-07-02"
@@ -40,6 +41,10 @@ def get_glance(session):
     return FAKE_GLANCE
 
 
+def get_heat(session):
+    return FAKE_HEAT
+
+
 def get_allocation_client(session):
     return FAKE_ALLOCATION_CLIENT
 
@@ -49,6 +54,7 @@ def get_allocation_client(session):
 @mock.patch('freshdesk.v2.api.API', new=fake_clients.FAKE_FD_API_CLASS)
 @mock.patch('nectar_tools.auth.get_swift_client', new=get_swift)
 @mock.patch('nectar_tools.auth.get_glance_client', new=get_glance)
+@mock.patch('nectar_tools.auth.get_heat_client', new=get_heat)
 @mock.patch('nectar_tools.auth.get_neutron_client', new=get_neutron)
 @mock.patch('nectar_tools.auth.get_keystone_client',
             new=fake_clients.get_keystone)
@@ -68,6 +74,7 @@ class PTExpiryTests(test.TestCase):
         FAKE_NEUTRON.reset_mock()
         FAKE_SWIFT.reset_mock()
         FAKE_GLANCE.reset_mock()
+        FAKE_HEAT.reset_mock()
         # Set up a fake PT with an owner
         project = fakes.FakeProjectWithOwner(id='q12w', name='pt-123',
                                              description='abc',
@@ -79,7 +86,8 @@ class PTExpiryTests(test.TestCase):
                       pending_allocations=[],
                       keystone_calls=[], fd_calls=[],
                       nova_calls=[], neutron_calls=[],
-                      swift_calls=[], glance_calls=[]):
+                      swift_calls=[], glance_calls=[],
+                      heat_calls=[]):
         """Runs the actual expiry process
 
         :param invalid: If true expect process to raise InvalidProject
@@ -91,6 +99,7 @@ class PTExpiryTests(test.TestCase):
         :param neutron_calls: Expected calls for neutron client
         :param swift_calls: Expected calls for swift client
         :param glance_calls: Expected calls for glance client
+        :param heat_calls: Expected calls for heat client
         """
 
         keystone_client = fake_clients.FAKE_KEYSTONE
@@ -99,6 +108,7 @@ class PTExpiryTests(test.TestCase):
         neutron_client = FAKE_NEUTRON
         swift_client = FAKE_SWIFT
         glance_client = FAKE_GLANCE
+        heat_client = FAKE_HEAT
         fd_client = fake_clients.FAKE_FD_API
         allocation_client = FAKE_ALLOCATION_CLIENT
 
@@ -131,6 +141,7 @@ class PTExpiryTests(test.TestCase):
         self.assertEqual(neutron_calls, neutron_client.method_calls)
         self.assertEqual(swift_calls, swift_client.method_calls)
         self.assertEqual(glance_calls, glance_client.method_calls)
+        self.assertEqual(heat_calls, heat_client.method_calls)
 
     def get_fd_calls(self):
         """Helper method to get expected calls for freshdesk"""
@@ -560,6 +571,7 @@ class PTExpiryTests(test.TestCase):
 
         nova_client = FAKE_NOVA
         glance_client = FAKE_GLANCE
+        heat_client = FAKE_HEAT
         swift_client = FAKE_SWIFT
         neutron_client = FAKE_NEUTRON
 
@@ -574,6 +586,15 @@ class PTExpiryTests(test.TestCase):
         glance_client.images.list.return_value = [image]
         c1 = {'name': 'c1'}
         o1 = {'name': 'o1'}
+
+        stack = fakes.FakeStack()
+        heat_client.stacks.get.return_value = stack
+        heat_client.stacks.list.return_value = [stack]
+
+        def delete_stack(stack_id):
+            stack.stack_status = 'DELETE_COMPLETE'
+
+        heat_client.stacks.delete.side_effect = delete_stack
 
         swift_client.get_account.return_value = ('fake-account', [c1])
         swift_client.get_container.return_value = ('fake-container',
@@ -599,6 +620,12 @@ class PTExpiryTests(test.TestCase):
             mock.call.images.list(filters={'owner_id': self.project.id,
                                            'nectar_archive': 'True'}),
             mock.call.images.delete(image.id),
+        ]
+
+        heat_calls = [
+            mock.call.stacks.list(filters={'tenant': self.project.id}),
+            mock.call.stacks.delete(stack.id),
+            mock.call.stacks.get(stack.id),
         ]
 
         neutron_calls = [
@@ -629,7 +656,7 @@ class PTExpiryTests(test.TestCase):
         self._test_process(nova_calls=nova_calls, glance_calls=glance_calls,
                            fd_calls=fd_calls, keystone_calls=keystone_calls,
                            neutron_calls=neutron_calls,
-                           swift_calls=swift_calls)
+                           swift_calls=swift_calls, heat_calls=heat_calls)
 
     def test_deleted(self):
         """Project in deleted state

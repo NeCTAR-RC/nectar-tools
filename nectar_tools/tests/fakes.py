@@ -227,6 +227,19 @@ class FakeVolume(object):
         return getattr(self, key, default)
 
 
+class FakeStack(object):
+
+    def __init__(self, id='fake', stack_status='CREATE_COMPLETE',
+                 **kwargs):
+        self.id = id
+        self.stack_status = stack_status
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)
+
+
 COMPUTE_HOMES = {'auckland': ['auckland'],
                 'ersa': ['sa'],
                 'intersect': ['intersect'],
