@@ -683,7 +683,7 @@ class PTExpirer(ProjectExpirer):
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  disable_project=False, force_delete=False):
-        archivers = ['nova', 'neutron_basic', 'swift']
+        archivers = ['nova', 'neutron_basic', 'swift', 'heat']
         notifier = expiry_notifier.ExpiryNotifier(
             resource_type='project', resource=project, template_dir='pts',
             group_id=CONF.freshdesk.pt_group,
