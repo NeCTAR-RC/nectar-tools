@@ -904,6 +904,7 @@ class MuranoArchiver(Archiver):
             return
 
         environments = self.m_client.environments.list(
+            all_tenants=True,
             tenant_id=self.project.id)
 
         for environment in environments:
