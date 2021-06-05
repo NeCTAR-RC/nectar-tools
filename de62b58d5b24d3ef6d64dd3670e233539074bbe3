@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "2281b9cd_5e6fbed2",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 1
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2021-06-05T00:53:10Z",
+      "side": 1,
+      "message": "Can test with tenant df88248a64a84c2badb16ddab3a5d020",
+      "revId": "de62b58d5b24d3ef6d64dd3670e233539074bbe3",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
