@@ -721,6 +721,7 @@ class MuranoArchiverTests(test.TestCase):
             ma.delete_resources(force=True)
 
             mock_murano.environments.list.assert_called_once_with(
+                all_tenants=True,
                 tenant_id=PROJECT.id)
 
             mock_rr.assert_has_calls([
