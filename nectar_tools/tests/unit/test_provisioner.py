@@ -512,12 +512,28 @@ class ProvisionerTests(test.TestCase):
         self.allocation.project_id = PROJECT.id
         nova_client = mock.Mock()
         mock_get_nova.return_value = nova_client
-        quota = {'instance': 30, 'ram': 1, 'cores': 33}
+        quota = {'instance': 30, 'ram': 1024, 'cores': 33}
         quota_response = mock.Mock(_info=quota)
         nova_client.quotas.get.return_value = quota_response
 
         current = self.manager.get_current_nova_quota(self.allocation)
-        self.assertEqual(quota, current)
+        self.assertEqual({'instance': 30, 'ram': 1, 'cores': 33}, current)
+        nova_client.quotas.get.assert_called_once_with(
+            self.allocation.project_id)
+
+    @mock.patch('nectar_tools.auth.get_nova_client')
+    def test_get_current_nova_quota_unlimited_ram(self, mock_get_nova):
+        self.allocation.project_id = PROJECT.id
+        nova_client = mock.Mock()
+        mock_get_nova.return_value = nova_client
+        quota = {'instance': 30, 'ram': -1, 'cores': 33}
+        quota_response = mock.Mock(_info=quota)
+        nova_client.quotas.get.return_value = quota_response
+
+        current = self.manager.get_current_nova_quota(self.allocation)
+        self.assertEqual({'instance': 30, 'ram': -1, 'cores': 33}, current)
+        nova_client.quotas.get.assert_called_once_with(
+            self.allocation.project_id)
 
     def test_set_nova_quota_no_ram(self):
         with test.nested(
@@ -554,6 +570,23 @@ class ProvisionerTests(test.TestCase):
             cores=4,
             instances=2,
             ram=2048)
+
+    @mock.patch('nectar_tools.auth.get_nova_client')
+    def test_set_nova_quota_unlimited_ram_set(self, mock_get_nova):
+        nova_client = mock.Mock()
+        mock_get_nova.return_value = nova_client
+        # override and set ram quota to unlimited (-1)
+        self.allocation.quotas[2].quota = -1
+
+        self.manager.set_nova_quota(self.allocation)
+        nova_client.quotas.delete.assert_called_once_with(
+            tenant_id=self.allocation.project_id)
+        nova_client.quotas.update.assert_called_once_with(
+            tenant_id=self.allocation.project_id,
+            force=True,
+            cores=4,
+            instances=2,
+            ram=-1)
 
     def test_set_nova_quota_with_flavors(self):
         with test.nested(

@@ -431,7 +431,8 @@ class ProvisioningManager(object):
         client = auth.get_nova_client(self.ks_session)
         current = client.quotas.get(allocation.project_id)
         quotas = current._info
-        quotas['ram'] = quotas['ram'] / 1024
+        if int(quotas['ram']) != -1:
+            quotas['ram'] = int(quotas['ram']) / 1024
         return quotas
 
     def set_nova_quota(self, allocation):
@@ -451,7 +452,8 @@ class ProvisioningManager(object):
         if allocated_quota:
             client = auth.get_nova_client(self.ks_session)
             client.quotas.delete(tenant_id=allocation.project_id)
-            allocated_quota['ram'] = int(allocated_quota['ram']) * 1024
+            q = int(allocated_quota['ram'])
+            allocated_quota['ram'] = q if q == -1 else q * 1024
             client.quotas.update(tenant_id=allocation.project_id,
                                  force=True, **allocated_quota)
             LOG.info("%s: Set Nova Quota %s", allocation.id, allocated_quota)
