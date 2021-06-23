@@ -153,6 +153,10 @@ class Expirer(object):
         return (recipient, extra_emails)
 
     def _send_notification(self, stage, extra_context={}):
+        if self.get_status() == expiry_states.DELETED:
+            LOG.info("%s: Skipping notification, project alreaded deleted",
+                     self.resource.id)
+            return
         context = self._get_notification_context()
         context.update(extra_context)
         recipient, extras = self._get_recipients()
@@ -164,6 +168,10 @@ class Expirer(object):
                      self.resource.id)
 
     def send_event(self, event, extra_context={}):
+        if self.get_status() == expiry_states.DELETED:
+            LOG.info("%s: Skipping event, project alreaded deleted",
+                     self.resource.id)
+            return
         event_type = '%s.%s' % (self.EVENT_PREFIX, event)
         event_notification = self._get_notification_context()
         event_notification.update(extra_context)
@@ -249,6 +257,8 @@ class Expirer(object):
                     kwargs[self.NEXT_STEP_KEY])
 
     def finish_expiry(self, message='Expiry work flow is complete'):
+        if self.get_status() == expiry_states.DELETED:
+            return
         try:
             self.notifier.finish(message=message)
         except Exception:
@@ -440,7 +450,11 @@ class ProjectExpirer(Expirer):
         self.archiver.delete_resources(force=True)
         self.archiver.delete_archives()
         try:
-            self.notifier.finish(message="Project deleted")
+            if self.get_status() != expiry_states.DELETED:
+                self.notifier.finish(message="Project deleted")
+            else:
+                LOG.info("%s: Skipping notification, project alreaded deleted",
+                         self.resource.id)
         except Exception:
             pass
         today = self.now.strftime(DATE_FORMAT)
@@ -683,7 +697,7 @@ class PTExpirer(ProjectExpirer):
 
     def __init__(self, project, ks_session=None, dry_run=False,
                  disable_project=False, force_delete=False):
-        archivers = ['nova', 'neutron_basic', 'swift']
+        archivers = ['nova', 'neutron_basic', 'swift', 'heat']
         notifier = expiry_notifier.ExpiryNotifier(
             resource_type='project', resource=project, template_dir='pts',
             group_id=CONF.freshdesk.pt_group,
