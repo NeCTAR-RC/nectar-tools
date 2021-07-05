@@ -17,3 +17,7 @@ class TempestTestAuditor(base.ResourceAuditor):
         for tt in resources:
             LOG.error("Tempest Test %s with AZ %s missing site",
                       tt['name'], tt['availability_zone'])
+            LOG.info("To fix with: "
+                     "gnocchi resource update "
+                     "--type tempest_test "
+                     "-a 'site:<site>' %s", tt['id'])
