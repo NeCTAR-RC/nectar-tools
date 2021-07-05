@@ -1146,6 +1146,7 @@ class ArchiverTests(test.TestCase):
         self.res.state = 'fakestate'
 
         self.del_method = mock.Mock()
+        self.del_method.__name__ = 'delete'
         self.check_method = mock.Mock()
 
     def test_remove_resource_with_exception(self):
