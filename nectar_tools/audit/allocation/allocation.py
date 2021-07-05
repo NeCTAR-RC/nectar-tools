@@ -52,6 +52,24 @@ class AllocationAuditor(base.Auditor):
                 LOG.info("Allocation %s is approved with no associated site",
                          a.id)
 
+    def check_project_names(self, allocation_id=None):
+        allocations = self._get_allocations(allocation_id, current=False)
+        name_map = {}
+        for a in allocations:
+            if not a.project_name:
+                if a.parent_request is None:
+                    LOG.info("Allocation %s has no project name", a.id)
+            elif a.project_name in name_map:
+                name_map[a.project_name].append(a)
+            else:
+                name_map[a.project_name] = [a]
+
+        for name, allocs in name_map.items():
+            master_ids = [a.id for a in allocs if a.parent_request is None]
+            if len(master_ids) > 1:
+                LOG.warn("Multiple allocations have project name %s: %s",
+                         name, master_ids)
+
     def check_allocation_classification(self, allocation_id=None):
         allocations = self._get_allocations(allocation_id, current=True)
         for a in allocations:
