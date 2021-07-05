@@ -93,8 +93,10 @@ class Archiver(object):
             time.sleep(delay)
             total = total + delay
 
+        delete_method_name = ".".join([delete_method.__module__,
+                                       delete_method.__name__])
         raise exceptions.TimeoutError(
-            'Remove resource for ' + resource_id + ' timed out')
+            f'{delete_method_name} for {resource_id} timed out')
 
 
 class ImageArchiver(Archiver):
