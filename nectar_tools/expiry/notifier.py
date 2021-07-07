@@ -53,12 +53,12 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
                 self._add_note_to_ticket(ticket_id, message)
 
             if not self.dry_run:
-                # Status 4 == Resolved
-                LOG.info("%s: Resolving ticket %s", self.resource.id,
+                # Status 5 == Closed
+                LOG.info("%s: Closing ticket %s", self.resource.id,
                          ticket_id)
-                self.api.tickets.update_ticket(ticket_id, status=4)
+                self.api.tickets.update_ticket(ticket_id, status=5)
             else:
-                LOG.info("%s: Would resolve ticket %s", self.resource.id,
+                LOG.info("%s: Would close ticket %s", self.resource.id,
                          ticket_id)
 
     def _set_ticket_id(self, ticket_id):
