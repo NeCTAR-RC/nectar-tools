@@ -1,7 +1,9 @@
 import datetime
+from unittest import mock
+
 from dateutil import relativedelta
 from freezegun import freeze_time
-from unittest import mock
+from muranoclient.common import exceptions as murano_exc
 
 from nectar_tools import config
 from nectar_tools import exceptions
@@ -19,6 +21,7 @@ FAKE_NEUTRON = mock.MagicMock()
 FAKE_SWIFT = mock.MagicMock()
 FAKE_GLANCE = mock.MagicMock()
 FAKE_HEAT = mock.MagicMock()
+FAKE_MURANO = mock.MagicMock()
 TODAY = "2017-07-01"
 TODAY_DATE = datetime.datetime(2017, 7, 1)
 FUTURE = "2017-07-02"
@@ -45,6 +48,10 @@ def get_heat(session):
     return FAKE_HEAT
 
 
+def get_murano(session):
+    return FAKE_MURANO
+
+
 def get_allocation_client(session):
     return FAKE_ALLOCATION_CLIENT
 
@@ -55,6 +62,7 @@ def get_allocation_client(session):
 @mock.patch('nectar_tools.auth.get_swift_client', new=get_swift)
 @mock.patch('nectar_tools.auth.get_glance_client', new=get_glance)
 @mock.patch('nectar_tools.auth.get_heat_client', new=get_heat)
+@mock.patch('nectar_tools.auth.get_murano_client', new=get_murano)
 @mock.patch('nectar_tools.auth.get_neutron_client', new=get_neutron)
 @mock.patch('nectar_tools.auth.get_keystone_client',
             new=fake_clients.get_keystone)
@@ -75,6 +83,7 @@ class PTExpiryTests(test.TestCase):
         FAKE_SWIFT.reset_mock()
         FAKE_GLANCE.reset_mock()
         FAKE_HEAT.reset_mock()
+        FAKE_MURANO.reset_mock()
         # Set up a fake PT with an owner
         project = fakes.FakeProjectWithOwner(id='q12w', name='pt-123',
                                              description='abc',
@@ -87,7 +96,7 @@ class PTExpiryTests(test.TestCase):
                       keystone_calls=[], fd_calls=[],
                       nova_calls=[], neutron_calls=[],
                       swift_calls=[], glance_calls=[],
-                      heat_calls=[]):
+                      heat_calls=[], murano_calls=[]):
         """Runs the actual expiry process
 
         :param invalid: If true expect process to raise InvalidProject
@@ -100,6 +109,7 @@ class PTExpiryTests(test.TestCase):
         :param swift_calls: Expected calls for swift client
         :param glance_calls: Expected calls for glance client
         :param heat_calls: Expected calls for heat client
+        :param murano_calls: Expected calls for murano client
         """
 
         keystone_client = fake_clients.FAKE_KEYSTONE
@@ -109,6 +119,7 @@ class PTExpiryTests(test.TestCase):
         swift_client = FAKE_SWIFT
         glance_client = FAKE_GLANCE
         heat_client = FAKE_HEAT
+        murano_client = FAKE_MURANO
         fd_client = fake_clients.FAKE_FD_API
         allocation_client = FAKE_ALLOCATION_CLIENT
 
@@ -142,6 +153,7 @@ class PTExpiryTests(test.TestCase):
         self.assertEqual(swift_calls, swift_client.method_calls)
         self.assertEqual(glance_calls, glance_client.method_calls)
         self.assertEqual(heat_calls, heat_client.method_calls)
+        self.assertEqual(murano_calls, murano_client.method_calls)
 
     def get_fd_calls(self):
         """Helper method to get expected calls for freshdesk"""
@@ -572,6 +584,7 @@ class PTExpiryTests(test.TestCase):
         nova_client = FAKE_NOVA
         glance_client = FAKE_GLANCE
         heat_client = FAKE_HEAT
+        murano_client = FAKE_MURANO
         swift_client = FAKE_SWIFT
         neutron_client = FAKE_NEUTRON
 
@@ -595,6 +608,11 @@ class PTExpiryTests(test.TestCase):
             stack.stack_status = 'DELETE_COMPLETE'
 
         heat_client.stacks.delete.side_effect = delete_stack
+
+        env1 = fakes.FakeEnvironment()
+        murano_client.environments.list.return_value = [env1]
+
+        murano_client.environments.get.side_effect = murano_exc.HTTPNotFound
 
         swift_client.get_account.return_value = ('fake-account', [c1])
         swift_client.get_container.return_value = ('fake-container',
@@ -628,6 +646,12 @@ class PTExpiryTests(test.TestCase):
             mock.call.stacks.get(stack.id),
         ]
 
+        murano_calls = [
+            mock.call.environments.list(tenant_id=self.project.id),
+            mock.call.environments.delete(env1.id),
+            mock.call.environments.get(env1.id),
+        ]
+
         neutron_calls = [
             mock.call.list_ports(tenant_id=self.project.id),
             mock.call.delete_port('fakeport1'),
@@ -656,7 +680,8 @@ class PTExpiryTests(test.TestCase):
         self._test_process(nova_calls=nova_calls, glance_calls=glance_calls,
                            fd_calls=fd_calls, keystone_calls=keystone_calls,
                            neutron_calls=neutron_calls,
-                           swift_calls=swift_calls, heat_calls=heat_calls)
+                           swift_calls=swift_calls, heat_calls=heat_calls,
+                           murano_calls=murano_calls)
 
     def test_deleted(self):
         """Project in deleted state
