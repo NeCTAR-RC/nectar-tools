@@ -666,7 +666,7 @@ class PTExpiryTests(test.TestCase):
             mock.call.comments.create_note(int(self.project.expiry_ticket_id),
                                            'Project deleted'),
             mock.call.tickets.update_ticket(int(self.project.expiry_ticket_id),
-                                            status=4)
+                                            status=5)
         ]
 
         swift_calls = [

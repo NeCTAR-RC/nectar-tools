@@ -90,7 +90,7 @@ class ExpiryNotifierTests(test.TestCase):
             n.finish()
             mock_note.assert_not_called()
             mock_api.return_value.tickets.update_ticket.assert_called_with(
-                22, status=4)
+                22, status=5)
 
     def test_finish_message(self, mock_api):
         project = fakes.FakeProject(expiry_ticket_id=22)
@@ -101,7 +101,7 @@ class ExpiryNotifierTests(test.TestCase):
             n.finish(message='note-message')
             mock_note.assert_called_with(22, 'note-message')
             mock_api.return_value.tickets.update_ticket.assert_called_with(
-                22, status=4)
+                22, status=5)
 
     def test_project_set_ticket_id(self, mock_api):
         n = notifier.ExpiryNotifier(resource_type='project',
