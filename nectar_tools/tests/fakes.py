@@ -240,6 +240,17 @@ class FakeStack(object):
         return getattr(self, key, default)
 
 
+class FakeEnvironment(object):
+
+    def __init__(self, id='fake', **kwargs):
+        self.id = id
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)
+
+
 COMPUTE_HOMES = {'auckland': ['auckland'],
                 'ersa': ['sa'],
                 'intersect': ['intersect'],
