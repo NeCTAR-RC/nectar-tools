@@ -14,8 +14,8 @@ EMAIL_RE = re.compile(r"^[\w.!#$%&'*+\-/=?^_`{|}~]+@([\w\-]+\.)+[\w\-]{2,4}$")
 
 class UserAuditor(base.IdentityAuditor):
 
-    def __init__(self, ks_session, repair=False, dry_run=True):
-        super().__init__(ks_session, repair, dry_run)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.users = self.k_client.users.list(domain='default')
 
     def check_users_no_projects(self):

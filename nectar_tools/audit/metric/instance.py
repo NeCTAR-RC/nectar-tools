@@ -33,14 +33,10 @@ class InstanceAuditor(base.ResourceAuditor):
                           instance['id'], instance['flavor_id'])
                 continue
 
-            if self.repair:
-                if not self.dry_run:
-                    LOG.info("%s: Setting flavor_name", instance['id'])
-                    self.g_client.resource.update(
-                        'instance', instance['id'],
-                        {'flavor_name': flavor_name})
-                else:
-                    LOG.info("%s: Would set flavor_name", instance['id'])
+            self.repair(f"{instance['id']}: Setting flavor_name",
+                        lambda: self.g_client.resource.update(
+                            'instance', instance['id'],
+                            {'flavor_name': flavor_name}))
 
     def ensure_availability_zone(self):
         instances = self.g_client.resource.search(
@@ -75,14 +71,10 @@ class InstanceAuditor(base.ResourceAuditor):
 
             az = getattr(nova_instance, 'OS-EXT-AZ:availability_zone', None)
             if az:
-                if self.repair:
-                    if not self.dry_run:
-                        LOG.info("%s: Setting AZ", instance['id'])
-                        self.g_client.resource.update(
-                            'instance', instance['id'],
-                            {'availability_zone': az})
-                    else:
-                        LOG.info("%s: Would set AZ", instance['id'])
+                self.repair(f"{instance['id']}: Setting AZ",
+                            lambda: self.g_client.resource.update(
+                                'instance', instance['id'],
+                                {'availability_zone': az}))
             else:
                 LOG.error("%s: Nova instance has no AZ",
                           instance['id'])
