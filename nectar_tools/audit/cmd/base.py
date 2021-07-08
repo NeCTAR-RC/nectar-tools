@@ -13,9 +13,8 @@ class AuditCmdBase(cmd_base.CmdBase):
     def __init__(self):
         super(AuditCmdBase, self).__init__(log_filename='audit.log')
 
-        self.list_not_run = False
-        if self.args.list:
-            self.list_not_run = True
+        self.list_not_run = self.args.list
+        self.repair = self.args.repair
 
         if self.args.check:
             try:
@@ -24,7 +23,8 @@ class AuditCmdBase(cmd_base.CmdBase):
                 module = importlib.import_module(module_str)
                 auditor_class = getattr(module, class_str)
                 auditor = auditor_class(ks_session=self.session,
-                                        repair=self.args.repair)
+                                        repair=self.repair,
+                                        dry_run=self.dry_run)
                 method = getattr(auditor, method_str)
                 method()
                 sys.exit(0)
@@ -34,7 +34,8 @@ class AuditCmdBase(cmd_base.CmdBase):
 
     def run_audits(self, **kwargs):
         for auditor in self.AUDITORS:
-            a = auditor(ks_session=self.session, repair=self.args.repair,
+            a = auditor(ks_session=self.session,
+                        repair=self.repair,
                         dry_run=self.dry_run)
             a.run_all(list_not_run=self.list_not_run, **kwargs)
 
@@ -43,8 +44,9 @@ class AuditCmdBase(cmd_base.CmdBase):
         self.parser.add_argument('-l', '--list', action='store_true',
                                  help="List audits but don't run them")
         self.parser.add_argument('-r', '--repair', action='store_true',
-                                 help="Automated repair of some problems "
-                                 "found by the audits. Needs the '-y' "
-                                 "option to actually do the repairs")
+                                 help="Tells audits to report automated "
+                                 "repairs for (some) problems they find. "
+                                 "Include the '-y' or '--no-dry-run' option "
+                                 "to actually perform the repairs.")
         self.parser.add_argument('check', nargs='?',
                                  help="specific check to run")
