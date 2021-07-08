@@ -9,6 +9,10 @@ LOG = logging.getLogger(__name__)
 
 class IDPAuditor(base.ResourceAuditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def ensure_country(self):
         resources = self.g_client.resource.search(
             resource_type='idp',
