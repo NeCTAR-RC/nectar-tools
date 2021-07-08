@@ -33,15 +33,12 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
                 LOG.error("%s: Can't find allocation for project",
                           self.project.id)
                 return
-            if self.repair:
-                if not self.dry_run:
-                    LOG.info("%s: Setting allocation_id = %s",
-                             self.project.id, allocation.id)
-                    self.k_client.projects.update(self.project.id,
-                                                  allocation_id=allocation.id)
-                else:
-                    LOG.info("%s: Would set allocation_id = %s",
-                             self.project.id, allocation.id)
+            self.repair(
+                lambda: self.k_client.projects.update(
+                    self.project.id,
+                    allocation_id=allocation.id),
+                "%s: Setting allocation_id = %s",
+                self.project.id, allocation.id)
             return
         try:
             allocation = self.a_client.allocations.get(allocation_id)
@@ -172,15 +169,15 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
                 LOG.info("%s: Disabled project with active allocation",
                          self.project.id)
 
-        if self.repair and not self.project.enabled \
+        if not self.project.enabled \
            and expiry_status == expiry_states.DELETED \
            and allocation.status != allocation_states.DELETED:
             if self.dry_run:
                 LOG.info("%s: Would mark allocation %s with expiry "
                          "deleted project as deleted",
                          self.project.id, allocation.id)
-            else:
-                self.a_client.allocations.delete(allocation.id)
-                LOG.info("%s: Marked allocation %s with expiry "
-                         "deleted project as deleted",
-                         self.project.id, allocation.id)
+            self.repair(
+                lambda: self.a_client.allocations.delete(allocation.id),
+                "%s: Marked allocation %s with expiry deleted project "
+                "as deleted",
+                self.project.id, allocation.id)

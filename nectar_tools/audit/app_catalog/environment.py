@@ -53,9 +53,11 @@ class EnvironmentAuditor(base.Auditor):
                     project, 'expiry_status', 'active') == 'deleted':
                 LOG.error("Environment %s belongs to a deleted project %s",
                           env.id, project.id)
-                if self.repair:
+
+                def do_repair():
                     try:
                         self.mc.environments.delete(env.id, abandon=True)
-                        LOG.info("Removed environment %s", env.id)
                     except Exception:
                         pass
+
+                self.repair(do_repair, "Removed environment %s", env.id)
