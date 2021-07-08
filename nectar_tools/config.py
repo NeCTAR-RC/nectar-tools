@@ -18,7 +18,7 @@ class AttrDict(dict):
 
 class Config(AttrDict):
     def __init__(self):
-        parser = argparse.ArgumentParser()
+        parser = argparse.ArgumentParser(conflict_handler='resolve')
         parser.add_argument('-c', '--config',
                             help='Path of configuration file',
                             default='/etc/nectar/tools.ini')
