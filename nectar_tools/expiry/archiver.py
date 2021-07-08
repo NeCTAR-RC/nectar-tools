@@ -915,6 +915,9 @@ class MuranoArchiver(Archiver):
             else:
                 LOG.info("%s: Deleting environment %s", self.project.id,
                          environment.id)
+                if environment.status == 'delete failure':
+                    self.m_client.environments.delete(environment.id,
+                                                      abandon=True)
                 self.remove_resource(self.m_client.environments.delete,
                                      self.m_client.environments.get,
                                      environment.id, murano_exc.HTTPNotFound)

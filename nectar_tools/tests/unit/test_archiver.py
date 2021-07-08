@@ -732,6 +732,28 @@ class MuranoArchiverTests(test.TestCase):
                           e2.id, murano_exc.HTTPNotFound)
             ])
 
+    def test_delete_resources_delete_failed(self):
+        ma = archiver.MuranoArchiver(PROJECT)
+        e1 = mock.Mock(id='fake1', status='delete failure')
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'remove_resource')
+        ) as (mock_murano, mock_rr):
+            mock_murano.environments.list.return_value = [e1]
+
+            ma.delete_resources(force=True)
+
+            mock_murano.environments.list.assert_called_once_with(
+                tenant_id=PROJECT.id)
+            mock_murano.environments.delete.assert_called_once_with(
+                e1.id, abandon=True)
+
+            mock_rr.assert_has_calls([
+                mock.call(mock_murano.environments.delete,
+                          mock_murano.environments.get,
+                          e1.id, murano_exc.HTTPNotFound),
+            ])
+
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class TroveArchiverTests(test.TestCase):

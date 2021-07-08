@@ -242,8 +242,9 @@ class FakeStack(object):
 
 class FakeEnvironment(object):
 
-    def __init__(self, id='fake', **kwargs):
+    def __init__(self, id='fake', status='ready', **kwargs):
         self.id = id
+        self.status = status
         for k, v in kwargs.items():
             setattr(self, k, v)
 
