@@ -8,9 +8,8 @@ LOG = logging.getLogger(__name__)
 
 class Auditor(object):
 
-    def __init__(self, ks_session, repair=False, dry_run=True):
+    def __init__(self, ks_session, dry_run=True):
         self.ks_session = ks_session
-        self.repair = repair
         self.dry_run = dry_run
         self.setup_clients()
 
@@ -36,3 +35,21 @@ class Auditor(object):
                 except Exception as e:
                     LOG.exception(e)
                 LOG.debug("Finished %s", method)
+
+    def repair(self, action, message, *args):
+        if self.dry_run:
+            LOG.info("Repair (skipped): " + message, *args)
+        else:
+            action()
+            LOG.info("Repair: " + message, *args)
+
+    def try_repair(self, action, message, *args):
+        if self.dry_run:
+            LOG.info("Repair (skipped): " + message, *args)
+        else:
+            try:
+                action()
+                LOG.info("Repair: " + message, *args)
+            except Exception as e:
+                LOG.warn("Repair failure: %s", e)
+                LOG.info("Repair that failed: " + message, *args)
