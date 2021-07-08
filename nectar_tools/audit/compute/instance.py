@@ -29,6 +29,10 @@ def chunks(seq, n):
 
 class InstanceAuditor(base.Auditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def check_instance_states(self):
         # NOTE: trying to get more than 4 states at once seems to
         # also return ACTIVE instances so work around it for now

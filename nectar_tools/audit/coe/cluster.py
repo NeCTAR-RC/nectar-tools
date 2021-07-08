@@ -9,17 +9,18 @@ LOG = logging.getLogger(__name__)
 
 class ClusterAuditor(base.Auditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def setup_clients(self):
         super().setup_clients()
         self.client = auth.get_magnum_client(sess=self.ks_session)
         self.k_client = auth.get_keystone_client(sess=self.ks_session)
 
     def _delete_cluster(self, cluster):
-        if self.repair:
-            LOG.info("%s: - Deleting cluster", cluster.uuid)
-            self.client.clusters.delete(cluster.uuid)
-        else:
-            LOG.info("%s: Would delete if --repair set", cluster.uuid)
+        self.repair(lambda: self.client.clusters.delete(cluster.uuid),
+                    "%s: - Deleting cluster", cluster.uuid)
 
     def check_status(self):
         clusters = self.client.clusters.list(detail=True)

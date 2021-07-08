@@ -11,6 +11,10 @@ LOG = logging.getLogger(__name__)
 
 class InstanceAuditor(base.ResourceAuditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def setup_clients(self):
         super().setup_clients()
         self.n_client = auth.get_nova_client(sess=self.ks_session)
@@ -33,14 +37,11 @@ class InstanceAuditor(base.ResourceAuditor):
                           instance['id'], instance['flavor_id'])
                 continue
 
-            if self.repair:
-                if not self.dry_run:
-                    LOG.info("%s: Setting flavor_name", instance['id'])
-                    self.g_client.resource.update(
-                        'instance', instance['id'],
-                        {'flavor_name': flavor_name})
-                else:
-                    LOG.info("%s: Would set flavor_name", instance['id'])
+            self.repair(
+                lambda: self.g_client.resource.update(
+                    'instance', instance['id'],
+                    {'flavor_name': flavor_name}),
+                "%s: Setting flavor_name", instance['id'])
 
     def ensure_availability_zone(self):
         instances = self.g_client.resource.search(
@@ -75,14 +76,11 @@ class InstanceAuditor(base.ResourceAuditor):
 
             az = getattr(nova_instance, 'OS-EXT-AZ:availability_zone', None)
             if az:
-                if self.repair:
-                    if not self.dry_run:
-                        LOG.info("%s: Setting AZ", instance['id'])
-                        self.g_client.resource.update(
-                            'instance', instance['id'],
-                            {'availability_zone': az})
-                    else:
-                        LOG.info("%s: Would set AZ", instance['id'])
+                self.repair(
+                    lambda: self.g_client.resource.update(
+                        'instance', instance['id'],
+                        {'availability_zone': az}),
+                    "%s: Setting AZ", instance['id'])
             else:
                 LOG.error("%s: Nova instance has no AZ",
                           instance['id'])

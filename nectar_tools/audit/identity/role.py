@@ -8,6 +8,10 @@ LOG = logging.getLogger(__name__)
 
 class RoleAuditor(base.IdentityAuditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def check_unused_roles(self):
         roles = self.k_client.roles.list()
         for role in roles:

@@ -13,6 +13,10 @@ LOG = logging.getLogger(__name__)
 
 class LoadBalancerAuditor(base.Auditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def setup_clients(self):
         super().setup_clients()
         self.openstack = auth.get_openstacksdk(sess=self.ks_session)
@@ -32,6 +36,5 @@ class LoadBalancerAuditor(base.Auditor):
             except openstack.exceptions.ResourceNotFound:
                 LOG.warn("Not amp found for instance %s(%s)", instance.name,
                          instance.id)
-                if self.repair:
-                    instance.delete()
-                    LOG.info("Deleted orphaned amp instance %s", instance.id)
+                self.repair(lambda: instance.delete(),
+                            "Deleted orphaned amp instance %s", instance.id)

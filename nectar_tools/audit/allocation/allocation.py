@@ -12,6 +12,9 @@ LOG = logging.getLogger(__name__)
 
 
 class AllocationAuditor(base.Auditor):
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
 
     def setup_clients(self):
         super().setup_clients()

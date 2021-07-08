@@ -10,6 +10,10 @@ LOG = logging.getLogger(__name__)
 
 class ProjectAuditor(base.IdentityAuditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def check_deleted_no_instances(self):
         projects = self.k_client.projects.list()
         for project in projects:

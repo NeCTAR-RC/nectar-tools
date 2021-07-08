@@ -24,7 +24,7 @@ class AuditCmdBase(cmd_base.CmdBase):
                 module = importlib.import_module(module_str)
                 auditor_class = getattr(module, class_str)
                 auditor = auditor_class(ks_session=self.session,
-                                        repair=self.args.repair)
+                                        dry_run=self.dry_run)
                 method = getattr(auditor, method_str)
                 method()
                 sys.exit(0)
@@ -34,17 +34,16 @@ class AuditCmdBase(cmd_base.CmdBase):
 
     def run_audits(self, **kwargs):
         for auditor in self.AUDITORS:
-            a = auditor(ks_session=self.session, repair=self.args.repair,
-                        dry_run=self.dry_run)
+            a = auditor(ks_session=self.session, dry_run=self.dry_run)
             a.run_all(list_not_run=self.list_not_run, **kwargs)
 
     def add_args(self):
         super(AuditCmdBase, self).add_args()
         self.parser.add_argument('-l', '--list', action='store_true',
                                  help="List audits but don't run them")
-        self.parser.add_argument('-r', '--repair', action='store_true',
-                                 help="Automated repair of some problems "
-                                 "found by the audits. Needs the '-y' "
-                                 "option to actually do the repairs")
+        self.parser.add_argument('-y', '--no-dry-run', action='store_true',
+                                 help="Perform all automated repairs, default "
+                                 "is to only show what repairs >would be< "
+                                 "performed in the audit output and logs")
         self.parser.add_argument('check', nargs='?',
                                  help="specific check to run")

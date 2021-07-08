@@ -14,6 +14,10 @@ STATES = ['ERROR', 'PENDING']
 
 class DnsAuditor(base.Auditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def setup_clients(self):
         super().setup_clients()
         self.dc = auth.get_designate_client(sess=self.ks_session,

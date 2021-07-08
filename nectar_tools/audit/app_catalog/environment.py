@@ -13,6 +13,9 @@ TIME_DIFF = datetime.now() - timedelta(days=DAYS)
 
 
 class EnvironmentAuditor(base.Auditor):
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
 
     def setup_clients(self):
         super().setup_clients()
@@ -53,9 +56,6 @@ class EnvironmentAuditor(base.Auditor):
                     project, 'expiry_status', 'active') == 'deleted':
                 LOG.error("Environment %s belongs to a deleted project %s",
                           env.id, project.id)
-                if self.repair:
-                    try:
-                        self.mc.environments.delete(env.id, abandon=True)
-                        LOG.info("Removed environment %s", env.id)
-                    except Exception:
-                        pass
+                self.try_repair(
+                    lambda: self.mc.environments.delete(env.id, abandon=True),
+                    "Removed environment %s", env.id)

@@ -13,6 +13,10 @@ LOG = logging.getLogger(__name__)
 
 class ImageAuditor(base.Auditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def setup_clients(self):
         super().setup_clients()
         self.g_client = auth.get_glance_client(sess=self.ks_session)
@@ -41,14 +45,13 @@ class ImageAuditor(base.Auditor):
         return images
 
     def _delete_unused(self, image_id):
-        if self.repair:
-            LOG.info("Image %s is unused, deleting", image_id)
+        def do_delete():
             try:
                 self.g_client.images.delete(image_id)
             except glance_exc.HTTPNotFound:
                 LOG.debug('Image is already deleted')
-        else:
-            LOG.warn("Image %s is unused and can be deleted", image_id)
+        self.repair(do_delete,
+                    "Image %s is unused, deleting", image_id)
 
     def check_octavia_images(self):
         project_id = CONF.octavia.project_id

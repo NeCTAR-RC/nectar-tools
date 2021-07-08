@@ -16,6 +16,10 @@ TICKET_RE = re.compile(r'^ticket-.+$')
 
 class ProjectTrialAuditor(base.ProjectAuditor):
 
+    def __init__(self, *args, **kwargs):
+        kwargs['log'] = LOG
+        super().__init__(*args, **kwargs)
+
     def check_owner(self):
         assignments = self.k_client.role_assignments.list(
             project=self.project,
