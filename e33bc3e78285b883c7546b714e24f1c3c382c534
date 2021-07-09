@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "c6010c09_2712a71a",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-09T02:20:56Z",
+      "side": 1,
+      "message": "Sorry I couldn\u0027t stay to the end of the meeting yesterday. Here is my reasoning for using `--repair` to repair things as opposed to `-y`\n\nWith the expirer and provisioner etc. when you run it with no args it tells you what it will do and then you use -y and it does these things. With the audit scripts they work differently. With no args it will tell you what things are wrong and then if you want it to fix these things you use `--repair`. \n\nYeah consistency may be better here but I\u0027m not sure as --no-dry-run doesn\u0027t make sense and `--repair` is more explicit and better from a usability pov.\n\n",
+      "revId": "e33bc3e78285b883c7546b714e24f1c3c382c534",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "280b7ddf_eca86100",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-09T02:20:56Z",
+      "side": 1,
+      "message": "no need to pass LOG objects around as they are available directly, maybe there is something I\u0027m missing but it shouldn\u0027t be done this way. Makes writing the code harder too having all these bits everywhere. Let me know what you\u0027re trying to do and we should be able to come up with a better approach.",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 41
+      },
+      "revId": "e33bc3e78285b883c7546b714e24f1c3c382c534",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8509661e_4727abac",
+        "filename": "nectar_tools/audit/app_catalog/environment.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-09T02:20:56Z",
+      "side": 1,
+      "message": "I don\u0027t think this is really improving things, yes it\u0027s a bit more DRY but makes things more complicated, not sure if I like this or not as to me the left side is more readable",
+      "range": {
+        "startLine": 59,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 53
+      },
+      "revId": "e33bc3e78285b883c7546b714e24f1c3c382c534",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
