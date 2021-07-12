@@ -27,3 +27,7 @@ class InvalidImage(Exception):
 
 class TimeoutError(Exception):
     pass
+
+
+class DeleteFailure(Exception):
+    pass

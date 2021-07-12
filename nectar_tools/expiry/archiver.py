@@ -60,7 +60,7 @@ class Archiver(object):
     @staticmethod
     def remove_resource(delete_method, check_method, resource_id,
                         not_found_exception, state_property=None,
-                        status=None, timeout=240):
+                        status=None, timeout=240, error_status=None):
         """poll an object until property == state or exc exception caught
 
         :param func delete_method: Method used to delete the resource
@@ -74,6 +74,8 @@ class Archiver(object):
                                       deleted
         :param int timeout (optional): max time to poll (in seconds)
                                        should be a power of 2
+        :param str error_status (optional): The state of the resource when it
+                                            fails to delete
         """
         delay = 5
         total = 0
@@ -88,8 +90,11 @@ class Archiver(object):
             except not_found_exception:
                 return
             if state_property:
-                if getattr(res, state_property) == status:
+                current_state = getattr(res, state_property)
+                if current_state == status:
                     return
+                elif current_state == error_status:
+                    raise exceptions.DeleteFailure()
             time.sleep(delay)
             total = total + delay
 
@@ -915,12 +920,21 @@ class MuranoArchiver(Archiver):
             else:
                 LOG.info("%s: Deleting environment %s", self.project.id,
                          environment.id)
-                if environment.status == 'delete failure':
+                try:
+                    self.remove_resource(self.m_client.environments.delete,
+                                         self.m_client.environments.get,
+                                         environment.id,
+                                         murano_exc.HTTPNotFound,
+                                         error_status='delete failure')
+                except exceptions.DeleteFailure:
                     self.m_client.environments.delete(environment.id,
                                                       abandon=True)
-                self.remove_resource(self.m_client.environments.delete,
-                                     self.m_client.environments.get,
-                                     environment.id, murano_exc.HTTPNotFound)
+                    # Run remove_resource again to ensure the abandon worked
+                    self.remove_resource(self.m_client.environments.delete,
+                                         self.m_client.environments.get,
+                                         environment.id,
+                                         murano_exc.HTTPNotFound,
+                                         error_status='delete failure')
 
 
 class TroveArchiver(Archiver):

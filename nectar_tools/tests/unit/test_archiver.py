@@ -726,10 +726,12 @@ class MuranoArchiverTests(test.TestCase):
             mock_rr.assert_has_calls([
                 mock.call(mock_murano.environments.delete,
                           mock_murano.environments.get,
-                          e1.id, murano_exc.HTTPNotFound),
+                          e1.id, murano_exc.HTTPNotFound,
+                          error_status='delete failure'),
                 mock.call(mock_murano.environments.delete,
                           mock_murano.environments.get,
-                          e2.id, murano_exc.HTTPNotFound)
+                          e2.id, murano_exc.HTTPNotFound,
+                          error_status='delete failure')
             ])
 
     def test_delete_resources_delete_failed(self):
@@ -739,6 +741,7 @@ class MuranoArchiverTests(test.TestCase):
             mock.patch.object(ma, 'm_client'),
             mock.patch.object(ma, 'remove_resource')
         ) as (mock_murano, mock_rr):
+            mock_rr.side_effect = [exceptions.DeleteFailure(), mock.DEFAULT]
             mock_murano.environments.list.return_value = [e1]
 
             ma.delete_resources(force=True)
@@ -748,11 +751,10 @@ class MuranoArchiverTests(test.TestCase):
             mock_murano.environments.delete.assert_called_once_with(
                 e1.id, abandon=True)
 
-            mock_rr.assert_has_calls([
-                mock.call(mock_murano.environments.delete,
-                          mock_murano.environments.get,
-                          e1.id, murano_exc.HTTPNotFound),
-            ])
+            mock_rr.assert_called_with(mock_murano.environments.delete,
+                                       mock_murano.environments.get,
+                                       e1.id, murano_exc.HTTPNotFound,
+                                       error_status='delete failure')
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
@@ -1194,5 +1196,18 @@ class ArchiverTests(test.TestCase):
         self.assertRaises(exceptions.TimeoutError,
             arc.remove_resource, self.del_method, self.check_method, self.myid,
             Exception, state_property='state', status='blah', timeout=2)
+        self.del_method.assert_called_with(self.myid)
+        self.check_method.assert_called_with(self.myid)
+
+    def test_remove_resource_delete_failure(self):
+        self.res.state = 'error'
+        arc = archiver.Archiver()
+        self.check_method.return_value = self.res
+        self.assertRaises(exceptions.DeleteFailure,
+                          arc.remove_resource, self.del_method,
+                          self.check_method,
+                          self.myid, Exception, state_property='state',
+                          status='deleted', timeout=2,
+                          error_status='error')
         self.del_method.assert_called_with(self.myid)
         self.check_method.assert_called_with(self.myid)
