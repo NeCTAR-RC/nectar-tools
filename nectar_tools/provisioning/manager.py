@@ -292,6 +292,7 @@ class ProvisioningManager(object):
                    'manila.snapshots',
                    'manila.snapshot_gigabytes',
                    'nova.flavor:compute-v3',
+                   'nova.flavor:hugeram-v3',
                    'nova.flavor:memory-v3',
                    'neutron.loadbalancer',
                    'trove.instances',
