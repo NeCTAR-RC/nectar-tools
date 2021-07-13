@@ -41,6 +41,30 @@
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "e6fd7961_fd80fe8c",
+        "filename": "nectar_tools/audit/allocation/allocation.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2021-07-13T00:31:58Z",
+      "side": 1,
+      "message": "It is important to use the correct logger because in many cases the logger name gives context that allows the message to make sense.  There are two ways to get the correct logger.  This way ... or some gnarly stuff that figures out the module for the caller of the \u0027repair\u0027 method and gets its \u0027LOG\u0027.  To me, this way is cleaner.\n\n(And what this code / pattern does is self evident, so I can\u0027t see how it is hard to read.)",
+      "parentUuid": "280b7ddf_eca86100",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 41
+      },
+      "revId": "e33bc3e78285b883c7546b714e24f1c3c382c534",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "8509661e_4727abac",
@@ -54,6 +78,30 @@
       "writtenOn": "2021-07-09T02:20:56Z",
       "side": 1,
       "message": "I don\u0027t think this is really improving things, yes it\u0027s a bit more DRY but makes things more complicated, not sure if I like this or not as to me the left side is more readable",
+      "range": {
+        "startLine": 59,
+        "startChar": 1,
+        "endLine": 61,
+        "endChar": 53
+      },
+      "revId": "e33bc3e78285b883c7546b714e24f1c3c382c534",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4b79b6e6_4ca8f5e1",
+        "filename": "nectar_tools/audit/app_catalog/environment.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2021-07-13T00:31:58Z",
+      "side": 1,
+      "message": "It turns out that try_repair is currently only used in one or two places.  So passing a function that consumed / logged the exception itself, is probably a better idea.",
+      "parentUuid": "8509661e_4727abac",
       "range": {
         "startLine": 59,
         "startChar": 1,
