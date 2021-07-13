@@ -285,22 +285,23 @@ class ProvisioningManager(object):
 
     def quota_report(self, allocation, show_current=True, html=False):
 
-        exclude = ['cinder.gigabytes',
-                   'neutron.subnet',
-                   'manila.gigabytes',
-                   'manila.shares',
-                   'manila.snapshots',
-                   'manila.snapshot_gigabytes',
-                   'nova.flavor:compute-v3',
-                   'nova.flavor:hugeram-v3',
-                   'nova.flavor:memory-v3',
-                   'neutron.loadbalancer',
-                   'trove.instances',
-               ]
+        exclude = [
+            'cinder.gigabytes',
+            'neutron.subnet',
+            'manila.gigabytes',
+            'manila.shares',
+            'manila.snapshots',
+            'manila.snapshot_gigabytes',
+            'neutron.loadbalancer',
+            'trove.instances',
+        ]
         resource_map = {
             'nova.instances': 'Instances',
             'nova.cores': 'VCPUs',
             'nova.ram': 'RAM (GB)',
+            'nova.flavor:compute-v3': 'Compute Optimised Flavors (c3)',
+            'nova.flavor:memory-v3': 'RAM Optimised Flavors (r3)',
+            'nova.flavor:hugeram-v3': 'Huge RAM Flavors (h3)',
             'swift.object': 'Object store (GB)',
             'trove.ram': 'Database RAM (GB)',
             'trove.volumes': 'Database storage (GB)',
@@ -351,8 +352,18 @@ class ProvisioningManager(object):
                 'Shared Filesystem Shares Monash',
             'magnum.cluster': 'Container Orchestration Engine Clusters',
         }
+        boolean_resources = [
+            'nova.flavor:compute-v3',
+            'nova.flavor:memory-v3',
+            'nova.flavor:hugeram-v3',
+        ]
         current = collections.OrderedDict()
         allocated = collections.OrderedDict()
+
+        def _boolean_resource_enabled(val):
+            if val:
+                return 'Enabled'
+            return 'Disabled'
 
         def _prefix_dict(quotas, prefix, data):
             for key, value in quotas.items():
@@ -415,6 +426,12 @@ class ProvisioningManager(object):
             if resource not in exclude and \
                not (resource.startswith('cinder.volumes')
                     or resource.startswith('cinder.snapshots')):
+
+                if resource in boolean_resources:
+                    current_quota = _boolean_resource_enabled(current_quota)
+                    allocated = _boolean_resource_enabled(allocated)
+                    diff = ''
+
                 table.add_row([pretty_resource, current_quota, allocated,
                                diff])
         if html:
