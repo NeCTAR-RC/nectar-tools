@@ -24,6 +24,30 @@
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
     },
     {
+      "unresolved": false,
+      "key": {
+        "uuid": "0143f1f9_10fd51b6",
+        "filename": "nectar_tools/audit/network/floating_ip.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1000264
+      },
+      "writtenOn": "2021-07-21T02:23:16Z",
+      "side": 1,
+      "message": "Way better. Thanks",
+      "parentUuid": "1a4c875a_300e270a",
+      "range": {
+        "startLine": 24,
+        "startChar": 12,
+        "endLine": 24,
+        "endChar": 35
+      },
+      "revId": "77eade81ae4fa64e9730d588a4d9f085cda61d53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
       "unresolved": true,
       "key": {
         "uuid": "18acf80c_107dc0fb",
@@ -37,6 +61,30 @@
       "writtenOn": "2021-07-21T01:14:01Z",
       "side": 1,
       "message": "I\u0027ve found that sometimes this can be wrong so I think its best to get the AZ from the nova instance itself.\n\nYou have the device id so you can use the nova client to get the instance and that will include the az\n\nSomething like:\ninstance \u003d novaclient.servers.get(device_id)\naz \u003d getattr(instance, \u0027OS-EXT-AZ:availability_zone\u0027, None)",
+      "range": {
+        "startLine": 33,
+        "startChar": 24,
+        "endLine": 33,
+        "endChar": 68
+      },
+      "revId": "77eade81ae4fa64e9730d588a4d9f085cda61d53",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "1cd82864_823ce28e",
+        "filename": "nectar_tools/audit/network/floating_ip.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1000264
+      },
+      "writtenOn": "2021-07-21T02:23:16Z",
+      "side": 1,
+      "message": "I was wondering about the reliability of that. Thanks",
+      "parentUuid": "18acf80c_107dc0fb",
       "range": {
         "startLine": 33,
         "startChar": 24,
