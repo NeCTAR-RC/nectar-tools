@@ -26,15 +26,14 @@ class ResourceProviderAuditor(base.Auditor):
         for h in deleted_hypervisors:
             LOG.warn("Resource provider %s no longer a hypervisor", h)
             rp = rp_lookup[h]
-            for consumer_id in rp.allocations():
-                self.repair(
-                    lambda: self.p_client.allocations.delete(consumer_id),
-                    "Deleted stale allocation for consumer %s", consumer_id)
-
-            def do_repair():
+            if self.repair:
+                for consumer_id in rp.allocations():
+                    self.p_client.allocations.delete(consumer_id)
+                    LOG.info("Deleted stale allocation for consumer %s",
+                             consumer_id)
                 try:
                     self.p_client.resource_providers.delete(rp.id)
                 except Exception as e:
                     LOG.exception(e)
-
-            self.repair(do_repair, "Deleted resource provider %s", h)
+                else:
+                    LOG.info("Deleted resource provider %s", h)

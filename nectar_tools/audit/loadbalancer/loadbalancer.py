@@ -32,5 +32,6 @@ class LoadBalancerAuditor(base.Auditor):
             except openstack.exceptions.ResourceNotFound:
                 LOG.warn("Not amp found for instance %s(%s)", instance.name,
                          instance.id)
-                self.repair(lambda: instance.delete(),
-                            "Deleted orphaned amp instance %s", instance.id)
+                if self.repair:
+                    instance.delete()
+                    LOG.info("Deleted orphaned amp instance %s", instance.id)

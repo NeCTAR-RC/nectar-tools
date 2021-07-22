@@ -41,29 +41,29 @@ class ResourceProviderAuditor(base.ResourceAuditor):
             if old_resources:
                 LOG.warn("Recreated resource providers found %s",
                          rp['name'])
-
-                resource_data = {'site': old_resources[0]['site']}
-                scope = old_resources[0].get('scope')
-                if scope:
-                    resource_data['scope'] = scope
+                if self.repair:
+                    resource_data = {'site': old_resources[0]['site']}
+                    scope = old_resources[0].get('scope')
+                    if scope:
+                        resource_data['scope'] = scope
                     for old in old_resources:
-                        self.repair(
-                            lambda: self.g_client.resource.delete(old['id']),
-                            "Deleting old RP %s", old['id'])
-                    self.repair(
-                        lambda: self.g_client.resource.update(
-                            resource_type='resource_provider',
-                            resource_id=rp['id'],
-                            resource=resource_data),
-                        "Updating resource providers for %s", rp['id'])
+                        LOG.info("Deleting old RP %s", old['id'])
+                        self.g_client.resource.delete(old['id'])
+                    self.g_client.resource.update(
+                        resource_type='resource_provider',
+                        resource_id=rp['id'],
+                        resource=resource_data)
             else:
                 for domain_search, site in domain_site_mapping.items():
                     if domain_search in rp['name']:
-                        self.repair(
-                            lambda: self.g_client.resource.update(
+                        if self.repair:
+                            self.g_client.resource.update(
                                 resource_type='resource_provider',
-                                resource_id=rp['id'], resource={'site': site}),
-                            "Setting site for %s to %s", rp['name'], site)
+                                resource_id=rp['id'], resource={'site': site})
+                            LOG.info("Set %s to %s", rp['name'], site)
+                        else:
+                            LOG.info("No site set for %s should be %s",
+                                     rp['name'], site)
                         break
                 else:
                     LOG.info("No old resource_provider so don't know which "
@@ -82,12 +82,13 @@ class ResourceProviderAuditor(base.ResourceAuditor):
             except placementclient.exceptions.NotFound:
                 LOG.warn("Resource provider %s no longer exists",
                          resource['name'])
-                self.repair(lambda: self.g_client.resource.update(
-                                resource_type='resource_provider',
-                                resource_id=resource['id'],
-                                resource={'ended_at': str(now)}),
-                            "Marking resource provider %s as ended",
-                            resource['name'])
+                if self.repair:
+                    self.g_client.resource.update(
+                        resource_type='resource_provider',
+                        resource_id=resource['id'],
+                        resource={'ended_at': str(now)})
+                    LOG.info("Marked resource provider %s as ended",
+                             resource['name'])
 
     def ensure_scope(self):
         resources = self.g_client.resource.search(
