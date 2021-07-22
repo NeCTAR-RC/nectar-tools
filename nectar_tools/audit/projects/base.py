@@ -8,8 +8,8 @@ DATE_FORMAT = '%Y-%m-%d'
 
 class ProjectAuditor(base.Auditor):
 
-    def __init__(self, ks_session, project, **kwargs):
-        super().__init__(ks_session, *kwargs)
+    def __init__(self, ks_session, project, repair=False, dry_run=True):
+        super().__init__(ks_session, repair, dry_run)
         self.project = project
         self.now = datetime.datetime.now()
 
