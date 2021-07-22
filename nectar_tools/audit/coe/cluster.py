@@ -15,11 +15,8 @@ class ClusterAuditor(base.Auditor):
         self.k_client = auth.get_keystone_client(sess=self.ks_session)
 
     def _delete_cluster(self, cluster):
-        if self.repair:
-            LOG.info("%s: - Deleting cluster", cluster.uuid)
-            self.client.clusters.delete(cluster.uuid)
-        else:
-            LOG.info("%s: Would delete if --repair set", cluster.uuid)
+        self.repair(lambda: self.client.clusters.delete(cluster.uuid),
+                    "%s: - Deleting cluster", cluster.uuid)
 
     def check_status(self):
         clusters = self.client.clusters.list(detail=True)
