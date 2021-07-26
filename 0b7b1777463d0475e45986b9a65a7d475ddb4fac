@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ac7a1a73_99361c33",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T03:59:02Z",
+      "side": 1,
+      "message": "you should update this too",
+      "range": {
+        "startLine": 7,
+        "startChar": 0,
+        "endLine": 7,
+        "endChar": 24
+      },
+      "revId": "0b7b1777463d0475e45986b9a65a7d475ddb4fac",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "6383d2cc_5a169ccf",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 6
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T03:59:02Z",
+      "side": 1,
+      "message": "Looks great, just some python style things to fix up. If you want some reading, check out https://www.python.org/dev/peps/pep-0008/",
+      "revId": "0b7b1777463d0475e45986b9a65a7d475ddb4fac",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "a219ad3f_92809b1e",
+        "filename": "nectar_tools/audit/network/floating_ip.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T03:59:02Z",
+      "side": 1,
+      "message": "only use this when it can\u0027t be put on multiple lines. All of these shouldn\u0027t have # noqa as they can be put on multiple lines",
+      "range": {
+        "startLine": 11,
+        "startChar": 91,
+        "endLine": 11,
+        "endChar": 97
+      },
+      "revId": "0b7b1777463d0475e45986b9a65a7d475ddb4fac",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "8209d223_83d1ec1d",
+        "filename": "nectar_tools/audit/network/siteLookUpTable.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T03:59:02Z",
+      "side": 1,
+      "message": "python style is to not use camel case for module names. \n\nThis file should be called something like common.py and put in nectar_tools/audit/ directory",
+      "revId": "0b7b1777463d0475e45986b9a65a7d475ddb4fac",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7a44e8e3_062cb2de",
+        "filename": "nectar_tools/audit/network/siteLookUpTable.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T03:59:02Z",
+      "side": 1,
+      "message": "In python we use full caps for constants, could name this NETWORK_SITE_MAP",
+      "range": {
+        "startLine": 16,
+        "startChar": 0,
+        "endLine": 16,
+        "endChar": 13
+      },
+      "revId": "0b7b1777463d0475e45986b9a65a7d475ddb4fac",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0d9c7eb6_86301436",
+        "filename": "nectar_tools/audit/network/siteLookUpTable.py",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T03:59:02Z",
+      "side": 1,
+      "message": "AZ_SITE_MAP",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 8
+      },
+      "revId": "0b7b1777463d0475e45986b9a65a7d475ddb4fac",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
