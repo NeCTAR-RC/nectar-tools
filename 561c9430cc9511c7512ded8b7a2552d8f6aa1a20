@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "6d402b41_56cf9144",
+        "filename": "nectar_tools/audit/base.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T06:53:16Z",
+      "side": 1,
+      "message": "Food for thought: If you made this debug level you could get rid of the --repair flag completely and just use --debug to see what it will do? (essentially with the current logic the --repair flag just means log more)",
+      "range": {
+        "startLine": 50,
+        "startChar": 32,
+        "endLine": 50,
+        "endChar": 36
+      },
+      "revId": "561c9430cc9511c7512ded8b7a2552d8f6aa1a20",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
