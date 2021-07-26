@@ -12,8 +12,8 @@ LOG = logging.getLogger(__name__)
 
 class RepairAuditor(base.Auditor):
 
-    def __init__(self, repair=False, dry_run=False):
-        super().__init__(None, repair=repair, dry_run=dry_run)
+    def __init__(self, dry_run=False):
+        super().__init__(None, dry_run=dry_run)
 
     def setup_clients(self):
         pass
@@ -25,16 +25,8 @@ class AuditorTests(test.TestCase):
         auditor = RepairAuditor()
         self.assertEqual(LOG, auditor.repair_log)
 
-    def test_repair_false(self):
-        auditor = RepairAuditor()
-        mock_action = MagicMock()
-        with patch.object(auditor, 'repair_log') as mock_log:
-            auditor.repair("repair 1", mock_action)
-            mock_action.assert_not_called()
-            mock_log.info.assert_not_called()
-
     def test_repair_dry_run(self):
-        auditor = RepairAuditor(repair=True, dry_run=True)
+        auditor = RepairAuditor(dry_run=True)
         mock_action = MagicMock()
         with patch.object(auditor, 'repair_log') as mock_log:
             auditor.repair("repair 1", mock_action)
@@ -42,7 +34,7 @@ class AuditorTests(test.TestCase):
             mock_log.info.assert_called_once()
 
     def test_repair_no_dry_run(self):
-        auditor = RepairAuditor(repair=True, dry_run=False)
+        auditor = RepairAuditor(dry_run=False)
         mock_action = MagicMock()
         with patch.object(auditor, 'repair_log') as mock_log:
             auditor.repair("repair 1", mock_action)
