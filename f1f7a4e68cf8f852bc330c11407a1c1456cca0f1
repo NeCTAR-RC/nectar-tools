@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "95dfc63a_24cded09",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T06:08:17Z",
+      "side": 1,
+      "message": "Final one I think :-) ",
+      "revId": "f1f7a4e68cf8f852bc330c11407a1c1456cca0f1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "4e9fb0a3_03a8c7a5",
+        "filename": "nectar_tools/audit/common.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T06:08:17Z",
+      "side": 1,
+      "message": "these should be inline, (like I was saying vscode can\u0027t do it automatically which is annoying). It\u0027s perfectly fine but for style would be:\n\nNETWORK_SITE_MAP \u003d {\n    # Dev\n    \u0027public\u0027: \u0027luna\u0027,\n    # Test\n    \u0027coreservices\u0027: \u0027coreservices\u0027,\n    \u0027qh2-test-floating\u0027: \u0027melbourne\u0027,\n    # Prod\n    \u0027QRIScloud\u0027: \u0027QRIScloud\u0027,\n    \u0027tasmania\u0027: \u0027tasmania\u0027,\n...\n}",
+      "range": {
+        "startLine": 16,
+        "startChar": 20,
+        "endLine": 30,
+        "endChar": 17
+      },
+      "revId": "f1f7a4e68cf8f852bc330c11407a1c1456cca0f1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "ebb036af_2627be0e",
+        "filename": "nectar_tools/audit/network/floating_ip.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T06:08:17Z",
+      "side": 1,
+      "message": "The best place for this would be a doc string on the method (remember this class could have multiple methods)\n\nSo something like:\n\ndef check_availability_zone(self):\n   \"\"\"Finds floating IPs that are attached to instances at different sites\n   \"\"\"",
+      "range": {
+        "startLine": 11,
+        "startChar": 0,
+        "endLine": 12,
+        "endChar": 36
+      },
+      "revId": "f1f7a4e68cf8f852bc330c11407a1c1456cca0f1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "0590cea6_6ccbeab7",
+        "filename": "nectar_tools/audit/network/floating_ip.py",
+        "patchSetId": 8
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-07-26T06:08:17Z",
+      "side": 1,
+      "message": "Ideally these line up so it would be:\n\n                LOG.error(\"floating_ip_id %s network_name %s network_site \"\n                          \"%s instance_id %s instance_AZ %s instance_site %s\",\n                          floating_ip_id, net_name, networkSite,\n                          device_id, az, AZSite)\n\nThe way you\u0027ve got it is perfectly fine, just style.",
+      "range": {
+        "startLine": 55,
+        "startChar": 16,
+        "endLine": 58,
+        "endChar": 46
+      },
+      "revId": "f1f7a4e68cf8f852bc330c11407a1c1456cca0f1",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
