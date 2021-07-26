@@ -22,6 +22,30 @@
       },
       "revId": "561c9430cc9511c7512ded8b7a2552d8f6aa1a20",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "364be2b5_ce8bcdd7",
+        "filename": "nectar_tools/audit/base.py",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1000157
+      },
+      "writtenOn": "2021-07-26T07:01:20Z",
+      "side": 1,
+      "message": "Please ... just ... stop.  This has been decided.",
+      "parentUuid": "6d402b41_56cf9144",
+      "range": {
+        "startLine": 50,
+        "startChar": 32,
+        "endLine": 50,
+        "endChar": 36
+      },
+      "revId": "561c9430cc9511c7512ded8b7a2552d8f6aa1a20",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
     }
   ]
 }
