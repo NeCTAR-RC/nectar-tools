@@ -1,20 +1,22 @@
 import logging
 
 from nectar_tools import auth
+from nectar_tools import exceptions
 
 
 LOG = logging.getLogger(__name__)
+
+REPAIR_COUNT = 0
 
 
 class Auditor(object):
 
     # public methods that are not "checks"
-    BASE_METHODS = ['setup_clients', 'run_all', 'repair']
+    BASE_METHODS = ['setup_clients', 'run_all', 'repair', 'summary']
 
-    def __init__(self, ks_session, repair=False, dry_run=True):
+    def __init__(self, ks_session, dry_run=True):
         self.ks_session = ks_session
         self.dry_run = dry_run
-        self.repair_flag = repair
 
         # This should correspond to the LOG that the actual auditor
         # uses for its diagnostics.
@@ -40,14 +42,32 @@ class Auditor(object):
             LOG.debug("Starting %s", method)
             try:
                 getattr(self, method)(**kwargs)
+            except exceptions.LimitReached:
+                LOG.info("Limit has been reached")
+                break
             except Exception as e:
                 LOG.exception(e)
             LOG.debug("Finished %s", method)
 
+        if not list_not_run:
+            self.summary()
+
+    def summary(self):
+        if self.dry_run:
+            LOG.info(
+                f"Found {REPAIR_COUNT} items to repair, run with -y to action")
+        else:
+            LOG.info(f"Repaired {REPAIR_COUNT} items")
+
     def repair(self, message, action):
-        if self.repair_flag:
-            if self.dry_run:
-                self.repair_log.info("Repair (noop): " + message)
-            else:
-                action()
-                self.repair_log.info("Repair: " + message)
+        global REPAIR_COUNT
+        REPAIR_COUNT += 1
+
+        if self.dry_run:
+            self.repair_log.info("Repair (noop): " + message)
+        else:
+            action()
+            self.repair_log.info("Repair: " + message)
+
+        if self.limit and REPAIR_COUNT >= self.limit:
+            raise exceptions.LimitReached()
