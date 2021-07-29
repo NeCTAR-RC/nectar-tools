@@ -14,9 +14,10 @@ class Auditor(object):
     # public methods that are not "checks"
     BASE_METHODS = ['setup_clients', 'run_all', 'repair', 'summary']
 
-    def __init__(self, ks_session, dry_run=True):
+    def __init__(self, ks_session, dry_run=True, limit=0):
         self.ks_session = ks_session
         self.dry_run = dry_run
+        self.limit = limit
 
         # This should correspond to the LOG that the actual auditor
         # uses for its diagnostics.
