@@ -1,6 +1,7 @@
 import logging
 
 
+from nectar_tools.audit import common
 from nectar_tools.audit.metric import base
 
 
@@ -15,9 +16,20 @@ class TempestTestAuditor(base.ResourceAuditor):
             query='site=null and flavor=null')
 
         for tt in resources:
+            az = tt['availability_zone']
+            site = common.AZ_SITE_MAP.get(az)
+
             LOG.error("Tempest Test %s with AZ %s missing site",
                       tt['name'], tt['availability_zone'])
-            LOG.info("To fix with: "
-                     "gnocchi resource update "
-                     "--type tempest_test "
-                     "-a 'site:<site>' %s", tt['id'])
+            if site:
+                self.repair(f"Setting site for {tt['name']} and az={az} "
+                            f"to {site}",
+                            lambda: self.g_client.resource.update(
+                                resource_type='tempest_test',
+                                resource_id=tt['id'],
+                                resource={'site': site}))
+            else:
+                LOG.info("To fix with: "
+                         "gnocchi resource update "
+                         "--type tempest_test "
+                         "-a 'site:<site>' %s", tt['id'])
