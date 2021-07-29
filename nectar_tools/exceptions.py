@@ -31,3 +31,7 @@ class TimeoutError(Exception):
 
 class DeleteFailure(Exception):
     pass
+
+
+class LimitReached(Exception):
+    pass
