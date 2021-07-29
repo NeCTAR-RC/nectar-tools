@@ -46,6 +46,7 @@ AZ_SITE_MAP = {
     # Prod
     'auckland': 'auckland',
     'intersect': 'intersect',
+    'intersect-01': 'intersect',
     'melbourne-qh2': 'melbourne',
     'melbourne-qh2-uom': 'melbourne',
     'monash-01': 'monash',
