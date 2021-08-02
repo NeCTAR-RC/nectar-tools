@@ -100,8 +100,8 @@ class Archiver(object):
 
         delete_method_name = ".".join([delete_method.__module__,
                                        delete_method.__name__])
-        raise exceptions.TimeoutError(
-            f'{delete_method_name} for {resource_id} timed out')
+        msg = f'{delete_method_name} for {resource_id} timed out'
+        raise exceptions.TimeoutError(msg)
 
 
 class ImageArchiver(Archiver):
@@ -921,6 +921,7 @@ class MuranoArchiver(Archiver):
                                          self.m_client.environments.get,
                                          environment.id,
                                          murano_exc.HTTPNotFound,
+                                         state_property='status',
                                          error_status='delete failure')
                 except exceptions.DeleteFailure:
                     self.m_client.environments.delete(environment.id,
@@ -930,6 +931,7 @@ class MuranoArchiver(Archiver):
                                          self.m_client.environments.get,
                                          environment.id,
                                          murano_exc.HTTPNotFound,
+                                         state_property='status',
                                          error_status='delete failure')
 
 

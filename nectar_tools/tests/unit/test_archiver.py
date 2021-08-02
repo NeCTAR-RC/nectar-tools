@@ -725,10 +725,12 @@ class MuranoArchiverTests(test.TestCase):
                 mock.call(mock_murano.environments.delete,
                           mock_murano.environments.get,
                           e1.id, murano_exc.HTTPNotFound,
+                          state_property='status',
                           error_status='delete failure'),
                 mock.call(mock_murano.environments.delete,
                           mock_murano.environments.get,
                           e2.id, murano_exc.HTTPNotFound,
+                          state_property='status',
                           error_status='delete failure')
             ])
 
@@ -752,6 +754,7 @@ class MuranoArchiverTests(test.TestCase):
             mock_rr.assert_called_with(mock_murano.environments.delete,
                                        mock_murano.environments.get,
                                        e1.id, murano_exc.HTTPNotFound,
+                                       state_property='status',
                                        error_status='delete failure')
 
 
