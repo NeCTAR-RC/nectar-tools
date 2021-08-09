@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7de9b033_49e46e2a",
+        "filename": "nectar_tools/audit/loadbalancer/loadbalancer.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2021-08-09T01:26:17Z",
+      "side": 1,
+      "message": "Is count actually used here? I see it\u0027s incremented, but not actioned?",
+      "range": {
+        "startLine": 46,
+        "startChar": 8,
+        "endLine": 46,
+        "endChar": 13
+      },
+      "revId": "1c95cb7607fa81abea82cb15a3575c9c12418e21",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
