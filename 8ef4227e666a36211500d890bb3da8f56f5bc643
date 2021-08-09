@@ -22,6 +22,30 @@
       },
       "revId": "8ef4227e666a36211500d890bb3da8f56f5bc643",
       "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "7b5a88a1_e3836b59",
+        "filename": "nectar_tools/audit/base.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-08-09T22:57:34Z",
+      "side": 1,
+      "message": "It needs to be global as there are multiple classes involved",
+      "parentUuid": "db22a62b_14f30e7a",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 65,
+        "endChar": 25
+      },
+      "revId": "8ef4227e666a36211500d890bb3da8f56f5bc643",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
     }
   ]
 }
