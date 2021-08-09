@@ -47,7 +47,7 @@ class Auditor(object):
     def repair(self, message, action):
         if self.repair_flag:
             if self.dry_run:
-                self.repair_log.info("Repair (skipped): " + message)
+                self.repair_log.info("Repair (noop): " + message)
             else:
                 action()
                 self.repair_log.info("Repair: " + message)
