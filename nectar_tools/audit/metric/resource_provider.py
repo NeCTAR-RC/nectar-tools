@@ -30,6 +30,7 @@ class ResourceProviderAuditor(base.ResourceAuditor):
             'intersect': 'intersect',
             'tpac.org.au': 'tasmania',
             'mgmt.sut': 'swinburne',
+            'os.sut': 'swinburne',
             'test.rc.nectar.org.au': 'coreservices',
         }
 
