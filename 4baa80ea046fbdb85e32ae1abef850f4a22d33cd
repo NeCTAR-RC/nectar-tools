@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "1abcdfc6_cda0de86",
+        "filename": "nectar_tools/audit/cmd/metric.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-08-16T23:18:03Z",
+      "side": 1,
+      "message": "it looks like this is used to filter by az so I think this variable should be -az, --availability-zone",
+      "range": {
+        "startLine": 19,
+        "startChar": 42,
+        "endLine": 19,
+        "endChar": 46
+      },
+      "revId": "4baa80ea046fbdb85e32ae1abef850f4a22d33cd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "93cc9e72_fd45f7f4",
+        "filename": "nectar_tools/audit/metric/instance.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-08-16T23:18:03Z",
+      "side": 1,
+      "message": "we want deleted and non deleted instances from nova. (this is why I used a db query as don\u0027t think it\u0027s possible via the api to get active and deleted)",
+      "range": {
+        "startLine": 98,
+        "startChar": 20,
+        "endLine": 98,
+        "endChar": 36
+      },
+      "revId": "4baa80ea046fbdb85e32ae1abef850f4a22d33cd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "38a86e9b_2824759d",
+        "filename": "nectar_tools/audit/metric/instance.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2021-08-16T23:18:03Z",
+      "side": 1,
+      "message": "you don\u0027t need the brackets around these",
+      "range": {
+        "startLine": 121,
+        "startChar": 12,
+        "endLine": 121,
+        "endChar": 40
+      },
+      "revId": "4baa80ea046fbdb85e32ae1abef850f4a22d33cd",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
