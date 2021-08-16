@@ -16,6 +16,19 @@ class MetricAuditorCmd(base.AuditCmdBase):
     def add_args(self):
         super(MetricAuditorCmd, self).add_args()
         self.parser.description = 'Metric auditor'
+        self.parser.add_argument('-s', '--site', default=None,
+                                 help="Specify site name, by default it will "
+                                 "check all sites (only appliable for "
+                                 "instance consistency check).")
+        self.parser.add_argument('-n', '--days-ago', default=3,
+                                 type=int,
+                                 help="Query any changed instances in the "
+                                 "last x days, default is 3 (only applicable "
+                                 "for instance consistency check).")
+
+    def get_extra_args(self):
+        return {'days_ago': self.args.days_ago,
+                'site': self.args.site}
 
 
 def main():
