@@ -13,9 +13,9 @@ class AuditCmdBase(cmd_base.CmdBase):
 
     def __init__(self):
         super(AuditCmdBase, self).__init__(log_filename='audit.log')
-
         self.list_not_run = self.args.list
         self.limit = self.args.limit
+        extra_args = self.get_extra_args()
 
         if self.args.check:
             try:
@@ -25,7 +25,8 @@ class AuditCmdBase(cmd_base.CmdBase):
                 auditor_class = getattr(module, class_str)
                 auditor = auditor_class(ks_session=self.session,
                                         dry_run=self.dry_run,
-                                        limit=self.limit)
+                                        limit=self.limit,
+                                        **extra_args)
                 method = getattr(auditor, method_str)
                 method()
                 summary = getattr(auditor, 'summary')
@@ -38,6 +39,9 @@ class AuditCmdBase(cmd_base.CmdBase):
                 LOG.exception(e)
                 sys.exit(1)
 
+    def get_extra_args(self):
+        return {}
+
     def run_audits(self, **kwargs):
         for auditor in self.AUDITORS:
             a = auditor(ks_session=self.session,
@@ -49,6 +53,7 @@ class AuditCmdBase(cmd_base.CmdBase):
         super(AuditCmdBase, self).add_args()
         self.parser.add_argument('-l', '--list', action='store_true',
                                  help="List audits but don't run them")
+
         self.parser.add_argument('--limit',
                             type=int,
                             default=0,
