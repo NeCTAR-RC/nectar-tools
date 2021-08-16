@@ -12,9 +12,13 @@ class AuditCmdBase(cmd_base.CmdBase):
 
     def __init__(self):
         super(AuditCmdBase, self).__init__(log_filename='audit.log')
-
         self.list_not_run = self.args.list
         self.repair = self.args.repair
+        extra_args = {
+            'ensure_instance_consistency': {
+                'days_ago': self.args.days_ago,
+                'site': self.args.site}
+        }
 
         if self.args.check:
             try:
@@ -22,9 +26,11 @@ class AuditCmdBase(cmd_base.CmdBase):
                 class_str, method_str = class_method_str.split('.')
                 module = importlib.import_module(module_str)
                 auditor_class = getattr(module, class_str)
+                self.extra_args = extra_args.get(method_str)
                 auditor = auditor_class(ks_session=self.session,
                                         repair=self.repair,
-                                        dry_run=self.dry_run)
+                                        dry_run=self.dry_run,
+                                        extra_args=self.extra_args)
                 method = getattr(auditor, method_str)
                 method()
                 sys.exit(0)
@@ -48,5 +54,13 @@ class AuditCmdBase(cmd_base.CmdBase):
                                  "repairs for (some) problems they find. "
                                  "Include the '-y' or '--no-dry-run' option "
                                  "to actually perform the repairs.")
+        self.parser.add_argument('-s', '--site', default=None,
+                                 help="Specify site name, by default it will "
+                                 "check all sites (only appliable for "
+                                 "instance consistency check).")
+        self.parser.add_argument('-n', '--days-ago', default=3,
+                                 help="Query any changed instances in the "
+                                 "last x days, default is 3 (only applicable "
+                                 "for instance consistency check).")
         self.parser.add_argument('check', nargs='?',
                                  help="specific check to run")
