@@ -987,7 +987,7 @@ class ImageExpirer(Expirer):
         try:
             instances = self.n_client.servers.list(search_opts=search_opts)
             if len(instances):
-                LOG.info("Image %s: Has running instances", self.image.id)
+                LOG.debug("Image %s: Has running instances", self.image.id)
                 return False
             return True
         except Exception as e:
@@ -1008,7 +1008,7 @@ class ImageExpirer(Expirer):
         try:
             instances = self.n_client.servers.list(search_opts=search_opts)
             if len(instances):
-                LOG.info("Image %s: Has been booted recently", self.image.id)
+                LOG.debug("Image %s: Has been booted recently", self.image.id)
                 return False
             return True
         except Exception as e:
@@ -1029,7 +1029,8 @@ class ImageExpirer(Expirer):
             and self._has_no_running_instance() \
             and self._has_no_recent_boot():
 
-            LOG.info("Image %s: Expiry process is in progress!", self.image.id)
+            LOG.debug("Image %s: Expiry process is in progress!",
+                      self.image.id)
             return True
 
         LOG.debug("Image %s: Expiry process is not triggered", self.image.id)
