@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "b51708a3_6f3b3e21",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000104
+      },
+      "writtenOn": "2021-08-23T01:09:03Z",
+      "side": 1,
+      "message": "code LGTM, but I have a question - what\u0027s the rational for not displaying REPAIR_COUNT regardless? (in repair() )?",
+      "revId": "b082fd4c8cb31d061399a3280c25c1e004946b83",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
