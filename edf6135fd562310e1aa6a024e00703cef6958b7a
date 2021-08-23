@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "unresolved": false,
+      "key": {
+        "uuid": "5e614727_dd9b1374",
+        "filename": "/PATCHSET_LEVEL",
+        "patchSetId": 5
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1000114
+      },
+      "writtenOn": "2021-08-23T01:26:26Z",
+      "side": 1,
+      "message": "-1 just for visibility. Not sure if we need to separate server lists per site or per zone.",
+      "revId": "edf6135fd562310e1aa6a024e00703cef6958b7a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    },
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "350c3c19_a88cb00a",
+        "filename": "nectar_tools/audit/metric/instance.py",
+        "patchSetId": 5
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1000114
+      },
+      "writtenOn": "2021-08-23T01:26:26Z",
+      "side": 1,
+      "message": "Not sure if it\u0027s a problem in the context of this review but I noticed recently that availability_zone in servers.list search_opts appears to be wildcard/globbed. E.g. specifying \"melbourne-qh2\" gathers servers in both melbourne-qh2 \u0026 melbourne-qh2-uom zones.",
+      "range": {
+        "startLine": 101,
+        "startChar": 20,
+        "endLine": 101,
+        "endChar": 63
+      },
+      "revId": "edf6135fd562310e1aa6a024e00703cef6958b7a",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
