@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "unresolved": true,
+      "key": {
+        "uuid": "b5fcb088_0abbace6",
+        "filename": "nectar_tools/audit/base.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1000077
+      },
+      "writtenOn": "2021-08-23T01:03:30Z",
+      "side": 1,
+      "message": "Does this need to be global? Could it just be a class var instead?",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 25
+      },
+      "revId": "2d2d08649b3fcb5b0e53d5369025f17c2da52209",
+      "serverId": "f182a8af-62ca-4ceb-ab81-14f8fec9c6c5"
+    }
+  ]
+}
