@@ -45,7 +45,7 @@ class LoadBalancerAuditor(base.Auditor):
         lbs = self.openstack.load_balancer.load_balancers()
         for lb in lbs:
             if lb.provisioning_status != 'ACTIVE':
-                LOG.warning(f"LB {lb.id} in state {lb.provisioning_status}")
+                LOG.debug(f"LB {lb.id} in state {lb.provisioning_status}")
                 continue
 
             amphorae = self.openstack.load_balancer.amphorae(
