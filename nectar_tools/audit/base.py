@@ -54,11 +54,15 @@ class Auditor(object):
             self.summary()
 
     def summary(self):
+        if REPAIR_COUNT == 0:
+            self.repair_log.debug("Found 0 items for repair")
+            return
+
         if self.dry_run:
-            LOG.info(
+            self.repair_log.info(
                 f"Found {REPAIR_COUNT} items to repair, run with -y to action")
         else:
-            LOG.info(f"Repaired {REPAIR_COUNT} items")
+            self.repair_log.info(f"Repaired {REPAIR_COUNT} items")
 
     def repair(self, message, action):
         global REPAIR_COUNT
