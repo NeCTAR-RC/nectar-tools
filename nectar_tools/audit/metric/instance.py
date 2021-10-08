@@ -95,11 +95,16 @@ class InstanceAuditor(base.ResourceAuditor):
         changes_since = changes_since.isoformat()
         tempest_project_ids = CONF.tempest.tempest_project_ids.split(',')
         while True:
+            # options 'deleted: False' means the return instances include
+            # all states, not only deleted ones.
+            # when option az is not specified, the return will also return
+            # those failed launching without any az
             opts = {'deleted': False,
                     'all_tenants': True,
                     'marker': marker,
-                    'availability_zone': '^' + self.extra_args['az'] + '$',
                     'changes-since': changes_since}
+            if self.extra_args['az']:
+                opts['availability_zone'] = '^' + self.extra_args['az'] + '$'
             instances_chunk = self.n_client.servers.list(search_opts=opts)
             count += 1
             LOG.debug("Retrieve nova instances - #%d call with marker %s",
