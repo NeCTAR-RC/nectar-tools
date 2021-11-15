@@ -4,6 +4,7 @@ import logging
 
 import novaclient
 
+from dateutil import parser
 from nectar_tools.audit.metric import base
 from nectar_tools import auth
 from nectar_tools import config
@@ -86,7 +87,6 @@ class InstanceAuditor(base.ResourceAuditor):
 
     def ensure_instance_consistency(self):
         MAX_TIME_DIFF = 3600
-        fmt = '%Y-%m-%dT%H:%M:%S.%f'
         marker = None
         count = 0
         instances = []
@@ -123,17 +123,17 @@ class InstanceAuditor(base.ResourceAuditor):
         processed = 0
         for i in instances:
             processed += 1
-            id, start, end, project_id = (i.id,
-                getattr(i, 'OS-SRV-USG:launched_at'),
+            id, start, end, project_id = (i.id, i.created,
                 getattr(i, 'OS-SRV-USG:terminated_at'), i.tenant_id)
             LOG.debug("Processed %s #%s/%s", id, processed, total)
+            # nova terminated_at does not include tzinfo
             if start:
-                start = datetime.datetime.strptime(start, fmt)
+                start = parser.parse(start, ignoretz=True)
             else:
                 LOG.warning('Starting time missing for %s in nova', id)
                 continue
             if end:
-                end = datetime.datetime.strptime(end, fmt)
+                end = parser.parse(end, ignoretz=True)
                 duration = (end - start)
             else:
                 duration = 'ongoing'
@@ -149,23 +149,12 @@ class InstanceAuditor(base.ResourceAuditor):
             else:
                 updates = {}
 
-                g_start = gnocchi_instance.get('started_at').split('+')[0]
-                try:
-                    g_start = datetime.datetime.strptime(
-                        g_start, '%Y-%m-%dT%H:%M:%S.%f')
-                except ValueError:
-                    g_start = datetime.datetime.strptime(
-                        g_start, '%Y-%m-%dT%H:%M:%S')
+                g_start = gnocchi_instance.get('started_at')
+                g_start = parser.parse(g_start, ignoretz=True)
 
                 g_end = gnocchi_instance.get('ended_at')
                 if g_end is not None:
-                    g_end = g_end.split('+')[0]
-                    try:
-                        g_end = datetime.datetime.strptime(
-                            g_end, '%Y-%m-%dT%H:%M:%S.%f')
-                    except ValueError:
-                        g_end = datetime.datetime.strptime(
-                            g_end, '%Y-%m-%dT%H:%M:%S')
+                    g_end = parser.parse(g_end, ignoretz=True)
 
                 if abs((g_start - start).total_seconds()) > MAX_TIME_DIFF:
                     updates['started_at'] = str(start)
@@ -183,11 +172,14 @@ class InstanceAuditor(base.ResourceAuditor):
                     LOG.debug('Updating gnocchi end time for %s', id)
 
                 if 'started_at' in updates:
+                    # add tzinfo to align with gnocchi implementation
+                    updates['started_at'] = updates['started_at'] + '+00:00'
                     self.repair(f"{id}: Setting started_at",
                                 lambda: self.g_client.resource.update(
                                     'instance', id,
                                     {'started_at': updates['started_at']}))
                 elif 'ended_at' in updates:
+                    updates['ended_at'] = updates['ended_at'] + '+00:00'
                     self.repair(f"{id}: Setting ended_at",
                                 lambda: self.g_client.resource.update(
                                     'instance', id,
