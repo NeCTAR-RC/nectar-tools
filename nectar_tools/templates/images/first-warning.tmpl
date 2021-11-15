@@ -26,7 +26,7 @@ Your image <b>{{ image.name }}</b> (ID: {{ image.id }}) has been identified as a
   </tr>
   <tr>
     <td style="border:1px solid black;padding:0 5px 0 5px;">Size</td>
-    <td style="border:1px solid black;padding:0 5px 0 5px;">{{ image.size|filesizeformat(True) }}</td>
+    <td style="border:1px solid black;padding:0 5px 0 5px;">{% if image.size %} {{ image.size|filesizeformat(True) }} {% endif %}</td>
   </tr>
   <tr>
     <td style="border:1px solid black;padding:0 5px 0 5px;">Visibility</td>
