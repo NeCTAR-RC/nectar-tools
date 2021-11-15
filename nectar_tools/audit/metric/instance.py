@@ -86,7 +86,7 @@ class InstanceAuditor(base.ResourceAuditor):
 
     def ensure_instance_consistency(self):
         MAX_TIME_DIFF = 3600
-
+        fmt = '%Y-%m-%dT%H:%M:%S.%f'
         marker = None
         count = 0
         instances = []
@@ -128,12 +128,12 @@ class InstanceAuditor(base.ResourceAuditor):
                 getattr(i, 'OS-SRV-USG:terminated_at'), i.tenant_id)
             LOG.debug("Processed %s #%s/%s", id, processed, total)
             if start:
-                start = datetime.datetime.fromisoformat(start)
+                start = datetime.datetime.strptime(start, fmt)
             else:
                 LOG.warning('Starting time missing for %s in nova', id)
                 continue
             if end:
-                end = datetime.datetime.fromisoformat(end)
+                end = datetime.datetime.strptime(end, fmt)
                 duration = (end - start)
             else:
                 duration = 'ongoing'
