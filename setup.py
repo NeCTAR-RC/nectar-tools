@@ -31,6 +31,7 @@ setuptools.setup(
             'nectar-allocation-provisioner = nectar_tools.provisioning.cmd.provision:main',  # noqa
             'nectar-app-audit = nectar_tools.audit.cmd.app_catalog:main',
             'nectar-compute-audit = nectar_tools.audit.cmd.compute:main',
+            'nectar-database-audit = nectar_tools.audit.cmd.database:main',
             'nectar-dns-audit = nectar_tools.audit.cmd.dns:main',
             'nectar-identity-audit = nectar_tools.audit.cmd.identity:main',
             'nectar-image-expiry = nectar_tools.expiry.cmd.image_expirer:main',
