@@ -769,6 +769,20 @@ class TroveArchiverTests(test.TestCase):
             mock_trove.quota.update.assert_called_once_with(
                 PROJECT.id, body)
 
+    def test_stop_resources(self):
+        ta = archiver.TroveArchiver(PROJECT)
+        e1 = mock.Mock()
+        e2 = mock.Mock()
+        with mock.patch.object(ta, 't_client') as mock_trove:
+            mock_trove.mgmt_instances.list.return_value = [e1, e2]
+
+            ta.stop_resources()
+
+            mock_trove.mgmt_instances.list.assert_called_once_with(
+                project_id=PROJECT.id)
+            mock_trove.mgmt_instances.stop.assert_has_calls(
+                [mock.call(e1.id), mock.call(e2.id)])
+
     def test_delete_resources(self):
         ta = archiver.TroveArchiver(PROJECT)
         e1 = mock.Mock()

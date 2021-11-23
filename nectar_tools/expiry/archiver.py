@@ -949,6 +949,17 @@ class TroveArchiver(Archiver):
         else:
             LOG.info("%s: Would zero trove quota", self.project.id)
 
+    def stop_resources(self):
+        dbs = self.t_client.mgmt_instances.list(project_id=self.project.id)
+        for db in dbs:
+            if self.dry_run:
+                LOG.info("%s: Would stop trove instance %s",
+                         self.project.id, db.id)
+            else:
+                LOG.info("%s: Stopping trove instance %s", self.project.id,
+                         db.id)
+                self.t_client.mgmt_instances.stop(db.id)
+
     def delete_resources(self, force=False):
         if not force:
             return
