@@ -540,7 +540,10 @@ class NeutronBasicArchiver(Archiver):
     def zero_quota(self):
         body = {'quota': {'port': 0,
                           'security_group': 0,
-                          'security_group_rule': 0,
+                          # Note: if we set the 'security_group_rule' quota
+                          # to zero, Neutron won't let us list the rules to
+                          # be deleted.  (And a non-zero quota is harmless)
+                          'security_group_rule': 10,
                           'floatingip': 0,
                           'router': 0,
                           'network': 0,

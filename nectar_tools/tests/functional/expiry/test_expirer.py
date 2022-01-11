@@ -318,7 +318,7 @@ class PTExpiryTests(test.TestCase):
         ]
         neutron_quota = {'quota': {'port': 0,
                                    'security_group': 0,
-                                   'security_group_rule': 0,
+                                   'security_group_rule': 10,
                                    'floatingip': 0,
                                    'router': 0,
                                    'network': 0,
