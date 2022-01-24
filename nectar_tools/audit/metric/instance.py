@@ -179,7 +179,8 @@ class InstanceAuditor(base.ResourceAuditor):
                                     'instance', id,
                                     {'started_at': updates['started_at']}))
                 elif 'ended_at' in updates:
-                    updates['ended_at'] = updates['ended_at'] + '+00:00'
+                    if updates['ended_at']:
+                        updates['ended_at'] = updates['ended_at'] + '+00:00'
                     self.repair(f"{id}: Setting ended_at",
                                 lambda: self.g_client.resource.update(
                                     'instance', id,
