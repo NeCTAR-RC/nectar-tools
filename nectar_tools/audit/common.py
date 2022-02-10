@@ -52,6 +52,7 @@ AZ_SITE_MAP = {
     'monash-01': 'monash',
     'monash-02': 'monash',
     'monash-03': 'monash',
+    'qld': 'QRIScloud',
     'QRIScloud': 'QRIScloud',
     'swinburne-01': 'swinburne',
     'tasmania': 'tasmania',
