@@ -17,3 +17,7 @@ class IDPAuditor(base.ResourceAuditor):
         for idp in resources:
             LOG.error("IDP %s has no country",
                       idp['original_resource_id'])
+            LOG.info("To fix with: "
+                     "gnocchi resource update "
+                     "--type idp "
+                     "-a 'country:<AU or NZ>' %s", idp['id'])
