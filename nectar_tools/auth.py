@@ -1,6 +1,7 @@
 import logging
 
 from cinderclient import client as cinderclient
+from cloudkittyclient import client as cloudkittyclient
 from designateclient import client as designateclient
 import glanceclient
 from gnocchiclient import client as gnocchiclient
@@ -148,3 +149,9 @@ def get_heat_client(sess=None):
     if not sess:
         sess = get_session()
     return heatclient.Client(version='1', session=sess)
+
+
+def get_cloudkitty_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return cloudkittyclient.Client(version='2', session=sess)

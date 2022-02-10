@@ -4,6 +4,7 @@ python-designateclient
 python-keystoneclient
 python-novaclient
 python-glanceclient
+python-cloudkittyclient
 python-cinderclient
 python-muranoclient
 python-neutronclient
