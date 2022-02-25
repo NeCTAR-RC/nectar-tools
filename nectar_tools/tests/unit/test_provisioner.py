@@ -4,6 +4,7 @@ from unittest import mock
 
 from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
+from nectarallocationclient.v1 import allocations
 import novaclient
 
 from nectar_tools import config
@@ -932,3 +933,53 @@ class ProvisionerTests(test.TestCase):
                 self.allocation.project_id)
             client.load_balancer.update_quota.assert_called_once_with(
                 quota_obj)
+
+    def test_get_current_cloudkitty_quota_new(self):
+        client = mock.Mock()
+        self.manager.a_client = client
+        self.allocation.project_id = None
+
+        current = self.manager.get_current_cloudkitty_quota(self.allocation)
+
+        client.allocations.list.assert_not_called()
+        self.assertEqual({}, current)
+
+    def test_get_current_cloudkitty_quota_no_previous(self):
+        client = mock.Mock()
+        self.manager.a_client = client
+        self.allocation.project_id = '12345'
+
+        client.allocations.list.return_value = []
+
+        current = self.manager.get_current_cloudkitty_quota(self.allocation)
+
+        client.allocations.list.assert_called_once_with(
+            parent_request=self.allocation.id, status='A')
+        self.assertEqual({}, current)
+
+    def test_get_current_cloudkitty_quota(self):
+        client = mock.Mock()
+        self.manager.a_client = client
+        self.allocation.project_id = '12345'
+
+        old_allocation_data_1 = fakes.ALLOCATION_RESPONSE.copy()
+        old_allocation_data_2 = fakes.ALLOCATION_RESPONSE.copy()
+        for q in old_allocation_data_1['quotas']:
+            if q['resource'] == 'rating.budget':
+                q['quota'] = 1000
+        for q in old_allocation_data_2['quotas']:
+            if q['resource'] == 'rating.budget':
+                q['quota'] = 2000
+        old_allocation_1 = allocations.Allocation(
+            fakes.FakeAllocationManager(), old_allocation_data_1, loaded=True)
+        old_allocation_2 = allocations.Allocation(
+            fakes.FakeAllocationManager(), old_allocation_data_2, loaded=True)
+
+        client.allocations.list.return_value = [old_allocation_2,
+                                                old_allocation_1]
+
+        current = self.manager.get_current_cloudkitty_quota(self.allocation)
+
+        client.allocations.list.assert_called_once_with(
+            parent_request=self.allocation.id, status='A')
+        self.assertEqual({'budget': 2000}, current)

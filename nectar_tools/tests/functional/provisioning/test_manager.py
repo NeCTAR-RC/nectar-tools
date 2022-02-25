@@ -65,6 +65,10 @@ class ProvisionerTests(test.TestCase):
         mock_a_client.allocations.get_current.return_value = self.allocation
         mock_get_a_client.return_value = mock_a_client
 
+        # For cloud kitty current quota which looks for past allocations
+        # Return no past allocations
+        mock_a_client.allocations.list.return_value = []
+
         self.allocation.project_id = None
         self.allocation.convert_trial_project = True
         self.allocation.allocation_home = 'uom'

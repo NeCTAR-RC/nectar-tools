@@ -296,6 +296,7 @@ class ProvisioningManager(object):
             'trove.instances',
         ]
         resource_map = {
+            'cloudkitty.budget': 'Service Unit Budget',
             'nova.instances': 'Instances',
             'nova.cores': 'VCPUs',
             'nova.ram': 'RAM (GB)',
@@ -386,6 +387,8 @@ class ProvisioningManager(object):
                          'octavia', current)
             _prefix_dict(self.get_current_magnum_quota(allocation),
                          'magnum', current)
+            _prefix_dict(self.get_current_cloudkitty_quota(allocation),
+                         'cloudkitty', current)
 
         _prefix_dict(allocation.get_allocated_nova_quota(),
                      'nova', allocated)
@@ -403,6 +406,8 @@ class ProvisioningManager(object):
                      'octavia', allocated)
         _prefix_dict(allocation.get_allocated_magnum_quota(),
                      'magnum', allocated)
+        _prefix_dict(allocation.get_allocated_cloudkitty_quota(),
+                     'cloudkitty', allocated)
 
         table = prettytable.PrettyTable(
             ["Resource", "Current", "Allocated", "Diff"])
@@ -686,6 +691,17 @@ class ProvisioningManager(object):
         client = auth.get_magnum_client(self.ks_session)
         quota = client.quotas.get(allocation.project_id, 'Cluster')
         return {'cluster': quota.hard_limit}
+
+    def get_current_cloudkitty_quota(self, allocation):
+        if not allocation.project_id:
+            return {}
+
+        allocations = self.a_client.allocations.list(
+            parent_request=allocation.id, status='A')
+        if not allocations:
+            return {}
+        allocation = allocations[0]
+        return allocation.get_allocated_cloudkitty_quota()
 
     def set_magnum_quota(self, allocation):
         allocated_quota = allocation.get_allocated_magnum_quota()

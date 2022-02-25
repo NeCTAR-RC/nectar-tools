@@ -360,6 +360,11 @@ ALLOCATION_RESPONSE = {
             "zone": "nectar",
             "quota": 2,
         },
+        {
+            "resource": "rating.budget",
+            "zone": "nectar",
+            "quota": 3400,
+        },
     ],
     "id": 1,
     "parent_request": None,
