@@ -65,14 +65,14 @@ class Auditor(object):
         else:
             self.repair_log.info(f"Repaired {REPAIR_COUNT} items")
 
-    def repair(self, message, action):
+    def repair(self, message, action, **kwargs):
         global REPAIR_COUNT
         REPAIR_COUNT += 1
 
         if self.dry_run:
             self.repair_log.info("Repair (noop): " + message)
         else:
-            action()
+            action(**kwargs)
             self.repair_log.info("Repair: " + message)
 
         if self.limit and REPAIR_COUNT >= self.limit:
