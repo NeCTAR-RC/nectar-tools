@@ -1,10 +1,11 @@
 from nectar_tools.audit.cmd import base
+from nectar_tools.audit.compute import flavor
 from nectar_tools.audit.compute import instance
 
 
 class ComputeAuditorCmd(base.AuditCmdBase):
 
-    AUDITORS = [instance.InstanceAuditor]
+    AUDITORS = [instance.InstanceAuditor, flavor.FlavorAuditor]
 
     def add_args(self):
         super(ComputeAuditorCmd, self).add_args()
