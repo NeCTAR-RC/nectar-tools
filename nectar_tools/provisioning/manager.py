@@ -235,7 +235,7 @@ class ProvisioningManager(object):
         extra_context = {'allocation': allocation, 'report': report,
                          'out_of_zone_instances': out_of_zone_instances,
                          'compute_zones': compute_zones}
-        notifier.send_message(notification, allocation.contact_email,
+        notifier.send_message(notification, allocation,
                               extra_context=extra_context)
 
     def convert_trial(self, allocation):

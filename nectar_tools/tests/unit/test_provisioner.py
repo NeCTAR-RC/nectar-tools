@@ -401,7 +401,7 @@ class ProvisionerTests(test.TestCase):
             self.manager.notify_provisioned(self.allocation, True, None,
                                             report='bar')
             mock_notifier.send_message.assert_called_once_with(
-                'new', self.allocation.contact_email,
+                'new', self.allocation,
                 extra_context={'allocation': self.allocation, 'report': 'bar',
                                'out_of_zone_instances': [],
                                'compute_zones': ['melbourne']})
@@ -421,7 +421,7 @@ class ProvisionerTests(test.TestCase):
             self.manager.notify_provisioned(self.allocation, False, None,
                                             report='bar')
             mock_notifier.send_message.assert_called_once_with(
-                'update', self.allocation.contact_email,
+                'update', self.allocation,
                 extra_context={'allocation': self.allocation, 'report': 'bar',
                                'out_of_zone_instances': fake_instances,
                                'compute_zones': ['nova', 'nova2']})

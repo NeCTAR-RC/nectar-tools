@@ -14,7 +14,7 @@ class ProvisioningNotifier(notifier.FreshDeskNotifier):
         super(ProvisioningNotifier, self).__init__(
             'project', project, template_dir, group_id, subject, noop)
 
-    def send_message(self, stage, owner, extra_context={},
+    def send_message(self, stage, allocation, extra_context={},
                      extra_recipients=[]):
         if stage == 'new':
             tmpl = 'allocation-new.tmpl'
@@ -22,9 +22,9 @@ class ProvisioningNotifier(notifier.FreshDeskNotifier):
             tmpl = 'allocation-update.tmpl'
 
         text = self.render_template(tmpl, extra_context)
-
-        self._create_ticket(email=owner,
+        self._create_ticket(email=allocation.contact_email,
                             cc_emails=extra_recipients,
                             description=text,
                             extra_context=extra_context,
-                            tags=['allocations'])
+                            tags=['allocations',
+                                  f'allocation-{allocation.id}'])
