@@ -152,7 +152,7 @@ class Expirer(object):
         extra_emails.remove(recipient)
         return (recipient, extra_emails)
 
-    def _send_notification(self, stage, extra_context={}):
+    def _send_notification(self, stage, extra_context={}, tags=[]):
         if self.get_status() == expiry_states.DELETED:
             LOG.info("%s: Skipping notification, project alreaded deleted",
                      self.resource.id)
@@ -162,7 +162,7 @@ class Expirer(object):
         recipient, extras = self._get_recipients()
         if recipient:
             self.notifier.send_message(stage, recipient, extra_context=context,
-                                       extra_recipients=extras)
+                                       extra_recipients=extras, tags=tags)
         else:
             LOG.warn("%s: No valid recipient, skip notification!",
                      self.resource.id)
@@ -669,7 +669,8 @@ class AllocationExpirer(ProjectExpirer):
                         "allocation being set", self.project.id)
         elif self.allocation.notifications:
             super(AllocationExpirer, self)._send_notification(
-                stage, extra_context)
+                stage, extra_context,
+                tags=[f'allocation-{self.allocation.id}'])
         else:
             LOG.info("%s: Skipping notification due to allocation "
                      "notifications being set False", self.project.id)

@@ -130,7 +130,7 @@ class ExpiryTests(test.TestCase):
             ex._send_notification('fakestage', {'foo2': 'bar2'})
             mock_notifier.send_message.assert_called_with(
                 'fakestage', 'owner@fake.org', extra_context=expected_context,
-                extra_recipients=['manager1@fake.org'])
+                extra_recipients=['manager1@fake.org'], tags=[])
 
     def test_send_notification_invalid_recipient(self):
         fake_res = mock.Mock()
@@ -1034,7 +1034,7 @@ class AllocationExpiryTests(test.TestCase):
             ex._send_notification('fakestage', {'foo2': 'bar2'})
             mock_notifier.send_message.assert_called_with(
                 'fakestage', 'owner@fake.org', extra_context=expected_context,
-                extra_recipients=['manager1@fake.org'])
+                extra_recipients=['manager1@fake.org'], tags=['allocation-1'])
 
     def test_send_notification_no_allocation_ignore(self):
         project = fakes.FakeProject()

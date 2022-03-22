@@ -25,13 +25,14 @@ class ProvisioningNotifierTests(test.TestCase):
         expected_subject = "{} {}".format(notification_prefix, PROJECT.name)
         self.assertEqual(expected_subject, n.subject)
         allocation = mock.Mock()
+        allocation.contact_email = 'owner@fake.org'
 
         with test.nested(
                 mock.patch.object(n, 'render_template'),
                 mock.patch.object(n, '_create_ticket'),
         ) as (mock_render, mock_create):
             mock_render.return_value = 'text'
-            n.send_message(stage, 'owner@fake.org',
+            n.send_message(stage, allocation,
                            extra_context={'allocation': allocation},
                            extra_recipients=['manager1@fake.org',
                                              'manager2@fake.org'])
@@ -42,7 +43,7 @@ class ProvisioningNotifierTests(test.TestCase):
                 cc_emails=['manager1@fake.org', 'manager2@fake.org'],
                 description='text',
                 extra_context={'allocation': allocation},
-                tags=['allocations'])
+                tags=['allocations', f'allocation-{allocation.id}'])
 
     def test_send_message_new(self, mock_api):
         self._test_send_message('new', 'allocation-new.tmpl')

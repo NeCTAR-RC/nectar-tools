@@ -22,7 +22,7 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
         self.n_client = auth.get_nova_client(ks_session)
 
     def send_message(self, stage, owner, extra_context={},
-                     extra_recipients=[]):
+                     extra_recipients=[], tags=[]):
 
         text = self.render_template('%s.tmpl' % stage, extra_context)
 
@@ -37,7 +37,7 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
                                             cc_emails=extra_recipients,
                                             description=text,
                                             extra_context=extra_context,
-                                            tags=['expiry'])
+                                            tags=['expiry'] + tags)
             self._set_ticket_id(ticket_id)
 
             details = self.render_template(
