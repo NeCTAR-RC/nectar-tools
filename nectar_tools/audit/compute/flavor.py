@@ -42,12 +42,16 @@ class FlavorAuditor(base.Auditor):
                 if not instances:
                     LOG.error(f"Flavor {flavor.name} han't been used ever!")
                     continue
-                last_date = datetime.strptime(instances[0].get('ended_at'),
-                                              "%Y-%m-%dT%H:%M:%S.%f%z")
+                try:
+                    last_date = datetime.strptime(instances[0].get('ended_at'),
+                                                  "%Y-%m-%dT%H:%M:%S.%f%z")
+                except ValueError:
+                    last_date = datetime.strptime(instances[0].get('ended_at'),
+                                                  "%Y-%m-%dT%H:%M:%S%z")
 
                 if last_date.date() < LAST_YEAR:
                     LOG.warn(
-                        f"Flavor {flavor.name} last used since {last_date}")
+                        f"Flavor {flavor.name} last used {last_date}")
 
     def flavor_accessible(self):
         flavors = self.n_client.flavors.list(is_public=None)
