@@ -679,7 +679,9 @@ class AllocationExpiryTests(test.TestCase):
     def test_process_active(self):
         project = fakes.FakeProject('active')
         ex = expirer.AllocationExpirer(project)
-        self.assertFalse(ex.process())
+        with mock.patch.object(ex, 'ready_for_warning') as mock_ready:
+            mock_ready.return_value = False
+            self.assertFalse(ex.process())
 
     def test_process_send_warning_long(self):
         project = fakes.FakeProject('warning1')
@@ -827,6 +829,97 @@ class AllocationExpiryTests(test.TestCase):
         ex.allocation = mock_allocations.get_current('warning2')
         warning_date = ex.get_warning_date().strftime(expirer.DATE_FORMAT)
         self.assertEqual(warning_date, '2016-12-29')
+
+    @mock.patch('nectar_tools.common.service_units.get_allocation_usage')
+    def test_get_rating_info(self, mock_su):
+        project = fakes.FakeProject(name='Allocation')
+        ex = expirer.AllocationExpirer(project)
+        mock_su.return_value = 10000
+        # Set to allocation with budget of 3400
+        ex.allocation = fakes.get_allocation()
+        usage, budget = ex._get_rating_info()
+        self.assertEqual(mock_su.return_value, usage)
+        self.assertEqual(3400, budget)
+
+    @mock.patch('nectar_tools.common.service_units.get_allocation_usage')
+    @freeze_time('2018-02-01')
+    def test_ready_for_warning_under_budget(self, mock_su):
+        project = fakes.FakeProject(name='Allocation')
+
+        ex = expirer.AllocationExpirer(project)
+        # Set to allocation with budget of 3400
+        ex.allocation = fakes.get_allocation()
+
+        mock_su.return_value = 100
+        with mock.patch.object(ex, 'get_warning_date') as mock_warning_date:
+            mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
+            self.assertTrue(ex.ready_for_warning())
+            mock_warning_date.reset_mock()
+            mock_warning_date.return_value = datetime.datetime(2018, 3, 1)
+            self.assertFalse(ex.ready_for_warning())
+
+    @freeze_time('2018-02-01')
+    def test_ready_for_warning_no_budget(self):
+        project = fakes.FakeProject(name='Allocation')
+
+        ex = expirer.AllocationExpirer(project)
+        # Default allocation doesn't have rating budget
+
+        with test.nested(
+                mock.patch.object(ex, 'get_warning_date'),
+                mock.patch.object(ex, '_get_rating_info')
+        ) as (mock_warning_date, mock_rating_info):
+            mock_rating_info.return_value = 10, 0
+            mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
+            self.assertTrue(ex.ready_for_warning())
+            mock_warning_date.reset_mock()
+            mock_warning_date.return_value = datetime.datetime(2018, 3, 1)
+            self.assertFalse(ex.ready_for_warning())
+
+    @freeze_time('2018-02-01')
+    def test_ready_for_warning_over_budget(self):
+        project = fakes.FakeProject(name='Allocation')
+        ex = expirer.AllocationExpirer(project)
+        with test.nested(
+                mock.patch.object(ex, 'get_warning_date'),
+                mock.patch.object(ex, '_get_rating_info')
+        ) as (mock_warning_date, mock_rating_info):
+            mock_rating_info.return_value = 7, 10
+            mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
+            self.assertTrue(ex.ready_for_warning())
+            mock_warning_date.reset_mock()
+            mock_warning_date.return_value = datetime.datetime(2018, 3, 1)
+            self.assertFalse(ex.ready_for_warning())
+
+            mock_rating_info.return_value = 8, 10
+            mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
+            self.assertTrue(ex.ready_for_warning())
+            mock_warning_date.reset_mock()
+            mock_warning_date.return_value = datetime.datetime(2018, 3, 1)
+            self.assertTrue(ex.ready_for_warning())
+
+    def test_ready_for_restricted(self):
+        project = fakes.FakeProject(name='Allocation')
+        ex = expirer.AllocationExpirer(project)
+        with test.nested(
+                mock.patch.object(ex, 'at_next_step'),
+                mock.patch.object(ex, '_get_rating_info')
+        ) as (mock_at_next_step, mock_rating_info):
+            mock_rating_info.return_value = 7, 10
+            mock_at_next_step.return_value = False
+            self.assertFalse(ex.ready_for_restricted())
+
+            mock_rating_info.return_value = 10, 10
+            mock_at_next_step.return_value = False
+            self.assertTrue(ex.ready_for_restricted())
+
+            mock_rating_info.return_value = 7, 0
+            mock_at_next_step.return_value = False
+            self.assertFalse(ex.ready_for_restricted())
+
+            mock_rating_info.return_value = 7, 10
+            mock_at_next_step.return_value = True
+            self.assertTrue(ex.ready_for_restricted())
 
     def test_should_process(self):
         project = fakes.FakeProject(name='Allocation')
@@ -1083,6 +1176,55 @@ class AllocationExpiryTests(test.TestCase):
             mock_parent_delete.assert_called_once_with()
             mock_get_current.assert_called_once_with()
             mock_allocation.delete.assert_called_once_with()
+
+    def test_get_notification_context(self):
+        project = fakes.FakeProjectWithOwner()
+        ex = expirer.AllocationExpirer(project)
+
+        with test.nested(
+                mock.patch.object(ex, '_get_project_managers'),
+                mock.patch.object(ex, '_get_project_members'),
+                mock.patch.object(ex, '_get_rating_info')
+        ) as (mock_managers, mock_members, mock_rating_info):
+            mock_rating_info.return_value = 20, 50
+            mock_managers.return_value = fakes.MANAGERS
+            mock_members.return_value = fakes.MEMBERS
+            actual = ex._get_notification_context()
+
+        expected = {'allocation': {'approver_email': 'approver@fake.org',
+                                   'contact_email': 'fake@fake.org',
+                                   'end_date': '2016-01-01',
+                                   'id': 1,
+                                   'modified_time': '2015-01-02T10:10:10Z',
+                                   'notifications': True,
+                                   'project_id': 'dummy',
+                                   'quotas': [],
+                                   'start_date': '2015-01-01',
+                                   'status': 'A'},
+                    'budget': 50,
+                    'managers': [{'email': 'manager1@example.org',
+                                  'enabled': True,
+                                  'id': 'manager1',
+                                  'name': 'manager1@example.org'},
+                                 {'email': 'manager2@example.org',
+                                  'enabled': True,
+                                  'id': 'manager2',
+                                  'name': 'manager2@example.org'}],
+                    'members': [{'email': 'member1@example.org',
+                                 'enabled': True,
+                                 'id': 'member1',
+                                 'name': 'member1@example.org'},
+                                {'email': 'member2@example.org',
+                                 'enabled': False,
+                                 'id': 'member2',
+                                 'name': 'member2@example.org'},
+                                {'email': 'manager1@example.org',
+                                 'enabled': True,
+                                 'id': 'manager1',
+                                 'name': 'manager1@example.org'}],
+                    'usage': 20}
+
+        self.assertEqual(expected, actual)
 
 
 @freeze_time("2017-01-01")

@@ -1,16 +1,17 @@
 import datetime
-from dateutil.relativedelta import relativedelta
 import enum
 import logging
-from oslo_context import context
-import oslo_messaging
 import re
 
+from dateutil.relativedelta import relativedelta
 from nectarallocationclient import exceptions as allocation_exceptions
 from nectarallocationclient import states as allocation_states
 from nectarallocationclient.v1 import allocations
+from oslo_context import context
+import oslo_messaging
 
 from nectar_tools import auth
+from nectar_tools.common import service_units
 from nectar_tools import config
 from nectar_tools import exceptions
 from nectar_tools import utils
@@ -347,7 +348,7 @@ class ProjectExpirer(Expirer):
                 return True
 
         elif expiry_status == expiry_states.WARNING:
-            if self.at_next_step():
+            if self.ready_for_restricted():
                 self.restrict_project()
                 return True
 
@@ -398,6 +399,9 @@ class ProjectExpirer(Expirer):
         else:
             LOG.debug("%s: Retrying archiving", self.project.id)
             self.archive_project()
+
+    def ready_for_restricted(self):
+        return self.at_next_step()
 
     def restrict_project(self):
         LOG.info("%s: Restricting project", self.project.id)
@@ -592,6 +596,40 @@ class AllocationExpirer(ProjectExpirer):
             self.allocation.end_date, DATE_FORMAT)
         return allocation_end - datetime.timedelta(days=notice_period)
 
+    def _get_rating_info(self):
+        usage = service_units.get_allocation_usage(
+            self.ks_session, self.allocation)
+
+        budget = self.allocation.get_allocated_cloudkitty_quota().get('budget')
+        if not budget or budget == 0:
+            budget = 0
+
+        return usage, budget
+
+    def ready_for_warning(self):
+        if super().ready_for_warning():
+            return True
+
+        usage, budget = self._get_rating_info()
+        if budget == 0:
+            return False
+
+        if usage >= (budget * 0.8):
+            return True
+        return False
+
+    def ready_for_restricted(self):
+        if super().ready_for_restricted():
+            return True
+
+        usage, budget = self._get_rating_info()
+        if budget == 0:
+            return False
+
+        if usage >= budget:
+            return True
+        return False
+
     def revert_expiry(self):
         status = self.get_status()
         if status == expiry_states.ACTIVE:
@@ -658,9 +696,12 @@ class AllocationExpirer(ProjectExpirer):
     def _get_notification_context(self):
         managers = self._get_project_managers()
         members = self._get_project_members()
+        usage, budget = self._get_rating_info()
         context = {'managers': [i.to_dict() for i in managers],
                    'members': [i.to_dict() for i in members],
-                   'allocation': self.allocation.to_dict()}
+                   'allocation': self.allocation.to_dict(),
+                   'usage': usage,
+                   'budget': budget}
         return context
 
     def _send_notification(self, stage, extra_context={}):
@@ -846,6 +887,9 @@ class AllocationInstanceExpirer(AllocationExpirer):
         start_date = datetime.datetime.strptime(self.allocation.start_date,
                                                 DATE_FORMAT)
         return start_date + relativedelta(days=60)
+
+    def ready_for_warning(self):
+        return super(ProjectExpirer, self).ready_for_warning()
 
     def should_process(self):
         # if allocation changes to national, expiry should not continue
