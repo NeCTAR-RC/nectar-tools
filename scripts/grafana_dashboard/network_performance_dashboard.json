@@ -1,0 +1,221 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 370,
+  "iteration": 1647927261735,
+  "links": [],
+  "panels": [
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "Prometheus",
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "hiddenSeries": false,
+      "id": 2,
+      "interval": "5m",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.2.1",
+      "pointradius": 1,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [
+        {
+          "alias": "OUT",
+          "transform": "negative-Y"
+        }
+      ],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "iperf3_received_bytes{job=~\"$site\"} / iperf3_received_seconds{job=~\"$site\"} * 8",
+          "interval": "",
+          "legendFormat": "ingress-{{instance}}",
+          "refId": "A"
+        },
+        {
+          "expr": "iperf3_sent_bytes{job=~\"$site\"} / iperf3_sent_seconds{job=~\"$site\"} * 8 * -1",
+          "interval": "",
+          "legendFormat": "egress-{{instance}}",
+          "refId": "B"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Network Performance for $site Monitoring Instance",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "binbps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "binbps",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    }
+  ],
+  "schemaVersion": 26,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "selected": true,
+          "text": "qriscloud",
+          "value": "qriscloud"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "site",
+        "options": [
+          {
+            "selected": true,
+            "text": "qriscloud",
+            "value": "qriscloud"
+          },
+          {
+            "selected": false,
+            "text": "auckland",
+            "value": "auckland"
+          },
+          {
+            "selected": false,
+            "text": "melbourne-qh2",
+            "value": "melbourne-qh2"
+          },
+          {
+            "selected": false,
+            "text": "intersect",
+            "value": "intersect"
+          },
+          {
+            "selected": false,
+            "text": "melbourne-qh2-uom",
+            "value": "melbourne-qh2-uom"
+          },
+          {
+            "selected": false,
+            "text": "monash-01",
+            "value": "monash-01"
+          },
+          {
+            "selected": false,
+            "text": "monash-02",
+            "value": "monash-02"
+          },
+          {
+            "selected": false,
+            "text": "swinburne-01",
+            "value": "swinburne-01"
+          },
+          {
+            "selected": false,
+            "text": "tasmania",
+            "value": "tasmania"
+          },
+          {
+            "selected": false,
+            "text": "tasmania-02",
+            "value": "tasmania-02"
+          },
+          {
+            "selected": false,
+            "text": "tasmania-s",
+            "value": "tasmania-s"
+          }
+        ],
+        "query": "qriscloud, auckland, melbourne-qh2, intersect, melbourne-qh2-uom, monash-01, monash-02, swinburne-01, tasmania, tasmania-02,tasmania-s",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Monitoring Tunnel Performance",
+  "uid": "hSBd19ScP7kxx",
+  "version": 3
+}
