@@ -23,6 +23,9 @@ class ProjectAuditor(base.RatingAuditor):
 
         flavors = self.n_client.flavors.list(is_public=None)
         mappings = self._get_mappings()
+
+        mappings = {m.get('value'): m.get('cost', 0) for m in mappings}
+
         flavor_costs = {}
         for f in flavors:
             flavor_costs[f.name] = mappings.get(f.id, 0)
@@ -47,7 +50,7 @@ class ProjectAuditor(base.RatingAuditor):
 
         last_record = None
         for i in usage_data:
-            if i.get('rate'):
+            if i.get('rate') is not None:
                 last_record = i
 
         LOG.debug(f"Last Record {last_record}")
