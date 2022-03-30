@@ -17,13 +17,15 @@ class AccountExpirer(base.Expirer):
 
     EVENT_PREFIX = 'expiry.account'
 
-    def __init__(self, account, ks_session=None, dry_run=False):
+    def __init__(self, account, ks_session=None, dry_run=False,
+                 force_disable=False):
         notifier = expiry_notifier.ExpiryNotifier(
             resource_type='account', resource=account, template_dir='accounts',
             group_id=CONF.freshdesk.accounts_group,
             subject="Deactivation of your Nectar Research Cloud Account",
             ks_session=ks_session, dry_run=dry_run)
         self.account = account
+        self.force_disable = force_disable
         self.m_client = auth.get_manuka_client(ks_session)
         super().__init__('account', account, notifier, ks_session, dry_run)
 
@@ -65,7 +67,11 @@ class AccountExpirer(base.Expirer):
     def process(self):
         status = self.get_status()
 
-        if status == 'inactive':
+        if self.force_disable:
+            self.deactivate_account()
+            return True
+
+        elif status == 'inactive':
             return False
 
         elif status == expiry_states.WARNING:

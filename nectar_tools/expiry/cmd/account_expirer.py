@@ -4,6 +4,7 @@ import argparse
 import datetime
 from dateutil.relativedelta import relativedelta
 import logging
+import sys
 
 from nectar_tools import auth
 from nectar_tools import cmd_base
@@ -36,6 +37,10 @@ class AccountExpiryCmd(cmd_base.CmdBase):
                 wanted_accounts = self.read_file(self.args.filename)
                 accounts = [i for i in accounts if i.id in wanted_accounts]
 
+            if self.args.force_disable:
+                LOG.error("Cannot use --force-disable with --all")
+                sys.exit(1)
+
         else:
             LOG.error("Need to provide account id or use option --all")
         self.accounts = accounts
@@ -43,7 +48,8 @@ class AccountExpiryCmd(cmd_base.CmdBase):
     def get_expirer(self, account):
         return expirer.AccountExpirer(account=account,
                                       ks_session=self.session,
-                                      dry_run=self.dry_run)
+                                      dry_run=self.dry_run,
+                                      force_disable=self.args.force_disable)
 
     def add_args(self):
         super(AccountExpiryCmd, self).add_args()
@@ -57,6 +63,9 @@ class AccountExpiryCmd(cmd_base.CmdBase):
                                  help='Account ID to process')
         account_group.add_argument('--all', action='store_true',
                                  help='Run over all accounts')
+        self.parser.add_argument('--force-disable', action='store_true',
+                                 help='Disable an account no matter what \
+                                 state it is in (with -i only)')
         self.parser.add_argument('-l', '--limit',
                                  type=int,
                                  default=0,
