@@ -1,3 +1,4 @@
+from decimal import Decimal
 import logging
 
 from nectar_tools.audit.rating import base
@@ -27,6 +28,7 @@ class FlavorAuditor(base.RatingAuditor):
                 cost = round(float(mapping.get('cost')), 3)
             else:
                 cost = None
+
             try:
                 flavor_rate = float(flavor.extra_specs.get(FLAVOR_KEY))
             except TypeError:
@@ -46,15 +48,15 @@ class FlavorAuditor(base.RatingAuditor):
                             flavor.set_keys, metadata={FLAVOR_KEY: cost})
 
     def ensure_cost(self):
-        cpu_weight = 0.00494
-        ram_weight = 0.0118
+        cpu_weight = Decimal('0.00494')
+        ram_weight = Decimal('0.0118')
 
         prefix_weights = {
-            'p3': 0.25,
-            'm1': 1.2,
-            'm2': 1.2,
-            'r2': 2,
-            'c2': 2,
+            'p3': Decimal('0.25'),
+            'm1': Decimal('1.2'),
+            'm2': Decimal('1.2'),
+            'r2': Decimal('2'),
+            'c2': Decimal('2'),
         }
 
         flavors = self.n_client.flavors.list(is_public=None)
@@ -69,9 +71,11 @@ class FlavorAuditor(base.RatingAuditor):
                 LOG.debug(f"Skipping {flavor.name}")
                 continue
 
+            mapping_id = None
             mapping = mappings.get(flavor.id)
             if mapping:
-                cost = round(float(mapping.get('cost')), 3)
+                cost = Decimal(mapping.get('cost'))
+                mapping_id = mapping.get('mapping_id')
             else:
                 cost = None
 
@@ -88,23 +92,25 @@ class FlavorAuditor(base.RatingAuditor):
                 LOG.debug(f"Skipping {flavor.name}, disabled")
                 continue
 
-            multiplier = float(flavor.extra_specs.get(
+            multiplier = Decimal(flavor.extra_specs.get(
                 'nectar:rate:multiplier', 1))
-            addition = float(flavor.extra_specs.get(
+            addition = Decimal(flavor.extra_specs.get(
                 'nectar:rate:addition', 0))
             cpu_shares = flavor.extra_specs.get('quota:cpu_shares')
             if cpu_shares:
-                cpu_shares_weight = int(cpu_shares) / (flavor.vcpus * 64)
+                cpu_shares_weight = \
+                    Decimal(int(cpu_shares) / (flavor.vcpus * 64))
             else:
                 cpu_shares_weight = 1
 
             prefix_weight = prefix_weights.get(
                 flavor.name.split('.')[0], 1)
             computed_cost = (
-                ((flavor.vcpus * cpu_weight * cpu_shares_weight)
-                 + (flavor.ram / 1024 * ram_weight)) * prefix_weight
+                ((Decimal(flavor.vcpus) * cpu_weight * cpu_shares_weight)
+                 + (flavor.ram / Decimal('1024') * ram_weight)) * prefix_weight
                 * multiplier) + addition
             computed_cost = round(computed_cost, 3)
+            computed_cost = Decimal(computed_cost)
             formula = (f"(({flavor.vcpus} * {cpu_weight} "
                        f"* {cpu_shares_weight}) + ({flavor.ram} / 1024 "
                        f"* {ram_weight})) * {prefix_weight}")
@@ -118,8 +124,16 @@ class FlavorAuditor(base.RatingAuditor):
             if cost != computed_cost:
                 LOG.warning(
                     f"{flavor.name} cost {cost} should be {computed_cost}")
-                self.repair(
-                    f"Setting flavor {flavor.name} rate to {computed_cost}",
-                    self.c_client.rating.hashmap.create_mapping,
-                    field_id=field_id, group_id=group_id, type='flat',
-                    value=flavor.id, cost=computed_cost)
+                if mapping_id:
+                    self.repair(
+                        f"Updating flavor {flavor.name} "
+                        f"rate to {computed_cost}",
+                        self.c_client.rating.hashmap.update_mapping,
+                        mapping_id=mapping_id, cost=str(computed_cost))
+                else:
+                    self.repair(
+                        f"Setting flavor {flavor.name} "
+                        f"rate to {computed_cost}",
+                        self.c_client.rating.hashmap.create_mapping,
+                        field_id=field_id, group_id=group_id, type='flat',
+                        value=flavor.id, cost=str(computed_cost))
