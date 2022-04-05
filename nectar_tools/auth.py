@@ -54,7 +54,7 @@ def get_allocation_client(sess=None):
 def get_nova_client(sess=None):
     if not sess:
         sess = get_session()
-    return novaclient.Client('2.79', session=sess)
+    return novaclient.Client('2.87', session=sess)
 
 
 def get_cinder_client(sess=None):
