@@ -14,8 +14,10 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
     def __init__(self, resource_type, resource, template_dir, group_id,
                  subject, ks_session=None, dry_run=False,
                  ticket_id_key='expiry_ticket_id'):
+        full_template_dir = f"expiry/{template_dir}"
         super(ExpiryNotifier, self).__init__(
-            resource_type, resource, template_dir, group_id, subject, dry_run)
+            resource_type, resource, full_template_dir, group_id, subject,
+            dry_run)
         self.ticket_id_key = ticket_id_key
         self.k_client = auth.get_keystone_client(ks_session)
         self.g_client = auth.get_glance_client(ks_session)
