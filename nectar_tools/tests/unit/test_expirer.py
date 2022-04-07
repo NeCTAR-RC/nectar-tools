@@ -1321,7 +1321,7 @@ class PTExpiryProcessTests(test.TestCase):
 @mock.patch('nectarallocationclient.v1.allocations.AllocationManager',
             new=fakes.FakeAllocationManager)
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
-class AllocationInstanceExpiryTests(AllocationExpiryTests):
+class AllocationInstanceExpiryTests(test.TestCase):
 
     def test_init(self):
         project = fakes.FakeProject('dummy', allocation_id=1)
