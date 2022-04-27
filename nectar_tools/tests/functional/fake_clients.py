@@ -10,6 +10,7 @@ FAKE_FD_API = mock.MagicMock()
 FAKE_FD_API_CLASS = mock.MagicMock(return_value=FAKE_FD_API)
 FAKE_GET_SESSION = mock.MagicMock()
 FAKE_MANUKA = mock.MagicMock()
+FAKE_NOVA = mock.MagicMock()
 SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
 
@@ -33,19 +34,6 @@ class Quota(object):
     @staticmethod
     def update(*args, **kwargs):
         pass
-
-
-class NovaClient(object):
-
-    class Servers(object):
-        def list(*args, **kwargs):
-            return []
-
-    def __init__(self):
-        self.quotas = Quota({'cores': 20,
-                             'ram': 400,
-                             'instances': 10})
-        self.servers = self.Servers()
 
 
 class CinderClient(object):
@@ -149,7 +137,7 @@ def get_keystone(session):
 
 
 def get_nova(session):
-    return NovaClient()
+    return FAKE_NOVA
 
 
 def get_cinder(session):
