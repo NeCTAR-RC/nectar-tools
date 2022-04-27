@@ -47,6 +47,7 @@ class ProvisionerTests(test.TestCase):
 
         keystone_client = fake_clients.FAKE_KEYSTONE
         designate_client = fake_clients.FAKE_DESIGNATE
+        nova_client = fake_clients.FAKE_NOVA
         manager_user = mock.Mock()
 
         old_pt = fakes.FakeProject(id='q12w', name='pt-123', description='abc',
@@ -68,6 +69,18 @@ class ProvisionerTests(test.TestCase):
         # For cloud kitty current quota which looks for past allocations
         # Return no past allocations
         mock_a_client.allocations.list.return_value = []
+
+        # Mock flavor for granting flavor access
+        class Flavor(mock.MagicMock):
+            def get_keys(self):
+                return {'flavor_class:name': self.flavor_class}
+
+        flavor1 = Flavor(flavor_class='compute-v3')
+        flavor2 = Flavor(flavor_class='memory-v3')
+        flavor3 = Flavor(flavor_class='m2')
+
+        flavors = [flavor1, flavor2, flavor3]
+        nova_client.flavors.list.return_value = flavors
 
         self.allocation.project_id = None
         self.allocation.convert_trial_project = True
@@ -100,6 +113,21 @@ class ProvisionerTests(test.TestCase):
             self.assertEqual(start_date.strftime('%Y-%m-%d'),
                              allocation.start_date)
             self.assertEqual(end_date, allocation.end_date)
+
+            # Ensure nova quota set on new allocation
+            nova_client.quotas.delete.assert_called_once_with(
+                tenant_id=old_pt.id)
+            nova_client.quotas.update.assert_called_once_with(
+                tenant_id=old_pt.id, force=True,
+                instances=2, cores=4, ram=16384)
+            # Ensure access to compute and memory flavors since new allocation
+            # will have rating budget
+            flavor_grant_calls = [mock.call(flavor1, old_pt.id),
+                                  mock.call(flavor2, old_pt.id)]
+            nova_client.flavor_access.add_tenant_access.assert_has_calls(
+                flavor_grant_calls)
+            self.assertEqual(
+                2, nova_client.flavor_access.add_tenant_access.call_count)
 
             # Ensure the new PT has same name/domain as old PT
             self.assertEqual(old_pt.name, new_pt.name)
