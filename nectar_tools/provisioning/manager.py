@@ -494,11 +494,12 @@ class ProvisioningManager(object):
                 try:
                     client.flavor_access.add_tenant_access(
                         flavor, allocation.project_id)
-                    LOG.info("%s: Granted access to flavor %s", allocation.id,
-                             flavor.name)
                 except novaclient.exceptions.Conflict:
                     LOG.info("%s: Already has access to flavor %s",
                              allocation.id, flavor.name)
+                else:
+                    LOG.info("%s: Granted access to flavor %s", allocation.id,
+                             flavor.name)
 
     def get_current_cinder_quota(self, allocation):
         if not allocation.project_id:
