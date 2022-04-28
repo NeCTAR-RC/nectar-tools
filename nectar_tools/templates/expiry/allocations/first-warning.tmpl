@@ -7,7 +7,11 @@ We hope that you have found the Nectar Research Cloud helpful in your research.
 Project allocations on the Research Cloud are created for a fixed term to ensure fair access to resources for all users of the cloud.
 <br />
 <br />
+{% if su_info.over_80_percent %}
+Your project allocation, <b>{{ project.name }}</b>, has now used over 80% of its allocated service unit budget
+{% else %}
 Your project allocation, <b>{{ project.name }}</b>, is <b>due to expire on {{ expiry_date }}.</b>
+{% endif %}
 <br />
 <br />
 <b>If you wish to continue using this project allocation</b> for your research please submit an extension request for your project allocation by following the steps below:
@@ -25,7 +29,7 @@ Your project allocation, <b>{{ project.name }}</b>, is <b>due to expire on {{ ex
 We want to ensure that researchers like you have as much access as possible to the Research Cloud, but we need to ensure that any allocated resources are being actively used as the available resources are limited.
 <br />
 <br />
-If you have not submitted a project allocation extension request, on the project expiry date the quota for your project allocation will be set to zero. This means existing virtual machines and storage resources will be locked and paused and no new virtual machines or cloud storage can be used. At 2 weeks after expiry, our system will terminate and archive any instances and data in this project allocation, releasing the resources for other users of the cloud. The archived instances and data will be safely stored, and will remain available to you for 3 months from the date when the project expires. However after this time they will be deleted. <b>Some resources that have been made public (for example Community images or public Object store data) will remain accessible and not be deleted.</b>
+If you have not submitted a project allocation extension request, on the project expiry date or when 100% of your allocated service unit budget is reached the quota for your project allocation will be set to zero. This means existing virtual machines and storage resources will be locked and paused and no new virtual machines or cloud storage can be used. At 2 weeks after expiry, our system will terminate and archive any instances and data in this project allocation, releasing the resources for other users of the cloud. The archived instances and data will be safely stored, and will remain available to you for 3 months from the date when the project expires. However after this time they will be deleted. <b>Some resources that have been made public (for example Community images or public Object store data) will remain accessible and not be deleted.</b>
 <br />
 <br />
 If you have any questions or concerns, please log a <a href="https://support.ehelp.edu.au/support/tickets/new">support ticket</a> or reply to this email.
