@@ -17,13 +17,13 @@ class NotifierTests(test.TestCase):
 
     def test_render_template(self):
         n = notifier.Notifier(resource_type='project', resource=PROJECT,
-            template_dir='expiry/allocations', subject='fake')
+            template_dir='expiry/tests', subject='fake')
         template = n.render_template('first-warning.tmpl')
         self.assertIn(PROJECT.name, template)
 
     def test_render_template_extra_context(self):
         n = notifier.Notifier(resource_type='project', resource=PROJECT,
-                              template_dir='expiry/allocations',
+                              template_dir='expiry/tests',
                               subject='fake')
         extra = {'expiry_date': 'some-fake-date'}
         template = n.render_template('first-warning.tmpl',
@@ -39,7 +39,7 @@ class EmailNotifierTests(test.TestCase):
     @mock.patch('smtplib.SMTP', autospec=True)
     def test_send_messagel(self, mock_smtp, mock_mime):
         n = notifier.EmailNotifier(resource_type='project', resource=PROJECT,
-            template_dir='expiry/allocations', subject='My-Subject')
+            template_dir='expiry/tests', subject='My-Subject')
 
         n.send_message('first', 'owner@fake.org', {'foo': 'bar'},
                        ['manager1@fake.org', 'manager2@fake.org'])
@@ -65,7 +65,7 @@ class FreshDeskNotifierTests(test.TestCase):
     def test_create_ticket(self, mock_api):
         n = notifier.FreshDeskNotifier(
             resource_type='project', resource=PROJECT,
-            template_dir='expiry/allocations', group_id=1,
+            template_dir='expiry/tests', group_id=1,
             subject='Ticket-Subject %s' % PROJECT.name)
         mock_api.return_value.tickets.create_outbound_email.return_value = \
             mock.Mock(id=3)
@@ -99,7 +99,7 @@ class FreshDeskNotifierTests(test.TestCase):
     def test_update_ticket(self, mock_api):
         n = notifier.FreshDeskNotifier(
             resource_type='project', resource=PROJECT,
-            template_dir='expiry/allocations', group_id=1,
+            template_dir='expiry/tests', group_id=1,
             subject='Ticket-Subject %s' % PROJECT.name)
 
         n._update_ticket(44, 'some text', cc_emails=['manager1@fake.org'])
