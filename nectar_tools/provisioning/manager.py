@@ -470,7 +470,7 @@ class ProvisioningManager(object):
             self.flavor_grant(allocation, flavor_class)
 
         cloudkitty_quota = allocation.get_allocated_cloudkitty_quota()
-        if cloudkitty_quota.get('budget') > 0:
+        if cloudkitty_quota.get('budget', 0) > 0:
             self.flavor_grant(allocation, 'compute-v3')
             self.flavor_grant(allocation, 'memory-v3')
         if self.noop and allocated_quota:
