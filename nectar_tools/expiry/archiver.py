@@ -430,6 +430,10 @@ class NovaArchiver(Archiver):
         else:
             LOG.info("%s: Deleting instance: %s",
                      self.project.id, instance.id)
+            if instance.status == 'VERIFY_RESIZE':
+                LOG.info("%s: Confirming resize for doomed instance: %s",
+                         self.project.id, instance.id)
+                self.n_client.servers.confirm_resize(instance.id)
             self.n_client.servers.delete(instance.id)
 
     def _get_image_by_instance_id(self, instance_id):
