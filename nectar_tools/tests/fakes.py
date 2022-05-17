@@ -3,6 +3,8 @@ import copy
 from nectarallocationclient import exceptions as allocation_exceptions
 from nectarallocationclient.v1 import allocations
 
+from nectar_tools.common import service_units
+
 
 ALLOCATIONS = {
     'dummy': {'id': 1,
@@ -441,3 +443,13 @@ ZONE_ACCEPT_TRANSFER = {
     'id': '32985174-7e25-4ac9-88a1-c1f6d55b5410',
     'status': 'COMPLETE',
 }
+
+
+class FakeSUinfo(service_units.SUinfo):
+    def __init__(self, usage=10, budget=20, tracking_over=False):
+        self._usage = usage
+        self._budget = budget
+        self.tracking_over = tracking_over
+
+    def is_tracking_over(self):
+        return self.tracking_over

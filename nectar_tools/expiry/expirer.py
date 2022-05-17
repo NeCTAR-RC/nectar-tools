@@ -567,39 +567,19 @@ class AllocationExpirer(ProjectExpirer):
             self.allocation.end_date, DATE_FORMAT)
         return allocation_end - datetime.timedelta(days=notice_period)
 
-    def _get_rating_info(self):
-        usage = service_units.get_allocation_usage(
-            self.ks_session, self.allocation)
-
-        budget = self.allocation.get_allocated_cloudkitty_quota().get('budget')
-        if not budget or budget == 0:
-            budget = 0
-
-        return usage, budget
-
     def ready_for_warning(self):
         if super().ready_for_warning():
             return True
 
-        usage, budget = self._get_rating_info()
-        if budget == 0:
-            return False
-
-        if usage >= (budget * 0.8):
-            return True
-        return False
+        su_info = service_units.SUinfo(self.ks_session, self.allocation)
+        return su_info.over_80_percent()
 
     def ready_for_restricted(self):
         if super().ready_for_restricted():
             return True
 
-        usage, budget = self._get_rating_info()
-        if budget == 0:
-            return False
-
-        if usage >= budget:
-            return True
-        return False
+        su_info = service_units.SUinfo(self.ks_session, self.allocation)
+        return su_info.over_budget()
 
     def revert_expiry(self):
         status = self.get_status()
@@ -652,12 +632,11 @@ class AllocationExpirer(ProjectExpirer):
     def _get_notification_context(self):
         managers = self._get_project_managers()
         members = self._get_project_members()
-        usage, budget = self._get_rating_info()
+        su_info = service_units.SUinfo(self.ks_session, self.allocation)
         context = {'managers': [i.to_dict() for i in managers],
                    'members': [i.to_dict() for i in members],
                    'allocation': self.allocation.to_dict(),
-                   'usage': usage,
-                   'budget': budget}
+                   'su_info': su_info}
         return context
 
     def _send_notification(self, stage, extra_context={}):
