@@ -46,6 +46,7 @@ setuptools.setup(
             'nectar-pt-audit = nectar_tools.audit.cmd.pt:main',
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
             'nectar-rating-audit = nectar_tools.audit.cmd.rating:main',
+            'nectar-su-reports = nectar_tools.reports.cmd.su_report:main',  # noqa
             'send-fd-outbound = nectar_tools.cli.send_fd_outbound:main',
         ],
     },
