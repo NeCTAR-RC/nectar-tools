@@ -32,87 +32,52 @@ class ExpiryTests(test.TestCase):
             mock_project.return_value = 'fake project'
             self.assertEqual('fake project', ex.project)
 
-    def test_get_project_managers(self):
+    @mock.patch('nectar_tools.utils.get_project_users')
+    def test_get_project_managers(self, mock_get_project_users):
         project = fakes.FakeProject()
         ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
+        mock_get_project_users.return_value = fakes.MANAGERS
         self.assertIsNone(ex.managers)
-        with test.nested(
-            mock.patch.object(ex, '_get_users_by_role',
-                              return_value=fakes.MANAGERS),
-            mock.patch.object(ex, 'get_project',
-                              return_value=project)):
+        with mock.patch.object(ex, 'get_project', return_value=project):
+            # Call twice to ensure only one call
             managers = ex._get_project_managers()
+            managers = ex._get_project_managers()
+            mock_get_project_users.assert_called_once_with(
+                ex.k_client, project, role=CONF.keystone.manager_role_id)
             self.assertEqual(fakes.MANAGERS, ex.managers)
             self.assertEqual(fakes.MANAGERS, managers)
 
-    def test_get_project_members(self):
+    @mock.patch('nectar_tools.utils.get_project_users')
+    def test_get_project_members(self, mock_get_project_users):
         project = fakes.FakeProject()
         ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
+        mock_get_project_users.return_value = fakes.MEMBERS
         self.assertIsNone(ex.members)
-        with test.nested(
-            mock.patch.object(ex, '_get_users_by_role',
-                              return_value=fakes.MEMBERS),
-            mock.patch.object(ex, 'get_project',
-                              return_value=project)):
+        with mock.patch.object(ex, 'get_project', return_value=project):
+            # Call twice to ensure only one call
             members = ex._get_project_members()
+            members = ex._get_project_members()
+            mock_get_project_users.assert_called_once_with(
+                ex.k_client, project, role=CONF.keystone.member_role_id)
             self.assertEqual(fakes.MEMBERS, ex.members)
             self.assertEqual(fakes.MEMBERS, members)
 
-    def test_get_users_by_role(self):
+    @mock.patch('nectar_tools.utils.get_project_recipients')
+    def test_get_recipients(self, mock_recipients):
         project = fakes.FakeProject()
         ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
-        role = 'fakerole'
-        role_assignments = [mock.Mock(), mock.Mock()]
-        role_assignments[0].user = {}
-        role_assignments[1].user = {}
-        role_assignments[0].user['id'] = 'fakeuser1'
-        role_assignments[1].user['id'] = 'fakeuser2'
 
-        def user_side_effect(value):
-            mock_user = mock.Mock()
-            mock_user.id = value
-            return mock_user
-
-        with test.nested(
-            mock.patch.object(ex, 'k_client'),
-            mock.patch.object(ex, 'get_project'),
-        ) as (mock_keystone, mock_project):
-            mock_project.return_value = project
-            mock_keystone.role_assignments.list.return_value = role_assignments
-            mock_keystone.users.get.side_effect = user_side_effect
-            users = ex._get_users_by_role(project, 'fakerole')
-            mock_keystone.role_assignments.list.assert_called_with(
-                project=project, role=role)
-            mock_keystone.users.get.assert_has_calls([mock.call('fakeuser1'),
-                                                      mock.call('fakeuser2')])
-            self.assertEqual(['fakeuser1', 'fakeuser2'], [x.id for x in users])
-
-    def test_get_emails(self):
-        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
-        user1 = mock.Mock(email='fake1@fake.com', enabled=True)
-        user2 = mock.Mock(spec=['email', 'enabled'], email='fake2@fake.com',
-                          enabled=False)
-        user3 = mock.Mock(email='fake3@fake.com', enabled=False, inactive=True)
-        user4 = mock.Mock(email='fake4@fake.com', enabled=False,
-                          inactive=False)
-        user5 = mock.Mock(spec=['enabled'], enabled=True)
-        user6 = mock.Mock(email='fake6-bogus', enabled=True)
-        users = [user1, user2, user3, user4, user5, user6]
-        emails = ex._get_emails(users)
-        self.assertEqual(['fake1@fake.com', 'fake3@fake.com'], emails)
-
-    def test_get_recipients(self):
-        ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
-        with test.nested(
-            mock.patch.object(ex, '_get_project_managers',
-                              return_value=fakes.MANAGERS),
-            mock.patch.object(ex, '_get_project_members',
-                              return_value=fakes.MEMBERS)):
+        mock_recipients.return_value = (
+            'manager1@example.org',
+            ['manager2@example.org', 'member1@example.org'])
+        with mock.patch.object(ex, 'get_project', return_value=project):
             to, cc = ex._get_recipients()
-            self.assertEqual('manager1@example.org', to)
-            cc.sort()
-            self.assertEqual(['manager2@example.org', 'member1@example.org'],
-                             cc)
+
+        mock_recipients.assert_called_once_with(ex.k_client, ex.project)
+        self.assertEqual('manager1@example.org', to)
+        cc.sort()
+        self.assertEqual(['manager2@example.org', 'member1@example.org'],
+                         cc)
 
     def test_send_notification(self):
         ex = expirer.Expirer('fake_type', 'fake_res', notifier='fake')
@@ -1143,20 +1108,22 @@ class AllocationExpiryTests(test.TestCase):
             ex._send_notification('fakestage', {'foo2': 'bar2'})
             mock_notifier.send_message.assert_not_called()
 
-    def test_get_recipients(self):
+    @mock.patch('nectar_tools.utils.get_allocation_recipients')
+    def test_get_recipients(self, mock_recipients):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
-        with test.nested(
-            mock.patch.object(ex, '_get_project_managers',
-                              return_value=fakes.MANAGERS),
-            mock.patch.object(ex, '_get_project_members',
-                              return_value=fakes.MEMBERS)):
-            to, cc = ex._get_recipients()
-            self.assertEqual('fake@fake.org', to)
-            cc.sort()
-            self.assertEqual(['approver@fake.org', 'manager1@example.org',
-                              'manager2@example.org', 'member1@example.org'],
-                             cc)
+
+        mock_recipients.return_value = (
+            'manager1@example.org',
+            ['manager2@example.org', 'member1@example.org'])
+
+        to, cc = ex._get_recipients()
+
+        mock_recipients.assert_called_once_with(ex.k_client, ex.allocation)
+        self.assertEqual('manager1@example.org', to)
+        cc.sort()
+        self.assertEqual(['manager2@example.org', 'member1@example.org'],
+                         cc)
 
     def test_delete_project(self):
         project = fakes.FakeProject()

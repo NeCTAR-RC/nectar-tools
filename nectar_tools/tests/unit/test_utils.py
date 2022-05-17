@@ -122,3 +122,43 @@ class UtilsTests(test.TestCase):
         self.assertEqual(False, utils.is_email_address(email1))
         self.assertEqual(False, utils.is_email_address(email2))
         self.assertEqual(False, utils.is_email_address(email3))
+
+    def test_get_emails(self):
+        user1 = mock.Mock(email='fake1@fake.com', enabled=True)
+        user2 = mock.Mock(spec=['email', 'enabled'], email='fake2@fake.com',
+                          enabled=False)
+        user3 = mock.Mock(email='fake3@fake.com', enabled=False, inactive=True)
+        user4 = mock.Mock(email='fake4@fake.com', enabled=False,
+                          inactive=False)
+        user5 = mock.Mock(spec=['enabled'], enabled=True)
+        user6 = mock.Mock(email='fake6-bogus', enabled=True)
+        users = [user1, user2, user3, user4, user5, user6]
+        emails = utils.get_emails(users)
+        self.assertEqual(['fake1@fake.com', 'fake3@fake.com'], emails)
+
+    def test_get_project_users(self):
+        project = fakes.FakeProject()
+        role = 'fakerole'
+        role_assignments = [mock.Mock(), mock.Mock()]
+        role_assignments[0].user = {}
+        role_assignments[1].user = {}
+        role_assignments[0].user['id'] = 'fakeuser1'
+        role_assignments[1].user['id'] = 'fakeuser2'
+
+        mock_keystone = mock.Mock()
+
+        def user_side_effect(value):
+            mock_user = mock.Mock()
+            mock_user.id = value
+            return mock_user
+
+        mock_keystone.role_assignments.list.return_value = role_assignments
+        mock_keystone.users.get.side_effect = user_side_effect
+
+        users = utils.get_project_users(mock_keystone, project, 'fakerole')
+
+        mock_keystone.role_assignments.list.assert_called_with(
+            project=project, role=role)
+        mock_keystone.users.get.assert_has_calls([mock.call('fakeuser1'),
+                                                  mock.call('fakeuser2')])
+        self.assertEqual(['fakeuser1', 'fakeuser2'], [x.id for x in users])

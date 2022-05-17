@@ -1,9 +1,11 @@
 import re
 
 from nectar_tools import auth
+from nectar_tools import config
 from nectar_tools.expiry import archiver
 
 
+CONF = config.CONFIG
 PT_RE = re.compile(r'^pt-\d+$')
 
 
@@ -85,3 +87,78 @@ def is_email_address(mail):
         return False
     regex = re.compile(r"[^@]+@[^@]+\.[^@]+")
     return True if regex.match(mail) else False
+
+
+def get_emails(users):
+    """Returns a list of emails for a list of keystone users"""
+    emails = []
+    for user in users:
+        if user.enabled or getattr(user, 'inactive', False):
+            email = getattr(user, 'email', None)
+            if is_email_address(email):
+                emails.append(email.lower())
+    return emails
+
+
+def get_project_users(client, project, role):
+    """Returns a list of users of a project based on role"""
+    members = client.role_assignments.list(
+        project=project, role=role)
+    users = []
+    for member in members:
+        users.append(client.users.get(member.user['id']))
+    return users
+
+
+def get_project_recipients(client, project):
+    """Returns emails for a project
+
+    Will return a tuple with the first item
+    being the primary recipient and the second
+    being all other project managers and members
+    """
+    managers = get_project_users(
+        client, project,
+        role=CONF.keystone.manager_role_id)
+    members = get_project_users(
+        client, project,
+        role=CONF.keystone.member_role_id)
+    manager_emails = get_emails(managers)
+    member_emails = get_emails(members)
+    extra_emails = list(set(manager_emails + member_emails))
+    if not extra_emails:
+        return (None, [])
+
+    # By default, recipient will be set as the first project manager
+    # or first project member. It will be passed into "to" field of the
+    # notification email, while extra_emails will be into 'cc' field
+    recipient = manager_emails[0] if manager_emails else member_emails[0]
+    extra_emails.remove(recipient)
+    return (recipient, extra_emails)
+
+
+def get_allocation_recipients(client, allocation):
+    """Returns emails for a allocation
+
+    Will return a tuple with the first item
+    being the owner of the allocation and the second
+    being all other project managers and members.
+    Also included is the approver of the allocation
+    """
+    # For allocation case, the 'to' field of the notification email
+    # should be the project allocation owner
+    owner_email = allocation.contact_email.lower()
+    approver_email = allocation.approver_email.lower()
+
+    recipient, extra_emails = get_project_recipients(
+        client, allocation.project_id)
+
+    if recipient:
+        extra_emails.append(recipient)
+
+    if is_email_address(approver_email) \
+       and approver_email not in extra_emails:
+        extra_emails.append(approver_email)
+    if owner_email in extra_emails:
+        extra_emails.remove(owner_email)
+    return (owner_email, extra_emails)

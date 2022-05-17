@@ -102,23 +102,17 @@ class Expirer(object):
 
     def _get_project_managers(self):
         if self.managers is None:
-            role = CONF.keystone.manager_role_id
-            self.managers = self._get_users_by_role(self.project, role)
+            self.managers = utils.get_project_users(
+                self.k_client, self.project,
+                role=CONF.keystone.manager_role_id)
         return self.managers
 
     def _get_project_members(self):
         if self.members is None:
-            role = CONF.keystone.member_role_id
-            self.members = self._get_users_by_role(self.project, role)
+            self.members = utils.get_project_users(
+                self.k_client, self.project,
+                role=CONF.keystone.member_role_id)
         return self.members
-
-    def _get_users_by_role(self, project, role):
-        members = self.k_client.role_assignments.list(
-            project=project, role=role)
-        users = []
-        for member in members:
-            users.append(self.k_client.users.get(member.user['id']))
-        return users
 
     @staticmethod
     def get_project():
@@ -127,31 +121,8 @@ class Expirer(object):
     def _get_notification_context(self):
         return {}
 
-    @staticmethod
-    def _get_emails(users):
-        emails = []
-        for user in users:
-            if user.enabled or getattr(user, 'inactive', False):
-                email = getattr(user, 'email', None)
-                if utils.is_email_address(email):
-                    emails.append(email.lower())
-        return emails
-
     def _get_recipients(self):
-        managers = self._get_project_managers()
-        members = self._get_project_members()
-        manager_emails = self._get_emails(managers)
-        member_emails = self._get_emails(members)
-        extra_emails = list(set(manager_emails + member_emails))
-        if not extra_emails:
-            return (None, [])
-
-        # By default, recipient will be set as the first project manager
-        # or first project member. It will be passed into "to" field of the
-        # notification email, while extra_emails will be into 'cc' field
-        recipient = manager_emails[0] if manager_emails else member_emails[0]
-        extra_emails.remove(recipient)
-        return (recipient, extra_emails)
+        return utils.get_project_recipients(self.k_client, self.project)
 
     def _send_notification(self, stage, extra_context={}, tags=[]):
         if self.get_status() == expiry_states.DELETED:
@@ -676,22 +647,7 @@ class AllocationExpirer(ProjectExpirer):
         return True
 
     def _get_recipients(self):
-        # For allocation case, the 'to' field of the notification email
-        # should be the project allocation owner
-        owner_email = self.allocation.contact_email.lower()
-        approver_email = self.allocation.approver_email.lower()
-
-        recipient, extra_emails = super(AllocationExpirer,
-                                        self)._get_recipients()
-        if recipient:
-            extra_emails.append(recipient)
-
-        if utils.is_email_address(approver_email) \
-            and approver_email not in extra_emails:
-            extra_emails.append(approver_email)
-        if owner_email in extra_emails:
-            extra_emails.remove(owner_email)
-        return (owner_email, extra_emails)
+        return utils.get_allocation_recipients(self.k_client, self.allocation)
 
     def _get_notification_context(self):
         managers = self._get_project_managers()
