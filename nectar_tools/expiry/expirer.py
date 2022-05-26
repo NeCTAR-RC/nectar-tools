@@ -636,7 +636,7 @@ class AllocationExpirer(ProjectExpirer):
         context = {'managers': [i.to_dict() for i in managers],
                    'members': [i.to_dict() for i in members],
                    'allocation': self.allocation.to_dict(),
-                   'su_info': su_info}
+                   'su_info': su_info.to_dict()}
         return context
 
     def _send_notification(self, stage, extra_context={}):

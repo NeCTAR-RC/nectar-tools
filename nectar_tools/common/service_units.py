@@ -20,6 +20,13 @@ class SUinfo(object):
         self.allocation_total_days = (self.allocation_end
                                       - self.allocation_start).days
 
+    def to_dict(self):
+        return {'allocation': self.allocation.id,
+                'usage': self.usage,
+                'budget': self.budget,
+                'over_80_percent': self.over_80_percent(),
+                'over_budget': self.over_budget()}
+
     def over_budget(self):
         if self.budget == 0:
             return False

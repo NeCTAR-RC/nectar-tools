@@ -1171,7 +1171,7 @@ class AllocationExpiryTests(test.TestCase):
                                  'enabled': True,
                                  'id': 'manager1',
                                  'name': 'manager1@example.org'}],
-                    'su_info': su_info}
+                    'su_info': su_info.to_dict()}
 
         self.assertEqual(expected, actual)
 
