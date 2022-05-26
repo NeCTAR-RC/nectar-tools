@@ -1,0 +1,35 @@
+Dear Project Manager,
+<br />
+<br />
+Your Nectar Cloud project {{ allocation.project_name }} service unit usage is tracking higher than expected. Your project could be at risk of running out of budget before your allocation end date of {{ allocation.end_date }}
+<br />
+<br />
+<table style="border:1px solid black;border-collapse:collapse;padding:0 5px 0 5px;">
+  <tr>
+    <td style="border:1px solid black;padding:0 5px 0 5px;">Service Units used</th>
+    <td style="border:1px solid black;padding:0 5px 0 5px;">{{ su_used }}</th>
+  </tr>
+  <tr>
+    <td style="border:1px solid black;padding:0 5px 0 5px;">Expected usage based on average budget usage</td>
+    <td style="border:1px solid black;padding:0 5px 0 5px;">{{ su_expected }}</td>
+  </tr>
+  <tr>
+    <td style="border:1px solid black;padding:0 5px 0 5px;">Service Unit Budget for period {{ allocation.start_date }} - {{ allocation.end_date }}</td>
+    <td style="border:1px solid black;padding:0 5px 0 5px;">{{ su_budget }}</td>
+  </tr>
+</table>
+<br />
+<br />
+To reduce the risk of running out of budget before the end of its current allocation period you should consider implementing one or more of the following recommendations:
+<ul>
+<li>Delete unused resources</li>
+<li>Resize instances to smaller flavours</li>
+<li>Request more budget by submitting an allocation request amendment</li>
+</ul>
+<br />
+If you have any questions or concerns, check out our <a href="https://support.ehelp.edu.au/support/solutions/articles/6000257023-what-are-service-units-and-how-do-i-request-a-budget-">support article</a> or please reply to this email.
+<br />
+<br />
+Best regards,
+<br />
+Nectar Research Cloud Team
