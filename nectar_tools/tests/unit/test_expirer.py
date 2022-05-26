@@ -795,27 +795,15 @@ class AllocationExpiryTests(test.TestCase):
         warning_date = ex.get_warning_date().strftime(expirer.DATE_FORMAT)
         self.assertEqual(warning_date, '2016-12-29')
 
-    @mock.patch('nectar_tools.common.service_units.get_allocation_usage')
-    def test_get_rating_info(self, mock_su):
-        project = fakes.FakeProject(name='Allocation')
-        ex = expirer.AllocationExpirer(project)
-        mock_su.return_value = 10000
-        # Set to allocation with budget of 3400
-        ex.allocation = fakes.get_allocation()
-        usage, budget = ex._get_rating_info()
-        self.assertEqual(mock_su.return_value, usage)
-        self.assertEqual(3400, budget)
-
-    @mock.patch('nectar_tools.common.service_units.get_allocation_usage')
+    @mock.patch('nectar_tools.common.service_units.SUinfo')
     @freeze_time('2018-02-01')
-    def test_ready_for_warning_under_budget(self, mock_su):
+    def test_ready_for_warning_under_budget(self, mock_su_info):
         project = fakes.FakeProject(name='Allocation')
+        mock_su_info.return_value = fakes.FakeSUinfo(usage=100, budget=3400)
 
         ex = expirer.AllocationExpirer(project)
-        # Set to allocation with budget of 3400
         ex.allocation = fakes.get_allocation()
 
-        mock_su.return_value = 100
         with mock.patch.object(ex, 'get_warning_date') as mock_warning_date:
             mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
             self.assertTrue(ex.ready_for_warning())
@@ -824,17 +812,15 @@ class AllocationExpiryTests(test.TestCase):
             self.assertFalse(ex.ready_for_warning())
 
     @freeze_time('2018-02-01')
-    def test_ready_for_warning_no_budget(self):
+    @mock.patch('nectar_tools.common.service_units.SUinfo')
+    def test_ready_for_warning_no_budget(self, mock_su_info):
+        mock_su_info.return_value = fakes.FakeSUinfo(usage=10, budget=0)
         project = fakes.FakeProject(name='Allocation')
 
         ex = expirer.AllocationExpirer(project)
         # Default allocation doesn't have rating budget
 
-        with test.nested(
-                mock.patch.object(ex, 'get_warning_date'),
-                mock.patch.object(ex, '_get_rating_info')
-        ) as (mock_warning_date, mock_rating_info):
-            mock_rating_info.return_value = 10, 0
+        with mock.patch.object(ex, 'get_warning_date') as mock_warning_date:
             mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
             self.assertTrue(ex.ready_for_warning())
             mock_warning_date.reset_mock()
@@ -842,47 +828,43 @@ class AllocationExpiryTests(test.TestCase):
             self.assertFalse(ex.ready_for_warning())
 
     @freeze_time('2018-02-01')
-    def test_ready_for_warning_over_budget(self):
+    @mock.patch('nectar_tools.common.service_units.SUinfo')
+    def test_ready_for_warning_over_budget(self, mock_su_info):
+        mock_su_info.return_value = fakes.FakeSUinfo(usage=7, budget=10)
         project = fakes.FakeProject(name='Allocation')
         ex = expirer.AllocationExpirer(project)
-        with test.nested(
-                mock.patch.object(ex, 'get_warning_date'),
-                mock.patch.object(ex, '_get_rating_info')
-        ) as (mock_warning_date, mock_rating_info):
-            mock_rating_info.return_value = 7, 10
+        with mock.patch.object(ex, 'get_warning_date') as mock_warning_date:
             mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
             self.assertTrue(ex.ready_for_warning())
             mock_warning_date.reset_mock()
             mock_warning_date.return_value = datetime.datetime(2018, 3, 1)
             self.assertFalse(ex.ready_for_warning())
 
-            mock_rating_info.return_value = 8, 10
+            mock_su_info.return_value = fakes.FakeSUinfo(usage=8, budget=10)
             mock_warning_date.return_value = datetime.datetime(2018, 1, 1)
             self.assertTrue(ex.ready_for_warning())
             mock_warning_date.reset_mock()
             mock_warning_date.return_value = datetime.datetime(2018, 3, 1)
             self.assertTrue(ex.ready_for_warning())
 
-    def test_ready_for_restricted(self):
+    @mock.patch('nectar_tools.common.service_units.SUinfo')
+    def test_ready_for_restricted(self, mock_su_info):
         project = fakes.FakeProject(name='Allocation')
         ex = expirer.AllocationExpirer(project)
-        with test.nested(
-                mock.patch.object(ex, 'at_next_step'),
-                mock.patch.object(ex, '_get_rating_info')
-        ) as (mock_at_next_step, mock_rating_info):
-            mock_rating_info.return_value = 7, 10
+        with mock.patch.object(ex, 'at_next_step') as mock_at_next_step:
+            mock_su_info.return_value = fakes.FakeSUinfo(usage=7, budget=10)
             mock_at_next_step.return_value = False
             self.assertFalse(ex.ready_for_restricted())
 
-            mock_rating_info.return_value = 10, 10
+            mock_su_info.return_value = fakes.FakeSUinfo(usage=10, budget=10)
             mock_at_next_step.return_value = False
             self.assertTrue(ex.ready_for_restricted())
 
-            mock_rating_info.return_value = 7, 0
+            mock_su_info.return_value = fakes.FakeSUinfo(usage=7, budget=0)
             mock_at_next_step.return_value = False
             self.assertFalse(ex.ready_for_restricted())
 
-            mock_rating_info.return_value = 7, 10
+            mock_su_info.return_value = fakes.FakeSUinfo(usage=7, budget=10)
             mock_at_next_step.return_value = True
             self.assertTrue(ex.ready_for_restricted())
 
@@ -1144,16 +1126,17 @@ class AllocationExpiryTests(test.TestCase):
             mock_get_current.assert_called_once_with()
             mock_allocation.delete.assert_called_once_with()
 
-    def test_get_notification_context(self):
+    @mock.patch('nectar_tools.common.service_units.SUinfo')
+    def test_get_notification_context(self, mock_su_info):
+        su_info = fakes.FakeSUinfo(usage=20, budget=50)
+        mock_su_info.return_value = su_info
         project = fakes.FakeProjectWithOwner()
         ex = expirer.AllocationExpirer(project)
 
         with test.nested(
                 mock.patch.object(ex, '_get_project_managers'),
                 mock.patch.object(ex, '_get_project_members'),
-                mock.patch.object(ex, '_get_rating_info')
-        ) as (mock_managers, mock_members, mock_rating_info):
-            mock_rating_info.return_value = 20, 50
+        ) as (mock_managers, mock_members):
             mock_managers.return_value = fakes.MANAGERS
             mock_members.return_value = fakes.MEMBERS
             actual = ex._get_notification_context()
@@ -1168,7 +1151,6 @@ class AllocationExpiryTests(test.TestCase):
                                    'quotas': [],
                                    'start_date': '2015-01-01',
                                    'status': 'A'},
-                    'budget': 50,
                     'managers': [{'email': 'manager1@example.org',
                                   'enabled': True,
                                   'id': 'manager1',
@@ -1189,7 +1171,7 @@ class AllocationExpiryTests(test.TestCase):
                                  'enabled': True,
                                  'id': 'manager1',
                                  'name': 'manager1@example.org'}],
-                    'usage': 20}
+                    'su_info': su_info}
 
         self.assertEqual(expected, actual)
 
