@@ -5,13 +5,13 @@ import logging
 from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
 from magnumclient.common.apiclient import exceptions as magnum_exc
-from nectarallocationclient import client
 import neutronclient
 import novaclient
 from openstack.load_balancer.v2 import quota as lb_quota
 from oslo_context import context
 import oslo_messaging
 import prettytable
+from warreclient import exceptions as warre_exc
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -31,13 +31,15 @@ OSLO_CONTEXT = context.RequestContext()
 class ProvisioningManager(object):
 
     def __init__(self, ks_session=None, noop=False, force=False,
-                 no_notify=False, *args, **kwargs):
+                 no_notify=False, system_session=None, *args, **kwargs):
         self.force = force
         self.no_notify = no_notify
         self.noop = noop
         self.ks_session = ks_session
-        self.client = client.Client(1, session=ks_session)
         self.k_client = auth.get_keystone_client(ks_session)
+        if not system_session:
+            system_session = auth.get_session(system_scope='all')
+        self.k_client_sys = auth.get_keystone_client(system_session)
         self.a_client = auth.get_allocation_client(ks_session)
 
         transport = oslo_messaging.get_notification_transport(OSLO_CONF)
@@ -282,6 +284,7 @@ class ProvisioningManager(object):
         self.set_manila_quota(allocation)
         self.set_octavia_quota(allocation)
         self.set_magnum_quota(allocation)
+        self.set_warre_quota(allocation)
 
     def quota_report(self, allocation, show_current=True, html=False):
 
@@ -294,6 +297,7 @@ class ProvisioningManager(object):
             'manila.snapshot_gigabytes',
             'neutron.loadbalancer',
             'trove.instances',
+            'warre.hours',
         ]
         resource_map = {
             'cloudkitty.budget': 'Service Unit Budget',
@@ -352,11 +356,17 @@ class ProvisioningManager(object):
             'manila.shares_monash-02-cephfs':
                 'Shared Filesystem Shares Monash',
             'magnum.cluster': 'Container Orchestration Engine Clusters',
+            'warre.reservation': 'Reservations',
+            'warre.days': 'Days',
+            'warre.flavor:GPU': 'GPU Flavors',
+            'warre.flavor:Huge RAM': 'Huge RAM flavors',
         }
         boolean_resources = [
             'nova.flavor:compute-v3',
             'nova.flavor:memory-v3',
             'nova.flavor:hugeram-v3',
+            'warre.flavor:GPU',
+            'warre.flavor:Huge RAM',
         ]
         current = collections.OrderedDict()
         allocated = collections.OrderedDict()
@@ -389,6 +399,8 @@ class ProvisioningManager(object):
                          'magnum', current)
             _prefix_dict(self.get_current_cloudkitty_quota(allocation),
                          'cloudkitty', current)
+            _prefix_dict(self.get_current_warre_quota(allocation),
+                         'warre', current)
 
         _prefix_dict(allocation.get_allocated_nova_quota(),
                      'nova', allocated)
@@ -408,6 +420,8 @@ class ProvisioningManager(object):
                      'magnum', allocated)
         _prefix_dict(allocation.get_allocated_cloudkitty_quota(),
                      'cloudkitty', allocated)
+        _prefix_dict(allocation.get_allocated_warre_quota(),
+                     'warre', allocated)
 
         table = prettytable.PrettyTable(
             ["Resource", "Current", "Allocated", "Diff"])
@@ -596,7 +610,7 @@ class ProvisioningManager(object):
         quotas = client.quotas.get(allocation.project_id)._info
         for share_type in client.share_types.list():
             type_quotas = client.quotas.get(allocation.project_id,
-                                           share_type=share_type.id)
+                                            share_type=share_type.id)
             type_quotas = {k + '_%s' % share_type.name: v
                            for k, v in type_quotas._info.items()}
             quotas.update(type_quotas)
@@ -727,3 +741,96 @@ class ProvisioningManager(object):
                                  hard_limit=allocated_quota['cluster'])
             LOG.info("%s: Set Magnum Quota: %s", allocation.id,
                      allocated_quota)
+
+    def get_service(self, service_type):
+        service = self.k_client.services.list(type=service_type).pop()
+        return service
+
+    def get_limit(self, service, project_id, resource_name):
+        limits = self.k_client_sys.limits.list(
+            service=service, resource_name=resource_name,
+            project_id=project_id)
+        if len(limits) > 1:
+            raise exceptions.InvalidLimits()
+        if limits:
+            limit = limits[0].resource_limit
+        if not limits:
+            limit = self.get_default_limit(service=service,
+                                           resource_name=resource_name,
+                                           limit_only=True)
+        return limit
+
+    def delete_limits(self, service, project_id):
+        limits = self.k_client_sys.limits.list(
+            service=service, project_id=project_id)
+        for limit in limits:
+            self.k_client_sys.limits.delete(limit)
+
+    def get_default_limit(self, service, resource_name):
+        limits = self.k_client_sys.registered_limits.list(
+            service=service, resource_name=resource_name)
+        if len(limits) != 1:
+            raise exceptions.InvalidLimits()
+        return limits[0].default_limit
+
+    def get_current_warre_quota(self, allocation):
+        warre_service = self.get_service("nectar-reservation")
+        resource_names = ["hours", "reservation"]
+        project_id = allocation.project_id
+        quotas = {}
+        for resource_name in resource_names:
+            limit = self.get_limit(
+                service=warre_service, project_id=project_id,
+                resource_name=resource_name)
+
+            quotas[resource_name] = limit
+            if resource_name == 'hours':
+                quotas['days'] = int(limit / 24)
+        return quotas
+
+    def set_warre_quota(self, allocation):
+        allocated_quota = allocation.get_allocated_warre_quota()
+
+        for quota in list(allocated_quota):
+            if quota.startswith('flavor:'):
+                allocated_quota.pop(quota)
+                category = quota.split(':')[1]
+                self.reservation_flavor_grant(allocation, category)
+
+        if self.noop:
+            LOG.info("%s: Would set Warre Quota: %s", allocation.id,
+                     allocated_quota)
+            return
+
+        warre_service = self.get_service("nectar-reservation")
+        self.delete_limits(
+            service=warre_service,
+            project_id=allocation.project_id)
+
+        resource_names = ["hours", "reservation"]
+        for resource_name in resource_names:
+            limit = int(allocated_quota.get(resource_name))
+            if limit:
+                self.k_client_sys.limits.create(
+                        project=allocation.project_id,
+                        service=warre_service, resource_name=resource_name,
+                        resource_limit=limit, region=CONF.limits.region_id)
+        LOG.info("%s: Set Warre Quota: %s", allocation.id, allocated_quota)
+
+    def reservation_flavor_grant(self, allocation, category):
+        if self.noop:
+            LOG.info("%s: Would grant access to %s reservation flavors",
+                     allocation.id, category)
+            return
+        client = auth.get_warre_client(self.ks_session)
+        flavors = client.flavors.list(all_projects=True, category=category)
+        for flavor in flavors:
+            try:
+                client.flavorprojects.create(flavor_id=flavor.id,
+                                             project_id=allocation.project_id)
+            except warre_exc.Conflict:
+                LOG.info("%s: Already has access to flavor %s",
+                         allocation.id, flavor.name)
+            else:
+                LOG.info("%s: Granted access to flavor %s", allocation.id,
+                         flavor.name)

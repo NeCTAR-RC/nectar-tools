@@ -1,33 +1,32 @@
 import datetime
-import testfixtures
 from unittest import mock
 
 from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
 from nectarallocationclient.v1 import allocations
 import novaclient
+import testfixtures
+import warreclient
 
 from nectar_tools import config
 from nectar_tools import exceptions
-from nectar_tools import test
-from nectar_tools import utils
-
 from nectar_tools.provisioning import manager
-
+from nectar_tools import test
 from nectar_tools.tests import fakes
+from nectar_tools import utils
 
 
 PROJECT = fakes.FakeProject('active')
 CONF = config.CONFIG
 
 
-@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ProvisionerTests(test.TestCase):
 
     def setUp(self, *args, **kwargs):
         super(ProvisionerTests, self).setUp(*args, **kwargs)
         self.allocation = fakes.get_allocation()
-        self.manager = manager.ProvisioningManager(ks_session=mock.Mock())
+        self.manager = manager.ProvisioningManager(ks_session=mock.Mock(),
+                                                   system_session=mock.Mock())
 
     def test_provision(self):
         """Test provisioning an existing allocation"""
@@ -448,7 +447,8 @@ class ProvisionerTests(test.TestCase):
     def test_send_event(self, mock_oslo_messaging):
         mock_notifier = mock.Mock()
         mock_oslo_messaging.Notifier.return_value = mock_notifier
-        m = manager.ProvisioningManager(ks_session=mock.Mock())
+        m = manager.ProvisioningManager(ks_session=mock.Mock(),
+                                        system_session=mock.Mock())
         m.send_event(self.allocation, 'new')
         mock_notifier.audit.assert_called_once_with(
             mock.ANY, 'provisioning.new',
@@ -1013,3 +1013,151 @@ class ProvisionerTests(test.TestCase):
         client.allocations.list.assert_called_once_with(
             parent_request=self.allocation.id, status='A')
         self.assertEqual({'budget': 2000}, current)
+
+    def test_get_service(self):
+        with mock.patch.object(self.manager, 'k_client') as mock_k_client:
+            service = mock.Mock()
+            mock_k_client.services.list.return_value = [service]
+
+            output = self.manager.get_service('foo')
+            mock_k_client.services.list.assert_called_once_with(type='foo')
+            self.assertEqual(service, output)
+
+    def test_get_limit(self):
+        service = mock.Mock()
+        project_id = 'foo123'
+        resource_name = 'bar'
+        limit = mock.Mock(resource_limit=40)
+        with test.nested(
+                mock.patch.object(self.manager, 'k_client_sys'),
+                mock.patch.object(self.manager, 'get_default_limit'),
+        ) as (mock_k_client_sys, mock_get_default):
+            mock_k_client_sys.limits.list.return_value = [limit]
+            output = self.manager.get_limit(service, project_id, resource_name)
+            mock_k_client_sys.limits.list.assert_called_once_with(
+                service=service, resource_name=resource_name,
+                project_id=project_id)
+            self.assertEqual(40, output)
+            mock_get_default.assert_not_called()
+
+    def test_get_limit_default_fallback(self):
+        service = mock.Mock()
+        project_id = 'foo123'
+        resource_name = 'bar'
+        with test.nested(
+                mock.patch.object(self.manager, 'k_client_sys'),
+                mock.patch.object(self.manager, 'get_default_limit'),
+        ) as (mock_k_client_sys, mock_get_default):
+            mock_k_client_sys.limits.list.return_value = []
+            mock_get_default.return_value = 56
+            output = self.manager.get_limit(service, project_id, resource_name)
+            self.assertEqual(56, output)
+
+    def test_delete_limits(self):
+        limit1 = mock.Mock()
+        limit2 = mock.Mock()
+        with mock.patch.object(
+                self.manager, 'k_client_sys') as mock_k_client_sys:
+            mock_k_client_sys.limits.list.return_value = [limit1, limit2]
+            self.manager.delete_limits('service', 'project_id-123')
+            mock_k_client_sys.limits.delete.assert_has_calls(
+                [mock.call(limit1), mock.call(limit2)])
+
+    def test_get_default_limit(self):
+        limit = mock.Mock(default_limit=45)
+        with mock.patch.object(
+                self.manager, 'k_client_sys') as mock_k_client_sys:
+            mock_k_client_sys.registered_limits.list.return_value = [limit]
+            output = self.manager.get_default_limit('service', 'foo')
+            self.assertEqual(45, output)
+            mock_k_client_sys.registered_limits.list.assert_called_once_with(
+                service='service', resource_name='foo')
+
+    def test_get_current_warre_quota(self):
+
+        with test.nested(
+                mock.patch.object(self.manager, 'get_limit'),
+                mock.patch.object(self.manager, 'get_service'),
+        ) as (mock_get_limit, mock_get_service):
+            mock_service = mock.Mock()
+            mock_get_service.return_value = mock_service
+            mock_get_limit.side_effect = [48, 30]
+            quota = self.manager.get_current_warre_quota(self.allocation)
+
+            get_calls = [mock.call(service=mock_service,
+                                   project_id=self.allocation.project_id,
+                                   resource_name='hours'),
+                         mock.call(service=mock_service,
+                                   project_id=self.allocation.project_id,
+                                   resource_name='reservation')]
+            mock_get_limit.assert_has_calls(get_calls)
+            self.assertEqual({'hours': 48, 'days': 2, 'reservation': 30},
+                             quota)
+
+    def test_set_warre_quota_with_flavors(self):
+        self.allocation.project_id = '23434'
+        with test.nested(
+                mock.patch.object(self.allocation,
+                                  'get_allocated_warre_quota'),
+                mock.patch.object(self.manager, 'k_client_sys'),
+                mock.patch.object(self.manager, 'reservation_flavor_grant'),
+                mock.patch.object(self.manager, 'get_service'),
+        ) as (mock_get_allocated, mock_k_client_sys,
+              mock_reservation_flavor_grant, mock_get_service):
+            mock_service = mock.Mock()
+            mock_get_service.return_value = mock_service
+            quota = {'hours': 672, 'reservation': 2, 'flavor:GPU': True,
+                     'flavor:Huge RAM': True}
+            mock_get_allocated.return_value = quota
+            self.manager.set_warre_quota(self.allocation)
+            flavor_calls = [mock.call(self.allocation, 'GPU'),
+                            mock.call(self.allocation, 'Huge RAM')]
+            mock_reservation_flavor_grant.assert_has_calls(flavor_calls,
+                                                           any_order=True)
+
+            create_calls = [mock.call(project=self.allocation.project_id,
+                                      service=mock_service,
+                                      resource_name='hours',
+                                      resource_limit=quota['hours'],
+                                      region=CONF.limits.region_id),
+                            mock.call(project=self.allocation.project_id,
+                                      service=mock_service,
+                                      resource_name='reservation',
+                                      resource_limit=quota['reservation'],
+                                      region=CONF.limits.region_id),
+                            ]
+            mock_k_client_sys.limits.create.assert_has_calls(create_calls)
+
+    @mock.patch('nectar_tools.auth.get_warre_client')
+    def test_reservation_flavor_grant(self, mock_get_warre):
+        warre_client = mock.Mock()
+        mock_get_warre.return_value = warre_client
+
+        gpu = mock.Mock()
+        gpu.name = 'g1.small'
+        gpu.category = 'GPU'
+        gpu.id = '12345'
+        all_flavors = [gpu]
+        warre_client.flavors.list.return_value = all_flavors
+        self.manager.reservation_flavor_grant(self.allocation,
+                                              category='GPU')
+
+        warre_client.flavors.list.assert_called_once_with(
+            all_projects=True, category='GPU')
+        warre_client.flavorprojects.create.assert_called_once_with(
+                    flavor_id=gpu.id,
+                    project_id=self.allocation.project_id)
+
+    @mock.patch('nectar_tools.auth.get_warre_client')
+    def test_reservation_flavor_grant_exists(self, mock_get_warre):
+        warre_client = mock.Mock()
+        mock_get_warre.return_value = warre_client
+        gpu = mock.Mock()
+        gpu.name = 'g1.small'
+        gpu.category = 'gpu-v1'
+        all_flavors = [gpu]
+
+        warre_client.flavors.list.return_value = all_flavors
+        warre_client.flavorprojects.create.side_effect = \
+            warreclient.exceptions.Conflict()
+        self.manager.reservation_flavor_grant(self.allocation, 'gpu-v1')

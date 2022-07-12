@@ -4,6 +4,7 @@ from openstack.load_balancer.v2 import quota as lb_quota
 
 
 FAKE_DESIGNATE = mock.MagicMock()
+FAKE_WARRE = mock.MagicMock()
 FAKE_KEYSTONE = mock.MagicMock()
 FAKE_OPENSTACKSDK = mock.MagicMock()
 FAKE_FD_API = mock.MagicMock()
@@ -170,6 +171,10 @@ def get_designate(sess, project_id):
 
 def get_manuka(session):
     return FAKE_MANUKA
+
+
+def get_warre(session):
+    return FAKE_WARRE
 
 
 def get_openstacksdk(sess):

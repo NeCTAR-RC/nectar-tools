@@ -19,6 +19,8 @@ CONF = config.CONFIG
 @mock.patch('nectar_tools.auth.get_session', new=fake_clients.FAKE_GET_SESSION)
 @mock.patch('nectar_tools.auth.get_designate_client',
             new=fake_clients.get_designate)
+@mock.patch('nectar_tools.auth.get_warre_client',
+            new=fake_clients.get_warre)
 @mock.patch('nectar_tools.auth.get_nova_client', new=fake_clients.get_nova)
 @mock.patch('nectar_tools.auth.get_cinder_client', new=fake_clients.get_cinder)
 @mock.patch('nectar_tools.auth.get_swift_client', new=fake_clients.get_swift)
@@ -61,6 +63,15 @@ class ProvisionerTests(test.TestCase):
         keystone_client.projects.create.return_value = new_pt
         keystone_client.projects.update.side_effect = fake_update
 
+        # Warre uses limits api to get quota, has hours and reservation
+        # List is called for get quota and also delete quota
+        keystone_client.limits.list.side_effect = [
+            [mock.Mock(resource_limit=48)],
+            [mock.Mock(resource_limit=10)],
+            [mock.Mock(resource_limit=48)],
+            [mock.Mock(resource_limit=10)],
+        ]
+
         mock_a_client = mock.Mock()
         mock_a_client.zones.compute_homes.return_value = {'uom': {'my-az'}}
         mock_a_client.allocations.get_current.return_value = self.allocation
@@ -87,7 +98,7 @@ class ProvisionerTests(test.TestCase):
         self.allocation.allocation_home = 'uom'
 
         provisioning_manager = manager.ProvisioningManager(
-            ks_session=mock.Mock())
+            ks_session=mock.Mock(), system_session=mock.Mock())
 
         # Mock out update_allocation do reduce some complexity and allow easier
         # checking that updated values work their way through the code

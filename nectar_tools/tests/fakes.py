@@ -367,6 +367,16 @@ ALLOCATION_RESPONSE = {
             "zone": "nectar",
             "quota": 3400,
         },
+        {
+            "resource": "nectar-reservation.reservation",
+            "zone": "nectar",
+            "quota": 10,
+        },
+        {
+            "resource": "nectar-reservation.days",
+            "zone": "nectar",
+            "quota": 2,
+        },
     ],
     "id": 1,
     "parent_request": None,
