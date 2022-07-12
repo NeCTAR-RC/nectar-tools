@@ -50,7 +50,7 @@ class Config(AttrDict):
         if not os.path.isfile(filename):
             print("Config file %s not found." % filename, file=sys.stderr)
             return
-        conf = configparser.SafeConfigParser()
+        conf = configparser.ConfigParser()
         conf.read(filename)
         self['DEFAULT'] = AttrDict(conf.defaults())
         for section in conf.sections():

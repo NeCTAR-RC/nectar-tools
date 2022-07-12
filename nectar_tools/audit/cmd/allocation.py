@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 from nectar_tools.audit.allocation import allocation
+from nectar_tools.audit.allocation import pending
 from nectar_tools.audit.cmd import base
 
 
 class AllocationAuditorCmd(base.AuditCmdBase):
 
-    AUDITORS = [allocation.AllocationAuditor]
+    AUDITORS = [allocation.AllocationAuditor, pending.PendingAllocationAuditor]
 
     @staticmethod
     def get_manager():
