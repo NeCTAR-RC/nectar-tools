@@ -35,6 +35,8 @@ htmlcov
 cover/*
 coverage.xml
 .stestr/*
+allocations-state.json
+
 # Translations
 *.mo
 

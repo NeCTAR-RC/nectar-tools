@@ -469,3 +469,9 @@ class FakeSUinfo(service_units.SUinfo):
 
     def is_tracking_over(self):
         return self.tracking_over
+
+
+class FakeResponse(object):
+    def __init__(self, status_code=200, reason="OK"):
+        self.status_code = status_code
+        self.reason = reason
