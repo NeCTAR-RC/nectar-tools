@@ -40,8 +40,8 @@ class AllocationAuditor(base.AllocationAuditorBase):
         for name, allocs in name_map.items():
             master_ids = [a.id for a in allocs if a.parent_request is None]
             if len(master_ids) > 1:
-                LOG.warn("Multiple allocations have project name %s: %s",
-                         name, master_ids)
+                LOG.warning("Multiple allocations have project name %s: %s",
+                            name, master_ids)
 
     def check_allocation_classification(self, allocation_id=None):
         allocations = self._get_allocations(allocation_id, current=True)

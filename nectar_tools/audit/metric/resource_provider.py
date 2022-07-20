@@ -40,8 +40,8 @@ class ResourceProviderAuditor(base.ResourceAuditor):
                 resource_type='resource_provider',
                 query="site!=null and name='%s'" % rp['name'])
             if old_resources:
-                LOG.warn("Recreated resource providers found %s",
-                         rp['name'])
+                LOG.warning("Recreated resource providers found %s",
+                            rp['name'])
 
                 resource_data = {'site': old_resources[0]['site']}
                 scope = old_resources[0].get('scope')
@@ -80,8 +80,8 @@ class ResourceProviderAuditor(base.ResourceAuditor):
             try:
                 self.p_client.resource_providers.get(resource['id'])
             except placementclient.exceptions.NotFound:
-                LOG.warn("Resource provider %s no longer exists",
-                         resource['name'])
+                LOG.warning("Resource provider %s no longer exists",
+                            resource['name'])
                 self.repair(f"Marking resource provider {resource['name']} "
                             "as ended",
                             lambda: self.g_client.resource.update(

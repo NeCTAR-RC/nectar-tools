@@ -136,8 +136,8 @@ class Expirer(object):
             self.notifier.send_message(stage, recipient, extra_context=context,
                                        extra_recipients=extras, tags=tags)
         else:
-            LOG.warn("%s: No valid recipient, skip notification!",
-                     self.resource.id)
+            LOG.warning("%s: No valid recipient, skip notification!",
+                        self.resource.id)
 
     def send_event(self, event, extra_context={}):
         if self.get_status() == expiry_states.DELETED:
@@ -335,8 +335,8 @@ class ProjectExpirer(Expirer):
 
         elif expiry_status == expiry_states.ARCHIVING:
             if self.at_next_step():
-                LOG.warn("%s: Archiving longer than next step, move on",
-                         self.project.id)
+                LOG.warning("%s: Archiving longer than next step, move on",
+                            self.project.id)
                 self.set_project_archived()
             else:
                 self.check_archiving_status()
@@ -411,7 +411,7 @@ class ProjectExpirer(Expirer):
         elif status.startswith('ticket-'):
             url = 'https://support.ehelp.edu.au/helpdesk/tickets/%s' \
                   % status.rsplit('-', 1)[1]
-            LOG.warn('Project %s is ignored. See %s', self.project.id, url)
+            LOG.warning('Project %s is ignored. See %s', self.project.id, url)
             return True
         return False
 
@@ -482,7 +482,7 @@ class AllocationExpirer(ProjectExpirer):
         except allocation_exceptions.AllocationDoesNotExist:
             if self.is_ignored_project():
                 return
-            LOG.warn("%s: Allocation can not be found", self.project.id)
+            LOG.warning("%s: Allocation can not be found", self.project.id)
             if self.force_no_allocation:
                 allocation = allocations.Allocation(
                     None,
@@ -696,7 +696,7 @@ class PTExpirer(ProjectExpirer):
             return False
 
         if self.project.owner is None:
-            LOG.warn("%s: Project has no owner", self.project.id)
+            LOG.warning("%s: Project has no owner", self.project.id)
             return False
 
         if self.is_ignored_project():
@@ -704,8 +704,8 @@ class PTExpirer(ProjectExpirer):
 
         allocations = self.pending_allocations()
         if allocations:
-            LOG.warn("%s: Skipping expiry due to pending allocations %s",
-                     self.project.id, [a.id for a in allocations])
+            LOG.warning("%s: Skipping expiry due to pending allocations %s",
+                        self.project.id, [a.id for a in allocations])
             return False
 
         return True
@@ -1056,6 +1056,6 @@ class ImageExpirer(Expirer):
                 return True
             return False
         else:
-            LOG.warn("Image %s: Unspecified status %s",
-                     self.image.id, expiry_status)
+            LOG.warning("Image %s: Unspecified status %s",
+                        self.image.id, expiry_status)
             return False
