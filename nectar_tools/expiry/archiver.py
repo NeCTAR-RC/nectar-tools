@@ -126,7 +126,7 @@ class ImageArchiver(Archiver):
         LOG.debug("Found image %s", image.id)
 
         if image.protected:
-            LOG.warn("Can't restrict protected image %s", image.id)
+            LOG.warning("Can't restrict protected image %s", image.id)
             return
         else:
             if image.visibility != 'private':
@@ -344,8 +344,9 @@ class NovaArchiver(Archiver):
         if instance.status == 'ACTIVE':
             # Instance should be stopped when moving into suspended status
             # but we can stop for now and start archiving next run
-            LOG.warn("%s: Instance %s is running, expected it to be stopped",
-                     self.project.id, instance.id)
+            LOG.warning("%s: Instance %s is running, "
+                        "expected it to be stopped",
+                        self.project.id, instance.id)
             self._stop_instance(instance)
             return
 
@@ -685,8 +686,8 @@ class ProjectImagesArchiver(ImageArchiver):
             filters={'owner': self.project.id}))
         for image in images:
             if image.visibility != 'private':
-                LOG.warn("Can't delete image %s visibility=%s",
-                         image.id, image.visibility)
+                LOG.warning("Can't delete image %s visibility=%s",
+                            image.id, image.visibility)
             else:
                 self._delete_image(image)
 
@@ -727,8 +728,8 @@ class SwiftArchiver(Archiver):
             container_stat, objects = self.s_client.get_container(c['name'])
             if 'x-container-read' in container_stat:
                 read_acl = container_stat['x-container-read']
-                LOG.warn("%s: Ignoring container %s due to read_acl %s",
-                         self.project.id, c['name'], read_acl)
+                LOG.warning("%s: Ignoring container %s due to read_acl %s",
+                            self.project.id, c['name'], read_acl)
                 continue
             self._delete_container(c, objects)
 

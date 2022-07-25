@@ -31,8 +31,8 @@ class LoadBalancerAuditor(base.Auditor):
             try:
                 self.openstack.load_balancer.get_amphora(amp_id)
             except openstack.exceptions.ResourceNotFound:
-                LOG.warn("No amp found for instance %s(%s)", instance.name,
-                         instance.id)
+                LOG.warning("No amp found for instance %s(%s)",
+                            instance.name, instance.id)
                 self.repair(f"Deleting orphaned amp instance {instance.id}",
                             lambda: instance.delete())
 
@@ -52,7 +52,7 @@ class LoadBalancerAuditor(base.Auditor):
                 loadbalancer_id=lb.id)
             for amp in amphorae:
                 if amp.get('image_id') != latest_image.id:
-                    LOG.warn(f"LB {lb.id} not using latest image")
+                    LOG.warning("LB {lb.id} not using latest image")
                     self.repair(
                         f"Fail over LB {lb.id}", lambda:
                         self.openstack.load_balancer.failover_load_balancer(

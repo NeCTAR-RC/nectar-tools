@@ -50,7 +50,7 @@ class FlavorAuditor(base.Auditor):
                                                   "%Y-%m-%dT%H:%M:%S%z")
 
                 if last_date.date() < LAST_YEAR:
-                    LOG.warn(
+                    LOG.warning(
                         f"Flavor {flavor.name} last used {last_date}")
 
     def flavor_accessible(self):
@@ -63,7 +63,7 @@ class FlavorAuditor(base.Auditor):
             if not flavor.is_public:
                 access = self.n_client.flavor_access.list(flavor=flavor.id)
                 if not access:
-                    LOG.warn(
+                    LOG.warning(
                         f"Flavor {flavor.name} isn't accessable to anyone")
                     continue
                 active = False
@@ -74,5 +74,6 @@ class FlavorAuditor(base.Auditor):
                         active = True
                         break
                 if not active:
-                    LOG.warn(f"Flavor {flavor.name} isn't accessable to any "
-                             "active project")
+                    LOG.warning(
+                        f"Flavor {flavor.name} isn't accessable to any "
+                        "active project")

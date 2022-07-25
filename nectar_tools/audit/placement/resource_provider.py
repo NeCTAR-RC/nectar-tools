@@ -24,7 +24,7 @@ class ResourceProviderAuditor(base.Auditor):
 
         deleted_hypervisors = resource_providers - hypervisors
         for h in deleted_hypervisors:
-            LOG.warn("Resource provider %s no longer a hypervisor", h)
+            LOG.warning("Resource provider %s no longer a hypervisor", h)
             rp = rp_lookup[h]
             for consumer_id in rp.allocations():
                 self.repair(

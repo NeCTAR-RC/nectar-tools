@@ -35,14 +35,14 @@ class FlavorAuditor(base.RatingAuditor):
                 flavor_rate = None
 
             if not cost and flavor_rate:
-                LOG.warn(f"Flavor {flavor.name} has no cost")
+                LOG.warning(f"Flavor {flavor.name} has no cost")
                 self.repair(f"Removing rate metadata for {flavor.name}",
                             flavor.unset_keys, keys=[FLAVOR_KEY])
                 continue
 
             if flavor_rate != cost:
-                LOG.warn(f"Flavor {flavor.name} cost out of sync. "
-                         f"Current {flavor_rate}")
+                LOG.warning(f"Flavor {flavor.name} cost out of sync. "
+                            f"Current {flavor_rate}")
                 self.repair(f"Setting flavor {flavor.name} metadata "
                             f"rate to {cost}",
                             flavor.set_keys, metadata={FLAVOR_KEY: cost})

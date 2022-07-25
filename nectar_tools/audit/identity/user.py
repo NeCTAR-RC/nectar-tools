@@ -43,8 +43,8 @@ class UserAuditor(base.IdentityAuditor):
             try:
                 project = self.k_client.projects.get(default_project_id)
             except keystoneauth1.exceptions.http.NotFound:
-                LOG.warn("User %s default_project_id points to non existant"
-                         "project", user.name)
+                LOG.warning("User %s default_project_id is a non-existent "
+                            "project", user.name)
                 continue
             if getattr(project, 'expiry_status', None) == 'admin':
                 # Ignore admin project
@@ -53,5 +53,5 @@ class UserAuditor(base.IdentityAuditor):
                 # Ignore bot accounts
                 continue
             if not project.name.startswith('pt-'):
-                LOG.warn("User %s default_project_id is not a Project Trial",
-                         user.name)
+                LOG.warning("User %s default_project_id is not a PT",
+                            user.name)

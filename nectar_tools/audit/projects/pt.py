@@ -61,9 +61,9 @@ class ProjectTrialAuditor(base.ProjectAuditor):
                          "expiry status %s, next step %s",
                          self.project.id, expiry_status, expiry_next_step)
             elif TICKET_RE.match(expiry_status):
-                LOG.warn("%s: PT expiry overdue in ticket hold: "
-                         "expiry status %s",
-                         self.project.id, expiry_status)
+                LOG.warning("%s: PT expiry overdue in ticket hold: "
+                            "expiry status %s",
+                            self.project.id, expiry_status)
             else:
                 LOG.error("%s: PT expiry in unknown state: "
                           "expiry_status %s",

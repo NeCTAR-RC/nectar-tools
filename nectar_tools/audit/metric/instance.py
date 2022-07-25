@@ -70,8 +70,8 @@ class InstanceAuditor(base.ResourceAuditor):
                             nova_instance = i
                             break
                 if nova_instance is None or not nova_instances:
-                    LOG.warn("Can't find deleted instance in nova %s",
-                             instance)
+                    LOG.warning("Can't find deleted instance in nova %s",
+                                instance)
                     continue
 
             az = getattr(nova_instance, 'OS-EXT-AZ:availability_zone', None)
