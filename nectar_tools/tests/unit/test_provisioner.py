@@ -1051,6 +1051,8 @@ class ProvisionerTests(test.TestCase):
             mock_k_client_sys.limits.list.return_value = []
             mock_get_default.return_value = 56
             output = self.manager.get_limit(service, project_id, resource_name)
+            mock_get_default.assert_called_once_with(
+                service=service, resource_name=resource_name)
             self.assertEqual(56, output)
 
     def test_delete_limits(self):

@@ -756,8 +756,7 @@ class ProvisioningManager(object):
             limit = limits[0].resource_limit
         if not limits:
             limit = self.get_default_limit(service=service,
-                                           resource_name=resource_name,
-                                           limit_only=True)
+                                           resource_name=resource_name)
         return limit
 
     def delete_limits(self, service, project_id):
