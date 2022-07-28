@@ -16,18 +16,19 @@ class ProvisionCmd(cmd_base.CmdBase):
 
     def __init__(self):
         super(ProvisionCmd, self).__init__(log_filename='provisioning.log')
-        self.manager = manager.ProvisioningManager(self.session, self.dry_run)
+        self.manager = manager.ProvisioningManager(ks_session=self.session,
+                                                   noop=self.dry_run)
 
     def _get_allocation(self, allocation_id):
-        allocation = self.manager.client.allocations.get(allocation_id)
+        allocation = self.manager.a_client.allocations.get(allocation_id)
 
         if allocation.status != states.APPROVED:
-            allocation = self.manager.client.allocations.get_last_approved(
+            allocation = self.manager.a_client.allocations.get_last_approved(
                 parent_request_id=allocation_id)
         return allocation
 
     def provision_all_pending(self):
-        allocations = self.manager.client.allocations.list(
+        allocations = self.manager.a_client.allocations.list(
             status=states.APPROVED, provisioned=False,
             parent_request__isnull=True)
         for allocation in allocations:

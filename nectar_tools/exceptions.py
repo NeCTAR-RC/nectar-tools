@@ -35,3 +35,7 @@ class DeleteFailure(Exception):
 
 class LimitReached(Exception):
     pass
+
+
+class InvalidLimits(Exception):
+    pass

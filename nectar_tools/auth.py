@@ -20,6 +20,7 @@ from openstack import connection as sdkconnection
 from placementclient import client as placementclient
 from swiftclient import client as swiftclient
 from troveclient import client as troveclient
+from warreclient import client as warreclient
 
 from nectar_tools.config import configurable
 
@@ -28,14 +29,19 @@ LOG = logging.getLogger(__name__)
 
 
 @configurable('openstack.client', env_prefix='OS')
-def get_session(username, password, project_name, auth_url):
+def get_session(auth_url, username, password, project_name=None,
+                system_scope='project'):
     loader = loading.get_plugin_loader('password')
-    auth = loader.load_from_options(auth_url=auth_url,
-                                    username=username,
-                                    password=password,
-                                    project_name=project_name,
-                                    user_domain_id='default',
-                                    project_domain_id='default')
+    kwargs = {'auth_url': auth_url,
+              'username': username,
+              'password': password,
+              'system_scope': system_scope,
+              'user_domain_id': 'default',
+    }
+    if system_scope == 'project':
+        kwargs['project_name'] = project_name
+        kwargs['project_domain_id'] = 'default'
+    auth = loader.load_from_options(**kwargs)
     return session.Session(auth=auth)
 
 
@@ -155,3 +161,9 @@ def get_cloudkitty_client(sess=None):
     if not sess:
         sess = get_session()
     return cloudkittyclient.Client(version='2', session=sess)
+
+
+def get_warre_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return warreclient.Client(version='1', session=sess)
