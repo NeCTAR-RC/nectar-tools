@@ -806,15 +806,16 @@ class ProvisioningManager(object):
             service=warre_service,
             project_id=allocation.project_id)
 
-        resource_names = ["hours", "reservation"]
-        for resource_name in resource_names:
-            limit = int(allocated_quota.get(resource_name))
-            if limit:
-                self.k_client_sys.limits.create(
+        if allocated_quota:
+            resource_names = ["hours", "reservation"]
+            for resource_name in resource_names:
+                limit = int(allocated_quota.get(resource_name))
+                if limit:
+                    self.k_client_sys.limits.create(
                         project=allocation.project_id,
                         service=warre_service, resource_name=resource_name,
                         resource_limit=limit, region=CONF.limits.region_id)
-        LOG.info("%s: Set Warre Quota: %s", allocation.id, allocated_quota)
+            LOG.info("%s: Set Warre Quota: %s", allocation.id, allocated_quota)
 
     def reservation_flavor_grant(self, allocation, category):
         if self.noop:
