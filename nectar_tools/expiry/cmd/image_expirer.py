@@ -108,8 +108,8 @@ class ImageExpiryCmd(cmd_base.CmdBase):
         self.parser.add_argument('-a', '--set-admin', action='store_true',
                                  help='Mark a list of projects as admins')
         self.parser.add_argument('--force-delete', action='store_true',
-                                 help="Delete an image no matter what state it's \
-                                 in")
+                                 help="Delete an image no matter what state \
+                                 it's in")
 
     def set_admin(self):
         """Set status to admin for specified list of images.
