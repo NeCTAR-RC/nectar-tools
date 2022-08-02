@@ -1,5 +1,7 @@
 from unittest import mock
 
+from freezegun import freeze_time
+
 from nectar_tools import exceptions
 from nectar_tools.reports import manager
 from nectar_tools import test
@@ -90,3 +92,24 @@ class ManagerTests(test.TestCase):
             mock_su_info.assert_called_once_with(self.manager.ks_session,
                                                  allocation)
             mock_send.assert_called_once_with(allocation)
+
+    @freeze_time('2022-01-08')
+    @mock.patch('nectar_tools.common.service_units.SUinfo')
+    def test_send_reports_over_budget_not_ready(self, mock_su_info):
+        allocation = fakes.get_allocation()
+        allocation.start_date = '2022-01-01'
+        allocation.end_date = '2022-02-01'
+        mock_su_info.return_value = fakes.FakeSUinfo(allocation=allocation,
+                                                     tracking_over=True)
+        allocation.project_id = '123'
+        with test.nested(
+                mock.patch.object(self.manager, 'k_client'),
+                mock.patch.object(self.manager, 'send_over_budget_report')
+        ) as (mock_keystone, mock_send):
+            mock_keystone.projects.get.return_value = \
+                fakes.FakeProject()
+
+            self.manager.send_reports(allocation)
+            mock_su_info.assert_called_once_with(self.manager.ks_session,
+                                                 allocation)
+            mock_send.assert_not_called()

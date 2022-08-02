@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 from nectar_tools import auth
@@ -62,4 +63,11 @@ class SUReporter(object):
         su_info = service_units.SUinfo(self.ks_session, allocation)
 
         if su_info.is_tracking_over():
+            today = datetime.datetime.today()
+            days_used = (today - su_info.allocation_start).days
+            if (days_used / su_info.allocation_total_days) < 0.25:
+                LOG.debug(f"{allocation.id}: Skipping, allocation less "
+                          "than 25% through allocated period")
+                return
+
             self.send_over_budget_report(allocation)

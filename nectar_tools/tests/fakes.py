@@ -457,11 +457,13 @@ ZONE_ACCEPT_TRANSFER = {
 
 class FakeSUinfo(service_units.SUinfo):
     def __init__(self, usage=10, budget=20, tracking_over=False,
-                 allocation=get_allocation()):
+                 allocation=None):
+        if allocation is None:
+            allocation = get_allocation()
+        super().__init__(allocation=allocation, session=None)
         self._usage = usage
         self._budget = budget
         self.tracking_over = tracking_over
-        self.allocation = allocation
 
     def is_tracking_over(self):
         return self.tracking_over
