@@ -60,8 +60,7 @@ class SUinfoTests(test.TestCase):
 
         client.summary.get_summary.assert_called_once_with(
             begin=self.allocation.start_date, end=self.allocation.end_date,
-            filters={'type': 'instance',
-                     'project_id': self.allocation.project_id},
+            filters={'project_id': self.allocation.project_id},
             response_format='object')
 
         self.assertEqual(21, usage)

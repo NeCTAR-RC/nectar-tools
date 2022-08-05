@@ -47,8 +47,7 @@ class SUinfo(object):
             summary = client.summary.get_summary(
                 begin=str(self.allocation.start_date),
                 end=str(self.allocation.end_date),
-                filters={'type': 'instance',
-                         'project_id': self.allocation.project_id},
+                filters={'project_id': self.allocation.project_id},
                 response_format='object')
 
             results = summary.get('results')
