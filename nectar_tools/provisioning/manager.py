@@ -487,7 +487,7 @@ class ProvisioningManager(object):
         if cloudkitty_quota.get('budget', 0) > 0:
             self.flavor_grant(allocation, 'compute-v3')
             self.flavor_grant(allocation, 'memory-v3')
-        if self.noop and allocated_quota:
+        if self.noop:
             LOG.info("%s: Would set nova quota to %s", allocation.id,
                      allocated_quota)
             return
@@ -529,7 +529,7 @@ class ProvisioningManager(object):
 
     def set_cinder_quota(self, allocation):
         allocated_quota = allocation.get_allocated_cinder_quota()
-        if self.noop and allocated_quota:
+        if self.noop:
             LOG.info("%s: Would set cinder quota to %s", allocation.id,
                      allocated_quota)
             return
