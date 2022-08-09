@@ -15,7 +15,7 @@ class FlavorAuditor(base.RatingAuditor):
         FLAVOR_KEY = 'nectar:rate'
 
         flavors = self.n_client.flavors.list(is_public=None)
-        mappings = self._get_mappings()
+        mappings = self._get_mappings(group='instance_uptime_flavor_id')
         mappings = {m.get('value'): m for m in mappings}
 
         for flavor in flavors:
@@ -60,11 +60,11 @@ class FlavorAuditor(base.RatingAuditor):
         }
 
         flavors = self.n_client.flavors.list(is_public=None)
-        mappings = self._get_mappings()
+        mappings = self._get_mappings(group='instance_uptime_flavor_id')
         mappings = {m.get('value'): m for m in mappings}
 
-        group_id = self._get_group_id()
-        field_id = self._get_field_id()
+        group_id = self._get_group_id(name='instance_uptime_flavor_id')
+        field_id = self._get_field_id(service='instance', name='flavor_id')
 
         for flavor in flavors:
             if flavor.name.startswith('reservation:'):

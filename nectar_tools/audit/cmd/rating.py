@@ -1,11 +1,13 @@
 from nectar_tools.audit.cmd import base
 from nectar_tools.audit.rating import flavor
 from nectar_tools.audit.rating import project
+from nectar_tools.audit.rating import reservation
 
 
 class RatingAuditorCmd(base.AuditCmdBase):
 
-    AUDITORS = [flavor.FlavorAuditor, project.ProjectAuditor]
+    AUDITORS = [flavor.FlavorAuditor, project.ProjectAuditor,
+                reservation.ReservationFlavorAuditor]
 
     def add_args(self):
         super(RatingAuditorCmd, self).add_args()
