@@ -7,8 +7,8 @@ We hope that you have found the Nectar Research Cloud helpful in your research.
 Project allocations on the Research Cloud are created for a fixed term to ensure fair access to resources for all users of the cloud.
 <br />
 <br />
-{% if su_info.over_80_percent %}
-Your project allocation, <b>{{ project.name }}</b>, has now used over 80% of its allocated service unit budget
+{% if su_info.over_80_percent() %}
+Your project allocation, <b>{{ project.name }}</b>, has now used over 80% of its allocated service unit budget.
 {% else %}
 Your project allocation, <b>{{ project.name }}</b>, is <b>due to expire on {{ expiry_date }}.</b>
 {% endif %}

@@ -1,10 +1,9 @@
 from unittest import mock
 
 from nectar_tools import config
-from nectar_tools import test
-
 from nectar_tools.expiry import notifier
-
+from nectar_tools import notifier as base_notifier
+from nectar_tools import test
 from nectar_tools.tests import fakes
 
 
@@ -204,3 +203,51 @@ class ExpiryNotifierTests(test.TestCase):
             resource=inst, template_dir='instances',
             group_id=1, subject='subject')
         self.assertEqual(0, n._get_ticket_id())
+
+
+class AnyStringWith(str):
+    def __eq__(self, other):
+        return self in other
+
+
+class AllocationExpiryTemplateTests(test.TestCase):
+
+    def setUp(self, *args, **kwargs):
+        super().setUp(*args, **kwargs)
+        project = fakes.FakeProject()
+        self.notifier = base_notifier.Notifier(
+            resource_type='project', resource=project,
+            template_dir='expiry/allocations',
+            subject='foo')
+
+    def test_warn_su_over(self):
+        su_info = fakes.FakeSUinfo(usage=81, budget=100)
+        context = {'su_info': su_info}
+        self.assertTrue(su_info.over_80_percent())
+
+        body = self.notifier.render_template('first-warning.tmpl', context)
+        self.assertIn('80% of its allocated service unit budget', body)
+
+    def test_warn_su_under(self):
+        su_info = fakes.FakeSUinfo(usage=79, budget=100)
+        context = {'su_info': su_info, 'expiry_date': '2022-01-01'}
+        self.assertFalse(su_info.over_80_percent())
+
+        body = self.notifier.render_template('first-warning.tmpl', context)
+        self.assertIn('<b>due to expire on 2022-01-01.', body)
+
+    def test_restrict_su_over(self):
+        su_info = fakes.FakeSUinfo(usage=101, budget=100)
+        context = {'su_info': su_info}
+        self.assertTrue(su_info.over_budget())
+
+        body = self.notifier.render_template('restrict.tmpl', context)
+        self.assertIn('100% of its allocated service unit budget', body)
+
+    def test_restrict_su_under(self):
+        su_info = fakes.FakeSUinfo(usage=79, budget=100)
+        context = {'su_info': su_info, 'expiry_date': '2022-01-01'}
+        self.assertFalse(su_info.over_80_percent())
+
+        body = self.notifier.render_template('restrict.tmpl', context)
+        self.assertIn('has now reached its end date', body)
