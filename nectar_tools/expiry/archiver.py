@@ -324,7 +324,7 @@ class NovaArchiver(Archiver):
         attempts = int(instance.metadata.get('archive_attempts', 0))
         if attempts >= ARCHIVE_ATTEMPTS:
             # Duty ops needs to look into this, so ...
-            LOG.error('Limit reached for archive attempts of instance %s',
+            LOG.warn('Limit reached for archive attempts of instance %s',
                       instance.id)
             return
 
