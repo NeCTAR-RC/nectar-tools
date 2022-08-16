@@ -225,6 +225,11 @@ class NovaArchiver(Archiver):
         if task_state in ['image_snapshot_pending',
                           'image_snapshot', 'image_pending_upload']:
             return False
+        if instance.image == '':
+            LOG.info("%s: Instance %s is boot from volume skipping archive",
+                     self.project.id, instance.id)
+            return True
+
         image = self._get_image_by_instance_id(instance.id)
         if image:
             if image.status == 'active':

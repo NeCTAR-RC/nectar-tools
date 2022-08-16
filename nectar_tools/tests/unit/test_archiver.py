@@ -62,6 +62,11 @@ class NovaArchiverTests(test.TestCase):
             self.assertFalse(na._instance_has_archive(
                 fakes.FakeInstance(task_state=state)))
 
+    def test_instance_has_archive_boot_from_volume(self):
+        na = archiver.NovaArchiver(PROJECT)
+        instance = fakes.FakeInstance(image='')
+        self.assertTrue(na._instance_has_archive(instance))
+
     def test_instance_has_archive_no_image(self):
         na = archiver.NovaArchiver(PROJECT)
         instance = fakes.FakeInstance()
