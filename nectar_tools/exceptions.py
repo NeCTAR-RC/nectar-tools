@@ -39,3 +39,7 @@ class LimitReached(Exception):
 
 class InvalidLimits(Exception):
     pass
+
+
+class TryNextTimeError(Exception):
+    pass

@@ -6,6 +6,7 @@ from designateclient import exceptions as designate_exc
 from heatclient import exc as heat_exc
 from magnumclient import exceptions as magnum_exc
 from muranoclient.common import exceptions as murano_exc
+from swiftclient import exceptions as swift_exc
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -754,7 +755,14 @@ class SwiftArchiver(Archiver):
         if not self.dry_run:
             LOG.info("%s: Deleting container %s", self.project.id,
                      container['name'])
-            self.s_client.delete_container(container['name'])
+            try:
+                self.s_client.delete_container(container['name'])
+            except swift_exc.ClientException as e:
+                if e.http_reason == 'Conflict':
+                    raise exceptions.TryNextTimeError(
+                        'Swift container not empty yet')
+                else:
+                    raise e
         else:
             LOG.info("%s: Would delete container %s", self.project.id,
                      container['name'])
