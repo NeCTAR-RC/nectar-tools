@@ -17,7 +17,7 @@ placementclient
 jinja2
 prettytable
 python-freshdesk
-nectarallocationclient>=1.7.0
+nectarallocationclient>=1.8.0
 oslo.messaging
 oslo.context
 openstacksdk>=0.22.0
