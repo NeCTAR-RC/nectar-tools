@@ -654,6 +654,9 @@ class AllocationExpirer(ProjectExpirer):
     def delete_project(self):
         super(AllocationExpirer, self).delete_project()
 
+        # If no allocation then this is all we need to do
+        if self.force_no_allocation:
+            return
         # Refetch the project's current allocation record.  (At this point
         # self.allocation may be a history record which cannot be deleted.)
         allocation = self.get_current_allocation()
@@ -662,7 +665,7 @@ class AllocationExpirer(ProjectExpirer):
                       self.project.id, allocation.id)
 
         LOG.info("%s: Deleting allocation", allocation.id)
-        if self.dry_run or self.force_no_allocation:
+        if self.dry_run:
             LOG.info("%s: Would delete allocation", allocation.id)
         else:
             allocation.delete()
