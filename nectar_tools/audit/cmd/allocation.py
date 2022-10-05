@@ -24,11 +24,11 @@ class AllocationAuditorCmd(base.AuditCmdBase):
 
 
 def main():
-    cmd = AllocationAuditorCmd()
-    if cmd.args.all:
-        cmd.run_audits(allocation_id=None)
-    else:
-        cmd.run_audits(allocation_id=cmd.args.allocation_id)
+    with base.slack_context(AllocationAuditorCmd()) as cmd:
+        if cmd.args.all:
+            cmd.run_audits(allocation_id=None)
+        else:
+            cmd.run_audits(allocation_id=cmd.args.allocation_id)
 
 
 if __name__ == '__main__':

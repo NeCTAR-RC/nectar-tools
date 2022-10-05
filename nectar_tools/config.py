@@ -16,7 +16,19 @@ class AttrDict(dict):
             raise AttributeError(attr)
 
 
-class Config(AttrDict):
+class ConfigBase(AttrDict):
+    def read(self, filename):
+        if not os.path.isfile(filename):
+            print("Config file %s not found." % filename, file=sys.stderr)
+            return
+        conf = configparser.ConfigParser()
+        conf.read(filename)
+        self['DEFAULT'] = AttrDict(conf.defaults())
+        for section in conf.sections():
+            self[section] = AttrDict(conf.items(section))
+
+
+class Config(ConfigBase):
     def __init__(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('-c', '--config',
@@ -45,16 +57,6 @@ class Config(AttrDict):
     def args(self):
         self.parse()
         return self._parsed_args
-
-    def read(self, filename):
-        if not os.path.isfile(filename):
-            print("Config file %s not found." % filename, file=sys.stderr)
-            return
-        conf = configparser.ConfigParser()
-        conf.read(filename)
-        self['DEFAULT'] = AttrDict(conf.defaults())
-        for section in conf.sections():
-            self[section] = AttrDict(conf.items(section))
 
 
 CONFIG = Config()
