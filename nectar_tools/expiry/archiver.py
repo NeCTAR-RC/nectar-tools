@@ -977,13 +977,17 @@ class TroveArchiver(Archiver):
             if self.dry_run:
                 LOG.info("%s: Would stop trove instance %s",
                          self.project.id, db.id)
-            elif db.server.status == 'SHUTOFF':
-                LOG.info("%s: Nova instance for trove db %s already SHUTOFF",
-                         self.project.id, db.id)
+            elif db.server:
+                if db.server.get('status') != 'ACTIVE':
+                    LOG.info("%s: Nova instance for trove db %s is not ACTIVE",
+                             self.project.id, db.id)
+                else:
+                    LOG.info("%s: Stopping trove instance %s", self.project.id,
+                             db.id)
+                    self.t_client.mgmt_instances.stop(db.id)
             else:
-                LOG.info("%s: Stopping trove instance %s", self.project.id,
-                         db.id)
-                self.t_client.mgmt_instances.stop(db.id)
+                LOG.warning("%s: Nova instance not found for trove db %s",
+                         self.project.id, db.id)
 
     def delete_resources(self, force=False):
         if not force:
