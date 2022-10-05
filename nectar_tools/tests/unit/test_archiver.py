@@ -776,11 +776,11 @@ class TroveArchiverTests(test.TestCase):
 
     def test_stop_resources(self):
         ta = archiver.TroveArchiver(PROJECT)
-        e1 = mock.Mock()
-        e2 = mock.Mock()
-        e2.server.status = 'SHUTOFF'
+        e1 = mock.Mock(server={'status': 'ACTIVE'})
+        e2 = mock.Mock(server=None)
+        e3 = mock.Mock(server={'status': 'SHUTOFF'})
         with mock.patch.object(ta, 't_client') as mock_trove:
-            mock_trove.mgmt_instances.list.return_value = [e1, e2]
+            mock_trove.mgmt_instances.list.return_value = [e1, e2, e3]
             ta.stop_resources()
 
             mock_trove.mgmt_instances.list.assert_called_once_with(
