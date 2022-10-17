@@ -964,7 +964,7 @@ class TroveArchiver(Archiver):
         self.t_client = auth.get_trove_client(ks_session)
 
     def zero_quota(self):
-        body = {"backups": 0, "instances": 0, "ram": 0, "volumes": 0}
+        body = {"ram": 0, "volumes": 0}
         if not self.dry_run:
             LOG.info("%s: Zero trove quota", self.project.id)
             self.t_client.quota.update(self.project.id, body)

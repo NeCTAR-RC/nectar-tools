@@ -767,7 +767,7 @@ class MuranoArchiverTests(test.TestCase):
 class TroveArchiverTests(test.TestCase):
 
     def test_zero_quota(self):
-        body = {"backups": 0, "instances": 0, "ram": 0, "volumes": 0}
+        body = {"ram": 0, "volumes": 0}
         ta = archiver.TroveArchiver(PROJECT)
         with mock.patch.object(ta, 't_client') as mock_trove:
             ta.zero_quota()
