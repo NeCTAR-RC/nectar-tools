@@ -52,7 +52,7 @@ class LoadBalancerAuditor(base.Auditor):
                 loadbalancer_id=lb.id)
             for amp in amphorae:
                 if amp.get('image_id') != latest_image.id:
-                    LOG.warning("LB {lb.id} not using latest image")
+                    LOG.warning(f"LB {lb.id} not using latest image")
                     self.repair(
                         f"Fail over LB {lb.id}", lambda:
                         self.openstack.load_balancer.failover_load_balancer(
