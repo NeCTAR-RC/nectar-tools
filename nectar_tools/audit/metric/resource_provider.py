@@ -10,6 +10,20 @@ from nectar_tools import auth
 LOG = logging.getLogger(__name__)
 
 
+domain_site_mapping = {
+    'monash.edu.au': 'monash',
+    'melbourne.nectar.org.au': 'melbourne',
+    'unimelb.edu.au': 'melbourne',
+    'qld.nectar.org.au': 'QRIScloud',
+    'auckland': 'auckland',
+    'intersect': 'intersect',
+    'tpac.org.au': 'tasmania',
+    'mgmt.sut': 'swinburne',
+    'os.sut': 'swinburne',
+    'test.rc.nectar.org.au': 'coreservices',
+}
+
+
 class ResourceProviderAuditor(base.ResourceAuditor):
 
     def setup_clients(self):
@@ -20,19 +34,6 @@ class ResourceProviderAuditor(base.ResourceAuditor):
         resources = self.g_client.resource.search(
             resource_type='resource_provider',
             query='site=null')
-
-        domain_site_mapping = {
-            'monash.edu.au': 'monash',
-            'melbourne.nectar.org.au': 'melbourne',
-            'unimelb.edu.au': 'melbourne',
-            'qld.nectar.org.au': 'QRIScloud',
-            'auckland': 'auckland',
-            'intersect': 'intersect',
-            'tpac.org.au': 'tasmania',
-            'mgmt.sut': 'swinburne',
-            'os.sut': 'swinburne',
-            'test.rc.nectar.org.au': 'coreservices',
-        }
 
         for rp in resources:
             LOG.info("Processing %s", rp['name'])
@@ -94,8 +95,15 @@ class ResourceProviderAuditor(base.ResourceAuditor):
             resource_type='resource_provider',
             query='scope=null and ended_at=null')
         for rp in resources:
-            LOG.info("Resource provider %s has no scope set. Scope should "
-                     "be set to \"local\" or \"national\". Fix with: "
-                     "gnocchi resource update --type resource_provider "
-                     "-a 'scope:<local_or_national>' %s",
-                     rp['name'], rp['id'])
+            if 'auckland' in rp['name']:
+                self.repair(f"Setting scope for {rp['name']} to local",
+                            self.g_client.resource.update,
+                            resource_type='resource_provider',
+                            resource_id=rp['id'],
+                            resource={'scope': 'local'})
+            else:
+                LOG.info("Resource provider %s has no scope set. Scope should "
+                         "be set to \"local\" or \"national\". Fix with: "
+                         "gnocchi resource update --type resource_provider "
+                         "-a 'scope:<local_or_national>' %s",
+                         rp['name'], rp['id'])
