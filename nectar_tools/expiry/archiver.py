@@ -6,6 +6,7 @@ from designateclient import exceptions as designate_exc
 from heatclient import exc as heat_exc
 from magnumclient import exceptions as magnum_exc
 from muranoclient.common import exceptions as murano_exc
+from novaclient import exceptions as nova_exc
 from swiftclient import exceptions as swift_exc
 
 from nectar_tools import auth
@@ -302,21 +303,38 @@ class NovaArchiver(Archiver):
 
     def _all_instances(self):
         if self.instances is None:
-            instances = []
-            marker = None
-            opts = {"all_tenants": True,
-                    'tenant_id': self.project.id}
+            # The Nova list servers fails occasionally with a 504 error
+            # e.g. due to transient DB connection issues.  Retry a couple
+            # of times as a workaround.
+            MAX_RETRIES = 2
+            for retry in range(MAX_RETRIES + 1):
+                try:
+                    instances = []
+                    marker = None
+                    opts = {"all_tenants": True,
+                            'tenant_id': self.project.id}
 
-            while True:
-                if marker:
-                    opts["marker"] = marker
-                result = self.n_client.servers.list(search_opts=opts)
-                if not result:
-                    break
-                instances.extend(result)
-                marker = instances[-1].id
+                    while True:
+                        if marker:
+                            opts["marker"] = marker
+                        result = self.n_client.servers.list(search_opts=opts)
+                        if not result:
+                            break  # ... the paging loop
+                        instances.extend(result)
+                        marker = instances[-1].id
+                    self.instances = instances
+                    break      # ... the retry loop
+                except nova_exc.ClientException as e:
+                    if e.code != 504:
+                        raise e
+                    if retry == MAX_RETRIES:
+                        LOG.info("%s: 'nova list' still failing after "
+                                 "%s retries; giving up",
+                                 self.project.id, retry)
+                        raise e
+                    LOG.info("%s: Retrying 'nova list' after an HTTP %s error",
+                             self.project.id, e.code)
 
-            self.instances = instances
         return self.instances
 
     def _archive_instance(self, instance):

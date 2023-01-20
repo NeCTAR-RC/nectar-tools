@@ -4,6 +4,7 @@ from designateclient import exceptions as designate_exc
 from heatclient import exc as heat_exc
 from magnumclient import exceptions as magnum_exc
 from muranoclient.common import exceptions as murano_exc
+from novaclient import exceptions as nova_exc
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -330,6 +331,38 @@ class NovaArchiverTests(test.TestCase):
             mock_glance.images.delete.assert_has_calls([mock.call(image1.id),
                                                         mock.call(image2.id)])
             self.assertEqual(mock_glance.images.delete.call_count, 2)
+
+    def test_all_instances_retry_soft(self):
+        na = archiver.NovaArchiver(PROJECT)
+        i1 = fakes.FakeInstance(id='i1')
+        i2 = fakes.FakeInstance(id='i2')
+
+        def fake_list(search_opts):
+            if 'marker' in search_opts:
+                return []
+            else:
+                return [i1, i2]
+
+        # Simulate a single 504 failure
+        with mock.patch.object(na, 'n_client') as mock_nova:
+            mock_nova.servers.list.side_effect = [
+                nova_exc.ClientException(code=504),
+                [i1, i2],
+                []
+            ]
+            instances = na._all_instances()
+            self.assertEqual(3, mock_nova.servers.list.call_count)
+            self.assertEqual([i1, i2], instances)
+
+    def test_all_instances_retry_hard(self):
+        na = archiver.NovaArchiver(PROJECT)
+
+        # Simulate a repeated 504 failure
+        with mock.patch.object(na, 'n_client') as mock_nova:
+            mock_nova.servers.list.side_effect = nova_exc.ClientException(
+                code=504)
+            self.assertRaises(nova_exc.ClientException, na._all_instances)
+            self.assertTrue(mock_nova.servers.list.call_count > 2)
 
     def test_all_instances(self):
         na = archiver.NovaArchiver(PROJECT)
