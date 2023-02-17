@@ -1,16 +1,17 @@
 import datetime
-
 import logging
 
-import novaclient
 
 from dateutil import parser
+from gnocchiclient import exceptions as g_exceptions
+import novaclient
+
 from nectar_tools.audit.metric import base
 from nectar_tools import auth
 from nectar_tools import config
 
-CONF = config.CONFIG
 
+CONF = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 
@@ -181,7 +182,21 @@ class InstanceAuditor(base.ResourceAuditor):
                 elif 'ended_at' in updates:
                     if updates['ended_at']:
                         updates['ended_at'] = updates['ended_at'] + '+00:00'
-                    self.repair(f"{id}: Setting ended_at",
-                                lambda: self.g_client.resource.update(
-                                    'instance', id,
-                                    {'ended_at': updates['ended_at']}))
+                    try:
+                        self.repair(f"{id}: Setting ended_at",
+                                    lambda: self.g_client.resource.update(
+                                        'instance', id,
+                                        {'ended_at': updates['ended_at']}))
+                    except g_exceptions.BadRequest:
+                        # Trying to set end before start in gnocchi so update
+                        # both
+                        LOG.error(f"Repair: {id}: end before start updating "
+                                  "both")
+                        self.repair(f"{id}: Setting started_at",
+                                    lambda: self.g_client.resource.update(
+                                        'instance', id,
+                                        {'started_at': str(start)}))
+                        self.repair(f"{id}: Setting ended_at",
+                                    lambda: self.g_client.resource.update(
+                                        'instance', id,
+                                        {'ended_at': updates['ended_at']}))
