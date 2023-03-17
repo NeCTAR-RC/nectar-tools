@@ -35,12 +35,14 @@ def get_session(auth_url, username, password, project_name=None,
     kwargs = {'auth_url': auth_url,
               'username': username,
               'password': password,
-              'system_scope': system_scope,
               'user_domain_id': 'default',
     }
     if system_scope == 'project':
         kwargs['project_name'] = project_name
         kwargs['project_domain_id'] = 'default'
+    elif system_scope == 'all':
+        kwargs['system_scope'] = 'all'
+
     auth = loader.load_from_options(**kwargs)
     return session.Session(auth=auth)
 
