@@ -20,6 +20,7 @@ domain_site_mapping = {
     'tpac.org.au': 'tasmania',
     'mgmt.sut': 'swinburne',
     'os.sut': 'swinburne',
+    'mel-1.rc.nectar.org.au': 'ardc',
     'test.rc.nectar.org.au': 'coreservices',
 }
 

@@ -31,7 +31,8 @@ NETWORK_SITE_MAP = {
     'qh2-uom-internal': 'melbourne',
     'monash-02': 'monash',
     'monash-01': 'monash',
-    'monash': 'monash'
+    'monash': 'monash',
+    'ardc-mel-1': 'ardc',
 }
 
 AZ_SITE_MAP = {
@@ -58,6 +59,7 @@ AZ_SITE_MAP = {
     'tasmania': 'tasmania',
     'tasmania-02': 'tasmania',
     'tasmania-s': 'tasmania',
+    'ardc-mel-1': 'ardc',
     # Shared
     'internal': 'unknown',
     'nova': 'unknown'
