@@ -10,3 +10,9 @@ Features
 --------
 
 * TODO
+
+Prerequisites
+-------------
+
+This depends on the python 'cryptography' package which (on some Linux
+platforms) requires 'pkg-config' to be installed.
