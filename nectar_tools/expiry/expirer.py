@@ -126,7 +126,7 @@ class Expirer(object):
 
     def _send_notification(self, stage, extra_context={}, tags=[]):
         if self.get_status() == expiry_states.DELETED:
-            LOG.info("%s: Skipping notification, project alreaded deleted",
+            LOG.info("%s: Skipping notification, project already deleted",
                      self.resource.id)
             return
         context = self._get_notification_context()
