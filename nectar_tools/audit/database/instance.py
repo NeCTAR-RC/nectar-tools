@@ -1,5 +1,7 @@
 import logging
 
+from novaclient import exceptions as n_exc
+
 from nectar_tools.audit import base
 from nectar_tools import auth
 from nectar_tools import config
@@ -94,8 +96,17 @@ class DatabaseInstanceAuditor(base.Auditor):
                 continue
 
             if id not in ids:
+                if v.status == 'in-use':
+                    instance = v.attachments[0].get('server_id')
+                    try:
+                        self.n_client.servers.get(instance)
+                    except n_exc.NotFound:
+                        self.repair(f"Reset volume {v.id} state instance gone",
+                                    self.c_client.volumes.reset_state,
+                                    volume=v.id, state='error',
+                                    attach_status='detached')
                 try:
-                    self.repair(f"Delete old volume for instance {id}",
+                    self.repair(f"Delete old volume {v.id} for instance {id}",
                                 self.c_client.volumes.force_delete,
                                 volume=v.id)
                 except Exception as e:
