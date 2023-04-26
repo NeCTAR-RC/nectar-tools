@@ -24,7 +24,12 @@ class DatabaseInstanceAuditor(base.Auditor):
     def check_allowed_cidrs(self):
         instances = self.t_client.mgmt_instances.list()
         for i in instances:
-            trove_access = i.access.get('allowed_cidrs', ['0.0.0.0/0'])
+            trove_access_raw = i.access.get('allowed_cidrs', ['0.0.0.0/0'])
+            trove_access = []
+            for ip in trove_access_raw:
+                if '/' not in ip:
+                    ip = f'{ip}/32'
+                trove_access.append(ip)
             access = []
             name = 'trove_sg-%s' % i.id
             sgs = self.q_client.list_security_groups(
@@ -92,7 +97,7 @@ class DatabaseInstanceAuditor(base.Auditor):
             elif v.name.startswith('datastore-'):
                 id = v.name[10:]
             else:
-                LOG.info(f'Skipping volume {v.name}')
+                LOG.info(f'Skipping volume {v.name} ({v.id})')
                 continue
 
             if id not in ids:
