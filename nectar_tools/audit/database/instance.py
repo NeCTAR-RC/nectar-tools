@@ -20,6 +20,7 @@ class DatabaseInstanceAuditor(base.Auditor):
         self.q_client = auth.get_neutron_client(sess=self.ks_session)
         self.t_client = auth.get_trove_client(sess=self.ks_session)
         self.c_client = auth.get_cinder_client(sess=self.ks_session)
+        self.k_client = auth.get_keystone_client(sess=self.ks_session)
 
     def check_allowed_cidrs(self):
         instances = self.t_client.mgmt_instances.list()
@@ -118,3 +119,14 @@ class DatabaseInstanceAuditor(base.Auditor):
                     LOG.error(f"Failed to delete volume {v.id}, "
                               f"for instance {id}")
                     LOG.exception(e)
+
+    def check_running_with_deleted_project(self):
+        for inst in self.t_client.mgmt_instances.list():
+            project = self.k_client.projects.get(inst.tenant_id)
+            if not project.enabled or getattr(
+                    project, 'expiry_status', 'active') == 'deleted':
+                LOG.error("Instance %s belongs to a deleted project %s",
+                          inst.id, project.id)
+                self.repair(f"Deleted instance {inst.id}",
+                            self.t_client.instances.delete,
+                            instance=inst)
