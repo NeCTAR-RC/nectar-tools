@@ -1,6 +1,7 @@
 import logging
 
 from novaclient import exceptions as n_exc
+from troveclient.apiclient import exceptions as t_exc
 
 from nectar_tools.audit import base
 from nectar_tools import auth
@@ -130,3 +131,21 @@ class DatabaseInstanceAuditor(base.Auditor):
                 self.repair(f"Deleted instance {inst.id}",
                             self.t_client.instances.delete,
                             instance=inst)
+
+    def check_status(self):
+        for inst in self.t_client.mgmt_instances.list():
+            if inst.status == 'ERROR':
+                LOG.error(f"Instance {inst.id} in {inst.status} state")
+            elif inst.status == 'SHUTDOWN':
+                project = self.k_client.projects.get(inst.tenant_id)
+                expiry_status = getattr(project, 'expiry_status', 'active')
+                if expiry_status == 'active':
+                    LOG.error(f"Instance {inst.id} shut down but project not "
+                              "under expiry")
+            else:
+                try:
+                    self.t_client.databases.list(inst)
+                except t_exc.BadRequest:
+                    LOG.error(f"Instance {inst.id} RPC communication error")
+                else:
+                    LOG.debug(f"Instance {inst.id} RPC communication active")
