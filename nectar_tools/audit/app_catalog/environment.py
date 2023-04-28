@@ -54,10 +54,13 @@ class EnvironmentAuditor(base.Auditor):
                 LOG.error("Environment %s belongs to a deleted project %s",
                           env.id, project.id)
 
-                def do_repair():
-                    try:
-                        self.mc.environments.delete(env.id, abandon=True)
-                    except Exception:
-                        pass
+                self.repair(f"Removed deleted project environment {env.id}",
+                            self.mc.environments.delete,
+                            environment_id=env.id, abandon=True)
 
-                self.repair(f"Removed environment {env.id}", do_repair)
+    def check_orphaned_tempest_envs(self):
+        for env in self.mc.environments.list(all_tenants=True):
+            if env.name.startswith('Test_Murano'):
+                self.repair(f"Deleting tempest env {env.id}",
+                            self.mc.environments.delete,
+                            environment_id=env.id, abandon=True)
