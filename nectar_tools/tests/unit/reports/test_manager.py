@@ -42,6 +42,21 @@ class ManagerTests(test.TestCase):
 
             self.assertEqual(2, mock_send.call_count)
 
+    def test_send_all_skip_to(self):
+        a1 = self.allocations.get(id=1)
+        a2 = self.allocations.get(id=2)
+        allocations = [a1, a2]
+
+        with test.nested(
+                mock.patch.object(self.manager, 'a_client'),
+                mock.patch.object(self.manager, 'send_reports')
+        ) as (mock_allocation, mock_send):
+            mock_allocation.allocations.list.return_value = allocations
+
+            self.manager.send_all_reports(skip_to=a2.id)
+
+            self.assertEqual(1, mock_send.call_count)
+
     def test_send_reports_no_project_id(self):
         allocation = self.allocations.get(id=1)
         allocation.project_id = None

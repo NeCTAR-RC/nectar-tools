@@ -27,16 +27,29 @@ class SUReporter(object):
             allocation=allocation, ks_session=self.ks_session, noop=self.noop)
         n.send_over_budget()
 
-    def send_all_reports(self):
+    def send_all_reports(self, skip_to=None):
         allocations = self.a_client.allocations.list(
             status='A', parent_request__isnull=True)
 
+        if skip_to:
+            LOG.info(f"Skipping to allocation {skip_to}")
         for allocation in allocations:
+            if skip_to:
+                if skip_to == allocation.id:
+                    skip_to = None
+                    LOG.info(f"Found allocation {allocation.id}, resuming")
+                else:
+                    continue
             try:
                 self.send_reports(allocation)
             except exceptions.InvalidProjectAllocation as e:
                 LOG.error(e)
                 continue
+            except Exception as e:
+                LOG.error(f"Error processing allocation {allocation.id}")
+                raise e
+        if skip_to:
+            LOG.error(f"Didn't find --skip-to-... allocation {skip_to}")
 
     def send_reports(self, allocation):
         if type(allocation) == int:
