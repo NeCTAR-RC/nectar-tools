@@ -162,3 +162,123 @@ class UtilsTests(test.TestCase):
         mock_keystone.users.get.assert_has_calls([mock.call('fakeuser1'),
                                                   mock.call('fakeuser2')])
         self.assertEqual(['fakeuser1', 'fakeuser2'], [x.id for x in users])
+
+    @mock.patch("nectar_tools.utils.get_project_users")
+    def test_get_project_recipients(self, mock_get):
+
+        def get_users_side_effect(client, project, role):
+            if role == CONF.keystone.manager_role_id:
+                return [fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                        fakes.FakeUser(id="tm2", email="tm2@fake.com")]
+            else:
+                return [fakes.FakeUser(id="member1", email="member1@fake.com"),
+                        fakes.FakeUser(id="member2", email="member2@fake.com")]
+
+        mock_get.side_effect = get_users_side_effect
+        mock_client = mock.Mock()
+        mock_project = mock.Mock()
+
+        (to, cc) = utils.get_project_recipients(mock_client, mock_project)
+
+        self.assertEqual("tm1@fake.com", to)
+        self.assertEqual(["tm2@fake.com", "member1@fake.com",
+                          "member2@fake.com"], cc)
+
+    @mock.patch("nectar_tools.utils.get_project_users")
+    def test_get_project_recipients_mixed(self, mock_get):
+
+        def get_users_side_effect(client, project, role):
+            if role == CONF.keystone.manager_role_id:
+                return [fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                        fakes.FakeUser(id="tm2", email="tm2@fake.com")]
+            else:
+                return [fakes.FakeUser(id="member1", email="member1@fake.com"),
+                        fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                        fakes.FakeUser(id="member2", email="member2@fake.com"),
+                        fakes.FakeUser(id="tm2", email="tm2@fake.com"),
+                        fakes.FakeUser(id="member3", email="member3@fake.com")]
+
+        mock_get.side_effect = get_users_side_effect
+        mock_client = mock.Mock()
+        mock_project = mock.Mock()
+
+        (to, cc) = utils.get_project_recipients(mock_client, mock_project)
+
+        self.assertEqual("tm1@fake.com", to)
+        self.assertEqual(["tm2@fake.com", "member1@fake.com",
+                          "member2@fake.com", "member3@fake.com"], cc)
+
+    @mock.patch("nectar_tools.utils.get_project_users")
+    def test_get_project_recipients_no_tm(self, mock_get):
+
+        def get_users_side_effect(client, project, role):
+            if role == CONF.keystone.manager_role_id:
+                return []
+            else:
+                return [fakes.FakeUser(id="member1", email="member1@fake.com"),
+                        fakes.FakeUser(id="member2", email="member2@fake.com"),
+                        fakes.FakeUser(id="member3", email="member3@fake.com")]
+
+        mock_get.side_effect = get_users_side_effect
+        mock_client = mock.Mock()
+        mock_project = mock.Mock()
+
+        (to, cc) = utils.get_project_recipients(mock_client, mock_project)
+
+        self.assertEqual("member1@fake.com", to)
+        self.assertEqual(["member2@fake.com", "member3@fake.com"], cc)
+
+    @mock.patch("nectar_tools.utils.get_project_users")
+    def test_get_project_recipients_too_many(self, mock_get):
+
+        def get_users_side_effect(client, project, role):
+            if role == CONF.keystone.manager_role_id:
+                return [fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                        fakes.FakeUser(id="tm2", email="tm2@fake.com")]
+            else:
+                return [
+                    fakes.FakeUser(id=f"m{i}", email=f"m{i}@fake.com")
+                    for i in range(1, 100)]
+
+        mock_get.side_effect = get_users_side_effect
+        mock_client = mock.Mock()
+        mock_project = mock.Mock()
+
+        (to, cc) = utils.get_project_recipients(mock_client, mock_project)
+
+        self.assertEqual("tm1@fake.com", to)
+        self.assertEqual(49, len(cc))
+        self.assertEqual("m1@fake.com", cc[1])
+        self.assertEqual("m48@fake.com", cc[-1])
+
+    @mock.patch("nectar_tools.utils.get_project_users")
+    def test_get_allocation_recipients(self, mock_get):
+
+        def get_users_side_effect(client, project, role):
+            if role == CONF.keystone.manager_role_id:
+                return [fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                        fakes.FakeUser(id="tm2", email="tm2@fake.com")]
+            else:
+                return [fakes.FakeUser(id="member1", email="member1@fake.com"),
+                        fakes.FakeUser(id="member2", email="member2@fake.com")]
+
+        mock_get.side_effect = get_users_side_effect
+        mock_client = mock.Mock()
+        mock_project = mock.Mock()
+        mock_allocation = mock.Mock(project_id=mock_project,
+                                    contact_email="contact@fake.com",
+                                    approver_email="approver@fake.com")
+
+        (to, cc) = utils.get_allocation_recipients(
+            mock_client, mock_allocation)
+
+        self.assertEqual("contact@fake.com", to)
+        self.assertEqual(["tm1@fake.com", "tm2@fake.com",
+                          "approver@fake.com",
+                          "member1@fake.com", "member2@fake.com"], cc)
+        mock_get.assert_has_calls([
+            mock.call(mock_client, mock_project,
+                      role=CONF.keystone.manager_role_id),
+            mock.call(mock_client, mock_project,
+                      role=CONF.keystone.member_role_id),
+        ])

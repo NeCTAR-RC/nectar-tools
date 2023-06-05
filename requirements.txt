@@ -25,3 +25,4 @@ manukaclient
 python-magnumclient
 warreclient>=2.4.0
 requests
+ordered_set

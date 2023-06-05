@@ -1,5 +1,7 @@
 import re
 
+from ordered_set import OrderedSet
+
 from nectar_tools import auth
 from nectar_tools import config
 from nectar_tools.expiry import archiver
@@ -110,6 +112,10 @@ def get_project_users(client, project, role):
     return users
 
 
+# Freshdesk limits us to 49 CC's on an email ... sigh
+MAX_CC_COUNT = 49
+
+
 def get_project_recipients(client, project):
     """Returns emails for a project
 
@@ -117,24 +123,8 @@ def get_project_recipients(client, project):
     being the primary recipient and the second
     being all other project managers and members
     """
-    managers = get_project_users(
-        client, project,
-        role=CONF.keystone.manager_role_id)
-    members = get_project_users(
-        client, project,
-        role=CONF.keystone.member_role_id)
-    manager_emails = get_emails(managers)
-    member_emails = get_emails(members)
-    extra_emails = list(set(manager_emails + member_emails))
-    if not extra_emails:
-        return (None, [])
 
-    # By default, recipient will be set as the first project manager
-    # or first project member. It will be passed into "to" field of the
-    # notification email, while extra_emails will be into 'cc' field
-    recipient = manager_emails[0] if manager_emails else member_emails[0]
-    extra_emails.remove(recipient)
-    return (recipient, extra_emails)
+    return _do_get_recipients(client, project)
 
 
 def get_allocation_recipients(client, allocation):
@@ -148,17 +138,30 @@ def get_allocation_recipients(client, allocation):
     # For allocation case, the 'to' field of the notification email
     # should be the project allocation owner
     owner_email = allocation.contact_email.lower()
-    approver_email = allocation.approver_email.lower()
+    approver_email = (allocation.approver_email.lower()
+                      if is_email_address(allocation.approver_email) else None)
 
-    recipient, extra_emails = get_project_recipients(
-        client, allocation.project_id)
+    return _do_get_recipients(client, allocation.project_id,
+                              owner=owner_email, approver=approver_email)
 
-    if recipient:
-        extra_emails.append(recipient)
 
-    if is_email_address(approver_email) \
-       and approver_email not in extra_emails:
-        extra_emails.append(approver_email)
-    if owner_email in extra_emails:
-        extra_emails.remove(owner_email)
-    return (owner_email, extra_emails)
+def _do_get_recipients(client, project, owner=None, approver=None,
+                       limit=MAX_CC_COUNT):
+    managers = get_project_users(
+        client, project,
+        role=CONF.keystone.manager_role_id)
+    members = get_project_users(
+        client, project,
+        role=CONF.keystone.member_role_id)
+    manager_emails = get_emails(managers)
+    member_emails = get_emails(members)
+    approver_emails = [approver] if approver else []
+    extra_emails = list(OrderedSet(manager_emails + approver_emails
+                                   + member_emails))
+    recipient = (owner if owner
+                 else manager_emails[0] if manager_emails
+                 else approver if approver
+                 else member_emails[0])
+    if recipient in extra_emails:
+        extra_emails.remove(recipient)
+    return (recipient, extra_emails[0:limit])
