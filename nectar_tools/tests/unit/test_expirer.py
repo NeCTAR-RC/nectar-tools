@@ -1148,6 +1148,7 @@ class AllocationExpiryTests(test.TestCase):
                                    'modified_time': '2015-01-02T10:10:10Z',
                                    'notifications': True,
                                    'project_id': 'dummy',
+                                   'project_name': 'dummy-name',
                                    'quotas': [],
                                    'start_date': '2015-01-01',
                                    'status': 'A'},
@@ -1410,7 +1411,7 @@ class PTExpiryProcessTests(test.TestCase):
 @mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
             new=mock.Mock())
 @mock.patch('nectarallocationclient.v1.allocations.AllocationManager',
-            new=fakes.FakeAllocationManager)
+            new=fakes.FakeAllocationManager2)
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class AllocationInstanceExpiryTests(test.TestCase):
 

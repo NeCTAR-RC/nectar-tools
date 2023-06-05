@@ -9,6 +9,7 @@ from nectar_tools.common import service_units
 ALLOCATIONS = {
     'dummy': {'id': 1,
               'project_id': 'dummy',
+              'project_name': 'dummy-name',
               'status': 'A',
               'start_date': '2015-01-01',
               'end_date': '2016-01-01',
@@ -17,8 +18,9 @@ ALLOCATIONS = {
               'contact_email': 'fake@fake.org',
               'approver_email': 'approver@fake.org',
               'notifications': True},
-    'no-notifications': {'id': 1,
+    'no-notifications': {'id': 11,
                          'project_id': 'dummy',
+                         'project_name': 'dummy-name',
                          'status': 'A',
                          'start_date': '2015-01-01',
                          'end_date': '2016-01-01',
@@ -29,6 +31,7 @@ ALLOCATIONS = {
                          'notifications': False},
     'warning1': {'id': 2,
                  'project_id': 'warning1',
+                 'project_name': 'warning1-name',
                  'status': 'A',
                  'start_date': '2015-01-01',
                  'end_date': '2017-01-01',
@@ -37,6 +40,7 @@ ALLOCATIONS = {
                  'contact_email': 'fake@fake.org'},
     'warning2': {'id': 3,
                  'project_id': 'warning2',
+                 'project_name': 'warning2-name',
                  'status': 'A',
                  'start_date': '2016-12-15',
                  'end_date': '2017-01-01',
@@ -45,6 +49,7 @@ ALLOCATIONS = {
                  'contact_email': 'fake@fake.org'},
     'active': {'id': 4,
                'project_id': 'active',
+               'project_name': 'active-name',
                'status': 'A',
                'start_date': '2015-01-01',
                'end_date': '2018-01-01',
@@ -53,7 +58,8 @@ ALLOCATIONS = {
                'contact_email': 'fake@fake.org'},
     'pending1': {'id': 6,
                  'project_id': 'pending1',
-                 'status': 'X',
+                 'project_name': 'pending1-name',
+                'status': 'X',
                  'start_date': '2016-01-01',
                  'end_date': '2016-07-01',
                  'modified_time': '2016-01-02T10:10:10Z',
@@ -61,6 +67,7 @@ ALLOCATIONS = {
                  'contact_email': 'fake@fake.org'},
     'pending2': {'id': 7,
                  'project_id': 'pending2',
+                 'project_name': 'pending2-name',
                  'status': 'X',
                  'start_date': '2016-01-01',
                  'end_date': '2017-07-01',
@@ -69,6 +76,7 @@ ALLOCATIONS = {
                  'contact_email': 'fake@fake.org'},
     'declined1': {'id': 8,
                  'project_id': 'declined1',
+                 'project_name': 'declined1-name',
                  'status': 'J',
                  'start_date': '2016-01-01',
                  'end_date': '2017-07-01',
@@ -77,6 +85,7 @@ ALLOCATIONS = {
                  'contact_email': 'fake@fake.org'},
     'declined2': {'id': 9,
                  'project_id': 'declined2',
+                 'project_name': 'declined-name',
                  'status': 'J',
                  'start_date': '2016-01-01',
                  'end_date': '2017-07-01',
@@ -85,6 +94,7 @@ ALLOCATIONS = {
                  'contact_email': 'fake@fake.org'},
     'expired': {'id': 10,
                 'project_id': 'expired',
+                'project_name': 'expired-name',
                 'status': 'A',
                 'start_date': '2015-01-01',
                 'end_date': '2016-07-01',
@@ -175,7 +185,16 @@ class FakeAllocationManager(object):
         return allocation
 
     def get(self, id):
-        return allocations.Allocation(self, ALLOCATION_RESPONSE, loaded=True)
+        for data in self.allocation_cache.values():
+            if data['id'] == id:
+                return allocations.Allocation(self, data, loaded=True)
+        raise allocation_exceptions.AllocationDoesNotExist()
+
+
+class FakeAllocationManager2(FakeAllocationManager):
+
+    def __init__(self, *args, **kwargs):
+        self.allocation_cache = {"dummy": ALLOCATION_RESPONSE}
 
 
 class FakeInstance(object):
@@ -418,6 +437,10 @@ ALLOCATION_RESPONSE = {
 
 
 def get_allocation():
+    """Create a fake allocation client object outside of the normal (fake)
+    manager framework.  Note that these objects don't have unique ids.
+    """
+
     return allocations.Allocation(FakeAllocationManager(), ALLOCATION_RESPONSE,
                                   loaded=True)
 

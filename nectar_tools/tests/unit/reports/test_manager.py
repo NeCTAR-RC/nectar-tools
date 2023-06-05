@@ -13,10 +13,11 @@ class ManagerTests(test.TestCase):
     def setUp(self):
         super().setUp()
         self.manager = manager.SUReporter(ks_session=mock.Mock())
+        self.allocations = fakes.FakeAllocationManager()
 
     @mock.patch('nectar_tools.reports.notifier.AllocationNotifier')
     def test_send_over_budget_report(self, mock_notifier):
-        allocation = fakes.get_allocation()
+        allocation = self.allocations.get(id=1)
         notifier = mock_notifier.return_value
         self.manager.send_over_budget_report(allocation)
         mock_notifier.assert_called_once_with(
@@ -27,8 +28,8 @@ class ManagerTests(test.TestCase):
         notifier.send_over_budget.assert_called_once_with()
 
     def test_send_all_reports(self):
-        a1 = fakes.get_allocation()
-        a2 = fakes.get_allocation()
+        a1 = self.allocations.get(id=1)
+        a2 = self.allocations.get(id=2)
         allocations = [a1, a2]
 
         with test.nested(
@@ -42,14 +43,14 @@ class ManagerTests(test.TestCase):
             self.assertEqual(2, mock_send.call_count)
 
     def test_send_reports_no_project_id(self):
-        allocation = fakes.get_allocation()
+        allocation = self.allocations.get(id=1)
         allocation.project_id = None
         with self.assertRaisesRegex(exceptions.InvalidProjectAllocation,
                                     "No project id"):
             self.manager.send_reports(allocation)
 
     def test_send_reports_project_disabled(self):
-        allocation = fakes.get_allocation()
+        allocation = self.allocations.get(id=1)
         allocation.project_id = '123'
         with mock.patch.object(self.manager, 'k_client') as mock_keystone:
             mock_keystone.projects.get.return_value = \
@@ -62,7 +63,7 @@ class ManagerTests(test.TestCase):
     @mock.patch('nectar_tools.common.service_units.SUinfo')
     def test_send_reports_under_budget(self, mock_su_info):
         mock_su_info.return_value = fakes.FakeSUinfo(tracking_over=False)
-        allocation = fakes.get_allocation()
+        allocation = self.allocations.get(id=1)
         allocation.project_id = '123'
         with test.nested(
                 mock.patch.object(self.manager, 'k_client'),
@@ -79,7 +80,7 @@ class ManagerTests(test.TestCase):
     @mock.patch('nectar_tools.common.service_units.SUinfo')
     def test_send_reports_over_budget(self, mock_su_info):
         mock_su_info.return_value = fakes.FakeSUinfo(tracking_over=True)
-        allocation = fakes.get_allocation()
+        allocation = self.allocations.get(id=1)
         allocation.project_id = '123'
         with test.nested(
                 mock.patch.object(self.manager, 'k_client'),
@@ -96,7 +97,7 @@ class ManagerTests(test.TestCase):
     @freeze_time('2022-01-08')
     @mock.patch('nectar_tools.common.service_units.SUinfo')
     def test_send_reports_over_budget_not_ready(self, mock_su_info):
-        allocation = fakes.get_allocation()
+        allocation = self.allocations.get(id=1)
         allocation.start_date = '2022-01-01'
         allocation.end_date = '2022-02-01'
         mock_su_info.return_value = fakes.FakeSUinfo(allocation=allocation,
