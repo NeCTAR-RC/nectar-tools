@@ -73,6 +73,10 @@ class SUReporter(object):
             raise exceptions.InvalidProjectAllocation(
                 f"Project {project.id} disabled")
 
+        if not allocation.start_date or not allocation.end_date:
+            raise exceptions.InvalidProjectAllocation(
+                f"Project {project.id} start or end date missing")
+
         su_info = service_units.SUinfo(self.ks_session, allocation)
 
         if su_info.is_tracking_over():
