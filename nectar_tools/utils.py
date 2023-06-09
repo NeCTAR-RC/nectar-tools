@@ -1,6 +1,5 @@
+import collections
 import re
-
-from ordered_set import OrderedSet
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -156,8 +155,12 @@ def _do_get_recipients(client, project, owner=None, approver=None,
     manager_emails = get_emails(managers)
     member_emails = get_emails(members)
     approver_emails = [approver] if approver else []
-    extra_emails = list(OrderedSet(manager_emails + approver_emails
-                                   + member_emails))
+
+    dedup = collections.OrderedDict()
+    for email in manager_emails + approver_emails + member_emails:
+        dedup[email] = ""
+    extra_emails = list(dedup.keys())
+
     recipient = (owner if owner
                  else manager_emails[0] if manager_emails
                  else approver if approver
