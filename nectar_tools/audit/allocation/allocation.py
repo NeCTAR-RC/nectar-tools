@@ -52,16 +52,16 @@ class AllocationAuditor(base.AllocationAuditorBase):
             grants = self.client.grants.list(allocation=a.id)
 
             # This does not take account of whether the grants were
-            # current at the last approval.
+            # current at the last approval.  Also, the rules about what
+            # is or is not a competetive grant are ... fluid.
             has_competitive_grant = any(
-                [g.grant_type in ('arc', 'nhmrc', 'comp') for g in grants])
+                [g.grant_type in ('arc', 'nhmrc', 'rdrd', 'comp')
+                 for g in grants])
 
-            # We can't tell if the Allocations ctty has made an exception or
-            # if the allocation has an international competitive grant.
             qualifies = has_competitive_grant \
-                        or a.nectar_support \
-                        or a.ncris_support
-            if a.national and not qualifies:
+                        or a.nectar_support or a.ardc_support \
+                        or a.ncris_support or a.ncris_facilities
+            if a.national and not qualifies and not a.special_approval:
                 LOG.info("Allocation %s (%s): national allocation (%s) has no "
                          "national competitive grants, and no ARDC or "
                          "NCRIS support",
