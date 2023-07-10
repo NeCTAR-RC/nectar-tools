@@ -229,6 +229,21 @@ class UtilsTests(test.TestCase):
         self.assertEqual(["member2@fake.com", "member3@fake.com"], cc)
 
     @mock.patch("nectar_tools.utils.get_project_users")
+    def test_get_project_recipients_none(self, mock_get):
+
+        def get_users_side_effect(client, project, role):
+            return []
+
+        mock_get.side_effect = get_users_side_effect
+        mock_client = mock.Mock()
+        mock_project = mock.Mock()
+
+        (to, cc) = utils.get_project_recipients(mock_client, mock_project)
+
+        self.assertIsNone(to)
+        self.assertEqual([], cc)
+
+    @mock.patch("nectar_tools.utils.get_project_users")
     def test_get_project_recipients_too_many(self, mock_get):
 
         def get_users_side_effect(client, project, role):

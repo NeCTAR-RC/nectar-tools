@@ -120,7 +120,9 @@ def get_project_recipients(client, project):
 
     Will return a tuple with the first item
     being the primary recipient and the second
-    being all other project managers and members
+    being all other project managers and members.
+    There may be no recipients at all, in which case the result
+    will be (None, []).
     """
 
     return _do_get_recipients(client, project)
@@ -132,10 +134,12 @@ def get_allocation_recipients(client, allocation):
     Will return a tuple with the first item
     being the owner of the allocation and the second
     being all other project managers and members.
-    Also included is the approver of the allocation
+    Also included is the approver of the allocation.
     """
-    # For allocation case, the 'to' field of the notification email
-    # should be the project allocation owner
+
+    # For the allocation case, the 'to' field of the notification email
+    # should be the current project allocation "owner"; i.e. the
+    # allocation's contact email.
     owner_email = allocation.contact_email.lower()
     approver_email = (allocation.approver_email.lower()
                       if is_email_address(allocation.approver_email) else None)
@@ -161,10 +165,13 @@ def _do_get_recipients(client, project, owner=None, approver=None,
         dedup[email] = ""
     extra_emails = list(dedup.keys())
 
+    # Take care: some projects have no allocation (contact),
+    # no project manager and no project members
     recipient = (owner if owner
                  else manager_emails[0] if manager_emails
                  else approver if approver
-                 else member_emails[0])
-    if recipient in extra_emails:
+                 else member_emails[0] if member_emails
+                 else None)
+    if recipient and recipient in extra_emails:
         extra_emails.remove(recipient)
     return (recipient, extra_emails[0:limit])
