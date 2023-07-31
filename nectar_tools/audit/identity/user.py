@@ -20,6 +20,11 @@ class UserAuditor(base.IdentityAuditor):
 
     def check_users_no_projects(self):
         for user in self.users:
+            if not user.enabled:
+                # Disabled user a/c's with no roles are not noteworthy.
+                # For example, the procedure for closing a cores or
+                # site operator a/c is to remove all roles and disable.
+                continue
             assignments = self.k_client.role_assignments.list(user=user)
             if not assignments:
                 LOG.info("User %s has no roles assigned", user.name)
