@@ -52,7 +52,7 @@ class SUReporter(object):
             LOG.error(f"Didn't find --skip-to-... allocation {skip_to}")
 
     def send_reports(self, allocation):
-        if type(allocation) == int:
+        if isinstance(allocation, int):
             allocation = self.a_client.allocations.get(allocation)
 
         if not allocation.project_id:

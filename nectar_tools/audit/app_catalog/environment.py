@@ -31,7 +31,7 @@ class EnvironmentAuditor(base.Auditor):
                         if current_env.services:
                             for services in current_env.services:
                                 for val in services.values():
-                                    if type(val) == dict:
+                                    if isinstance(val, dict):
                                         t = val.get('type')
                                         if t and t.find('/') > 0:
                                             packages.append(t.split('/')[0])
