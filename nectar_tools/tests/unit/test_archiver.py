@@ -68,6 +68,11 @@ class NovaArchiverTests(test.TestCase):
         instance = fakes.FakeInstance(image='')
         self.assertTrue(na._instance_has_archive(instance))
 
+    def test_instance_has_archive_shelved(self):
+        na = archiver.NovaArchiver(PROJECT)
+        instance = fakes.FakeInstance(status='SHELVED_OFFLOADED')
+        self.assertTrue(na._instance_has_archive(instance))
+
     def test_instance_has_archive_no_image(self):
         na = archiver.NovaArchiver(PROJECT)
         instance = fakes.FakeInstance()

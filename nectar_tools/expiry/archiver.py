@@ -232,6 +232,11 @@ class NovaArchiver(Archiver):
                      self.project.id, instance.id)
             return True
 
+        if instance.status == 'SHELVED_OFFLOADED':
+            LOG.info("%s: Instance %s is shelved, skipping archive",
+                     self.project.id, instance.id)
+            return True
+
         image = self._get_image_by_instance_id(instance.id)
         if image:
             if image.status == 'active':
