@@ -47,9 +47,10 @@ setuptools.setup(
             'nectar-pt-expiry = nectar_tools.expiry.cmd.pt_expirer:main',
             'nectar-rating-audit = nectar_tools.audit.cmd.rating:main',
             'nectar-su-reports = nectar_tools.reports.cmd.su_report:main',  # noqa
+            'resource-capacity = nectar_tools.cli.resource_capacity:main',
             'send-fd-outbound = nectar_tools.cli.send_fd_outbound:main',
             'warre-maintenance = nectar_tools.cli.warre_maintenance:main',
-            'resource-capacity = nectar_tools.cli.resource_capacity:main',
+            'warre-host-flavors = nectar_tools.cli.warre_host_flavors:main',
         ],
     },
     include_package_data=True,

@@ -1,4 +1,5 @@
 pbr
+python-blazarclient
 python-dateutil
 python-designateclient
 python-keystoneclient

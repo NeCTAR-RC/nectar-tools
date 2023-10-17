@@ -1,5 +1,6 @@
 import logging
 
+from blazarclient import client as blazarclient
 from cinderclient import client as cinderclient
 from cloudkittyclient import client as cloudkittyclient
 from designateclient import client as designateclient
@@ -169,3 +170,9 @@ def get_warre_client(sess=None):
     if not sess:
         sess = get_session()
     return warreclient.Client(version='1', session=sess)
+
+
+def get_blazar_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return blazarclient.Client(session=sess, service_type='reservation')
