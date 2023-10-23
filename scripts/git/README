@@ -1,0 +1,2 @@
+A collection of Git scripts.
+If these scripts are in your $PATH, Git will understand how to wrap them.

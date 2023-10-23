@@ -1,0 +1,21 @@
+#! /bin/bash
+
+# Given a path, return which Git repo it is in, if any.
+#
+# Useful if you are finding/grepping through multiple repos and
+# you are more interested in matching repos than matching files.
+
+if [[ $# -eq 0 ]]; then
+    git rev-parse --show-toplevel
+    exit 0;
+fi
+
+for a in "$@"; do
+    gitroot="$(realpath $a)"
+    if [[ ! -d "$gitroot" ]]; then
+        gitroot="$(dirname $gitroot)"
+    fi
+    pushd "$gitroot" > /dev/null
+        git rev-parse --show-toplevel
+    popd > /dev/null
+done | xargs -n1 basename

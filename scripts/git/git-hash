@@ -1,0 +1,16 @@
+#! /bin/bash
+
+# Simply outputs the full hash of any commit.
+# This can be useful in a pipeline with other commands like git-cherry-pick.
+
+_git_hash() {
+    git show -s --pretty=%H "${1}^{commit}"
+}
+
+if [[ $# -eq 0 ]]; then
+    _git_hash HEAD
+else
+    for rev in "$@"; do
+        _git_hash "$rev"
+    done
+fi

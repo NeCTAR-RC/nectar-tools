@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Edit a commit, similar to the edit directive when using 'git rebase -i'
+# Based on https://stackoverflow.com/a/52324605/10210798 (CC BY-SA 4.0)
+
+set -euo pipefail
+
+script_name=${0##*/}
+
+warn() {
+    >&2 printf '%s: %s\n' "$script_name" "$*"
+}
+die() {
+    warn "$@"
+    exit 1
+}
+
+case $# in
+    0) ref=HEAD ;;
+    1) ref="$1" ;;
+    *) die "Expected single commit to drop." ;;
+esac
+
+commit=$(git rev-parse --short "$ref")
+message=$(git log -1 --format='%h %s' "$commit")
+
+if [[ $OSTYPE =~ ^darwin ]]; then
+    sed_inplace=(sed -Ei "")
+else
+    sed_inplace=(sed -Ei)
+fi
+
+export GIT_SEQUENCE_EDITOR="${sed_inplace[*]} "' "s/^pick ('"$commit"' .*)/edit \\1/"'
+git rebase --quiet --interactive --autostash --autosquash "$commit"~
+
+# Reset the cache of the toplevel directory to the previous commit
+git reset --quiet @~ "$(git rev-parse --show-toplevel)"
+
+#  Commit an empty commit so that that cache diffs are un-reversed
+git commit --quiet --amend --no-edit --allow-empty
+
+>&2 printf "\nEditing commit: %s\n" "$message"

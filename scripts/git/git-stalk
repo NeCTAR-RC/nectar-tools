@@ -1,0 +1,22 @@
+#! /bin/sh
+
+usage() {
+    cat << EOF
+$0 <user>
+
+Show which files in the work tree have been modified by <user>.
+EOF
+}
+
+while getopts h opt; do
+    case $opt in
+        h) usage
+           exit 0
+           ;;
+    esac
+done
+
+git log --pretty=%H --author="$1"   \
+| while read h; do
+    git show --pretty="" --name-only $h
+done | sort -u | grep -v "^$"

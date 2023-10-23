@@ -1,0 +1,8 @@
+#! /bin/bash
+
+# Wrapper to decrypt eyaml files when diffing, making it easier to understand eyaml changes.
+#
+# This needs other changes in your gitconfig and gitattributes.
+# See https://wiki.rc.nectar.org.au/wiki/Puppet#Git_diffing_secrets
+
+git -c diff.default.textconv="eyaml decrypt -f" "$@"
