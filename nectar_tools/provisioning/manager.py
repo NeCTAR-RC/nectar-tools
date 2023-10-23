@@ -456,7 +456,7 @@ class ProvisioningManager(object):
         if html:
             return table.get_html_string(
                 format=True, attributes={
-                    'border': 1,
+                    'border': '1',
                     'style': 'border-width: 1px; border-collapse: collapse;'
                 })
         print("Quota Report for Project %s" % allocation.project_id)
