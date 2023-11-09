@@ -17,6 +17,9 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
     if isinstance(enabled_loggers, str):
         enabled_loggers = enabled_loggers.split(',')
 
+    if CONF.args.loglevel:
+        console_level = file_level = CONF.args.loglevel
+
     if CONF.args.debug:
         console_level = 'DEBUG'
         file_level = 'DEBUG'
