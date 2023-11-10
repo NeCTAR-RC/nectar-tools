@@ -23,5 +23,6 @@ oslo.context
 openstacksdk>=0.22.0
 manukaclient
 python-magnumclient
-warreclient>=2.4.0
+warreclient>=2.13.0
 requests
+nectarclient-lib

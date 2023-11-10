@@ -5,13 +5,13 @@ import logging
 from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
 from magnumclient.common.apiclient import exceptions as magnum_exc
+from nectarclient_lib import exceptions as nc_exc
 import neutronclient
 import novaclient
 from openstack.load_balancer.v2 import quota as lb_quota
 from oslo_context import context
 import oslo_messaging
 import prettytable
-from warreclient import exceptions as warre_exc
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -828,7 +828,7 @@ class ProvisioningManager(object):
             try:
                 client.flavorprojects.create(flavor_id=flavor.id,
                                              project_id=allocation.project_id)
-            except warre_exc.Conflict:
+            except nc_exc.Conflict:
                 LOG.info("%s: Already has access to flavor %s",
                          allocation.id, flavor.name)
             else:

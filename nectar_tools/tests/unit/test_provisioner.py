@@ -4,9 +4,9 @@ from unittest import mock
 from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
 from nectarallocationclient.v1 import allocations
+from nectarclient_lib import exceptions as nc_exc
 import novaclient
 import testfixtures
-import warreclient
 
 from nectar_tools import config
 from nectar_tools import exceptions
@@ -1160,6 +1160,5 @@ class ProvisionerTests(test.TestCase):
         all_flavors = [gpu]
 
         warre_client.flavors.list.return_value = all_flavors
-        warre_client.flavorprojects.create.side_effect = \
-            warreclient.exceptions.Conflict()
+        warre_client.flavorprojects.create.side_effect = nc_exc.Conflict()
         self.manager.reservation_flavor_grant(self.allocation, 'gpu-v1')
