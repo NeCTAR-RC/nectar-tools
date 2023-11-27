@@ -2,6 +2,7 @@ import argparse
 import configparser
 import functools
 import inspect
+import logging
 import os
 import sys
 
@@ -34,8 +35,10 @@ class Config(ConfigBase):
         parser.add_argument('-c', '--config',
                             help='Path of configuration file',
                             default='/etc/nectar/tools.ini')
-        parser.add_argument('-d', '--debug', action='store_true',
-                            help='Show debug logging.')
+        log_group = parser.add_mutually_exclusive_group()
+        log_group.add_argument('-d', '--debug', action='store_true',
+                               help='Show debug logging.')
+        log_group.add_argument('--loglevel', help='Set log level.')
         parser.add_argument('-q', '--quiet', action='store_true',
                             help="Don't print anything on the console.")
         parser.add_argument('--use_syslog', action='store_true',
@@ -51,6 +54,16 @@ class Config(ConfigBase):
         if self._parsed_args is None:
             self._parsed_args = self.get_parser().parse_args()
             self.read(self._parsed_args.config)
+
+            if self._parsed_args.loglevel:
+                loglevel = self._parsed_args.loglevel
+                numeric_level = getattr(logging, loglevel.upper(), None)
+
+                if not isinstance(numeric_level, int):
+                    raise ValueError('Invalid log level: %s' % loglevel)
+
+                self._parsed_args.loglevel = numeric_level
+
         return self._parsed_args
 
     @property

@@ -38,7 +38,7 @@ class ClusterAuditor(base.Auditor):
                                 cluster.uuid)
                     self._delete_cluster(cluster)
                 else:
-                    LOG.warning("%s - CREATE_FAILED %s", cluster.uuid,
+                    LOG.info("%s - CREATE_FAILED %s", cluster.uuid,
                                 cluster.status_reason)
             elif cluster.status == 'DELETE_FAILED':
                 LOG.warning("%s - in DELETE_FAILED state",
