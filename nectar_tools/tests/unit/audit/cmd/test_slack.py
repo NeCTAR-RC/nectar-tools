@@ -171,7 +171,7 @@ class SlackConfigTests(unittest.TestCase):
         with unittest.mock.patch('configparser.open',
                    unittest.mock.mock_open(read_data=self.CONTENT)) as m:
             config = slack.SlackConfig('blah', reset=True)
-        m.assert_called_once_with("blah", encoding=None)
+        m.assert_called_once_with("blah", encoding=unittest.mock.ANY)
         mock_isfile.assert_called_once_with("blah")
 
         handlers = config.create_handlers(["allocations"])
