@@ -49,6 +49,7 @@ setuptools.setup(
             'nectar-su-reports = nectar_tools.reports.cmd.su_report:main',  # noqa
             'send-fd-outbound = nectar_tools.cli.send_fd_outbound:main',
             'warre-maintenance = nectar_tools.cli.warre_maintenance:main',
+            'resource-capacity = nectar_tools.cli.resource_capacity:main',
         ],
     },
     include_package_data=True,
