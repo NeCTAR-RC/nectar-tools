@@ -680,13 +680,6 @@ class OctaviaArchiverTests(test.TestCase):
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class MagnumArchiverTests(test.TestCase):
 
-    def test_zero_quota(self):
-        ma = archiver.MagnumArchiver(PROJECT)
-        with mock.patch.object(ma, 'm_client') as mock_magnum:
-            ma.zero_quota()
-            mock_magnum.quotas.delete.assert_called_once_with(
-                PROJECT.id, "Cluster")
-
     def test_delete_resources(self):
         ma = archiver.MagnumArchiver(PROJECT)
         c1 = mock.Mock()

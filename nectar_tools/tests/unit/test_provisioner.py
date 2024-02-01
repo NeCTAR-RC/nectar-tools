@@ -538,7 +538,7 @@ class ProvisionerTests(test.TestCase):
 
     def test_set_nova_quota_no_ram(self):
         # override and set rating budget to 0
-        self.allocation.quotas[19].quota = 0
+        self.allocation.quotas[18].quota = 0
         with test.nested(
             mock.patch.object(self.allocation, 'get_allocated_nova_quota'),
             mock.patch('nectar_tools.auth.get_nova_client')
@@ -588,7 +588,7 @@ class ProvisionerTests(test.TestCase):
         # override and set ram quota to 2
         self.allocation.quotas[2].quota = 2
         # override and set rating budget to 0
-        self.allocation.quotas[19].quota = 0
+        self.allocation.quotas[18].quota = 0
 
         self.manager.set_nova_quota(self.allocation)
         nova_client.quotas.delete.assert_called_once_with(
@@ -607,7 +607,7 @@ class ProvisionerTests(test.TestCase):
         # override and set ram quota to unlimited (-1)
         self.allocation.quotas[2].quota = -1
         # override and set rating budget to 0
-        self.allocation.quotas[19].quota = 0
+        self.allocation.quotas[18].quota = 0
 
         self.manager.set_nova_quota(self.allocation)
         nova_client.quotas.delete.assert_called_once_with(
@@ -800,39 +800,6 @@ class ProvisionerTests(test.TestCase):
         trove_client.quota.update.assert_called_once_with(
             self.allocation.project_id, {'ram': 0,
                                          'volumes': 0})
-
-    @mock.patch('nectar_tools.auth.get_magnum_client')
-    def test_set_magnum_quota(self, mock_magnum):
-        magnum_client = mock.Mock()
-        mock_magnum.return_value = magnum_client
-
-        with mock.patch.object(
-                self.allocation,
-                'get_allocated_magnum_quota') as mock_allocated:
-            mock_allocated.return_value = {'cluster': 2}
-
-            self.manager.set_magnum_quota(self.allocation)
-
-        magnum_client.quotas.delete.assert_called_once_with(
-            self.allocation.project_id, "Cluster")
-        magnum_client.quotas.create.assert_called_once_with(
-            project_id=self.allocation.project_id,
-            resource="Cluster", hard_limit=2)
-
-    @mock.patch('nectar_tools.auth.get_magnum_client')
-    def test_set_magnum_quota_none(self, mock_magnum):
-        magnum_client = mock.Mock()
-        mock_magnum.return_value = magnum_client
-        with mock.patch.object(
-                self.allocation,
-                'get_allocated_magnum_quota') as mock_allocated:
-            mock_allocated.return_value = {}
-
-            self.manager.set_magnum_quota(self.allocation)
-
-        magnum_client.quotas.delete.assert_called_once_with(
-            self.allocation.project_id, "Cluster")
-        magnum_client.quotas.create.assert_not_called()
 
     @mock.patch('nectar_tools.auth.get_manila_client')
     def test_set_manila_quota(self, mock_manila):

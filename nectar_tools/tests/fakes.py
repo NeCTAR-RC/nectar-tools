@@ -379,11 +379,6 @@ ALLOCATION_RESPONSE = {
             "quota": 2,
         },
         {
-            "resource": "container-infra.cluster",
-            "zone": "nectar",
-            "quota": 2,
-        },
-        {
             "resource": "rating.budget",
             "zone": "nectar",
             "quota": 3400,
