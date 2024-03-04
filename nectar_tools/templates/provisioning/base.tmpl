@@ -53,8 +53,13 @@ Project Name: {{ project.name }}
 Description: {{ project.description }}
 <br />
 Expires: {{ allocation.end_date }}
+{% if allocation.bundle %}
+<br />
+Resource Bundle: {{ allocation.bundle }}
+{% endif %}
 <br />
 <br />
+<p>You allocation has the following resource limits applied:</p>
 {{ report }}
 <br />
 <br />
