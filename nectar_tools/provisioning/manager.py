@@ -335,6 +335,7 @@ class ProvisioningManager(object):
                 "Encrypted volume storage Swinburne (GB)",
             'neutron.network': "Networks",
             'neutron.router': "Routers",
+            'neutron.security_group': "Security Groups",
             'neutron.floatingip': "Floating IPs",
             'octavia.load_balancers': "Load Balancers",
             'manila.gigabytes_QRIScloud-GPFS':
