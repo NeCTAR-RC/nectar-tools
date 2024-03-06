@@ -29,6 +29,7 @@ setuptools.setup(
             'nectar-allocation-expiry = nectar_tools.expiry.cmd.allocation_expirer:main',  # noqa
             'nectar-allocation-instance-expiry = nectar_tools.expiry.cmd.allocation_instance_expirer:main',  # noqa
             'nectar-allocation-provisioner = nectar_tools.provisioning.cmd.provision:main',  # noqa
+            'nectar-allocation-reset-quotas = nectar_tools.provisioning.cmd.reset_quotas:main',  # noqa
             'nectar-app-audit = nectar_tools.audit.cmd.app_catalog:main',
             'nectar-compute-audit = nectar_tools.audit.cmd.compute:main',
             'nectar-database-audit = nectar_tools.audit.cmd.database:main',
