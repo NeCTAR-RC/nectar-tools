@@ -1,10 +1,9 @@
-from email.mime import text as mime_text
 from freshdesk.v2 import api as fd_api
 import jinja2
 import logging
 import os
-import smtplib
 
+from nectar_tools import auth
 from nectar_tools import config
 
 
@@ -54,8 +53,8 @@ class FreshDeskNotifier(Notifier):
 
     def __init__(self, resource_type, resource, template_dir, group_id,
                  subject, dry_run=False):
-        super(FreshDeskNotifier, self).__init__(
-            resource_type, resource, template_dir, subject, dry_run)
+        super().__init__(resource_type, resource, template_dir, subject,
+                         dry_run)
 
         self.api = fd_api.API(CONF.freshdesk.domain, CONF.freshdesk.key)
         self.group_id = int(group_id)
@@ -112,37 +111,22 @@ class FreshDeskNotifier(Notifier):
                      ticket_id)
 
 
-class EmailNotifier(Notifier):
+class TaynacNotifier(Notifier):
+
+    def __init__(self, session, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.t_client = auth.get_taynac_client(session)
 
     def send_message(self, stage, owner, extra_context={},
                      extra_recipients=[]):
-        if stage == 'first':
-            tmpl = 'first-warning.tmpl'
-        elif stage == 'second':
-            tmpl = 'second-warning.tmpl'
-        elif stage == 'final':
-            tmpl = 'final-warning.tmpl'
-        text = self.render_template(tmpl, extra_context)
-
-        msg = mime_text.MIMEText(text)
-        msg['From'] = CONF.notifier.email_from
-        msg['To'] = owner
-        msg['Subject'] = self.subject
-        if extra_recipients:
-            msg['cc'] = ", ".join(extra_recipients)
+        text = self.render_template('%s.tmpl' % stage, extra_context)
 
         if not self.dry_run:
-            LOG.info('sending email to %s, cc=%s: %s',
-                     owner, extra_recipients, self.subject.rstrip())
-            try:
-                if owner not in extra_recipients:
-                    extra_recipients.append(owner)
-                s = smtplib.SMTP(CONF.notifier.smtp_host)
-                s.sendmail(msg['From'], extra_recipients, msg.as_string())
-            except smtplib.SMTPRecipientsRefused as err:
-                LOG.error('Error sending email: %s', str(err))
-            finally:
-                s.quit()
+            return self.t_client.messages.send(subject=self.subject,
+                                               body=text,
+                                               recipient=owner,
+                                               cc=extra_recipients)
         else:
-            LOG.info('Would send email to %s, cc=%s: %s',
-                     owner, extra_recipients, self.subject.rstrip())
+            print(text)
+            LOG.info('Would send message to %s, cc=%s: %s',
+                     owner, extra_recipients, self.subject)

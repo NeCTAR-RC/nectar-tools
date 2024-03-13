@@ -20,6 +20,7 @@ from novaclient import client as novaclient
 from openstack import connection as sdkconnection
 from placementclient import client as placementclient
 from swiftclient import client as swiftclient
+from taynacclient import client as taynacclient
 from troveclient import client as troveclient
 from warreclient import client as warreclient
 
@@ -170,6 +171,12 @@ def get_warre_client(sess=None):
     if not sess:
         sess = get_session()
     return warreclient.Client(version='1', session=sess)
+
+
+def get_taynac_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return taynacclient.Client(version='1', session=sess)
 
 
 def get_blazar_client(sess=None):

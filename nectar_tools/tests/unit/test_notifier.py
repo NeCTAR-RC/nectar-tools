@@ -33,30 +33,23 @@ class NotifierTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
-class EmailNotifierTests(test.TestCase):
+class TaynacNotifierTests(test.TestCase):
 
-    @mock.patch('email.mime.text.MIMEText', autospec=True)
-    @mock.patch('smtplib.SMTP', autospec=True)
-    def test_send_messagel(self, mock_smtp, mock_mime):
-        n = notifier.EmailNotifier(resource_type='project', resource=PROJECT,
-            template_dir='expiry/tests', subject='My-Subject')
+    def test_send_message(self):
+        n = notifier.TaynacNotifier(session=None,
+                                    resource_type='project',
+                                    resource=PROJECT,
+                                    template_dir='expiry/tests',
+                                    subject='My-Subject')
 
-        n.send_message('first', 'owner@fake.org', {'foo': 'bar'},
-                       ['manager1@fake.org', 'manager2@fake.org'])
-
-        mock_smtp.return_value.sendmail.assert_called_with(
-            mock_mime.return_value['From'],
-            ['manager1@fake.org', 'manager2@fake.org', 'owner@fake.org'],
-            mock_mime.return_value.as_string()
-        )
-        mime_calls = [
-            mock.call('From', CONF.notifier.email_from),
-            mock.call('To', 'owner@fake.org'),
-            mock.call('Subject', 'My-Subject'),
-            mock.call('cc', 'manager1@fake.org, manager2@fake.org'),
-        ]
-        mock_mime.return_value.__setitem__.assert_has_calls(mime_calls)
-        mock_smtp.return_value.quit.assert_called_with()
+        with mock.patch.object(n, 't_client') as mock_taynac:
+            n.send_message('first-warning', 'owner@fake.org', {'foo': 'bar'},
+                           ['manager1@fake.org', 'manager2@fake.org'])
+            mock_taynac.messages.send.assert_called_once_with(
+                subject='My-Subject',
+                body=mock.ANY,
+                recipient='owner@fake.org',
+                cc=['manager1@fake.org', 'manager2@fake.org'])
 
 
 @mock.patch('freshdesk.v2.api.API')
