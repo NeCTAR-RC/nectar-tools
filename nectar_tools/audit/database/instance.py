@@ -142,6 +142,8 @@ class DatabaseInstanceAuditor(base.Auditor):
                 if expiry_status == 'active':
                     LOG.error(f"Instance {inst.id} shut down but project not "
                               "under expiry")
+            elif inst.server.get('status') == 'SHUTOFF':
+                LOG.error(f"Instance {inst.id} nova instance shutoff")
             else:
                 try:
                     self.t_client.databases.list(inst)
@@ -149,3 +151,17 @@ class DatabaseInstanceAuditor(base.Auditor):
                     LOG.error(f"Instance {inst.id} RPC communication error")
                 else:
                     LOG.debug(f"Instance {inst.id} RPC communication active")
+
+    def check_datastore_latest(self):
+        default_datastores = {}
+        datastores = self.t_client.datastores.list()
+        for ds in datastores:
+            default_datastores[ds.name] = ds.default_version
+        for inst in self.t_client.mgmt_instances.list():
+            ds_type = inst.datastore.get('type')
+            ds_version = inst.datastore.get('version')
+            datastore_version = self.t_client.datastore_versions.get(
+                ds_type, ds_version)
+            if default_datastores[ds_type] != datastore_version.id:
+                LOG.error(f"Outdated datastore, {inst.id} running "
+                          f"{ds_type} {ds_version}")
