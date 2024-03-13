@@ -120,7 +120,7 @@ class ProvisioningManager(object):
                 self.revert_expiry(project=project)
         else:
             # If you don't want the notification to happen in this
-            # case, use --no-notify
+            # case, set no_notify=True
             self.notify_provisioned(allocation, is_new_project,
                                     project, report)
             LOG.info("%s: Allocation re-provisioned, not updating "
