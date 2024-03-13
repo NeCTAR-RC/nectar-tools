@@ -1,0 +1,76 @@
+Dear Nectar Research Cloud User,
+<br/>
+<br/>
+{% block pre %}
+<b>Your Nectar database instance requires a maintenance upgrade.</b>
+<br/>
+This is to ensure that you are running the latest version with <i>all security
+and other miscellaneous fixes.</i>
+{% endblock %}
+<br/>
+<br/>
+ID: <b>{{ database.id}}</b>
+<br/>
+Name: <b>{{ database.name }}</b>
+<br/>
+Project: <b>{{ project.name }}</b>
+<br/>
+<br/>
+{% block eol %}
+{% endblock %}
+{% block release_notes %}
+The latest changes for the {{ database.datastore.type }} datastore {{ datastore_latest_version.name }} are:
+{% endblock %}
+{% block upgrade %}
+We will automatically upgrade your database instance(s) during the maintenance
+window between <b>{{ start }}</b> and <b>{{ end }}</b>.
+<br/>
+<br/>
+Alternatively, you can upgrade your databases instances(s) at your convenience
+before <b>{{ start }}</b> by following the instructions below. You can do it either
+via the Nectar Research Cloud dashboard, or via the OpenStack CLI tools.
+<br/>
+During the upgrade operation your database instance will be unavailable.
+<br/>
+This typically takes around 10 minutes but actual times can vary.
+<br/>
+<b>We recommend you <a href="https://tutorials.rc.nectar.org.au/database/04-database-backups">create a backup</a></b> of your database instance(s) before the
+maintenance window. You can reference the Nectar Database service support
+documentation at https://support.ehelp.edu.au/support/solutions/articles/6000178670
+for more information.
+<br/>
+<br/>
+<b>NOTE:</b> Our new datastore version are only supported on our db3.* flavors.
+<br/>
+You will need to resize your instance first before upgrading if using an older db.* flavor.
+<br/>
+<br/>
+<b>How to upgrade your database via the Dashboard:</b>
+<ul>
+  <li>Go to https://dashboard.rc.nectar.org.au/project/databases/</li>
+  <li>Click on the dropdown in the <b>Actions</b> column of the affected instances</li>
+  <li>Select <b>Upgrade Instance</b> and then choose the available new version</li>
+  <li>Click <b>Upgrade Database Instance</b></li>
+</ul>
+Using the CLI tools, simply load your credentials and start the upgrade by typing:
+<pre>openstack database instance upgrade {{ database.name }} {{ datastore_latest_version.name }}</pre>
+<br/>
+{% endblock %}
+If you have any queries regarding this announcement, please reply to this email or
+contact us at support@nectar.org.au. with the subject "Database Upgrade".
+<br/>
+<br/>
+<br/>
+<br/>
+Regards,
+<br/>
+The Nectar Research Cloud Support Team
+<br/>
+--
+<br/>
+This email has been sent to users of the Nectar Research Cloud. It has been
+sent to the email address associated with your Research Cloud login. These
+emails are essential communications which we endeavour to keep to a minimum.
+They only relate to events that may affect your Nectar Research Cloud resources
+or data integrity. If you receive multiple copies of this email, it may be due
+to the fact that you are a member of multiple projects.

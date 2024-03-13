@@ -1,4 +1,5 @@
 [run]
 omit =
   nectar_tools/audit/*
+  nectar_tools/cli/*
   nectar_tools/expiry/cmd/*
