@@ -38,16 +38,18 @@ class ProjectTrialAuditor(base.ProjectAuditor):
         expiry_status = getattr(self.project, 'expiry_status', '')
         if not expiry_status:
             return
+        if expiry_status == expiry_states.ADMIN:
+            return
         expiry_next_step = getattr(self.project, 'expiry_next_step', None)
         if self._past_next_step(expiry_next_step):
             if expiry_status == expiry_states.DELETED:
                 # There are a lot of PTs like this.  It is not noteworthy
                 pass
             elif expiry_status in (expiry_states.WARNING,
-                                 expiry_states.STOPPED,
-                                 expiry_states.RESTRICTED,
-                                 expiry_states.ARCHIVING,
-                                 expiry_states.ARCHIVED):
+                                   expiry_states.STOPPED,
+                                   expiry_states.RESTRICTED,
+                                   expiry_states.ARCHIVING,
+                                   expiry_states.ARCHIVED):
                 allocations = self._pending_allocations()
                 if allocations:
                     LOG.info("%s: PT expiry blocked on approval "
