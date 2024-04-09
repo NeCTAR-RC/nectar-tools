@@ -18,7 +18,8 @@ class TempestTestAuditor(base.ResourceAuditor):
         for tt in resources:
             az = tt['availability_zone']
             site = common.AZ_SITE_MAP.get(az)
-
+            if not az:
+                continue
             LOG.error("Tempest Test %s with AZ %s missing site",
                       tt['name'], tt['availability_zone'])
             if site:
