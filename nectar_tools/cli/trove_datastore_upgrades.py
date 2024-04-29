@@ -44,7 +44,7 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             dry_run=not self.args.no_dry_run)
         self.limit = self.args.limit
         self.action = self.args.action.lower()
-        if self.action not in ['notify', 'upgrade']:
+        if self.action not in ['notify', 'upgrade', 'report']:
             print("Acion not valid, choices upgrade,notify")
             sys.exit(1)
         if self.action == 'notify':
@@ -64,7 +64,7 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
         self.parser.add_argument('--datastore',
                                  help='Only act on certain datastore type')
         self.parser.add_argument('--action',
-                                 default='notify',
+                                 default='report',
                                  help='Action to perform')
         self.parser.add_argument('-l', '--limit',
                                  type=int,
