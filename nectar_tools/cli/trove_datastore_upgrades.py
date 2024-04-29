@@ -83,6 +83,7 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
         else:
             instances = self.t_client.mgmt_instances.list()
         for inst in instances:
+            inst = self.t_client.instances.get(inst.id)
             ds_type = inst.datastore.get('type')
             if (self.args.datastore
                     and ds_type.lower() != self.args.datastore.lower()):
@@ -96,8 +97,9 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
                     break
                 ds_latest_version = self.t_client.datastore_versions.get(
                     ds_type, default_datastores[ds_type])
+                used = inst.volume.get('used', 'Unknown')
                 print(f"Outdated datastore, {inst.id} "
-                      f"running {ds_type} {ds_version}")
+                      f"running {ds_type} {ds_version}. Used space={used}GB")
                 if self.action == 'notify':
                     self.notify(inst, ds_type, ds_version, ds_latest_version)
                 elif self.action == 'upgrade':
