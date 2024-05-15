@@ -1,48 +1,23 @@
 Dear Project Manager,
 <br />
 <br />
-We hope that you have found the Nectar Research Cloud helpful in your research.
-<br />
-<br />
-Project allocations on the Research Cloud are created for a fixed term and with a specified Service Unit (SU) Budget to ensure fair access to resources for all cloud users.
-<br />
-<br />
+We hope the Nectar Research Cloud was helpful in your research.
 {% if su_info.over_80_percent %}
 Your project allocation, <b>{{ project.name }}</b>, has now used over 80% of its allocated service unit budget.
 {% else %}
 Your project allocation, <b>{{ project.name }}</b>, is <b>due to expire on {{ expiry_date }}.</b>
 {% endif %}
 <br />
+<b>If you wish to continue using this project allocation</b> for your research, please submit an extension request via the <a href="https://dashboard.rc.nectar.org.au/">Nectar Dashboard</a>, by following steps <a href="https://support.ehelp.edu.au/support/solutions/articles/6000272526-how-to-renew-extend-your-allocation">here</a>.
 <br />
-<b>If you wish to continue using this project allocation</b> for your research please submit an extension request for your project allocation by following the steps below:
+Please also <b>list any publication outputs from your research and any research grants</b> supported by this project allocation. This helps us justify continuing to provide this service.
 <br />
-<ol>
-<li>Log in to the <a href="https://dashboard.rc.nectar.org.au">Nectar dashboard</a></li>
-<li>Navigate to "Allocations -> My Requests" and click the "Amend/Extend allocation" button on the right, next to your project.</li>
-<li>On the Request Form, you are asked to fill in or adjust some details about your research project. Please review this carefully, as some questions may have changed since your previous application. Please also address any issues in the "Review Reminders" section if shown.</li>
-{% if su_info.over_80_percent %}
-<li>Since this warning is due to your project's SU Usage getting close to its approved SU Budget, you should review and update the requested SU Budget on the form. The links below explain how to view your current SU Usage and the different ways to estimate your SU Budget.</li>
-{% endif %}
-<li>After reviewing and updating the form, click the "Submit" button.</li>
-<li>After submitting, you may see submission errors and warnings. Address them if necessary and resubmit.</li>
-</ol>
+<b>If you no longer require this allocation</b> please help us by shutting down your instances and deleting your data prior to expiry of your allocation. This releases these resources to other users of the Cloud.
 <br />
-<br />
-Here are some resources on SU Usage and SU Budget estimation:
-<br />
-<ul>
-<li><a href="https://support.ehelp.edu.au/support/solutions/articles/6000257054">Understanding your Service Unit Usage</a></li>
-<li><a href="https://support.ehelp.edu.au/support/solutions/articles/6000257485">How to estimate a Service Unit Budget</a></li>
-</ul>
-<br />
-<br />
-<b>If you no longer require this allocation</b> please help us by shutting down your instances and deleting your data prior to expiry of your allocation.
-<br />
-<br />
-We want to ensure that researchers like you have as much access as possible to the Research Cloud, but we need to ensure that any allocated resources are being actively used as the available resources are limited.
-<br />
-<br />
-If you have not submitted a project allocation extension request, on the project expiry date or when 100% of your allocated service unit budget is reached the quota for your project allocation will be set to zero. This means existing virtual machines and storage resources will be locked and paused and no new virtual machines or cloud storage can be used. At 2 weeks after expiry, our system will terminate and archive any instances and data in this project allocation, releasing the resources for other users of the cloud. The archived instances and data will be safely stored, and will remain available to you for 3 months from the date when the project expires. However after this time they will be deleted. <b>Some resources that have been made public (for example Community images or public Object store data) will remain accessible and not be deleted.</b>
+<b>What happens if I do not submit anything?</b> <br>
+If you have not submitted a project allocation extension request, by either:</br>
+The project expiry date OR when 100% of your allocated service unit budget is reached, the quota for your project allocation will be set to zero. <br />
+<i> After 2 weeks, if you have not applied for an extension of your allocation, our system will stop any instances and data in this project allocation. After a further 2 weeks our system will terminate and archive any instances and data in this project allocation, releasing the resources for other users of the cloud. The archived instances and data will be safely stored, and will remain available to you for 3 months from the date when the project expires. However after this time they will be deleted. Some resources that have been made public (for example Community images or public Object store data) will remain accessible and not be deleted.</i>
 <br />
 <br />
 If you have any questions or concerns, please log a <a href="https://support.ehelp.edu.au/support/tickets/new">support ticket</a> or reply to this email.
@@ -50,8 +25,9 @@ If you have any questions or concerns, please log a <a href="https://support.ehe
 <br />
 Thanks,
 <br />
-Nectar Research Cloud Team
+ARDC Nectar Research Cloud Team
 <br />
 <br />
 <br />
-Please note: If you have been cc'd on this email and know that the project allocation manager is no longer associated with this project allocation or is not contactable, please log a <a href="https://support.ehelp.edu.au/support/tickets/new">support ticket</a> or reply to this email to advise us to ensure the appropriate person is notified of the upcoming expiry.
+<b>Project Manager changed?<b> /br>
+Please note: If you have been cc'd on this email and know that the project tenant manager is no longer associated with this project allocation or is not contactable, please log a <a href="https://support.ehelp.edu.au/support/tickets/new">support ticket</a> or reply to this email to advise us to ensure the appropriate person is notified of the upcoming expiry.
