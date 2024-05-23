@@ -10,6 +10,7 @@ from heatclient import client as heatclient
 from keystoneauth1 import loading
 from keystoneauth1 import session
 from keystoneclient.v3 import client
+from kubernetes import client as kube_client
 from magnumclient import client as magnumclient
 from manilaclient import client as manilaclient
 from manukaclient import client as manukaclient
@@ -183,3 +184,14 @@ def get_blazar_client(sess=None):
     if not sess:
         sess = get_session()
     return blazarclient.Client(session=sess, service_type='reservation')
+
+
+@configurable('kubernetes_client', env_prefix='KUBE')
+def get_kube_client(host, token):
+    conf = kube_client.Configuration()
+    conf.api_key_prefix['authorization'] = 'Bearer'
+    conf.host = host
+    conf.verify_ssl = False
+    conf.api_key['authorization'] = token
+    api_client = kube_client.ApiClient(conf)
+    return kube_client.CoreV1Api(api_client)

@@ -493,3 +493,62 @@ class FakeResponse(object):
     def __init__(self, status_code=200, reason="OK"):
         self.status_code = status_code
         self.reason = reason
+
+
+class FakeK8sObject(object):
+    """This is an object that represents what the K8s client would return.
+    Most of the objects returned via the API are super similar in nature, so
+    we can simply use this object and chain objects together with this as the
+    template.
+
+    For example:
+
+        annotations = {
+            'hub.jupyter.org/username': 'fake',
+        }
+        metadata = FakeK8sObject(name='fake', annotations=annotations)
+        pvc = FakeK8sObject(metadata=metadata)
+    """
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+    def to_dict(self):
+        result = {}
+        for attr in self.__dict__.keys():
+            value = getattr(self, attr)
+            if isinstance(value, list):
+                result[attr] = list(map(
+                    lambda x: x.to_dict() if hasattr(x, 'to_dict') else x,
+                    value
+                ))
+            elif hasattr(value, "to_dict"):
+                result[attr] = value.to_dict()
+            elif isinstance(value, dict):
+                result[attr] = dict(map(
+                    lambda item: (item[0], item[1].to_dict())
+                    if hasattr(item[1], 'to_dict') else item,
+                    value.items()
+                ))
+            else:
+                result[attr] = value
+        return result
+
+    def to_str(self):
+        return str(self.to_dict())
+
+    def __repr__(self):
+        return self.to_str()
+
+
+JUPYTERHUB_USER = {
+    'name': 'fake@user.com',
+    'created': '2023-01-01T00:00:00.000000Z',
+    'last_activity': '2024-06-01T00:00:00.000000Z',
+    'roles': ['user'],
+    'groups': [],
+    'pending': None,
+    'server': None,
+    'admin': False,
+    'kind': 'user',
+}

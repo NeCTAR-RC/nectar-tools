@@ -22,6 +22,7 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
         self.k_client = auth.get_keystone_client(ks_session)
         self.g_client = auth.get_glance_client(ks_session)
         self.n_client = auth.get_nova_client(ks_session)
+        self.kube_client = auth.get_kube_client()
 
     def send_message(self, stage, owner, extra_context={},
                      extra_recipients=[], tags=[]):
@@ -72,12 +73,20 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
                 self.g_client.images.update(self.resource.id, **kwargs)
             elif self.resource_type == 'instance':
                 self.n_client.servers.set_meta(self.resource.id, kwargs)
+            elif self.resource_type == 'jupyterhub_volume':
+                body = {'metadata': {'annotations': kwargs}}
+                self.kube_client.patch_namespaced_persistent_volume_claim(
+                    self.resource.id, CONF.kubernetes_client.namespace,
+                    body=body)
         LOG.debug('%s: Setting %s', self.resource.id, kwargs)
 
     def _get_ticket_id(self):
         try:
             if self.resource_type == 'instance':
                 return int(self.resource.metadata.get(self.ticket_id_key, 0))
+            elif self.resource_type == 'jupyterhub_volume':
+                return int(self.resource.metadata.annotations.get(
+                    self.ticket_id_key, 0))
             else:
                 return int(getattr(self.resource, self.ticket_id_key, 0))
         except ValueError:

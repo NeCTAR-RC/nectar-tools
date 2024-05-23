@@ -106,6 +106,36 @@ class Archiver(object):
         raise exceptions.TimeoutError(msg)
 
 
+class JupyterHubVolumeArchiver(Archiver):
+    def __init__(self, pvc, ks_session=None, dry_run=False):
+        super().__init__(ks_session, dry_run)
+
+        self.pvc = pvc
+
+        self.id = pvc.metadata.name
+        self.kube_client = auth.get_kube_client()
+        self.kube_ns = CONF.kubernetes_client.namespace
+
+    def _delete_pvc(self):
+        LOG.debug("Found JupyerHub PVC %s", self.id)
+
+        if not self.dry_run:
+            LOG.info("Deleting JupyerHub PVC: %s", self.id)
+            self.kube_client.delete_namespaced_persistent_volume_claim(
+                self.id, self.kube_ns)
+        else:
+            LOG.info("Would delete JupyterHub PVC: %s", self.id)
+
+    def stop_resources(self):
+        # Nothing really to do
+        return
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+        self._delete_pvc()
+
+
 class ImageArchiver(Archiver):
 
     def __init__(self, image, ks_session=None, dry_run=False):
