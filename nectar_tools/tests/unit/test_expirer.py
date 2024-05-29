@@ -219,33 +219,14 @@ class ExpiryTests(test.TestCase):
         project = fakes.FakeProject()
         ex = expirer.Expirer('project', project, notifier='fake')
         today = datetime.datetime.now().strftime(expirer.DATE_FORMAT)
-        with test.nested(
-            mock.patch.object(ex.k_client.projects, 'update'),
-            mock.patch.object(ex.g_client.images, 'update'),
-        ) as (mock_keystone_update, mock_glance_update):
+        with mock.patch.object(
+            ex.k_client.projects, 'update') as mock_keystone_update:
             ex._update_resource(expiry_next_step='2016-02-02',
                                expiry_status='blah')
             mock_keystone_update.assert_called_with(
                 project.id, expiry_status='blah',
                 expiry_next_step='2016-02-02',
                 expiry_updated_at=today)
-            mock_glance_update.assert_not_called()
-
-    def test_update_image(self):
-        image = fakes.FakeImage()
-        ex = expirer.Expirer('image', image, notifier='fake')
-        today = datetime.datetime.now().strftime(expirer.DATE_FORMAT)
-        with test.nested(
-            mock.patch.object(ex.k_client.projects, 'update'),
-            mock.patch.object(ex.g_client.images, 'update'),
-        ) as (mock_keystone_update, mock_glance_update):
-            ex._update_resource(expiry_next_step='2016-02-02',
-                               expiry_status='blah')
-            mock_glance_update.assert_called_with(
-                image.id, expiry_status='blah',
-                expiry_next_step='2016-02-02',
-                expiry_updated_at=today)
-            mock_keystone_update.assert_not_called()
 
     def test_finish_expiry(self):
         resource = mock.Mock()
@@ -1764,6 +1745,20 @@ class ImageExpiryTests(test.TestCase):
         with mock.patch.object(ex, 'get_project') as mock_project:
             mock_project.return_value = 'fake project'
             self.assertEqual('fake project', ex.project)
+
+    def test_update_image(self):
+        image = fakes.FakeImage()
+        ex = expirer.ImageExpirer(image)
+        today = datetime.datetime.now().strftime(expirer.DATE_FORMAT)
+        with mock.patch.object(
+            ex.g_client.images, 'update') as mock_glance_update:
+            ex._update_resource(
+                nectar_expiry_next_step='2016-02-02',
+                nectar_expiry_status='blah')
+            mock_glance_update.assert_called_with(
+                image.id, nectar_expiry_status='blah',
+                nectar_expiry_next_step='2016-02-02',
+                nectar_expiry_updated_at=today)
 
     def test_get_notification_context(self):
         image = fakes.FakeImage()

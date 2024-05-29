@@ -47,10 +47,10 @@ class ResourceRollback(object):
         self.expirer = expirer
         self.resource = expirer.resource
         self.kwargs = dict([
-            (expirer.STATUS_KEY, getattr(self.resource,
-                                         expirer.STATUS_KEY)),
-            (expirer.NEXT_STEP_KEY, getattr(self.resource,
-                                            expirer.NEXT_STEP_KEY))])
+            (expirer.STATUS_KEY,
+             self.expirer.get_metadata(expirer.STATUS_KEY)),
+            (expirer.NEXT_STEP_KEY,
+             self.expirer.get_metadata(expirer.NEXT_STEP_KEY))])
 
     def __enter__(self):
         return self
@@ -206,14 +206,26 @@ class Expirer(object):
     def get_warning_date(self):
         raise NotImplementedError
 
+    def has_metadata(self, key):
+        return hasattr(self.resource, key)
+
+    def set_metadata(self, key, value):
+        setattr(self.resource, key, value)
+
+    def get_metadata(self, key, default=None):
+        return getattr(self.resource, key, default)
+
+    def _update_object(self, **kwargs):
+        # Update the OpenStack object via the API
+        self.k_client.projects.update(self.resource.id, **kwargs)
+
     def _update_resource(self, **kwargs):
         today = self.now.strftime(DATE_FORMAT)
         kwargs.update({self.UPDATED_AT_KEY: today})
+
         if not self.dry_run:
-            if self.resource_type == 'project':
-                self.k_client.projects.update(self.resource.id, **kwargs)
-            if self.resource_type == 'image':
-                self.g_client.images.update(self.resource.id, **kwargs)
+            # Update remote (e.g. OpenStack) resource via API
+            self._update_object(**kwargs)
             msg = '%s - %s: Updating %s' % (self.resource_type,
                                             self.resource.id, kwargs)
         else:
@@ -221,12 +233,10 @@ class Expirer(object):
                                                 self.resource.id, kwargs)
         LOG.debug(msg)
 
-        if self.STATUS_KEY in kwargs.keys():
-            setattr(self.resource, self.STATUS_KEY,
-                    kwargs[self.STATUS_KEY])
-        if self.NEXT_STEP_KEY in kwargs.keys():
-            setattr(self.resource, self.NEXT_STEP_KEY,
-                    kwargs[self.NEXT_STEP_KEY])
+        # Update local copy of the resource
+        for key in [self.STATUS_KEY, self.NEXT_STEP_KEY]:
+            if key in kwargs.keys():
+                self.set_metadata(key, kwargs[key])
 
     def finish_expiry(self, message='Expiry work flow is complete'):
         if self.get_status() == expiry_states.DELETED:
@@ -237,11 +247,11 @@ class Expirer(object):
             pass
 
         update = {}
-        if hasattr(self.resource, self.STATUS_KEY):
+        if self.has_metadata(self.STATUS_KEY):
             update[self.STATUS_KEY] = ''
-        if hasattr(self.resource, self.NEXT_STEP_KEY):
+        if self.has_metadata(self.NEXT_STEP_KEY):
             update[self.NEXT_STEP_KEY] = ''
-        if hasattr(self.resource, self.TICKET_ID_KEY):
+        if self.has_metadata(self.TICKET_ID_KEY):
             update[self.TICKET_ID_KEY] = '0'
         if update:
             self._update_resource(**update)
@@ -938,6 +948,10 @@ class ImageExpirer(Expirer):
         if not hasattr(self.image, 'owner'):
             raise exceptions.InvalidImage
         return self.k_client.projects.get(self.image.owner)
+
+    def _update_object(self, **kwargs):
+        # Update the OpenStack object via the API
+        self.g_client.images.update(self.resource.id, **kwargs)
 
     def image_set_defaults(self):
         self.image.nectar_expiry_status = getattr(
