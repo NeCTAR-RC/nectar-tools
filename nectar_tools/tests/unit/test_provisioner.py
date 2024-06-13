@@ -50,15 +50,15 @@ class ProvisionerTests(test.TestCase):
             mock_set_dates.return_value = self.allocation
             project = fakes.FakeProject()
             mock_update_project.return_value = project
-            mock_designate.return_value = mock.Mock()
-
             self.manager.provision(self.allocation)
             mock_update_project.assert_called_once_with(self.allocation)
             mock_designate.assert_called_with(
                 project,
                 self.manager.ks_session,
                 dry_run=self.manager.noop)
-            mock_designate.create_resources.called_once_with()
+            mock_designate.assert_called_once_with(
+                project, self.manager.ks_session, dry_run=False)
+            mock_designate.return_value.create_resources.assert_called_once()
             mock_quota.assert_called_once_with(self.allocation)
             mock_report.assert_called_once_with(self.allocation, html=True,
                                                 show_current=True)
@@ -131,7 +131,6 @@ class ProvisionerTests(test.TestCase):
             mock_update.return_value = self.allocation
             project = fakes.FakeProject()
             mock_update_project.return_value = project
-            mock_designate.return_value = mock.Mock()
             self.manager.provision(self.allocation)
             mock_update.assert_not_called()
             mock_send_event.assert_not_called()
@@ -139,7 +138,9 @@ class ProvisionerTests(test.TestCase):
             mock_notify.assert_called_once_with(self.allocation, False,
                                                 project,
                                                 mock_report.return_value)
-            mock_designate.create_resources.called_once_with()
+            mock_designate.assert_called_once_with(
+                project, self.manager.ks_session, dry_run=False)
+            mock_designate.return_value.create_resources.assert_called_once()
             mock_quota.assert_called_once_with(self.allocation)
 
     def test_provision_project_not_found(self):
@@ -187,10 +188,11 @@ class ProvisionerTests(test.TestCase):
             project = fakes.FakeProject()
             mock_create.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
-            mock_designate.return_value = mock.Mock()
             self.manager.provision(self.allocation)
             mock_create.assert_called_once_with(self.allocation)
-            mock_designate.create_resources.called_once_with()
+            mock_designate.assert_called_once_with(
+                project, self.manager.ks_session, dry_run=False)
+            mock_designate.return_value.create_resources.assert_called_once()
             mock_quota.assert_called_once_with(self.allocation)
             mock_report.assert_called_once_with(self.allocation, html=True,
                                                 show_current=False)
@@ -250,10 +252,11 @@ class ProvisionerTests(test.TestCase):
             project = fakes.FakeProject()
             mock_convert.return_value = project
             mock_keystone.projects.find.side_effect = keystone_exc.NotFound()
-            mock_designate.return_value = mock.Mock()
             self.manager.provision(self.allocation)
             mock_convert.assert_called_once_with(self.allocation)
-            mock_designate.create_resources.called_once_with()
+            mock_designate.assert_called_once_with(
+                project, self.manager.ks_session, dry_run=False)
+            mock_designate.return_value.create_resources.assert_called_once()
             mock_quota.assert_called_once_with(self.allocation)
             mock_report.assert_called_once_with(self.allocation, html=True,
                                                 show_current=True)

@@ -958,7 +958,7 @@ class DesignateArchiverTests(test.TestCase):
         ) as (mock_designate, mock_create):
             mock_designate.zones.get.side_effect = designate_exc.NotFound()
             da.create_resources()
-            mock_create.called_once_with()
+            mock_create.assert_called_once_with('myproject.example.com.')
 
     def test_create_resources_exists(self):
         da = archiver.DesignateArchiver(PROJECT)
