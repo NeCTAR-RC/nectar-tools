@@ -85,7 +85,7 @@ def configurable(config_section, env_prefix=None):
     """
     def _configurable(func):
         # If there is a . assume that the name is fully qualified.
-        args_list = inspect.getargspec(func)
+        args_list = inspect.getfullargspec(func)
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
