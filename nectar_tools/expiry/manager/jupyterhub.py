@@ -58,16 +58,16 @@ class JupyterHubVolumeExpirer(base.Expirer):
         super().__init__('jupyterhub_volume', self.pvc, notifier,
                          ks_session, dry_run)
 
-    def _has_metadata(self, key):
+    def has_metadata(self, key):
         if key in self.pvc.metadata.annotations:
             return True
         return False
 
-    def _get_metadata(self, key, default=None):
+    def get_metadata(self, key, default=None):
         # return None if value is an empty string or 0
         return self.pvc.metadata.annotations.get(key, default) or default
 
-    def _set_metadata(self, key, value):
+    def set_metadata(self, key, value):
         self.pvc.metadata.annotations[key] = value
 
     def _update_object(self, **kwargs):
@@ -87,14 +87,14 @@ class JupyterHubVolumeExpirer(base.Expirer):
         return context
 
     def get_status(self):
-        status = self._get_metadata(self.STATUS_KEY)
+        status = self.get_metadata(self.STATUS_KEY)
         if not status:
             status = expiry_states.ACTIVE
-            self._set_metadata(self.STATUS_KEY, status)
+            self.set_metadata(self.STATUS_KEY, status)
         return status
 
     def get_next_step_date(self):
-        expiry_next_step = self._get_metadata(self.NEXT_STEP_KEY)
+        expiry_next_step = self.get_metadata(self.NEXT_STEP_KEY)
         if expiry_next_step:
             try:
                 return datetime.datetime.strptime(

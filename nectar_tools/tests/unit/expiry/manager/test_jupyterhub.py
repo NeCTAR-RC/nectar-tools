@@ -41,27 +41,27 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
 
     def test_has_metadata(self):
         ex = expirer.JupyterHubVolumeExpirer(self.pvc)
-        self.assertTrue(ex._has_metadata('hub.jupyter.org/username'))
-        self.assertFalse(ex._has_metadata('missing_metadata'))
+        self.assertTrue(ex.has_metadata('hub.jupyter.org/username'))
+        self.assertFalse(ex.has_metadata('missing_metadata'))
 
     def test_get_metadata(self):
         annotations = {'foo': 'bar'}
         metadata = fakes.FakeK8sObject(name='fake', annotations=annotations)
         pvc = fakes.FakeK8sObject(metadata=metadata)
         ex = expirer.JupyterHubVolumeExpirer(pvc)
-        self.assertEqual('bar', ex._get_metadata('foo'))
+        self.assertEqual('bar', ex.get_metadata('foo'))
 
     def test_get_metadata_empty_string(self):
         metadata = fakes.FakeK8sObject(name='fake', annotations={})
         pvc = fakes.FakeK8sObject(metadata=metadata)
         ex = expirer.JupyterHubVolumeExpirer(pvc)
-        self.assertIsNone(ex._get_metadata('foo'))
+        self.assertIsNone(ex.get_metadata('foo'))
 
     def test_set_metadata(self):
         ex = expirer.JupyterHubVolumeExpirer(self.pvc)
-        ex._set_metadata('foo', 'bar')
+        ex.set_metadata('foo', 'bar')
         self.assertEqual(
-            'bar', ex._get_metadata('foo'))
+            'bar', ex.get_metadata('foo'))
 
     def test_get_recipients(self):
         ex = expirer.JupyterHubVolumeExpirer(self.pvc)
@@ -107,7 +107,7 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
     def test_get_next_step_date(self):
         expected = datetime.datetime(2024, 7, 1)
         ex = expirer.JupyterHubVolumeExpirer(self.pvc)
-        with mock.patch.object(ex, '_get_metadata') as mock_get_metadata:
+        with mock.patch.object(ex, 'get_metadata') as mock_get_metadata:
             mock_get_metadata.return_value = '2024-07-01'
             actual = ex.get_next_step_date()
             self.assertEqual(expected, actual)
