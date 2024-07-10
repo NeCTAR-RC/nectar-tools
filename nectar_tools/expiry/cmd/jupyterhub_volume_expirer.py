@@ -51,6 +51,7 @@ class JupyterHubVolumeExpiryCmd(cmd_base.CmdBase):
         pt = prettytable.PrettyTable([
             'Name', 'Last Active', 'Expiry Status', 'Expiry Next Step',
             'Ticket ID'])
+        pt.align = 'l'
         for pvc in self.pvcs:
             if self.valid_pvc(pvc):
                 ex = self.get_expirer(pvc)

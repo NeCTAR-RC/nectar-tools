@@ -27,7 +27,6 @@ class JupyterHubVolumeExpirer(base.Expirer):
     UPDATED_AT_KEY = 'nectar.org.au/expiry_updated_at'
 
     EVENT_PREFIX = 'expiry.jupyterhub.volume'
-    JUPYTERHUB_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
     def __init__(self, pvc, ks_session=None, dry_run=False,
                  force_delete=False):
@@ -114,8 +113,10 @@ class JupyterHubVolumeExpirer(base.Expirer):
 
     def get_last_active_date(self):
         hubuser = self._jupyterhub_api('/users/' + self.username)
-        last_activity = datetime.datetime.strptime(
-            hubuser.get('last_activity'), self.JUPYTERHUB_DATETIME_FORMAT)
+        # The timestamp given from JHub can vary, so we just strip away
+        # everything except the date part
+        ts = hubuser.get('last_activity').split('T')[0]
+        last_activity = datetime.datetime.strptime(ts, '%Y-%m-%d')
         return last_activity
 
     def get_warning_date(self):
