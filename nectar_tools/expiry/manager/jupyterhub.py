@@ -39,7 +39,7 @@ class JupyterHubVolumeExpirer(base.Expirer):
             resource=patched_pvc,
             template_dir='jupyterhub_volume',
             group_id=CONF.freshdesk.jupyterhub_group,
-            subject='ARDC Nectar Jupyter Notebook Service volume expiry',
+            subject='Volume expiry: ARDC Nectar Jupyter Notebook Service',
             ks_session=None, dry_run=dry_run,
             ticket_id_key=self.TICKET_ID_KEY)
 
