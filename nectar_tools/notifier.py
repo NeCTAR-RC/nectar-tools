@@ -40,8 +40,8 @@ class Notifier(object):
         try:
             template = env.get_template(tmpl)
         except jinja2.TemplateNotFound:
-            LOG.error('Template "%s" not found. Looked in %s',
-                      tmpl, template_dir)
+            LOG.warning('Template "%s" not found. Looked in %s',
+                        tmpl, template_dir)
             return None
         context = {self.resource_type: self.resource}
         context.update(extra_context)
