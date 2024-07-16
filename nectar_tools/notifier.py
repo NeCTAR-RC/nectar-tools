@@ -5,6 +5,7 @@ import os
 
 from nectar_tools import auth
 from nectar_tools import config
+from nectar_tools import exceptions
 
 
 CONF = config.CONFIG
@@ -40,9 +41,9 @@ class Notifier(object):
         try:
             template = env.get_template(tmpl)
         except jinja2.TemplateNotFound:
-            LOG.warning('Template "%s" not found. Looked in %s',
-                        tmpl, template_dir)
-            return None
+            LOG.debug('Template "%s" not found. Looked in %s',
+                      tmpl, template_dir)
+            raise exceptions.TemplateNotFound()
         context = {self.resource_type: self.resource}
         context.update(extra_context)
         template = template.render(context)

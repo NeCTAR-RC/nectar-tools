@@ -2,6 +2,7 @@ import logging
 
 from nectar_tools import auth
 from nectar_tools import config
+from nectar_tools import exceptions
 from nectar_tools import notifier
 
 
@@ -43,10 +44,12 @@ class ExpiryNotifier(notifier.FreshDeskNotifier):
                                             tags=['expiry'] + tags)
             self._set_ticket_id(ticket_id)
 
-            details = self.render_template(
-                '%s-details.tmpl' % self.resource_type, extra_context)
-
-            if details:
+            try:
+                details = self.render_template(
+                    '%s-details.tmpl' % self.resource_type, extra_context)
+            except exceptions.TemplateNotFound:
+                LOG.debug("Details template not found, ignoring")
+            else:
                 self._add_note_to_ticket(ticket_id, details)
 
     def finish(self, message=None):

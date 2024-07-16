@@ -43,3 +43,7 @@ class InvalidLimits(Exception):
 
 class TryNextTimeError(Exception):
     pass
+
+
+class TemplateNotFound(Exception):
+    pass

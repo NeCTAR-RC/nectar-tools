@@ -69,14 +69,14 @@ class ExpiryNotifierTests(test.TestCase):
             mock.patch.object(n, '_add_note_to_ticket')
         ) as (mock_create, mock_update_requester, mock_update, mock_id,
               mock_note):
-            n.send_message('second', 'owner@fake.org',
+            n.send_message('restrict', 'owner@fake.org',
                            extra_recipients=['manager1@fake.org'])
             mock_create.assert_not_called()
             mock_note.assert_not_called()
             mock_id.assert_not_called()
             mock_update_requester.assert_called_with(45, 'owner@fake.org')
             mock_update.assert_called_with(
-                45, n.render_template('second-warning.tmpl'),
+                45, n.render_template('restrict.tmpl'),
                 cc_emails=['manager1@fake.org'])
 
     def test_finish(self, mock_api):
