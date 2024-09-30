@@ -77,7 +77,7 @@ class DatabaseInstanceAuditor(base.Auditor):
             id = name[9:]
             if id not in ids:
                 try:
-                    self.repair(f"Delete old seggroup for instance {id}",
+                    self.repair(f"Delete old secgroup for instance {id}",
                                 self.q_client.delete_security_group,
                                 security_group=g.get('id'))
                 except Exception as e:
