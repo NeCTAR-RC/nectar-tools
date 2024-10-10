@@ -47,19 +47,20 @@ class TaynacNotifierTests(test.TestCase):
             template_dir='expiry/tests',
             subject='My-Subject',
         )
-
         with mock.patch.object(n, 't_client') as mock_taynac:
             n.send_message(
                 'first-warning',
                 'owner@fake.org',
                 {'foo': 'bar'},
                 ['manager1@fake.org', 'manager2@fake.org'],
+                tags=['red rover', 'all over'],
             )
             mock_taynac.messages.send.assert_called_once_with(
                 subject='My-Subject',
                 body=mock.ANY,
                 recipient='owner@fake.org',
                 cc=['manager1@fake.org', 'manager2@fake.org'],
+                tags=['red rover', 'all over'],
             )
 
 
