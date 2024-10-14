@@ -275,14 +275,16 @@ class ProvisioningManager:
             out_of_zone_instances = utils.get_out_of_zone_instances(
                 self.ks_session, allocation, project
             )
-        notifier = provisioning_notifier.ProvisioningNotifier(project)
+        notifier = provisioning_notifier.ProvisioningNotifier(
+            project, self.ks_session
+        )
         extra_context = {
             'allocation': allocation,
             'report': report,
             'out_of_zone_instances': out_of_zone_instances,
             'compute_zones': compute_zones,
         }
-        notifier.send_message(
+        notifier.send_provisioning(
             notification, allocation, extra_context=extra_context
         )
 

@@ -15,6 +15,11 @@ from nectar_tools.tests.functional import fake_clients
 CONF = config.CONFIG
 
 
+@mock.patch('nectar_tools.auth.get_taynac_client', new=fake_clients.get_taynac)
+# The following line can be removed when all use of the Freshdesk API has been
+# removed from the expiry-tools codebase.  In the meantime, is >does< need
+# to be mocked because the Freshdesk API is used by the expirer, which is
+# used by this functional test.
 @mock.patch('freshdesk.v2.api.API', new=fake_clients.FAKE_FD_API_CLASS)
 @mock.patch('nectar_tools.auth.get_session', new=fake_clients.FAKE_GET_SESSION)
 @mock.patch(
@@ -178,10 +183,10 @@ class ProvisionerTests(test.TestCase):
             mock_zt.accept_request.assert_called_once_with(mock.ANY, mock.ANY)
 
             # Ensure the template contains what we think it should
-            fd_api = fake_clients.FAKE_FD_API
-            create_ticket_call = fd_api.tickets.create_outbound_email.call_args
-            args, kwargs = create_ticket_call
-            email_body = kwargs['description']
+            taynac_api = fake_clients.FAKE_TAYNAC
+            send_message_call = taynac_api.messages.send.call_args
+            args, kwargs = send_message_call
+            email_body = kwargs['body']
             self.assertIn('Thanks for your continued use', email_body)
             self.assertIn('approved as a National allocation.', email_body)
             self.assertIn(
