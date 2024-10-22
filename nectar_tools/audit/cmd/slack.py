@@ -46,8 +46,8 @@ class SlackConfigError(Exception):
 # to be sent to a specific user; e.g. as email or via Freshdesk as a
 # ticket.  Our use-case here is different in almost every respect.
 
-class SlackNotifier(object):
 
+class SlackNotifier:
     def __init__(self, handler):
         self.handler = handler
 
@@ -63,7 +63,7 @@ class SlackNotifier(object):
             if '{' in group:
                 extra = getattr(record, 'extra', {})
                 group = group.format(**extra)
-            text = "@%s - %s" % (group, text)
+            text = f"@{group} - {text}"
 
         LOG.debug(f"Slack message is '{text}'")
         if self.handler.conf.no_notify:
@@ -84,14 +84,16 @@ class SlackNotifier(object):
                             reason = r.reason.decode("iso-8859-1")
                     else:
                         reason = r.reason
-                    logging.error("Slack POST failed: "
-                                  f"status_code={r.status_code}, "
-                                  f"reason = {reason}")
+                    logging.error(
+                        "Slack POST failed: "
+                        f"status_code={r.status_code}, "
+                        f"reason = {reason}"
+                    )
             except ConnectionError as e:
                 logging.exception("Problem connecting to Slack", e)
 
 
-class SlackFilterSpec(object):
+class SlackFilterSpec:
     """This class represents a 'filter_n' line in the config file."""
 
     def __init__(self, filter_text, key, separator_1, separator_2):
@@ -108,14 +110,16 @@ class SlackFilterSpec(object):
             if len(parts) != 2:
                 raise SlackConfigError(
                     f"Expected key-value pair but got '{pair}' "
-                    f"in filter spec for '{key}'")
+                    f"in filter spec for '{key}'"
+                )
             k, v = parts
             k = k.strip()
             v = v.strip()
             if len(k) == 0 or len(v) == 0:
                 raise SlackConfigError(
                     f"Key or value missing for '{pair}' "
-                    f"in filter spec for '{key}'")
+                    f"in filter spec for '{key}'"
+                )
             if k == 'msg':
                 self.message_regex = re.compile(v)
             elif k == 'alt':
@@ -131,7 +135,8 @@ class SlackFilterSpec(object):
                 self.extra_regexes[k] = re.compile(v)
         if self.message_regex is None:
             raise SlackConfigError(
-                f"No 'msg=<regex>' in filter spec for '{key}'")
+                f"No 'msg=<regex>' in filter spec for '{key}'"
+            )
 
     def filter(self, record):
         if not self.message_regex.match(record.msg):
@@ -139,8 +144,9 @@ class SlackFilterSpec(object):
 
         for i in range(0, len(self.arg_regexes)):
             arg_re = self.arg_regexes[i]
-            if arg_re and (i >= len(record.args)
-                           or not arg_re.match(str(record.args[i]))):
+            if arg_re and (
+                i >= len(record.args) or not arg_re.match(str(record.args[i]))
+            ):
                 return False
         extra = getattr(record, 'extra', {})
         for k, r in self.extra_regexes.items():
@@ -152,22 +158,33 @@ class SlackFilterSpec(object):
 class hashable_record(dict):
     def __init__(self, msg, args, extra):
         self['msg'] = msg
-        self['args'] = tuple((str(a) for a in args))
+        self['args'] = tuple(str(a) for a in args)
         self['extra'] = extra
 
     def __hash__(self):
-        return hash((self['msg'], self['args'],
-                     tuple(self['extra'].items())))
+        return hash((self['msg'], self['args'], tuple(self['extra'].items())))
 
     def __eq__(self, other):
-        return (self['msg'] == other['msg']
-                and self['args'] == other['args']
-                and self['extra'] == other['extra'])
+        return (
+            self['msg'] == other['msg']
+            and self['args'] == other['args']
+            and self['extra'] == other['extra']
+        )
 
 
 class SlackLogHandler(logging.Handler):
-    def __init__(self, conf, category, webhook, channel, group, levelno,
-                 logname, filters, incremental):
+    def __init__(
+        self,
+        conf,
+        category,
+        webhook,
+        channel,
+        group,
+        levelno,
+        logname,
+        filters,
+        incremental,
+    ):
         super().__init__(levelno)
         self.set_name(logname)
         self.webhook = webhook
@@ -186,16 +203,20 @@ class SlackLogHandler(logging.Handler):
         if self.incremental:
             self.dir_path = pathlib.Path(self.conf['DEFAULT'].state_dir)
             if not self.dir_path.is_dir():
-                raise RuntimeError(f"Audit state directory: '{self.dir_path}'"
-                                   " does not exist or isn't a directory")
+                raise RuntimeError(
+                    f"Audit state directory: '{self.dir_path}'"
+                    " does not exist or isn't a directory"
+                )
             self.state_path = pathlib.Path(
-                self.dir_path, f"{category}-state.json")
+                self.dir_path, f"{category}-state.json"
+            )
             if self.state_path.exists() and not self.conf.reset:
                 LOG.debug("Loading state from %s", self.state_path)
-                with open(self.state_path, 'r') as f:
-                    self.previous_records = set((
+                with open(self.state_path) as f:
+                    self.previous_records = set(
                         hashable_record(r['msg'], r['args'], r['extra'])
-                        for r in json.load(f)))
+                        for r in json.load(f)
+                    )
 
     def filter(self, record):
         if not super().filter(record):
@@ -204,10 +225,10 @@ class SlackLogHandler(logging.Handler):
             return False
         # Suppress records that we notified last time, and also
         # deduplicate them
-        info = hashable_record(record.msg, record.args,
-                               getattr(record, 'extra', {}))
-        res = (info not in self.previous_records
-               and info not in self.records)
+        info = hashable_record(
+            record.msg, record.args, getattr(record, 'extra', {})
+        )
+        res = info not in self.previous_records and info not in self.records
         self.records.add(info)
         return res
 
@@ -217,14 +238,17 @@ class SlackLogHandler(logging.Handler):
         for f in self.or_filters:
             if f.filter(record):
                 if f.alternative_message:
-                    setattr(record, 'alternative_message',
-                            f.alternative_message)
+                    setattr(
+                        record, 'alternative_message', f.alternative_message
+                    )
                 return True
         return False
 
     def emit(self, record):
-        LOG.debug(f"Sending Slack message for category {self.category} "
-                  f"to channel {self.channel}")
+        LOG.debug(
+            f"Sending Slack message for category {self.category} "
+            f"to channel {self.channel}"
+        )
         self.notifier.send(record)
 
     def complete(self):
@@ -238,7 +262,6 @@ class SlackLogHandler(logging.Handler):
 
 
 class SlackConfig(config.ConfigBase):
-
     FILTER_RE = re.compile(r'^filter_(\d+)$')
 
     def __init__(self, config_file, no_notify=False, reset=False):
@@ -267,7 +290,8 @@ class SlackConfig(config.ConfigBase):
         for category in categories:
             if category not in self:
                 raise SlackConfigError(
-                    f"Can't find category '{category}' in Slack config")
+                    f"Can't find category '{category}' in Slack config"
+                )
             section = self[category]
             separator_1 = section.get('separator_1', ',')
             separator_2 = section.get('separator_2', '=')
@@ -280,7 +304,8 @@ class SlackConfig(config.ConfigBase):
             if not webhook:
                 raise SlackConfigError(
                     "Cannot find a Slack webhook in either the Slack config "
-                    "or the main nectar_tools config")
+                    "or the main nectar_tools config"
+                )
             channel = section.get('slack_channel', None)
             group = section.get('slack_group', None)
             level = section.get('log_level', 'NOTSET')
@@ -291,14 +316,28 @@ class SlackConfig(config.ConfigBase):
             # The filters need to in numeric order ...
             filter_keys = sorted(
                 [k for k in section.keys() if self.FILTER_RE.match(k)],
-                key=lambda fk: self.sort_key(fk))
+                key=lambda fk: self.sort_key(fk),
+            )
             filters = [
-                SlackFilterSpec(section[k], f"[{category}]: {k}",
-                                separator_1, separator_2)
-                for k in filter_keys]
+                SlackFilterSpec(
+                    section[k], f"[{category}]: {k}", separator_1, separator_2
+                )
+                for k in filter_keys
+            ]
 
-            res.append(SlackLogHandler(self, category, webhook, channel, group,
-                                       levelno, logname, filters, incremental))
+            res.append(
+                SlackLogHandler(
+                    self,
+                    category,
+                    webhook,
+                    channel,
+                    group,
+                    levelno,
+                    logname,
+                    filters,
+                    incremental,
+                )
+            )
         return res
 
     def configure_handlers(self, categories_arg):

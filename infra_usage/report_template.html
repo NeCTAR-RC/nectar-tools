@@ -25,18 +25,18 @@ body {
 {%elif cell.get('node_name') == "qld"%}
 <strong>NeCTAR Research Cloud, Queensland, Queensland Cell</strong>
 {%endif%}
-	
+
 <br>
 <strong>Resource Usage update as at:</strong> {{ date }}
 <br>
-<strong>Total available nodes, cores and memory:</strong> {{ cell.get('node_count') }}, {{ cell.get('nac') }}, {{ cell.get('nam') }} GB
+<strong>Total available nodes, cores and memory:</strong> {{ cell.get('node_count') }}, {{ cell.get('nac') }}, {{ cell.get('name') }} GB
 <br>
 <strong>Used cores and memory:</strong> {{ cell.get('nuc') }}, {{ cell.get('num') }} GB
-<br> 
+<br>
 <strong>Free cores and memory:</strong> {{ cell.get('nfc') }}, {{ cell.get('nfm') }} GB
-<br> 
+<br>
 <strong>VM sizes in use (s, m, l, xl, xxl, others):</strong> {{ cell.get('t_s') }},{{ cell.get('t_m') }}
-								    {{ cell.get('t_l') }},{{ cell.get('t_xl') }} 
+								    {{ cell.get('t_l') }},{{ cell.get('t_xl') }}
 								    {{ cell.get('t_xxl') }},{{ cell.get('oth')}}
 <br>
 <br>

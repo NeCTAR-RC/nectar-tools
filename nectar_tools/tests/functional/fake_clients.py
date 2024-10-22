@@ -15,8 +15,7 @@ FAKE_NOVA = mock.MagicMock()
 SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
 
-class Quota(object):
-
+class Quota:
     def __init__(self, quotas=[]):
         self.quotas = quotas
 
@@ -37,15 +36,12 @@ class Quota(object):
         pass
 
 
-class CinderClient(object):
-
+class CinderClient:
     def __init__(self):
-        self.quotas = Quota({'gigabytes': 10,
-                             'volumes': 10})
+        self.quotas = Quota({'gigabytes': 10, 'volumes': 10})
 
 
-class SwiftClient(object):
-
+class SwiftClient:
     @staticmethod
     def get_account():
         return {SWIFT_QUOTA_KEY: 2000}, None
@@ -55,8 +51,7 @@ class SwiftClient(object):
         pass
 
 
-class NeutronClient(object):
-
+class NeutronClient:
     @staticmethod
     def show_quota(project_id):
         return {'quota': {'network': 10}}
@@ -74,18 +69,17 @@ class NeutronClient(object):
         pass
 
 
-class TroveClient(object):
-
+class TroveClient:
     def __init__(self):
         self.quota = Quota()
 
 
-class MagnumQuota(object):
+class MagnumQuota:
     def __init__(self, limit):
         self.hard_limit = limit
 
 
-class MagnumQuotaManager(object):
+class MagnumQuotaManager:
     def get(self, *args):
         return MagnumQuota(5)
 
@@ -96,30 +90,26 @@ class MagnumQuotaManager(object):
         pass
 
 
-class MagnumClient(object):
-
+class MagnumClient:
     def __init__(self):
         self.quotas = MagnumQuotaManager()
 
 
-class ManilaClient(object):
-
-    class ShareTypes(object):
+class ManilaClient:
+    class ShareTypes:
         @staticmethod
         def list():
             return []
 
     def __init__(self):
-        self.quotas = Quota({'gigabytes': 10,
-                             'shares': 10})
+        self.quotas = Quota({'gigabytes': 10, 'shares': 10})
         self.share_types = self.ShareTypes()
 
 
-class Openstack(object):
-
+class Openstack:
     fake_quota = lb_quota.Quota(id='fake', load_balancers=10)
 
-    class LoadBalancer(object):
+    class LoadBalancer:
         def get_quota(self, project_id):
             return Openstack.fake_quota
 

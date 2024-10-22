@@ -6,7 +6,6 @@ from nectar_tools import utils
 
 
 class ProjectAllocationAuditorCmd(project_base.ProjectAuditorCmd):
-
     @staticmethod
     def get_manager():
         return allocation.ProjectAllocationAuditor

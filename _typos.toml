@@ -1,0 +1,10 @@
+[files]
+extend-exclude = ["nectar_dashboard/usage/static/js/DataTables/*", "nectar_dashboard/rcallocation/migrations/", "nectar_dashboard/rcallocation/forcodes.py", "nectar_dashboard/rcallocation/tests/unit/test_utils.py"]
+
+
+[default.extend-words]
+ACN = "ACN"
+ANDS = "ANDS"
+# This is for the FoR spelling see https://github.com/crate-ci/typos/issues/1122
+Fo = "Fo"
+HASS = "HASS"

@@ -6,7 +6,6 @@ from nectar_tools import utils
 
 
 class PTAuditorCmd(project_base.ProjectAuditorCmd):
-
     @staticmethod
     def get_manager():
         return pt.ProjectTrialAuditor

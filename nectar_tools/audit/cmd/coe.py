@@ -3,11 +3,10 @@ from nectar_tools.audit.coe import cluster
 
 
 class ClusterAuditorCmd(base.AuditCmdBase):
-
     AUDITORS = [cluster.ClusterAuditor]
 
     def add_args(self):
-        super(ClusterAuditorCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Cluster auditor'
 
 

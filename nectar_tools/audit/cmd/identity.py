@@ -5,11 +5,10 @@ from nectar_tools.audit.identity import user
 
 
 class IdentityAuditorCmd(base.AuditCmdBase):
-
     AUDITORS = [role.RoleAuditor, user.UserAuditor, project.ProjectAuditor]
 
     def add_args(self):
-        super(IdentityAuditorCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Identity auditor'
 
 

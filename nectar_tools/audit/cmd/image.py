@@ -3,11 +3,10 @@ from nectar_tools.audit.image import image
 
 
 class ImageAuditorCmd(base.AuditCmdBase):
-
     AUDITORS = [image.ImageAuditor]
 
     def add_args(self):
-        super(ImageAuditorCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Image auditor'
 
 

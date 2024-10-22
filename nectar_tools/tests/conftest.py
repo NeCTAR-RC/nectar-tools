@@ -40,12 +40,15 @@ def pytest_pycollect_makemodule(path, parent):
             @pytest.fixture(scope='function')
             def dummy(mocker):
                 return mocker.patch(function_path)
+
             dummy.__name__ = name
             return dummy
+
         if getattr(module, name, None) is not None:
-            raise AttributeError('Mock fixture name aliases existing module '
-                                 'attribute "%s" in module "%s".' %
-                                 (name, module.__name__))
+            raise AttributeError(
+                'Mock fixture name aliases existing module '
+                f'attribute "{name}" in module "{module.__name__}".'
+            )
         setattr(module, name, _make_fixture(m, name))
 
     return pytest.Module(path, parent)

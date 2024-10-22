@@ -6,26 +6,30 @@ from nectar_tools import auth
 DATE_FORMAT = '%Y-%m-%d'
 
 
-class SUinfo(object):
-
+class SUinfo:
     def __init__(self, session, allocation):
         self.allocation = allocation
         self.session = session
         self._usage = None
         self._budget = None
         self.allocation_start = datetime.datetime.strptime(
-            self.allocation.start_date, DATE_FORMAT)
+            self.allocation.start_date, DATE_FORMAT
+        )
         self.allocation_end = datetime.datetime.strptime(
-            self.allocation.end_date, DATE_FORMAT)
-        self.allocation_total_days = (self.allocation_end
-                                      - self.allocation_start).days
+            self.allocation.end_date, DATE_FORMAT
+        )
+        self.allocation_total_days = (
+            self.allocation_end - self.allocation_start
+        ).days
 
     def to_dict(self):
-        return {'allocation': self.allocation.id,
-                'usage': self.usage,
-                'budget': self.budget,
-                'over_80_percent': self.over_80_percent(),
-                'over_budget': self.over_budget()}
+        return {
+            'allocation': self.allocation.id,
+            'usage': self.usage,
+            'budget': self.budget,
+            'over_80_percent': self.over_80_percent(),
+            'over_budget': self.over_budget(),
+        }
 
     def over_budget(self):
         if self.budget == 0:
@@ -48,7 +52,8 @@ class SUinfo(object):
                 begin=str(self.allocation.start_date),
                 end=str(self.allocation.end_date),
                 filters={'project_id': self.allocation.project_id},
-                response_format='object')
+                response_format='object',
+            )
 
             results = summary.get('results')
             if results:
@@ -82,5 +87,6 @@ class SUinfo(object):
         if today < self.allocation_start:
             return False
         days_used = (today - self.allocation_start).days
-        return (self.usage / self.budget
-                > days_used / self.allocation_total_days)
+        return (
+            self.usage / self.budget > days_used / self.allocation_total_days
+        )

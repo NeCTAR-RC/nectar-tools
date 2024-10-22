@@ -10,18 +10,24 @@ LOG = logging.getLogger(__name__)
 
 
 class ResetQuotasCmd(provision.ProvisionCmd):
-
     def reset_all(self):
         allocations = self.manager.a_client.allocations.list(
-            status=states.APPROVED, provisioned=True,
-            parent_request__isnull=True, managed=True)
+            status=states.APPROVED,
+            provisioned=True,
+            parent_request__isnull=True,
+            managed=True,
+        )
         for allocation in allocations:
             project = self.k_client.projects.get(allocation.project_id)
             expiry_status = getattr(
-                project, expirer.AllocationExpirer.STATUS_KEY, '')
+                project, expirer.AllocationExpirer.STATUS_KEY, ''
+            )
             if expiry_status != '':
-                LOG.warning("%s: Allocation under expiry '%s', Skipping",
-                            allocation.id, expiry_status)
+                LOG.warning(
+                    "%s: Allocation under expiry '%s', Skipping",
+                    allocation.id,
+                    expiry_status,
+                )
                 continue
             try:
                 self.set_quota(allocation.id)

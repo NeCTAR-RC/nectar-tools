@@ -64,14 +64,15 @@ def get_allocation_client(session):
 @mock.patch('nectar_tools.auth.get_heat_client', new=get_heat)
 @mock.patch('nectar_tools.auth.get_murano_client', new=get_murano)
 @mock.patch('nectar_tools.auth.get_neutron_client', new=get_neutron)
-@mock.patch('nectar_tools.auth.get_keystone_client',
-            new=fake_clients.get_keystone)
+@mock.patch(
+    'nectar_tools.auth.get_keystone_client', new=fake_clients.get_keystone
+)
 @mock.patch('nectar_tools.auth.get_nova_client', new=get_nova)
 @mock.patch('nectar_tools.auth.get_manuka_client', new=fake_clients.get_manuka)
-@mock.patch('nectar_tools.auth.get_allocation_client',
-            new=get_allocation_client)
+@mock.patch(
+    'nectar_tools.auth.get_allocation_client', new=get_allocation_client
+)
 class PTExpiryTests(test.TestCase):
-
     def setUp(self, *args, **kwargs):
         super().setUp(*args, **kwargs)
         # reset all mocks explicitly since we're defining them
@@ -85,18 +86,29 @@ class PTExpiryTests(test.TestCase):
         FAKE_HEAT.reset_mock()
         FAKE_MURANO.reset_mock()
         # Set up a fake PT with an owner
-        project = fakes.FakeProjectWithOwner(id='q12w', name='pt-123',
-                                             description='abc',
-                                             domain_id='my-domain-id')
+        project = fakes.FakeProjectWithOwner(
+            id='q12w',
+            name='pt-123',
+            description='abc',
+            domain_id='my-domain-id',
+        )
         self.project = project
 
-    def _test_process(self, invalid=False, usage=0,
-                      registered_at=datetime.datetime(2017, 1, 1),
-                      pending_allocations=[],
-                      keystone_calls=[], fd_calls=[],
-                      nova_calls=[], neutron_calls=[],
-                      swift_calls=[], glance_calls=[],
-                      heat_calls=[], murano_calls=[]):
+    def _test_process(
+        self,
+        invalid=False,
+        usage=0,
+        registered_at=datetime.datetime(2017, 1, 1),
+        pending_allocations=[],
+        keystone_calls=[],
+        fd_calls=[],
+        nova_calls=[],
+        neutron_calls=[],
+        swift_calls=[],
+        glance_calls=[],
+        heat_calls=[],
+        murano_calls=[],
+    ):
         """Runs the actual expiry process
 
         :param invalid: If true expect process to raise InvalidProject
@@ -158,7 +170,7 @@ class PTExpiryTests(test.TestCase):
     def get_fd_calls(self):
         """Helper method to get expected calls for freshdesk"""
         if not getattr(self.project, 'expiry_ticket_id', 0):
-            subject = "Nectar Project Trial Expiry - %s" % self.project.name
+            subject = f"Nectar Project Trial Expiry - {self.project.name}"
             calls = [
                 mock.call.tickets.create_outbound_email(
                     cc_emails=[],
@@ -167,17 +179,21 @@ class PTExpiryTests(test.TestCase):
                     email_config_id=int(CONF.freshdesk.email_config_id),
                     group_id=int(CONF.freshdesk.pt_group),
                     subject=subject,
-                    tags=['expiry']),
-                mock.call.comments.create_note(mock.ANY, mock.ANY)
+                    tags=['expiry'],
+                ),
+                mock.call.comments.create_note(mock.ANY, mock.ANY),
             ]
         else:
             calls = [
                 mock.call.tickets.update_ticket(
                     int(self.project.expiry_ticket_id),
-                    email=self.project.owner.email),
+                    email=self.project.owner.email,
+                ),
                 mock.call.comments.create_reply(
                     int(self.project.expiry_ticket_id),
-                    body=mock.ANY, cc_emails=[])
+                    body=mock.ANY,
+                    cc_emails=[],
+                ),
             ]
         return calls
 
@@ -189,14 +205,16 @@ class PTExpiryTests(test.TestCase):
         """
 
         next_step = TODAY_DATE + relativedelta.relativedelta(
-            days=next_step_days)
+            days=next_step_days
+        )
         next_step = next_step.strftime('%Y-%m-%d')
         if state == expiry_states.ARCHIVED:
             keystone_calls = [
                 mock.call.projects.update(
                     self.project.id,
                     expiry_status=state,
-                    expiry_updated_at=TODAY),
+                    expiry_updated_at=TODAY,
+                ),
             ]
         elif state == expiry_states.DELETED:
             keystone_calls = [
@@ -205,7 +223,8 @@ class PTExpiryTests(test.TestCase):
                     expiry_deleted_at=TODAY,
                     expiry_next_step='',
                     expiry_status=state,
-                    expiry_updated_at=TODAY),
+                    expiry_updated_at=TODAY,
+                ),
             ]
         else:
             keystone_calls = [
@@ -213,14 +232,16 @@ class PTExpiryTests(test.TestCase):
                     self.project.id,
                     expiry_next_step=next_step,
                     expiry_status=state,
-                    expiry_updated_at=TODAY),
+                    expiry_updated_at=TODAY,
+                ),
             ]
 
         if not getattr(self.project, 'expiry_ticket_id', None):
             keystone_calls.append(
                 mock.call.projects.update(
-                    self.project.id,
-                    expiry_ticket_id=mock.ANY))
+                    self.project.id, expiry_ticket_id=mock.ANY
+                )
+            )
 
         return keystone_calls
 
@@ -232,10 +253,12 @@ class PTExpiryTests(test.TestCase):
         Expected: Nothing
         """
 
-        nova_calls = [mock.call.usage.get(
-            self.project.id,
-            datetime.datetime(2011, 1, 1),
-            TODAY_DATE + relativedelta.relativedelta(days=1))
+        nova_calls = [
+            mock.call.usage.get(
+                self.project.id,
+                datetime.datetime(2011, 1, 1),
+                TODAY_DATE + relativedelta.relativedelta(days=1),
+            )
         ]
 
         self._test_process(nova_calls=nova_calls)
@@ -243,7 +266,7 @@ class PTExpiryTests(test.TestCase):
     def test_active_usage_over_limit(self):
         """Active PT with usage over limit
 
-        Enviroment: Project with usage above 80%
+        Environment: Project with usage above 80%
 
         Expected: FD outbound email sent, status -> WARNING
         """
@@ -253,23 +276,27 @@ class PTExpiryTests(test.TestCase):
 
         keystone_calls = self.get_keystone_calls(expiry_states.WARNING, 30)
 
-        nova_calls = [mock.call.usage.get(
-            self.project.id,
-            datetime.datetime(2011, 1, 1),
-            TODAY_DATE + relativedelta.relativedelta(days=1))
+        nova_calls = [
+            mock.call.usage.get(
+                self.project.id,
+                datetime.datetime(2011, 1, 1),
+                TODAY_DATE + relativedelta.relativedelta(days=1),
+            )
         ]
 
         fd_calls = self.get_fd_calls()
 
-        self._test_process(usage=13507,
-                           keystone_calls=keystone_calls,
-                           fd_calls=fd_calls,
-                           nova_calls=nova_calls)
+        self._test_process(
+            usage=13507,
+            keystone_calls=keystone_calls,
+            fd_calls=fd_calls,
+            nova_calls=nova_calls,
+        )
 
     def test_active_old(self):
         """Active PT that is older than 1 year
 
-        Enviroment: Project older that 1 year
+        Environment: Project older that 1 year
 
         Expected: FD outbound email sent, status -> WARNING
         """
@@ -278,18 +305,22 @@ class PTExpiryTests(test.TestCase):
 
         keystone_calls = self.get_keystone_calls(expiry_states.WARNING, 30)
 
-        nova_calls = [mock.call.usage.get(
-            self.project.id,
-            datetime.datetime(2011, 1, 1),
-            TODAY_DATE + relativedelta.relativedelta(days=1))
+        nova_calls = [
+            mock.call.usage.get(
+                self.project.id,
+                datetime.datetime(2011, 1, 1),
+                TODAY_DATE + relativedelta.relativedelta(days=1),
+            )
         ]
 
         fd_calls = self.get_fd_calls()
 
-        self._test_process(registered_at=registered_at,
-                           keystone_calls=keystone_calls,
-                           fd_calls=fd_calls,
-                           nova_calls=nova_calls)
+        self._test_process(
+            registered_at=registered_at,
+            keystone_calls=keystone_calls,
+            fd_calls=fd_calls,
+            nova_calls=nova_calls,
+        )
 
     def test_warning_ok(self):
         """Project in warning state not ready for next step
@@ -313,16 +344,18 @@ class PTExpiryTests(test.TestCase):
 
         keystone_calls = self.get_keystone_calls(expiry_states.RESTRICTED)
 
-        nova_calls = [
-            mock.call.quotas.delete(tenant_id=self.project.id)
-        ]
-        neutron_quota = {'quota': {'port': 0,
-                                   'security_group': 0,
-                                   'security_group_rule': 10,
-                                   'floatingip': 0,
-                                   'router': 0,
-                                   'network': 0,
-                                   'subnet': 0}}
+        nova_calls = [mock.call.quotas.delete(tenant_id=self.project.id)]
+        neutron_quota = {
+            'quota': {
+                'port': 0,
+                'security_group': 0,
+                'security_group_rule': 10,
+                'floatingip': 0,
+                'router': 0,
+                'network': 0,
+                'subnet': 0,
+            }
+        }
         neutron_calls = [
             mock.call.update_quota(self.project.id, neutron_quota)
         ]
@@ -333,11 +366,13 @@ class PTExpiryTests(test.TestCase):
 
         fd_calls = self.get_fd_calls()
 
-        self._test_process(keystone_calls=keystone_calls,
-                           fd_calls=fd_calls,
-                           nova_calls=nova_calls,
-                           neutron_calls=neutron_calls,
-                           swift_calls=swift_calls)
+        self._test_process(
+            keystone_calls=keystone_calls,
+            fd_calls=fd_calls,
+            nova_calls=nova_calls,
+            neutron_calls=neutron_calls,
+            swift_calls=swift_calls,
+        )
 
     def test_warning_pending_allocation(self):
         """Project in warning state not ready for next step
@@ -388,21 +423,31 @@ class PTExpiryTests(test.TestCase):
         keystone_calls = self.get_keystone_calls(expiry_states.STOPPED)
 
         nova_calls = [
-            mock.call.servers.list(search_opts={'all_tenants': True,
-                                                'tenant_id': self.project.id,
-                                                'marker': 'fake'}),
-            mock.call.servers.list(search_opts={'all_tenants': True,
-                                                'tenant_id': self.project.id,
-                                                'marker': 'fake'}),
+            mock.call.servers.list(
+                search_opts={
+                    'all_tenants': True,
+                    'tenant_id': self.project.id,
+                    'marker': 'fake',
+                }
+            ),
+            mock.call.servers.list(
+                search_opts={
+                    'all_tenants': True,
+                    'tenant_id': self.project.id,
+                    'marker': 'fake',
+                }
+            ),
             mock.call.servers.lock(fake_instance.id, reason='expiry_locked'),
             mock.call.servers.stop(fake_instance.id),
         ]
 
         fd_calls = self.get_fd_calls()
 
-        self._test_process(keystone_calls=keystone_calls,
-                           nova_calls=nova_calls,
-                           fd_calls=fd_calls)
+        self._test_process(
+            keystone_calls=keystone_calls,
+            nova_calls=nova_calls,
+            fd_calls=fd_calls,
+        )
 
     def test_stopped_ok(self):
         """Project in stopped state not ready
@@ -428,8 +473,9 @@ class PTExpiryTests(test.TestCase):
 
         nova_client = FAKE_NOVA
         glance_client = FAKE_GLANCE
-        fake_instance = fakes.FakeInstance(status="STOPPED",
-                                           vm_state='stopped')
+        fake_instance = fakes.FakeInstance(
+            status="STOPPED", vm_state='stopped'
+        )
 
         def fake_list(search_opts):
             if 'marker' in search_opts:
@@ -442,27 +488,41 @@ class PTExpiryTests(test.TestCase):
 
         keystone_calls = self.get_keystone_calls(expiry_states.ARCHIVING, 90)
         nova_calls = [
-            mock.call.servers.list(search_opts={'all_tenants': True,
-                                                'tenant_id': self.project.id,
-                                                'marker': 'fake'}),
-            mock.call.servers.list(search_opts={'all_tenants': True,
-                                                'tenant_id': self.project.id,
-                                                'marker': 'fake'}),
-            mock.call.servers.set_meta(fake_instance.id,
-                                       {'archive_attempts': '1'}),
+            mock.call.servers.list(
+                search_opts={
+                    'all_tenants': True,
+                    'tenant_id': self.project.id,
+                    'marker': 'fake',
+                }
+            ),
+            mock.call.servers.list(
+                search_opts={
+                    'all_tenants': True,
+                    'tenant_id': self.project.id,
+                    'marker': 'fake',
+                }
+            ),
+            mock.call.servers.set_meta(
+                fake_instance.id, {'archive_attempts': '1'}
+            ),
             mock.call.servers.create_image(
-                fake_instance.id, 'fake_archive',
-                metadata={'nectar_archive': 'True'}),
+                fake_instance.id,
+                'fake_archive',
+                metadata={'nectar_archive': 'True'},
+            ),
         ]
 
         glance_calls = [
-            mock.call.images.list(filters={'owner_id': self.project.id,
-                                           'nectar_archive': 'True'}),
+            mock.call.images.list(
+                filters={'owner_id': self.project.id, 'nectar_archive': 'True'}
+            ),
         ]
 
-        self._test_process(keystone_calls=keystone_calls,
-                           nova_calls=nova_calls,
-                           glance_calls=glance_calls)
+        self._test_process(
+            keystone_calls=keystone_calls,
+            nova_calls=nova_calls,
+            glance_calls=glance_calls,
+        )
 
     def test_archiving_ok(self):
         """Project in archiving state not ready
@@ -477,8 +537,9 @@ class PTExpiryTests(test.TestCase):
 
         nova_client = FAKE_NOVA
         glance_client = FAKE_GLANCE
-        fake_instance = fakes.FakeInstance(status="STOPPED",
-                                           vm_state='stopped')
+        fake_instance = fakes.FakeInstance(
+            status="STOPPED", vm_state='stopped'
+        )
 
         def fake_list(search_opts):
             if 'marker' in search_opts:
@@ -491,21 +552,32 @@ class PTExpiryTests(test.TestCase):
 
         keystone_calls = self.get_keystone_calls(expiry_states.ARCHIVED)
         nova_calls = [
-            mock.call.servers.list(search_opts={'all_tenants': True,
-                                                'tenant_id': self.project.id,
-                                                'marker': 'fake'}),
-            mock.call.servers.list(search_opts={'all_tenants': True,
-                                                'tenant_id': self.project.id,
-                                                'marker': 'fake'}),
+            mock.call.servers.list(
+                search_opts={
+                    'all_tenants': True,
+                    'tenant_id': self.project.id,
+                    'marker': 'fake',
+                }
+            ),
+            mock.call.servers.list(
+                search_opts={
+                    'all_tenants': True,
+                    'tenant_id': self.project.id,
+                    'marker': 'fake',
+                }
+            ),
         ]
         glance_calls = [
-            mock.call.images.list(filters={'owner_id': self.project.id,
-                                           'nectar_archive': 'True'}),
+            mock.call.images.list(
+                filters={'owner_id': self.project.id, 'nectar_archive': 'True'}
+            ),
         ]
 
-        self._test_process(keystone_calls=keystone_calls,
-                           nova_calls=nova_calls,
-                           glance_calls=glance_calls)
+        self._test_process(
+            keystone_calls=keystone_calls,
+            nova_calls=nova_calls,
+            glance_calls=glance_calls,
+        )
 
     def test_archiving_ready(self):
         """Project in archiving state and hasn't completed in time frame
@@ -537,8 +609,9 @@ class PTExpiryTests(test.TestCase):
 
         nova_client = FAKE_NOVA
         glance_client = FAKE_GLANCE
-        fake_instance = fakes.FakeInstance(status="STOPPED",
-                                           vm_state='stopped')
+        fake_instance = fakes.FakeInstance(
+            status="STOPPED", vm_state='stopped'
+        )
 
         def fake_list(search_opts):
             if 'marker' in search_opts:
@@ -550,17 +623,26 @@ class PTExpiryTests(test.TestCase):
         glance_client.images.list.return_value = [fakes.FakeImage()]
 
         nova_calls = [
-            mock.call.servers.list(search_opts={'all_tenants': True,
-                                                'tenant_id': self.project.id,
-                                                'marker': 'fake'}),
-            mock.call.servers.list(search_opts={'all_tenants': True,
-                                                'tenant_id': self.project.id,
-                                                'marker': 'fake'}),
+            mock.call.servers.list(
+                search_opts={
+                    'all_tenants': True,
+                    'tenant_id': self.project.id,
+                    'marker': 'fake',
+                }
+            ),
+            mock.call.servers.list(
+                search_opts={
+                    'all_tenants': True,
+                    'tenant_id': self.project.id,
+                    'marker': 'fake',
+                }
+            ),
             mock.call.servers.delete(fake_instance.id),
         ]
         glance_calls = [
-            mock.call.images.list(filters={'owner_id': self.project.id,
-                                           'nectar_archive': 'True'}),
+            mock.call.images.list(
+                filters={'owner_id': self.project.id, 'nectar_archive': 'True'}
+            ),
         ]
         self._test_process(nova_calls=nova_calls, glance_calls=glance_calls)
 
@@ -614,28 +696,35 @@ class PTExpiryTests(test.TestCase):
         murano_client.environments.get.side_effect = murano_exc.HTTPNotFound
 
         swift_client.get_account.return_value = ('fake-account', [c1])
-        swift_client.get_container.return_value = ('fake-container',
-                                                   [o1])
-        port_response = {'ports': [
-            {'id': 'fakeport1'}]}
+        swift_client.get_container.return_value = ('fake-container', [o1])
+        port_response = {'ports': [{'id': 'fakeport1'}]}
         neutron_client.list_ports.return_value = port_response
-        secgroup_response = {'security_groups': [
-            {'id': 'fake', 'name': 'fake'},
-            {'id': 'fake2', 'name': 'default'}]}
-        secgroup_rules_response = {'security_group_rules': [
-            {'id': 'rule1', 'security_group_id': 'secgrp1'},
-            {'id': 'rule2', 'security_group_id': 'secgrp2'}]}
+        secgroup_response = {
+            'security_groups': [
+                {'id': 'fake', 'name': 'fake'},
+                {'id': 'fake2', 'name': 'default'},
+            ]
+        }
+        secgroup_rules_response = {
+            'security_group_rules': [
+                {'id': 'rule1', 'security_group_id': 'secgrp1'},
+                {'id': 'rule2', 'security_group_id': 'secgrp2'},
+            ]
+        }
         neutron_client.list_security_groups.return_value = secgroup_response
-        neutron_client.list_security_group_rules.return_value = \
-                secgroup_rules_response
+        neutron_client.list_security_group_rules.return_value = (
+            secgroup_rules_response
+        )
 
         nova_calls = [
-            mock.call.servers.list(search_opts={'all_tenants': True,
-                                                'tenant_id': self.project.id}),
+            mock.call.servers.list(
+                search_opts={'all_tenants': True, 'tenant_id': self.project.id}
+            ),
         ]
         glance_calls = [
-            mock.call.images.list(filters={'owner_id': self.project.id,
-                                           'nectar_archive': 'True'}),
+            mock.call.images.list(
+                filters={'owner_id': self.project.id, 'nectar_archive': 'True'}
+            ),
             mock.call.images.delete(image.id),
         ]
 
@@ -662,10 +751,12 @@ class PTExpiryTests(test.TestCase):
         ]
 
         fd_calls = [
-            mock.call.comments.create_note(int(self.project.expiry_ticket_id),
-                                           'Project deleted'),
-            mock.call.tickets.update_ticket(int(self.project.expiry_ticket_id),
-                                            status=5)
+            mock.call.comments.create_note(
+                int(self.project.expiry_ticket_id), 'Project deleted'
+            ),
+            mock.call.tickets.update_ticket(
+                int(self.project.expiry_ticket_id), status=5
+            ),
         ]
 
         swift_calls = [
@@ -676,11 +767,16 @@ class PTExpiryTests(test.TestCase):
         ]
 
         keystone_calls = self.get_keystone_calls(expiry_states.DELETED)
-        self._test_process(nova_calls=nova_calls, glance_calls=glance_calls,
-                           fd_calls=fd_calls, keystone_calls=keystone_calls,
-                           neutron_calls=neutron_calls,
-                           swift_calls=swift_calls, heat_calls=heat_calls,
-                           murano_calls=murano_calls)
+        self._test_process(
+            nova_calls=nova_calls,
+            glance_calls=glance_calls,
+            fd_calls=fd_calls,
+            keystone_calls=keystone_calls,
+            neutron_calls=neutron_calls,
+            swift_calls=swift_calls,
+            heat_calls=heat_calls,
+            murano_calls=murano_calls,
+        )
 
     def test_deleted(self):
         """Project in deleted state

@@ -9,7 +9,6 @@ from nectar_tools.tests import fakes
 
 
 class ManagerTests(test.TestCase):
-
     def setUp(self):
         super().setUp()
         self.manager = manager.SUReporter(ks_session=mock.Mock())
@@ -23,7 +22,8 @@ class ManagerTests(test.TestCase):
         mock_notifier.assert_called_once_with(
             allocation=allocation,
             ks_session=self.manager.ks_session,
-            noop=self.manager.noop)
+            noop=self.manager.noop,
+        )
 
         notifier.send_over_budget.assert_called_once_with()
 
@@ -33,8 +33,8 @@ class ManagerTests(test.TestCase):
         allocations = [a1, a2]
 
         with test.nested(
-                mock.patch.object(self.manager, 'a_client'),
-                mock.patch.object(self.manager, 'send_reports')
+            mock.patch.object(self.manager, 'a_client'),
+            mock.patch.object(self.manager, 'send_reports'),
         ) as (mock_allocation, mock_send):
             mock_allocation.allocations.list.return_value = allocations
 
@@ -48,8 +48,8 @@ class ManagerTests(test.TestCase):
         allocations = [a1, a2]
 
         with test.nested(
-                mock.patch.object(self.manager, 'a_client'),
-                mock.patch.object(self.manager, 'send_reports')
+            mock.patch.object(self.manager, 'a_client'),
+            mock.patch.object(self.manager, 'send_reports'),
         ) as (mock_allocation, mock_send):
             mock_allocation.allocations.list.return_value = allocations
 
@@ -60,19 +60,22 @@ class ManagerTests(test.TestCase):
     def test_send_reports_no_project_id(self):
         allocation = self.allocations.get(id=1)
         allocation.project_id = None
-        with self.assertRaisesRegex(exceptions.InvalidProjectAllocation,
-                                    "No project id"):
+        with self.assertRaisesRegex(
+            exceptions.InvalidProjectAllocation, "No project id"
+        ):
             self.manager.send_reports(allocation)
 
     def test_send_reports_project_disabled(self):
         allocation = self.allocations.get(id=1)
         allocation.project_id = '123'
         with mock.patch.object(self.manager, 'k_client') as mock_keystone:
-            mock_keystone.projects.get.return_value = \
-                fakes.FakeProject(enabled=False)
+            mock_keystone.projects.get.return_value = fakes.FakeProject(
+                enabled=False
+            )
 
-            with self.assertRaisesRegex(exceptions.InvalidProjectAllocation,
-                                        "Project dummy disabled"):
+            with self.assertRaisesRegex(
+                exceptions.InvalidProjectAllocation, "Project dummy disabled"
+            ):
                 self.manager.send_reports(allocation)
 
     @mock.patch('nectar_tools.common.service_units.SUinfo')
@@ -81,15 +84,15 @@ class ManagerTests(test.TestCase):
         allocation = self.allocations.get(id=1)
         allocation.project_id = '123'
         with test.nested(
-                mock.patch.object(self.manager, 'k_client'),
-                mock.patch.object(self.manager, 'send_over_budget_report')
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'send_over_budget_report'),
         ) as (mock_keystone, mock_send):
-            mock_keystone.projects.get.return_value = \
-                fakes.FakeProject()
+            mock_keystone.projects.get.return_value = fakes.FakeProject()
 
             self.manager.send_reports(allocation)
-            mock_su_info.assert_called_once_with(self.manager.ks_session,
-                                                 allocation)
+            mock_su_info.assert_called_once_with(
+                self.manager.ks_session, allocation
+            )
             mock_send.assert_not_called()
 
     @mock.patch('nectar_tools.common.service_units.SUinfo')
@@ -98,15 +101,15 @@ class ManagerTests(test.TestCase):
         allocation = self.allocations.get(id=1)
         allocation.project_id = '123'
         with test.nested(
-                mock.patch.object(self.manager, 'k_client'),
-                mock.patch.object(self.manager, 'send_over_budget_report')
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'send_over_budget_report'),
         ) as (mock_keystone, mock_send):
-            mock_keystone.projects.get.return_value = \
-                fakes.FakeProject()
+            mock_keystone.projects.get.return_value = fakes.FakeProject()
 
             self.manager.send_reports(allocation)
-            mock_su_info.assert_called_once_with(self.manager.ks_session,
-                                                 allocation)
+            mock_su_info.assert_called_once_with(
+                self.manager.ks_session, allocation
+            )
             mock_send.assert_called_once_with(allocation)
 
     @freeze_time('2022-01-08')
@@ -115,17 +118,18 @@ class ManagerTests(test.TestCase):
         allocation = self.allocations.get(id=1)
         allocation.start_date = '2022-01-01'
         allocation.end_date = '2022-02-01'
-        mock_su_info.return_value = fakes.FakeSUinfo(allocation=allocation,
-                                                     tracking_over=True)
+        mock_su_info.return_value = fakes.FakeSUinfo(
+            allocation=allocation, tracking_over=True
+        )
         allocation.project_id = '123'
         with test.nested(
-                mock.patch.object(self.manager, 'k_client'),
-                mock.patch.object(self.manager, 'send_over_budget_report')
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'send_over_budget_report'),
         ) as (mock_keystone, mock_send):
-            mock_keystone.projects.get.return_value = \
-                fakes.FakeProject()
+            mock_keystone.projects.get.return_value = fakes.FakeProject()
 
             self.manager.send_reports(allocation)
-            mock_su_info.assert_called_once_with(self.manager.ks_session,
-                                                 allocation)
+            mock_su_info.assert_called_once_with(
+                self.manager.ks_session, allocation
+            )
             mock_send.assert_not_called()

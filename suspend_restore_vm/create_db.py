@@ -6,7 +6,6 @@ Base = declarative_base()
 
 
 class VM(Base):
-
     __tablename__ = "vm_data"
     id = Column(Integer, primary_key=True)
     host = Column(String(10), nullable=False)

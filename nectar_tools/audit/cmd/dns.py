@@ -3,11 +3,10 @@ from nectar_tools.audit.dns import zone
 
 
 class DnsAuditorCmd(base.AuditCmdBase):
-
     AUDITORS = [zone.DnsAuditor]
 
     def add_args(self):
-        super(DnsAuditorCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'DNS auditor'
 
 

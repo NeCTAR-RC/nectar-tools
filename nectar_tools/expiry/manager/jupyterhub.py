@@ -20,7 +20,6 @@ SIX_MONTHS_IN_DAYS = 180
 
 
 class JupyterHubVolumeExpirer(base.Expirer):
-
     STATUS_KEY = 'nectar.org.au/expiry_status'
     NEXT_STEP_KEY = 'nectar.org.au/expiry_next_step'
     TICKET_ID_KEY = 'nectar.org.au/expiry_ticket_id'
@@ -28,9 +27,9 @@ class JupyterHubVolumeExpirer(base.Expirer):
 
     EVENT_PREFIX = 'expiry.jupyterhub.volume'
 
-    def __init__(self, pvc, ks_session=None, dry_run=False,
-                 force_delete=False):
-
+    def __init__(
+        self, pvc, ks_session=None, dry_run=False, force_delete=False
+    ):
         patched_pvc = pvc
         patched_pvc.id = pvc.metadata.name
 
@@ -40,22 +39,27 @@ class JupyterHubVolumeExpirer(base.Expirer):
             template_dir='jupyterhub_volume',
             group_id=CONF.freshdesk.jupyterhub_group,
             subject='Volume expiry: ARDC Nectar Jupyter Notebook Service',
-            ks_session=None, dry_run=dry_run,
-            ticket_id_key=self.TICKET_ID_KEY)
+            ks_session=None,
+            dry_run=dry_run,
+            ticket_id_key=self.TICKET_ID_KEY,
+        )
 
         self.archiver = archiver.JupyterHubVolumeArchiver(
-            patched_pvc, ks_session=ks_session, dry_run=dry_run)
+            patched_pvc, ks_session=ks_session, dry_run=dry_run
+        )
 
         self.pvc = patched_pvc
         self.id = self.pvc.metadata.name
         self.username = self.pvc.metadata.annotations.get(
-            'hub.jupyter.org/username')
+            'hub.jupyter.org/username'
+        )
         self.force_delete = force_delete
         self.kube_client = auth.get_kube_client()
         self.kube_ns = CONF.kubernetes_client.namespace
 
-        super().__init__('jupyterhub_volume', self.pvc, notifier,
-                         ks_session, dry_run)
+        super().__init__(
+            'jupyterhub_volume', self.pvc, notifier, ks_session, dry_run
+        )
 
     def has_metadata(self, key):
         if key in self.pvc.metadata.annotations:
@@ -73,7 +77,8 @@ class JupyterHubVolumeExpirer(base.Expirer):
         # Update the PVC via the k8s API
         body = {'metadata': {'annotations': kwargs}}
         self.kube_client.patch_namespaced_persistent_volume_claim(
-            self.id, self.kube_ns, body=body)
+            self.id, self.kube_ns, body=body
+        )
 
     def _get_recipients(self):
         return self.username, []
@@ -97,10 +102,15 @@ class JupyterHubVolumeExpirer(base.Expirer):
         if expiry_next_step:
             try:
                 return datetime.datetime.strptime(
-                    expiry_next_step, base.DATE_FORMAT)
+                    expiry_next_step, base.DATE_FORMAT
+                )
             except ValueError:
-                LOG.error('%s: Invalid %s date: %s',
-                          self.pvc.id, self.NEXT_STEP_KEY, expiry_next_step)
+                LOG.error(
+                    '%s: Invalid %s date: %s',
+                    self.pvc.id,
+                    self.NEXT_STEP_KEY,
+                    expiry_next_step,
+                )
         return None
 
     @staticmethod
@@ -126,8 +136,10 @@ class JupyterHubVolumeExpirer(base.Expirer):
     def stop_resource(self):
         # Just one day is enough
         expiry_date = self.make_next_step_date(self.now, days=1)
-        update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
-                         self.NEXT_STEP_KEY: expiry_date}
+        update_kwargs = {
+            self.STATUS_KEY: expiry_states.STOPPED,
+            self.NEXT_STEP_KEY: expiry_date,
+        }
         with base.ResourceRollback(self):
             self._update_resource(**update_kwargs)
             self._send_notification('stop')
@@ -153,7 +165,8 @@ class JupyterHubVolumeExpirer(base.Expirer):
         # in again within the last month, reset the expiry status
         if expiry_status != expiry_states.ACTIVE:
             one_month_ago = self.now - datetime.timedelta(
-                days=ONE_MONTH_IN_DAYS)
+                days=ONE_MONTH_IN_DAYS
+            )
             is_recently_active = last_active > one_month_ago
             if is_recently_active:
                 LOG.debug("User has recently been active: %s", last_active)
@@ -172,8 +185,12 @@ class JupyterHubVolumeExpirer(base.Expirer):
         if not self.should_process():
             return False
 
-        LOG.debug("Processing PVC: %s, Status: %s, Next Step: %s",
-                  self.id, expiry_status, self.get_next_step_date())
+        LOG.debug(
+            "Processing PVC: %s, Status: %s, Next Step: %s",
+            self.id,
+            expiry_status,
+            self.get_next_step_date(),
+        )
 
         if expiry_status == expiry_states.ACTIVE:
             self.send_warning()
@@ -190,6 +207,9 @@ class JupyterHubVolumeExpirer(base.Expirer):
                 return True
             return False
         else:
-            LOG.warning("JupyterHub PVC %s: Unspecified status %s",
-                        self.id, expiry_status)
+            LOG.warning(
+                "JupyterHub PVC %s: Unspecified status %s",
+                self.id,
+                expiry_status,
+            )
             return False

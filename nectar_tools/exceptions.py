@@ -1,4 +1,3 @@
-
 class InvalidProject(Exception):
     pass
 
@@ -12,7 +11,6 @@ class InvalidProjectAllocation(InvalidProject):
 
 
 class AllocationDoesNotExist(Exception):
-
     def __init__(self, project_id):
         self.project_id = project_id
 

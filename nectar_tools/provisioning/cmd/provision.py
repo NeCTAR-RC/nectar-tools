@@ -13,24 +13,27 @@ LOG = logging.getLogger(__name__)
 
 
 class ProvisionCmd(cmd_base.CmdBase):
-
     def __init__(self):
-        super(ProvisionCmd, self).__init__(log_filename='provisioning.log')
-        self.manager = manager.ProvisioningManager(ks_session=self.session,
-                                                   noop=self.dry_run)
+        super().__init__(log_filename='provisioning.log')
+        self.manager = manager.ProvisioningManager(
+            ks_session=self.session, noop=self.dry_run
+        )
 
     def _get_allocation(self, allocation_id):
         allocation = self.manager.a_client.allocations.get(allocation_id)
 
         if allocation.status != states.APPROVED:
             allocation = self.manager.a_client.allocations.get_last_approved(
-                parent_request_id=allocation_id)
+                parent_request_id=allocation_id
+            )
         return allocation
 
     def provision_all_pending(self):
         allocations = self.manager.a_client.allocations.list(
-            status=states.APPROVED, provisioned=False,
-            parent_request__isnull=True)
+            status=states.APPROVED,
+            provisioned=False,
+            parent_request__isnull=True,
+        )
         for allocation in allocations:
             try:
                 self.provision_allocation(allocation.id)
@@ -51,21 +54,35 @@ class ProvisionCmd(cmd_base.CmdBase):
 
     def add_args(self):
         """Handle command-line options"""
-        super(ProvisionCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Provision Allocations'
         project_group = self.parser.add_mutually_exclusive_group()
-        project_group.add_argument('--all', action='store_true',
-                                   help='Run over all pending allocations')
-        project_group.add_argument('-a', '--allocation-id',
-                                   help='Allocation ID to process')
-        self.parser.add_argument('-r', '--report', action='store_true',
-                                 help='Report current quota')
-        self.parser.add_argument('-s', '--set-quota', action='store_true',
-                                 help='Only set quota')
-        self.parser.add_argument('-f', '--force', action='store_true',
-                                 help='Force processing of allocation')
-        self.parser.add_argument('-n', '--no-notify', action='store_true',
-                                 help='Don\'t notify the user')
+        project_group.add_argument(
+            '--all',
+            action='store_true',
+            help='Run over all pending allocations',
+        )
+        project_group.add_argument(
+            '-a', '--allocation-id', help='Allocation ID to process'
+        )
+        self.parser.add_argument(
+            '-r', '--report', action='store_true', help='Report current quota'
+        )
+        self.parser.add_argument(
+            '-s', '--set-quota', action='store_true', help='Only set quota'
+        )
+        self.parser.add_argument(
+            '-f',
+            '--force',
+            action='store_true',
+            help='Force processing of allocation',
+        )
+        self.parser.add_argument(
+            '-n',
+            '--no-notify',
+            action='store_true',
+            help='Don\'t notify the user',
+        )
 
 
 def main():

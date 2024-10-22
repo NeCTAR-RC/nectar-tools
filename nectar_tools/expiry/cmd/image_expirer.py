@@ -19,8 +19,7 @@ LOG = logging.getLogger(__name__)
 
 class ImageExpiryCmd(cmd_base.CmdBase):
     def __init__(self):
-        super(ImageExpiryCmd, self).__init__(
-            log_filename='image-expiry.log')
+        super().__init__(log_filename='image-expiry.log')
 
         self.g_client = auth.get_glance_client(self.session)
 
@@ -31,7 +30,8 @@ class ImageExpiryCmd(cmd_base.CmdBase):
         elif self.args.all or self.args.filename:
             for visibility in ['public', 'shared', 'community']:
                 shared_images = self.g_client.images.list(
-                    filters = {'visibility': visibility})
+                    filters={'visibility': visibility}
+                )
                 images.extend(shared_images)
 
             if self.args.filename:
@@ -53,79 +53,125 @@ class ImageExpiryCmd(cmd_base.CmdBase):
         return False
 
     def print_status(self):
-        pt = prettytable.PrettyTable(['Name', 'Image ID', 'Status',
-                                      'Hidden', 'Visibility', 'Expiry Status',
-                                      'Expiry Next Step', 'Ticket ID'])
+        pt = prettytable.PrettyTable(
+            [
+                'Name',
+                'Image ID',
+                'Status',
+                'Hidden',
+                'Visibility',
+                'Expiry Status',
+                'Expiry Next Step',
+                'Ticket ID',
+            ]
+        )
         for image in self.images:
             if self.valid_image(image):
                 self.image_set_defaults(image)
-                pt.add_row([image.name, image.id, image.status,
-                            image.os_hidden, image.visibility,
-                            image.nectar_expiry_status,
-                            image.nectar_expiry_next_step,
-                            image.nectar_expiry_ticket_id])
+                pt.add_row(
+                    [
+                        image.name,
+                        image.id,
+                        image.status,
+                        image.os_hidden,
+                        image.visibility,
+                        image.nectar_expiry_status,
+                        image.nectar_expiry_next_step,
+                        image.nectar_expiry_ticket_id,
+                    ]
+                )
         print(pt)
 
     def get_expirer(self, image):
-        return expirer.ImageExpirer(image=image,
-                                    ks_session=self.session,
-                                    dry_run=self.dry_run,
-                                    force_delete=self.args.force_delete)
+        return expirer.ImageExpirer(
+            image=image,
+            ks_session=self.session,
+            dry_run=self.dry_run,
+            force_delete=self.args.force_delete,
+        )
 
     @staticmethod
     def image_set_defaults(image):
         image.nectar_expiry_status = getattr(
-            image, 'nectar_expiry_status', None)
+            image, 'nectar_expiry_status', None
+        )
         image.nectar_expiry_next_step = getattr(
-            image, 'nectar_expiry_next_step', None)
+            image, 'nectar_expiry_next_step', None
+        )
         image.nectar_expiry_ticket_id = getattr(
-            image, 'nectar_expiry_ticket_id', None)
+            image, 'nectar_expiry_ticket_id', None
+        )
 
     def add_args(self):
-        super(ImageExpiryCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Updates non-private image expiry date'
         image_group = self.parser.add_mutually_exclusive_group()
-        image_group.add_argument('-f', '--filename',
-                                 type=argparse.FileType('r'),
-                                 help='File path with a list of image IDs, \
-                                 one on each line')
-        image_group.add_argument('-i', '--image-id',
-                                 help='Image ID to process')
-        image_group.add_argument('--all', action='store_true',
-                                 help='Run over all images')
-        self.parser.add_argument('-l', '--limit',
-                                 type=int,
-                                 default=0,
-                                 help='Only process this many \
-                                 eligible images')
-        self.parser.add_argument('-o', '--offset',
-                                 type=int,
-                                 default=None,
-                                 help='Skip this many images \
-                                 before processing')
-        self.parser.add_argument('-s', '--status', action='store_true',
-                                 help='Report current status of each image')
-        self.parser.add_argument('-a', '--set-admin', action='store_true',
-                                 help='Mark a list of projects as admins')
-        self.parser.add_argument('--force-delete', action='store_true',
-                                 help="Delete an image no matter what state \
-                                 it's in")
+        image_group.add_argument(
+            '-f',
+            '--filename',
+            type=argparse.FileType('r'),
+            help='File path with a list of image IDs, \
+                                 one on each line',
+        )
+        image_group.add_argument(
+            '-i', '--image-id', help='Image ID to process'
+        )
+        image_group.add_argument(
+            '--all', action='store_true', help='Run over all images'
+        )
+        self.parser.add_argument(
+            '-l',
+            '--limit',
+            type=int,
+            default=0,
+            help='Only process this many \
+                                 eligible images',
+        )
+        self.parser.add_argument(
+            '-o',
+            '--offset',
+            type=int,
+            default=None,
+            help='Skip this many images \
+                                 before processing',
+        )
+        self.parser.add_argument(
+            '-s',
+            '--status',
+            action='store_true',
+            help='Report current status of each image',
+        )
+        self.parser.add_argument(
+            '-a',
+            '--set-admin',
+            action='store_true',
+            help='Mark a list of projects as admins',
+        )
+        self.parser.add_argument(
+            '--force-delete',
+            action='store_true',
+            help="Delete an image no matter what state \
+                                 it's in",
+        )
 
     def set_admin(self):
-        """Set status to admin for specified list of images.
-        """
+        """Set status to admin for specified list of images."""
         for image in self.images:
             self.image_set_defaults(image)
             if image.nectar_expiry_status == expiry_states.ADMIN:
                 LOG.error("Image %s is already admin", image.id)
             else:
                 if self.dry_run:
-                    LOG.info("would set status admin for %s(%s) (dry run)",
-                             image.name, image.id)
+                    LOG.info(
+                        "would set status admin for %s(%s) (dry run)",
+                        image.name,
+                        image.id,
+                    )
                 else:
                     LOG.debug("setting status admin for %s", image.id)
                     self.g_client.images.update(
-                        image.id, nectar_expiry_status=expiry_states.ADMIN)
+                        image.id, nectar_expiry_status=expiry_states.ADMIN
+                    )
 
     def process_images(self):
         LOG.info("Processing images")
@@ -147,8 +193,9 @@ class ImageExpiryCmd(cmd_base.CmdBase):
                     except exceptions.InvalidImage:
                         pass
                     except Exception:
-                        LOG.exception('Exception processing Image %s',
-                                      image.id)
+                        LOG.exception(
+                            'Exception processing Image %s', image.id
+                        )
                 if limit > 0 and processed >= limit:
                     break
         LOG.info("Processed %s images", processed)

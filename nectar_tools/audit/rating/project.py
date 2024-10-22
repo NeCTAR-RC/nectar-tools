@@ -11,15 +11,13 @@ LOG = logging.getLogger(__name__)
 
 
 class ProjectAuditor(base.RatingAuditor):
-
     def check_instance_totals(self):
         project_id = self.extra_args.get('project_id')
         if not project_id:
             print("Must specify --project-id/-p")
             return sys.exit(1)
 
-        opts = {'all_tenants': True,
-                'tenant_id': project_id}
+        opts = {'all_tenants': True, 'tenant_id': project_id}
 
         flavors = self.n_client.flavors.list(is_public=None)
         mappings = self._get_mappings()
@@ -44,9 +42,12 @@ class ProjectAuditor(base.RatingAuditor):
         begin = str(now - datetime.timedelta(hours=3))
         end = str(now)
         usage_data = self.c_client.summary.get_summary(
-            begin=begin, end=end,
+            begin=begin,
+            end=end,
             filters={'type': 'instance', 'project_id': project_id},
-            groupby=['time'], response_format='object').get('results')
+            groupby=['time'],
+            response_format='object',
+        ).get('results')
 
         last_record = None
         for i in usage_data:
@@ -71,12 +72,16 @@ class ProjectAuditor(base.RatingAuditor):
 
         if error:
             dataframes = self.c_client.dataframes.get_dataframes(
-                begin=last_record['begin'], end=last_record['end'],
-                filters={'type': 'instance', 'project_id': project_id})
-            dataframes = dataframes.get(
-                'dataframes')[0].get('usage').get('instance')
+                begin=last_record['begin'],
+                end=last_record['end'],
+                filters={'type': 'instance', 'project_id': project_id},
+            )
+            dataframes = (
+                dataframes.get('dataframes')[0].get('usage').get('instance')
+            )
             df_instance_ids = set([x['groupby']['id'] for x in dataframes])
             nova_instance_ids = set([x.id for x in instances])
             instance_id_diff = df_instance_ids.symmetric_difference(
-                nova_instance_ids)
+                nova_instance_ids
+            )
             LOG.error(f"Instance IDs different = {instance_id_diff}")

@@ -12,19 +12,17 @@ from nectar_tools.tests import fakes
 
 
 @freeze_time('2024-07-01')
-@mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
-            new=mock.Mock())
+@mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_kube_client', new=mock.Mock())
 class JupyterHubVolumeExpiryTests(test.TestCase):
-
     def setUp(self):
         super().setUp()
         self.username = 'fake@user.com'
         self.annotations = {'hub.jupyter.org/username': self.username}
         self.metadata = fakes.FakeK8sObject(
-            name='claim-' + self.username,
-            annotations=self.annotations)
+            name='claim-' + self.username, annotations=self.annotations
+        )
         self.pvc = fakes.FakeK8sObject(metadata=self.metadata)
 
     def test_ready_for_warning_negative(self):
@@ -60,8 +58,7 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
     def test_set_metadata(self):
         ex = expirer.JupyterHubVolumeExpirer(self.pvc)
         ex.set_metadata('foo', 'bar')
-        self.assertEqual(
-            'bar', ex.get_metadata('foo'))
+        self.assertEqual('bar', ex.get_metadata('foo'))
 
     def test_get_recipients(self):
         ex = expirer.JupyterHubVolumeExpirer(self.pvc)
@@ -74,11 +71,13 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
         ex.kube_client = mock.Mock()
         mock_kube_client = ex.kube_client
         ex._update_object(foo='bar')
-        (mock_kube_client
-             .patch_namespaced_persistent_volume_claim
-             .assert_called_once_with(
-                 'claim-fake@user.com', 'fake_namespace',
-                 body={'metadata': {'annotations': {'foo': 'bar'}}}))
+        (
+            mock_kube_client.patch_namespaced_persistent_volume_claim.assert_called_once_with(
+                'claim-fake@user.com',
+                'fake_namespace',
+                body={'metadata': {'annotations': {'foo': 'bar'}}},
+            )
+        )
 
     def test_get_notification_context(self):
         ex = expirer.JupyterHubVolumeExpirer(self.pvc)
@@ -130,9 +129,9 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
 
     def test_stop_resource(self):
         ex = expirer.JupyterHubVolumeExpirer(self.pvc)
-        one_day = (datetime.datetime.now()
-                     + datetime.timedelta(days=1)).strftime(
-                         base_expirer.DATE_FORMAT)
+        one_day = (
+            datetime.datetime.now() + datetime.timedelta(days=1)
+        ).strftime(base_expirer.DATE_FORMAT)
         with test.nested(
             mock.patch.object(ex, '_update_resource'),
             mock.patch.object(ex, 'send_event'),
@@ -142,20 +141,22 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
             try:
                 ex.stop_resource()
             except Exception:
-                mock_update_resource.assert_has_calls([
-                    mock.call(**{
-                        expirer.JupyterHubVolumeExpirer.STATUS_KEY:
-                        expiry_states.STOPPED,
-                        expirer.JupyterHubVolumeExpirer.NEXT_STEP_KEY:
-                        one_day,
-                    }),
-                    mock.call(**{
-                        expirer.JupyterHubVolumeExpirer.STATUS_KEY:
-                        None,
-                        expirer.JupyterHubVolumeExpirer.NEXT_STEP_KEY:
-                        None,
-                    }),
-                ])
+                mock_update_resource.assert_has_calls(
+                    [
+                        mock.call(
+                            **{
+                                expirer.JupyterHubVolumeExpirer.STATUS_KEY: expiry_states.STOPPED,
+                                expirer.JupyterHubVolumeExpirer.NEXT_STEP_KEY: one_day,
+                            }
+                        ),
+                        mock.call(
+                            **{
+                                expirer.JupyterHubVolumeExpirer.STATUS_KEY: None,
+                                expirer.JupyterHubVolumeExpirer.NEXT_STEP_KEY: None,
+                            }
+                        ),
+                    ]
+                )
 
     def test_revert_expiry(self):
         ex = expirer.JupyterHubVolumeExpirer(self.pvc)
@@ -272,8 +273,13 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
             mock.patch.object(ex, 'at_next_step'),
             mock.patch.object(ex, 'finish_expiry'),
             mock.patch.object(ex, 'delete_resources'),
-        ) as (mock_status, mock_should_process, mock_next_step,
-              mock_finish, mock_delete):
+        ) as (
+            mock_status,
+            mock_should_process,
+            mock_next_step,
+            mock_finish,
+            mock_delete,
+        ):
             mock_status.return_value = expiry_states.STOPPED
             mock_should_process.return_value = True
             mock_next_step.return_value = False
@@ -289,8 +295,13 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
             mock.patch.object(ex, 'at_next_step'),
             mock.patch.object(ex, 'finish_expiry'),
             mock.patch.object(ex, 'delete_resources'),
-        ) as (mock_status, mock_should_process, mock_next_step,
-              mock_finish, mock_delete):
+        ) as (
+            mock_status,
+            mock_should_process,
+            mock_next_step,
+            mock_finish,
+            mock_delete,
+        ):
             mock_status.return_value = expiry_states.STOPPED
             mock_should_process.return_value = True
             mock_next_step.return_value = True
@@ -306,8 +317,13 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
             mock.patch.object(ex, 'stop_resource'),
             mock.patch.object(ex, 'finish_expiry'),
             mock.patch.object(ex, 'delete_resources'),
-        ) as (mock_should_process, mock_warning, mock_stop,
-              mock_finish, mock_delete):
+        ) as (
+            mock_should_process,
+            mock_warning,
+            mock_stop,
+            mock_finish,
+            mock_delete,
+        ):
             mock_should_process.return_value = False
             self.assertFalse(ex.process())
             mock_warning.assert_not_called()

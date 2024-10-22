@@ -3,11 +3,10 @@ from nectar_tools.audit.placement import resource_provider
 
 
 class PlacementAuditorCmd(base.AuditCmdBase):
-
     AUDITORS = [resource_provider.ResourceProviderAuditor]
 
     def add_args(self):
-        super(PlacementAuditorCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Placement auditor'
 
 

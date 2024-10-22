@@ -13,16 +13,16 @@ CONF = config.CONFIG
 
 
 class UtilsTests(test.TestCase):
-
     def setUp(self, *args, **kwargs):
-        super(UtilsTests, self).setUp(*args, **kwargs)
+        super().setUp(*args, **kwargs)
         self.allocation = fakes.get_allocation()
 
     def test_get_compute_zones_national(self):
         self.allocation.associated_site = 'monash'
         self.allocation.national = True
-        with mock.patch.object(auth, 'get_allocation_client') \
-             as mock_get_client:
+        with mock.patch.object(
+            auth, 'get_allocation_client'
+        ) as mock_get_client:
             a_client = mock_get_client.return_value
             a_client.zones.compute_homes.return_value = fakes.COMPUTE_HOMES
             zones = utils.get_compute_zones(None, self.allocation)
@@ -31,8 +31,9 @@ class UtilsTests(test.TestCase):
     def test_get_compute_zones_local(self):
         self.allocation.associated_site = 'qcif'
         self.allocation.national = False
-        with mock.patch.object(auth, 'get_allocation_client') \
-             as mock_get_client:
+        with mock.patch.object(
+            auth, 'get_allocation_client'
+        ) as mock_get_client:
             a_client = mock_get_client.return_value
             a_client.zones.compute_homes.return_value = fakes.COMPUTE_HOMES
             zones = utils.get_compute_zones(None, self.allocation)
@@ -41,8 +42,9 @@ class UtilsTests(test.TestCase):
     def test_get_compute_zones_multiple(self):
         self.allocation.associated_site = 'monash'
         self.allocation.national = False
-        with mock.patch.object(auth, 'get_allocation_client') \
-             as mock_get_client:
+        with mock.patch.object(
+            auth, 'get_allocation_client'
+        ) as mock_get_client:
             a_client = mock_get_client.return_value
             a_client.zones.compute_homes.return_value = fakes.COMPUTE_HOMES
             zones = utils.get_compute_zones(None, self.allocation)
@@ -52,8 +54,9 @@ class UtilsTests(test.TestCase):
         # Test for anomalous 'associated_site' setting ...
         self.allocation.associated_site = None
         self.allocation.national = False
-        with mock.patch.object(auth, 'get_allocation_client') \
-             as mock_get_client:
+        with mock.patch.object(
+            auth, 'get_allocation_client'
+        ) as mock_get_client:
             a_client = mock_get_client.return_value
             a_client.zones.compute_homes.return_value = fakes.COMPUTE_HOMES
             zones = utils.get_compute_zones(None, self.allocation)
@@ -63,22 +66,23 @@ class UtilsTests(test.TestCase):
         project = fakes.FakeProject()
         with test.nested(
             mock.patch.object(utils, 'get_compute_zones'),
-            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
+            mock.patch('nectar_tools.expiry.archiver.NovaArchiver'),
         ) as (mock_get_zones, mock_archiver):
             mock_get_zones.return_value = ['nova', 'nova-2']
             nova = mock.Mock()
             mock_archiver.return_value = nova
             nova._all_instances.return_value = []
 
-            instances = utils.get_out_of_zone_instances(None, self.allocation,
-                                                        project)
+            instances = utils.get_out_of_zone_instances(
+                None, self.allocation, project
+            )
             self.assertEqual([], instances)
 
     def test_get_out_of_zone_instances_out_of_zone(self):
         project = fakes.FakeProject()
         with test.nested(
             mock.patch.object(utils, 'get_compute_zones'),
-            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
+            mock.patch('nectar_tools.expiry.archiver.NovaArchiver'),
         ) as (mock_get_zones, mock_archiver):
             mock_get_zones.return_value = ['nova', 'nova-2']
             nova = mock.Mock()
@@ -87,17 +91,19 @@ class UtilsTests(test.TestCase):
             nova._all_instances.return_value = [
                 instance,
                 fakes.FakeInstance(availability_zone='nova'),
-                fakes.FakeInstance(availability_zone='')]
+                fakes.FakeInstance(availability_zone=''),
+            ]
 
-            instances = utils.get_out_of_zone_instances(None, self.allocation,
-                                                        project)
+            instances = utils.get_out_of_zone_instances(
+                None, self.allocation, project
+            )
             self.assertEqual([instance], instances)
 
     def test_get_out_of_zone_instances_instances_in_zone(self):
         project = fakes.FakeProject()
         with test.nested(
             mock.patch.object(utils, 'get_compute_zones'),
-            mock.patch('nectar_tools.expiry.archiver.NovaArchiver')
+            mock.patch('nectar_tools.expiry.archiver.NovaArchiver'),
         ) as (mock_get_zones, mock_archiver):
             mock_get_zones.return_value = ['nova', 'nova-2']
             nova = mock.Mock()
@@ -105,10 +111,12 @@ class UtilsTests(test.TestCase):
             nova._all_instances.return_value = [
                 fakes.FakeInstance(availability_zone='nova-2'),
                 fakes.FakeInstance(availability_zone='nova-2'),
-                fakes.FakeInstance(availability_zone='nova')]
+                fakes.FakeInstance(availability_zone='nova'),
+            ]
 
-            instances = utils.get_out_of_zone_instances(None, self.allocation,
-                                                        project)
+            instances = utils.get_out_of_zone_instances(
+                None, self.allocation, project
+            )
             self.assertEqual([], instances)
 
     def test_is_email_address_valid(self):
@@ -125,11 +133,13 @@ class UtilsTests(test.TestCase):
 
     def test_get_emails(self):
         user1 = mock.Mock(email='fake1@fake.com', enabled=True)
-        user2 = mock.Mock(spec=['email', 'enabled'], email='fake2@fake.com',
-                          enabled=False)
+        user2 = mock.Mock(
+            spec=['email', 'enabled'], email='fake2@fake.com', enabled=False
+        )
         user3 = mock.Mock(email='fake3@fake.com', enabled=False, inactive=True)
-        user4 = mock.Mock(email='fake4@fake.com', enabled=False,
-                          inactive=False)
+        user4 = mock.Mock(
+            email='fake4@fake.com', enabled=False, inactive=False
+        )
         user5 = mock.Mock(spec=['enabled'], enabled=True)
         user6 = mock.Mock(email='fake6-bogus', enabled=True)
         users = [user1, user2, user3, user4, user5, user6]
@@ -158,21 +168,26 @@ class UtilsTests(test.TestCase):
         users = utils.get_project_users(mock_keystone, project, 'fakerole')
 
         mock_keystone.role_assignments.list.assert_called_with(
-            project=project, role=role)
-        mock_keystone.users.get.assert_has_calls([mock.call('fakeuser1'),
-                                                  mock.call('fakeuser2')])
+            project=project, role=role
+        )
+        mock_keystone.users.get.assert_has_calls(
+            [mock.call('fakeuser1'), mock.call('fakeuser2')]
+        )
         self.assertEqual(['fakeuser1', 'fakeuser2'], [x.id for x in users])
 
     @mock.patch("nectar_tools.utils.get_project_users")
     def test_get_project_recipients(self, mock_get):
-
         def get_users_side_effect(client, project, role):
             if role == CONF.keystone.manager_role_id:
-                return [fakes.FakeUser(id="tm1", email="tm1@fake.com"),
-                        fakes.FakeUser(id="tm2", email="tm2@fake.com")]
+                return [
+                    fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                    fakes.FakeUser(id="tm2", email="tm2@fake.com"),
+                ]
             else:
-                return [fakes.FakeUser(id="member1", email="member1@fake.com"),
-                        fakes.FakeUser(id="member2", email="member2@fake.com")]
+                return [
+                    fakes.FakeUser(id="member1", email="member1@fake.com"),
+                    fakes.FakeUser(id="member2", email="member2@fake.com"),
+                ]
 
         mock_get.side_effect = get_users_side_effect
         mock_client = mock.Mock()
@@ -181,22 +196,26 @@ class UtilsTests(test.TestCase):
         (to, cc) = utils.get_project_recipients(mock_client, mock_project)
 
         self.assertEqual("tm1@fake.com", to)
-        self.assertEqual(["tm2@fake.com", "member1@fake.com",
-                          "member2@fake.com"], cc)
+        self.assertEqual(
+            ["tm2@fake.com", "member1@fake.com", "member2@fake.com"], cc
+        )
 
     @mock.patch("nectar_tools.utils.get_project_users")
     def test_get_project_recipients_mixed(self, mock_get):
-
         def get_users_side_effect(client, project, role):
             if role == CONF.keystone.manager_role_id:
-                return [fakes.FakeUser(id="tm1", email="tm1@fake.com"),
-                        fakes.FakeUser(id="tm2", email="tm2@fake.com")]
+                return [
+                    fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                    fakes.FakeUser(id="tm2", email="tm2@fake.com"),
+                ]
             else:
-                return [fakes.FakeUser(id="member1", email="member1@fake.com"),
-                        fakes.FakeUser(id="tm1", email="tm1@fake.com"),
-                        fakes.FakeUser(id="member2", email="member2@fake.com"),
-                        fakes.FakeUser(id="tm2", email="tm2@fake.com"),
-                        fakes.FakeUser(id="member3", email="member3@fake.com")]
+                return [
+                    fakes.FakeUser(id="member1", email="member1@fake.com"),
+                    fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                    fakes.FakeUser(id="member2", email="member2@fake.com"),
+                    fakes.FakeUser(id="tm2", email="tm2@fake.com"),
+                    fakes.FakeUser(id="member3", email="member3@fake.com"),
+                ]
 
         mock_get.side_effect = get_users_side_effect
         mock_client = mock.Mock()
@@ -205,19 +224,27 @@ class UtilsTests(test.TestCase):
         (to, cc) = utils.get_project_recipients(mock_client, mock_project)
 
         self.assertEqual("tm1@fake.com", to)
-        self.assertEqual(["tm2@fake.com", "member1@fake.com",
-                          "member2@fake.com", "member3@fake.com"], cc)
+        self.assertEqual(
+            [
+                "tm2@fake.com",
+                "member1@fake.com",
+                "member2@fake.com",
+                "member3@fake.com",
+            ],
+            cc,
+        )
 
     @mock.patch("nectar_tools.utils.get_project_users")
     def test_get_project_recipients_no_tm(self, mock_get):
-
         def get_users_side_effect(client, project, role):
             if role == CONF.keystone.manager_role_id:
                 return []
             else:
-                return [fakes.FakeUser(id="member1", email="member1@fake.com"),
-                        fakes.FakeUser(id="member2", email="member2@fake.com"),
-                        fakes.FakeUser(id="member3", email="member3@fake.com")]
+                return [
+                    fakes.FakeUser(id="member1", email="member1@fake.com"),
+                    fakes.FakeUser(id="member2", email="member2@fake.com"),
+                    fakes.FakeUser(id="member3", email="member3@fake.com"),
+                ]
 
         mock_get.side_effect = get_users_side_effect
         mock_client = mock.Mock()
@@ -230,7 +257,6 @@ class UtilsTests(test.TestCase):
 
     @mock.patch("nectar_tools.utils.get_project_users")
     def test_get_project_recipients_none(self, mock_get):
-
         def get_users_side_effect(client, project, role):
             return []
 
@@ -245,15 +271,17 @@ class UtilsTests(test.TestCase):
 
     @mock.patch("nectar_tools.utils.get_project_users")
     def test_get_project_recipients_too_many(self, mock_get):
-
         def get_users_side_effect(client, project, role):
             if role == CONF.keystone.manager_role_id:
-                return [fakes.FakeUser(id="tm1", email="tm1@fake.com"),
-                        fakes.FakeUser(id="tm2", email="tm2@fake.com")]
+                return [
+                    fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                    fakes.FakeUser(id="tm2", email="tm2@fake.com"),
+                ]
             else:
                 return [
                     fakes.FakeUser(id=f"m{i}", email=f"m{i}@fake.com")
-                    for i in range(1, 100)]
+                    for i in range(1, 100)
+                ]
 
         mock_get.side_effect = get_users_side_effect
         mock_client = mock.Mock()
@@ -268,32 +296,53 @@ class UtilsTests(test.TestCase):
 
     @mock.patch("nectar_tools.utils.get_project_users")
     def test_get_allocation_recipients(self, mock_get):
-
         def get_users_side_effect(client, project, role):
             if role == CONF.keystone.manager_role_id:
-                return [fakes.FakeUser(id="tm1", email="tm1@fake.com"),
-                        fakes.FakeUser(id="tm2", email="tm2@fake.com")]
+                return [
+                    fakes.FakeUser(id="tm1", email="tm1@fake.com"),
+                    fakes.FakeUser(id="tm2", email="tm2@fake.com"),
+                ]
             else:
-                return [fakes.FakeUser(id="member1", email="member1@fake.com"),
-                        fakes.FakeUser(id="member2", email="member2@fake.com")]
+                return [
+                    fakes.FakeUser(id="member1", email="member1@fake.com"),
+                    fakes.FakeUser(id="member2", email="member2@fake.com"),
+                ]
 
         mock_get.side_effect = get_users_side_effect
         mock_client = mock.Mock()
         mock_project = mock.Mock()
-        mock_allocation = mock.Mock(project_id=mock_project,
-                                    contact_email="contact@fake.com",
-                                    approver_email="approver@fake.com")
+        mock_allocation = mock.Mock(
+            project_id=mock_project,
+            contact_email="contact@fake.com",
+            approver_email="approver@fake.com",
+        )
 
         (to, cc) = utils.get_allocation_recipients(
-            mock_client, mock_allocation)
+            mock_client, mock_allocation
+        )
 
         self.assertEqual("contact@fake.com", to)
-        self.assertEqual(["tm1@fake.com", "tm2@fake.com",
-                          "approver@fake.com",
-                          "member1@fake.com", "member2@fake.com"], cc)
-        mock_get.assert_has_calls([
-            mock.call(mock_client, mock_project,
-                      role=CONF.keystone.manager_role_id),
-            mock.call(mock_client, mock_project,
-                      role=CONF.keystone.member_role_id),
-        ])
+        self.assertEqual(
+            [
+                "tm1@fake.com",
+                "tm2@fake.com",
+                "approver@fake.com",
+                "member1@fake.com",
+                "member2@fake.com",
+            ],
+            cc,
+        )
+        mock_get.assert_has_calls(
+            [
+                mock.call(
+                    mock_client,
+                    mock_project,
+                    role=CONF.keystone.manager_role_id,
+                ),
+                mock.call(
+                    mock_client,
+                    mock_project,
+                    role=CONF.keystone.member_role_id,
+                ),
+            ]
+        )

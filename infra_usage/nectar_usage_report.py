@@ -10,13 +10,24 @@ from process_report import collect_all, combineResource, printOptions
 
 def main():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
-    parser.add_argument('-a', nargs='?', dest='target_cell', action='store',
-                        required=True, default=True,
-                        help='{specify 1 cell name to overide,e,g -a np}')
-    parser.add_argument('-o', nargs='?', dest='output', default='n',
-                        choices=['html', 'csv', 'both', 'email'],
-                        required=False,
-                        help='output, {default: console}, {email: email html }')
+    parser.add_argument(
+        '-a',
+        nargs='?',
+        dest='target_cell',
+        action='store',
+        required=True,
+        default=True,
+        help='{specify 1 cell name to override,e,g -a np}',
+    )
+    parser.add_argument(
+        '-o',
+        nargs='?',
+        dest='output',
+        default='n',
+        choices=['html', 'csv', 'both', 'email'],
+        required=False,
+        help='output, {default: console}, {email: email html }',
+    )
 
     opts = parser.parse_args()
 
@@ -29,8 +40,9 @@ def main():
     az = processConfig('config', 'az')
     if opts.target_cell is not None:
         if opts.target_cell not in az:
-            parser.error("Error!, cell %s not found. Current cell %s " %
-                         (opts.target_cell, az))
+            parser.error(
+                f"Error!, cell {opts.target_cell} not found. Current cell {az} "
+            )
     else:
         opts.target_cell = True
 
@@ -40,7 +52,7 @@ def main():
     else:
         data2 = None
 
-    if opts.output is 'n':
+    if opts.output == 'n':
         printOptions(data, data_2=data2, options='all')
 
     elif opts.output == 'html':
@@ -62,7 +74,9 @@ def main():
             createCSVFileNode(data)
 
     elif opts.output == 'email':
-        file_l = templateLoader(data, data2, cell=opts.target_cell, opt='email')
+        file_l = templateLoader(
+            data, data2, cell=opts.target_cell, opt='email'
+        )
         emailUser(file_l)
 
 

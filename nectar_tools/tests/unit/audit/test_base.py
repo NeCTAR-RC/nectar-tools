@@ -11,7 +11,6 @@ LOG = logging.getLogger(__name__)
 
 
 class RepairAuditor(base.Auditor):
-
     def __init__(self, dry_run=False):
         super().__init__(None, dry_run=dry_run)
 
@@ -20,7 +19,6 @@ class RepairAuditor(base.Auditor):
 
 
 class AuditorTests(test.TestCase):
-
     def test_correct_logger(self):
         auditor = RepairAuditor()
         self.assertEqual(LOG, auditor.repair_log)

@@ -7,9 +7,15 @@ CONF = config.CONFIG
 
 
 @config.configurable('logging')
-def setup(filename=None, file_level='INFO', console_level='INFO',
-          enabled_loggers=None, log_format=None, log_dir=None,
-          use_syslog=False):
+def setup(
+    filename=None,
+    file_level='INFO',
+    console_level='INFO',
+    enabled_loggers=None,
+    log_format=None,
+    log_dir=None,
+    use_syslog=False,
+):
     if log_format is None:
         log_format = '%(asctime)s %(name)s %(levelname)s %(message)s'
     if enabled_loggers is None:
@@ -48,7 +54,7 @@ def setup(filename=None, file_level='INFO', console_level='INFO',
             'console': {
                 'level': console_level,
                 'class': 'logging.StreamHandler',
-                'formatter': 'simple'
+                'formatter': 'simple',
             },
             'file': {
                 'level': file_level,

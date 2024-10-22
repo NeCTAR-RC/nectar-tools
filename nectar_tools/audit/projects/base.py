@@ -7,7 +7,6 @@ DATE_FORMAT = '%Y-%m-%d'
 
 
 class ProjectAuditor(base.Auditor):
-
     def __init__(self, ks_session, project, **kwargs):
         super().__init__(ks_session, **kwargs)
         self.project = project

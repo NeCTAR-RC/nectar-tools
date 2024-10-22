@@ -5,17 +5,21 @@ from nectar_tools.expiry import expirer
 
 
 class AllocationExpiryCmd(base.ProjectExpiryBaseCmd):
-
     @staticmethod
     def valid_project(project):
         return not expirer.PT_RE.match(project.name)
 
     def add_args(self):
         """Handle command-line options"""
-        super(AllocationExpiryCmd, self).add_args()
-        self.parser.add_argument('--ignore-no-allocation', action='store_true',
-                        default=False,
-                        help='Ignore the fact that no allocation exists'),
+        super().add_args()
+        (
+            self.parser.add_argument(
+                '--ignore-no-allocation',
+                action='store_true',
+                default=False,
+                help='Ignore the fact that no allocation exists',
+            ),
+        )
 
     def get_expirer(self, project):
         return expirer.AllocationExpirer(
@@ -24,7 +28,8 @@ class AllocationExpiryCmd(base.ProjectExpiryBaseCmd):
             dry_run=self.dry_run,
             disable_project=True,
             force_no_allocation=self.args.ignore_no_allocation,
-            force_delete=self.args.force_delete)
+            force_delete=self.args.force_delete,
+        )
 
 
 def main():

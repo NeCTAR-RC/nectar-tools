@@ -21,7 +21,6 @@ IMAGE = fakes.FakeImage()
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class NovaArchiverTests(test.TestCase):
-
     def test_zero_quota(self):
         na = archiver.NovaArchiver(PROJECT)
         with mock.patch.object(na.n_client, 'quotas') as mock_quotas:
@@ -38,10 +37,10 @@ class NovaArchiverTests(test.TestCase):
         na = archiver.NovaArchiver(PROJECT)
 
         with test.nested(
-            mock.patch.object(na, '_all_instances',
-                         return_value=[fakes.FakeInstance]),
-            mock.patch.object(na, '_instance_has_archive',
-                         return_value=True),
+            mock.patch.object(
+                na, '_all_instances', return_value=[fakes.FakeInstance]
+            ),
+            mock.patch.object(na, '_instance_has_archive', return_value=True),
         ) as (mock_servers, mock_has_archive):
             self.assertTrue(na.is_archive_successful())
 
@@ -49,19 +48,23 @@ class NovaArchiverTests(test.TestCase):
         na = archiver.NovaArchiver(PROJECT)
 
         with test.nested(
-            mock.patch.object(na, '_all_instances',
-                         return_value=[fakes.FakeInstance()]),
-            mock.patch.object(na, '_instance_has_archive',
-                         return_value=False),
+            mock.patch.object(
+                na, '_all_instances', return_value=[fakes.FakeInstance()]
+            ),
+            mock.patch.object(na, '_instance_has_archive', return_value=False),
         ) as (mock_servers, mock_has_archive):
             self.assertFalse(na.is_archive_successful())
 
     def test_instance_has_archive_bad_state(self):
         na = archiver.NovaArchiver(PROJECT)
-        for state in ['image_snapshot_pending',
-                      'image_snapshot', 'image_pending_upload']:
-            self.assertFalse(na._instance_has_archive(
-                fakes.FakeInstance(task_state=state)))
+        for state in [
+            'image_snapshot_pending',
+            'image_snapshot',
+            'image_pending_upload',
+        ]:
+            self.assertFalse(
+                na._instance_has_archive(fakes.FakeInstance(task_state=state))
+            )
 
     def test_instance_has_archive_boot_from_volume(self):
         na = archiver.NovaArchiver(PROJECT)
@@ -76,24 +79,27 @@ class NovaArchiverTests(test.TestCase):
     def test_instance_has_archive_no_image(self):
         na = archiver.NovaArchiver(PROJECT)
         instance = fakes.FakeInstance()
-        with mock.patch.object(na, '_get_image_by_instance_id',
-                          return_value=None):
+        with mock.patch.object(
+            na, '_get_image_by_instance_id', return_value=None
+        ):
             self.assertFalse(na._instance_has_archive(instance))
 
     def test_instance_has_archive_image_active(self):
         na = archiver.NovaArchiver(PROJECT)
         instance = fakes.FakeInstance()
         image = fakes.FakeImage(nectar_archive='True')
-        with mock.patch.object(na, '_get_image_by_instance_id',
-                          return_value=image):
+        with mock.patch.object(
+            na, '_get_image_by_instance_id', return_value=image
+        ):
             self.assertTrue(na._instance_has_archive(instance))
 
     def test_instance_has_archive_image_in_progress(self):
         na = archiver.NovaArchiver(PROJECT)
         instance = fakes.FakeInstance()
         image = fakes.FakeImage(status='queued')
-        with mock.patch.object(na, '_get_image_by_instance_id',
-                          return_value=image) as mock_get_image:
+        with mock.patch.object(
+            na, '_get_image_by_instance_id', return_value=image
+        ) as mock_get_image:
             self.assertFalse(na._instance_has_archive(instance))
             mock_get_image.reset_mock()
             mock_get_image.return_value = fakes.FakeImage(status='saving')
@@ -103,8 +109,9 @@ class NovaArchiverTests(test.TestCase):
         na = archiver.NovaArchiver(PROJECT)
         instance = fakes.FakeInstance()
         image = fakes.FakeImage(status='error')
-        with mock.patch.object(na, '_get_image_by_instance_id',
-                          return_value=image):
+        with mock.patch.object(
+            na, '_get_image_by_instance_id', return_value=image
+        ):
             self.assertFalse(na._instance_has_archive(instance))
 
     def test_archive_instance(self):
@@ -113,8 +120,10 @@ class NovaArchiverTests(test.TestCase):
         with mock.patch.object(na.n_client, 'servers') as mock_servers:
             na._archive_instance(instance)
             mock_servers.create_image.assert_called_with(
-                instance.id, '%s_archive' % instance.id,
-                metadata={'nectar_archive': 'True'})
+                instance.id,
+                f'{instance.id}_archive',
+                metadata={'nectar_archive': 'True'},
+            )
 
     def test_archive_instance_active(self):
         na = archiver.NovaArchiver(PROJECT)
@@ -126,15 +135,20 @@ class NovaArchiverTests(test.TestCase):
 
     def test_archive_instance_increment_meta(self):
         na = archiver.NovaArchiver(PROJECT)
-        instance = fakes.FakeInstance(status='SHUTDOWN', vm_state='stopped',
-                                      metadata={'archive_attempts': '1'})
+        instance = fakes.FakeInstance(
+            status='SHUTDOWN',
+            vm_state='stopped',
+            metadata={'archive_attempts': '1'},
+        )
         with mock.patch.object(na.n_client, 'servers') as mock_servers:
             na._archive_instance(instance)
             metadata = {'archive_attempts': '2'}
             mock_servers.set_meta.assert_called_with(instance.id, metadata)
             mock_servers.create_image.assert_called_with(
-                instance.id, '%s_archive' % instance.id,
-                metadata={'nectar_archive': 'True'})
+                instance.id,
+                f'{instance.id}_archive',
+                metadata={'nectar_archive': 'True'},
+            )
 
     def test_archive_instance_error(self):
         na = archiver.NovaArchiver(PROJECT)
@@ -155,10 +169,15 @@ class NovaArchiverTests(test.TestCase):
         na = archiver.NovaArchiver(PROJECT)
 
         with mock.patch.object(na.n_client, 'servers') as mock_servers:
-            for state in ['suspending', 'image_snapshot_pending', 'deleting'
-                          'image_snapshot', 'image_pending_upload']:
-                instance = fakes.FakeInstance(status='SHUTOFF',
-                                              task_state=state)
+            for state in [
+                'suspending',
+                'image_snapshot_pending',
+                'deleting' 'image_snapshot',
+                'image_pending_upload',
+            ]:
+                instance = fakes.FakeInstance(
+                    status='SHUTOFF', task_state=state
+                )
                 na._archive_instance(instance)
 
             mock_servers.create_image.assert_not_called()
@@ -169,17 +188,20 @@ class NovaArchiverTests(test.TestCase):
         instance2 = fakes.FakeInstance(id='fake2')
 
         with test.nested(
-            mock.patch.object(na, '_all_instances', return_value=[
-                instance1, instance2]),
+            mock.patch.object(
+                na, '_all_instances', return_value=[instance1, instance2]
+            ),
             mock.patch.object(na, '_lock_instance'),
             mock.patch.object(na, '_stop_instance'),
         ) as (mock__all_instances, mock_lock_instance, mock_stop_instance):
             na.stop_resources()
-            mock_lock_instance.assert_has_calls([mock.call(instance1),
-                                                 mock.call(instance2)])
+            mock_lock_instance.assert_has_calls(
+                [mock.call(instance1), mock.call(instance2)]
+            )
             self.assertEqual(mock_lock_instance.call_count, 2)
-            mock_stop_instance.assert_has_calls([mock.call(instance1),
-                                                 mock.call(instance2)])
+            mock_stop_instance.assert_has_calls(
+                [mock.call(instance1), mock.call(instance2)]
+            )
             self.assertEqual(mock_stop_instance.call_count, 2)
 
     def test_archive_resources(self):
@@ -188,17 +210,23 @@ class NovaArchiverTests(test.TestCase):
         instance2 = fakes.FakeInstance(id='fake2')
 
         with test.nested(
-            mock.patch.object(na, '_all_instances', return_value=[
-                instance1, instance2]),
+            mock.patch.object(
+                na, '_all_instances', return_value=[instance1, instance2]
+            ),
             mock.patch.object(na, '_instance_has_archive'),
             mock.patch.object(na, '_delete_instance'),
             mock.patch.object(na, '_archive_instance'),
-        ) as (mock__all_instances, mock_has_archive, mock_delete,
-              mock_archive):
+        ) as (
+            mock__all_instances,
+            mock_has_archive,
+            mock_delete,
+            mock_archive,
+        ):
             mock_has_archive.return_value = False
             na.archive_resources()
-            mock_archive.assert_has_calls([mock.call(instance1),
-                                           mock.call(instance2)])
+            mock_archive.assert_has_calls(
+                [mock.call(instance1), mock.call(instance2)]
+            )
             self.assertEqual(mock_archive.call_count, 2)
 
     def test_archive_resources_already_archived(self):
@@ -207,17 +235,23 @@ class NovaArchiverTests(test.TestCase):
         instance2 = fakes.FakeInstance(id='fake2')
 
         with test.nested(
-            mock.patch.object(na, '_all_instances', return_value=[
-                instance1, instance2]),
+            mock.patch.object(
+                na, '_all_instances', return_value=[instance1, instance2]
+            ),
             mock.patch.object(na, '_instance_has_archive'),
             mock.patch.object(na, '_delete_instance'),
             mock.patch.object(na, '_archive_instance'),
-        ) as (mock__all_instances, mock_has_archive, mock_delete,
-              mock_archive):
+        ) as (
+            mock__all_instances,
+            mock_has_archive,
+            mock_delete,
+            mock_archive,
+        ):
             mock_has_archive.return_value = True
             na.archive_resources()
-            mock_delete.assert_has_calls([mock.call(instance1),
-                                          mock.call(instance2)])
+            mock_delete.assert_has_calls(
+                [mock.call(instance1), mock.call(instance2)]
+            )
             self.assertEqual(mock_delete.call_count, 2)
 
     def test_delete_resources_ready(self):
@@ -226,15 +260,17 @@ class NovaArchiverTests(test.TestCase):
         instance2 = fakes.FakeInstance(id='fake2')
 
         with test.nested(
-            mock.patch.object(na, '_all_instances', return_value=[
-                instance1, instance2]),
+            mock.patch.object(
+                na, '_all_instances', return_value=[instance1, instance2]
+            ),
             mock.patch.object(na, '_instance_has_archive'),
             mock.patch.object(na, '_delete_instance'),
         ) as (mock__all_instances, mock_has_archive, mock_delete_instance):
             mock_has_archive.return_value = True
             na.delete_resources()
-            mock_delete_instance.assert_has_calls([mock.call(instance1),
-                                                   mock.call(instance2)])
+            mock_delete_instance.assert_has_calls(
+                [mock.call(instance1), mock.call(instance2)]
+            )
             self.assertEqual(mock_delete_instance.call_count, 2)
 
     def test_delete_resources_not_ready(self):
@@ -243,8 +279,9 @@ class NovaArchiverTests(test.TestCase):
         instance2 = fakes.FakeInstance(id='fake2')
 
         with test.nested(
-            mock.patch.object(na, '_all_instances', return_value=[
-                instance1, instance2]),
+            mock.patch.object(
+                na, '_all_instances', return_value=[instance1, instance2]
+            ),
             mock.patch.object(na, '_instance_has_archive'),
             mock.patch.object(na, '_delete_instance'),
         ) as (mock__all_instances, mock_has_archive, mock_delete_instance):
@@ -258,15 +295,17 @@ class NovaArchiverTests(test.TestCase):
         instance2 = fakes.FakeInstance(id='fake2')
 
         with test.nested(
-            mock.patch.object(na, '_all_instances', return_value=[
-                instance1, instance2]),
+            mock.patch.object(
+                na, '_all_instances', return_value=[instance1, instance2]
+            ),
             mock.patch.object(na, '_instance_has_archive'),
             mock.patch.object(na, '_delete_instance'),
         ) as (mock__all_instances, mock_has_archive, mock_delete_instance):
             mock_has_archive.return_value = False
             na.delete_resources(force=True)
-            mock_delete_instance.assert_has_calls([mock.call(instance1),
-                                                   mock.call(instance2)])
+            mock_delete_instance.assert_has_calls(
+                [mock.call(instance1), mock.call(instance2)]
+            )
             self.assertEqual(mock_delete_instance.call_count, 2)
 
     def test_enable_resources(self):
@@ -325,16 +364,17 @@ class NovaArchiverTests(test.TestCase):
         image2 = fakes.FakeImage(id='fake2')
 
         with test.nested(
-            mock.patch.object(na, '_get_project_images', return_value=[
-                image1, image2]),
+            mock.patch.object(
+                na, '_get_project_images', return_value=[image1, image2]
+            ),
             mock.patch.object(na, 'g_client'),
         ) as (mock_get_images, mock_glance):
-
             mock_get_images.return_value = [image1, image2]
             na.delete_archives()
             mock_get_images.assert_called_with()
-            mock_glance.images.delete.assert_has_calls([mock.call(image1.id),
-                                                        mock.call(image2.id)])
+            mock_glance.images.delete.assert_has_calls(
+                [mock.call(image1.id), mock.call(image2.id)]
+            )
             self.assertEqual(mock_glance.images.delete.call_count, 2)
 
     def test_all_instances_retry_soft(self):
@@ -353,7 +393,7 @@ class NovaArchiverTests(test.TestCase):
             mock_nova.servers.list.side_effect = [
                 nova_exc.ClientException(code=504),
                 [i1, i2],
-                []
+                [],
             ]
             instances = na._all_instances()
             self.assertEqual(3, mock_nova.servers.list.call_count)
@@ -365,7 +405,8 @@ class NovaArchiverTests(test.TestCase):
         # Simulate a repeated 504 failure
         with mock.patch.object(na, 'n_client') as mock_nova:
             mock_nova.servers.list.side_effect = nova_exc.ClientException(
-                code=504)
+                code=504
+            )
             self.assertRaises(nova_exc.ClientException, na._all_instances)
             self.assertTrue(mock_nova.servers.list.call_count > 2)
 
@@ -397,7 +438,8 @@ class NovaArchiverTests(test.TestCase):
             # Run twice to ensure glance call only happens once
             output = na._get_project_images()
             mock_glance.images.list.assert_called_with(
-                filters={'owner_id': PROJECT.id, 'nectar_archive': 'True'})
+                filters={'owner_id': PROJECT.id, 'nectar_archive': 'True'}
+            )
             self.assertEqual(mock_glance.images.list.call_count, 1)
             self.assertEqual([image1, image2], output)
 
@@ -406,8 +448,9 @@ class NovaArchiverTests(test.TestCase):
         instance = fakes.FakeInstance()
         with mock.patch.object(na.n_client, 'servers') as mock_servers:
             na._lock_instance(instance)
-            mock_servers.lock.assert_called_with(instance.id,
-                                                 reason='expiry_locked')
+            mock_servers.lock.assert_called_with(
+                instance.id, reason='expiry_locked'
+            )
 
     def test_unlock_instance(self):
         na = archiver.NovaArchiver(PROJECT)
@@ -437,18 +480,20 @@ class NovaArchiverTests(test.TestCase):
         instance1 = fakes.FakeInstance(id='fake1')
         instance2 = fakes.FakeInstance(id='fake2')
         instance3 = fakes.FakeInstance(id='fake3')
-        with mock.patch.object(na, '_get_project_images',
-                               return_value=[image1, image2]):
-            self.assertEqual(image1,
-                             na._get_image_by_instance_id(instance1.id))
-            self.assertEqual(image2,
-                             na._get_image_by_instance_id(instance2.id))
+        with mock.patch.object(
+            na, '_get_project_images', return_value=[image1, image2]
+        ):
+            self.assertEqual(
+                image1, na._get_image_by_instance_id(instance1.id)
+            )
+            self.assertEqual(
+                image2, na._get_image_by_instance_id(instance2.id)
+            )
             self.assertIsNone(na._get_image_by_instance_id(instance3.id))
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ZoneInstanceArchiverTests(NovaArchiverTests):
-
     def test_all_instances(self):
         project = fakes.FakeProject(allocation_id='fake')
         with test.nested(
@@ -491,7 +536,6 @@ class ZoneInstanceArchiverTests(NovaArchiverTests):
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class CinderArchiverTests(test.TestCase):
-
     def test_delete_resources(self):
         ca = archiver.CinderArchiver(PROJECT)
         volume1 = fakes.FakeVolume()
@@ -513,15 +557,17 @@ class CinderArchiverTests(test.TestCase):
         backup1 = mock.Mock()
 
         with test.nested(
-            mock.patch.object(ca, '_all_volumes',
-                              return_value=[volume1, volume2]),
+            mock.patch.object(
+                ca, '_all_volumes', return_value=[volume1, volume2]
+            ),
             mock.patch.object(ca, '_delete_volume'),
             mock.patch.object(ca, '_all_backups', return_value=[backup1]),
             mock.patch.object(ca, '_delete_backup'),
         ) as (mock_volumes, mock_vdelete, mock_backups, mock_bdelete):
             ca.delete_resources(force=True)
-            mock_vdelete.assert_has_calls([mock.call(volume1),
-                                          mock.call(volume2)])
+            mock_vdelete.assert_has_calls(
+                [mock.call(volume1), mock.call(volume2)]
+            )
             mock_bdelete.assert_has_calls([mock.call(backup1)])
 
     def test_all_volumes(self):
@@ -543,7 +589,8 @@ class CinderArchiverTests(test.TestCase):
         with mock.patch.object(ca, 'c_client') as mock_cinder:
             ca._delete_volume(volume)
             mock_cinder.volumes.delete.assert_called_once_with(
-                volume.id, cascade=True)
+                volume.id, cascade=True
+            )
 
     def test_all_backups(self):
         ca = archiver.CinderArchiver(PROJECT)
@@ -564,24 +611,26 @@ class CinderArchiverTests(test.TestCase):
         with mock.patch.object(ca, 'c_client') as mock_cinder:
             ca._delete_backup(backup)
             mock_cinder.backups.delete.assert_called_once_with(
-                backup.id, force=True)
+                backup.id, force=True
+            )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class NeutronBasicArchiverTests(test.TestCase):
-
     def test_zero_quota(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
         with mock.patch.object(na, 'ne_client') as mock_neutron:
             na.zero_quota()
-            body = {'quota': {'port': 0,
-                              'security_group': 0,
-                              'security_group_rule': 10,
-                              'floatingip': 0,
-                              'router': 0,
-                              'network': 0,
-                              'subnet': 0,
-                          }
+            body = {
+                'quota': {
+                    'port': 0,
+                    'security_group': 0,
+                    'security_group_rule': 10,
+                    'floatingip': 0,
+                    'router': 0,
+                    'network': 0,
+                    'subnet': 0,
+                }
             }
             mock_neutron.update_quota.assert_called_with(PROJECT.id, body)
 
@@ -589,21 +638,26 @@ class NeutronBasicArchiverTests(test.TestCase):
         na = archiver.NeutronBasicArchiver(PROJECT)
 
         mock_list = mock.Mock()
-        mock_list.return_value = {'fakeresources': [{'id': 'fakeresource1'},
-                                                    {'id': 'fakeresource2'}]}
+        mock_list.return_value = {
+            'fakeresources': [{'id': 'fakeresource1'}, {'id': 'fakeresource2'}]
+        }
         mock_delete = mock.Mock()
         na._delete_neutron_resources('fakeresources', mock_list, mock_delete)
         mock_list.assert_called_once_with(tenant_id=PROJECT.id)
-        mock_delete.assert_has_calls([mock.call('fakeresource1'),
-                                      mock.call('fakeresource2')])
+        mock_delete.assert_has_calls(
+            [mock.call('fakeresource1'), mock.call('fakeresource2')]
+        )
 
     def test_delete_neutron_resources_with_default_secgroup(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
 
         mock_list = mock.Mock()
-        mock_list.return_value = {'security_groups': [
-            {'id': 'secgroup1', 'name': 'default'},
-            {'id': 'secgroup2', 'name': 'fakename'}]}
+        mock_list.return_value = {
+            'security_groups': [
+                {'id': 'secgroup1', 'name': 'default'},
+                {'id': 'secgroup2', 'name': 'fakename'},
+            ]
+        }
         mock_delete = mock.Mock()
         na._delete_neutron_resources('security_groups', mock_list, mock_delete)
         mock_list.assert_called_once_with(tenant_id=PROJECT.id)
@@ -613,20 +667,22 @@ class NeutronBasicArchiverTests(test.TestCase):
         na = archiver.NeutronBasicArchiver(PROJECT)
 
         mock_list = mock.Mock()
-        mock_list.return_value = {'security_group_rules': [
-            {'id': 'rule1', 'security_group_id': 'secgroup1'},
-            {'id': 'rule2', 'security_group_id': 'secgroup2'}]}
+        mock_list.return_value = {
+            'security_group_rules': [
+                {'id': 'rule1', 'security_group_id': 'secgroup1'},
+                {'id': 'rule2', 'security_group_id': 'secgroup2'},
+            ]
+        }
         mock_delete = mock.Mock()
-        na._delete_neutron_resources('security_group_rules',
-                                     mock_list, mock_delete)
+        na._delete_neutron_resources(
+            'security_group_rules', mock_list, mock_delete
+        )
         mock_list.assert_called_once_with(tenant_id=PROJECT.id)
-        mock_delete.assert_has_calls([mock.call('rule1'),
-                                      mock.call('rule2')])
+        mock_delete.assert_has_calls([mock.call('rule1'), mock.call('rule2')])
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class NeutronArchiverTests(test.TestCase):
-
     def test_delete_routers(self):
         na = archiver.NeutronArchiver(PROJECT)
         router1 = {'id': 'router1'}
@@ -639,17 +695,21 @@ class NeutronArchiverTests(test.TestCase):
             na._delete_routers()
 
             mock_neutron.update_router.assert_called_once_with(
-                router1['id'], {'router': {'routes': None}})
+                router1['id'], {'router': {'routes': None}}
+            )
 
             mock_neutron.list_routers.assert_called_once_with(
-                tenant_id=PROJECT.id)
+                tenant_id=PROJECT.id
+            )
 
             mock_neutron.list_ports.assert_called_once_with(
                 device_id=router1['id'],
-                device_owner='network:router_interface')
+                device_owner='network:router_interface',
+            )
 
             mock_neutron.remove_interface_router.assert_called_once_with(
-                router1['id'], {'port_id': port1['id']})
+                router1['id'], {'port_id': port1['id']}
+            )
 
             mock_neutron.delete_router.assert_called_once_with(router1['id'])
 
@@ -657,7 +717,6 @@ class NeutronArchiverTests(test.TestCase):
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class OctaviaArchiverTests(test.TestCase):
-
     def test_zero_quota(self):
         oa = archiver.OctaviaArchiver(PROJECT)
         with mock.patch.object(oa, 'lb_client') as mock_octavia:
@@ -674,12 +733,12 @@ class OctaviaArchiverTests(test.TestCase):
             oa.delete_resources(force=True)
 
             mock_octavia.delete_load_balancer.assert_has_calls(
-                [mock.call(lb1, cascade=True), mock.call(lb2, cascade=True)])
+                [mock.call(lb1, cascade=True), mock.call(lb2, cascade=True)]
+            )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class MagnumArchiverTests(test.TestCase):
-
     def test_delete_resources(self):
         ma = archiver.MagnumArchiver(PROJECT)
         c1 = mock.Mock()
@@ -690,7 +749,7 @@ class MagnumArchiverTests(test.TestCase):
         c2.uuid = "c2"
         with test.nested(
             mock.patch.object(ma, 'm_client'),
-            mock.patch.object(ma, 'remove_resource')
+            mock.patch.object(ma, 'remove_resource'),
         ) as (mock_magnum, mock_rr):
             mock_magnum.clusters.list.return_value = [c1, c2]
 
@@ -699,26 +758,32 @@ class MagnumArchiverTests(test.TestCase):
             # TODO(ade): may be more than one once generator/marker fixed
             mock_magnum.clusters.list.assert_called_once_with(detail=True)
 
-            mock_rr.assert_has_calls([
-                mock.call(mock_magnum.clusters.delete,
-                          mock_magnum.clusters.get, c1.uuid,
-                          magnum_exc.NotFound),
-                mock.call(mock_magnum.clusters.delete,
-                          mock_magnum.clusters.get, c2.uuid,
-                          magnum_exc.NotFound)
-            ])
+            mock_rr.assert_has_calls(
+                [
+                    mock.call(
+                        mock_magnum.clusters.delete,
+                        mock_magnum.clusters.get,
+                        c1.uuid,
+                        magnum_exc.NotFound,
+                    ),
+                    mock.call(
+                        mock_magnum.clusters.delete,
+                        mock_magnum.clusters.get,
+                        c2.uuid,
+                        magnum_exc.NotFound,
+                    ),
+                ]
+            )
 
 
 @mock.patch('nectar_tools.auth.get_manila_client', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ManilaArchiverTests(test.TestCase):
-
     def test_zero_quota(self):
         ma = archiver.ManilaArchiver(PROJECT)
         with mock.patch.object(ma, 'm_client') as mock_manila:
             ma.zero_quota()
-            mock_manila.quotas.delete.assert_called_once_with(
-                PROJECT.id)
+            mock_manila.quotas.delete.assert_called_once_with(PROJECT.id)
 
     def test_delete_resources(self):
         ma = archiver.ManilaArchiver(PROJECT)
@@ -730,16 +795,16 @@ class ManilaArchiverTests(test.TestCase):
             ma.delete_resources(force=True)
 
             mock_manila.shares.list.assert_called_once_with(
-                detailed=True, search_opts={
-                    "all_tenants": "1",
-                    "project_id": PROJECT.id})
+                detailed=True,
+                search_opts={"all_tenants": "1", "project_id": PROJECT.id},
+            )
             mock_manila.shares.delete.assert_has_calls(
-                [mock.call(s1), mock.call(s2)])
+                [mock.call(s1), mock.call(s2)]
+            )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class MuranoArchiverTests(test.TestCase):
-
     def test_delete_resources(self):
         ma = archiver.MuranoArchiver(PROJECT)
         e1 = mock.Mock()
@@ -748,34 +813,43 @@ class MuranoArchiverTests(test.TestCase):
         e2.id = 'fake2'
         with test.nested(
             mock.patch.object(ma, 'm_client'),
-            mock.patch.object(ma, 'remove_resource')
+            mock.patch.object(ma, 'remove_resource'),
         ) as (mock_murano, mock_rr):
             mock_murano.environments.list.return_value = [e1, e2]
 
             ma.delete_resources(force=True)
 
             mock_murano.environments.list.assert_called_once_with(
-                tenant_id=PROJECT.id)
+                tenant_id=PROJECT.id
+            )
 
-            mock_rr.assert_has_calls([
-                mock.call(mock_murano.environments.delete,
-                          mock_murano.environments.get,
-                          e1.id, murano_exc.HTTPNotFound,
-                          state_property='status',
-                          error_status='delete failure'),
-                mock.call(mock_murano.environments.delete,
-                          mock_murano.environments.get,
-                          e2.id, murano_exc.HTTPNotFound,
-                          state_property='status',
-                          error_status='delete failure')
-            ])
+            mock_rr.assert_has_calls(
+                [
+                    mock.call(
+                        mock_murano.environments.delete,
+                        mock_murano.environments.get,
+                        e1.id,
+                        murano_exc.HTTPNotFound,
+                        state_property='status',
+                        error_status='delete failure',
+                    ),
+                    mock.call(
+                        mock_murano.environments.delete,
+                        mock_murano.environments.get,
+                        e2.id,
+                        murano_exc.HTTPNotFound,
+                        state_property='status',
+                        error_status='delete failure',
+                    ),
+                ]
+            )
 
     def test_delete_resources_delete_failed(self):
         ma = archiver.MuranoArchiver(PROJECT)
         e1 = mock.Mock(id='fake1', status='delete failure')
         with test.nested(
             mock.patch.object(ma, 'm_client'),
-            mock.patch.object(ma, 'remove_resource')
+            mock.patch.object(ma, 'remove_resource'),
         ) as (mock_murano, mock_rr):
             mock_rr.side_effect = [exceptions.DeleteFailure(), mock.DEFAULT]
             mock_murano.environments.list.return_value = [e1]
@@ -783,27 +857,30 @@ class MuranoArchiverTests(test.TestCase):
             ma.delete_resources(force=True)
 
             mock_murano.environments.list.assert_called_once_with(
-                tenant_id=PROJECT.id)
+                tenant_id=PROJECT.id
+            )
             mock_murano.environments.delete.assert_called_once_with(
-                e1.id, abandon=True)
+                e1.id, abandon=True
+            )
 
-            mock_rr.assert_called_with(mock_murano.environments.delete,
-                                       mock_murano.environments.get,
-                                       e1.id, murano_exc.HTTPNotFound,
-                                       state_property='status',
-                                       error_status='delete failure')
+            mock_rr.assert_called_with(
+                mock_murano.environments.delete,
+                mock_murano.environments.get,
+                e1.id,
+                murano_exc.HTTPNotFound,
+                state_property='status',
+                error_status='delete failure',
+            )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class TroveArchiverTests(test.TestCase):
-
     def test_zero_quota(self):
         body = {"ram": 0, "volumes": 0}
         ta = archiver.TroveArchiver(PROJECT)
         with mock.patch.object(ta, 't_client') as mock_trove:
             ta.zero_quota()
-            mock_trove.quota.update.assert_called_once_with(
-                PROJECT.id, body)
+            mock_trove.quota.update.assert_called_once_with(PROJECT.id, body)
 
     def test_stop_resources(self):
         ta = archiver.TroveArchiver(PROJECT)
@@ -815,7 +892,8 @@ class TroveArchiverTests(test.TestCase):
             ta.stop_resources()
 
             mock_trove.mgmt_instances.list.assert_called_once_with(
-                project_id=PROJECT.id)
+                project_id=PROJECT.id
+            )
             mock_trove.mgmt_instances.stop.assert_called_once_with(e1.id)
 
     def test_delete_resources(self):
@@ -828,14 +906,15 @@ class TroveArchiverTests(test.TestCase):
             ta.delete_resources(force=True)
 
             mock_trove.mgmt_instances.list.assert_called_once_with(
-                project_id=PROJECT.id)
+                project_id=PROJECT.id
+            )
             mock_trove.instances.delete.assert_has_calls(
-                [mock.call(e1), mock.call(e2)])
+                [mock.call(e1), mock.call(e2)]
+            )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class HeatArchiverTests(test.TestCase):
-
     def test_delete_resources(self):
         ha = archiver.HeatArchiver(PROJECT)
         e1 = mock.Mock()
@@ -849,28 +928,39 @@ class HeatArchiverTests(test.TestCase):
                 ha.delete_resources(force=True)
 
                 mock_heat.stacks.list.assert_called_once_with(
-                   filters={'tenant': PROJECT.id})
-                mock_rr.assert_has_calls([
-                    mock.call(mock_heat.stacks.delete, mock_heat.stacks.get,
-                              e1.id, heat_exc.HTTPNotFound,
-                              state_property='stack_status',
-                              status='DELETE_COMPLETE'),
-                    mock.call(mock_heat.stacks.delete, mock_heat.stacks.get,
-                              e2.id, heat_exc.HTTPNotFound,
-                              state_property='stack_status',
-                              status='DELETE_COMPLETE')
-                ])
+                    filters={'tenant': PROJECT.id}
+                )
+                mock_rr.assert_has_calls(
+                    [
+                        mock.call(
+                            mock_heat.stacks.delete,
+                            mock_heat.stacks.get,
+                            e1.id,
+                            heat_exc.HTTPNotFound,
+                            state_property='stack_status',
+                            status='DELETE_COMPLETE',
+                        ),
+                        mock.call(
+                            mock_heat.stacks.delete,
+                            mock_heat.stacks.get,
+                            e2.id,
+                            heat_exc.HTTPNotFound,
+                            state_property='stack_status',
+                            status='DELETE_COMPLETE',
+                        ),
+                    ]
+                )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class SwiftArchiverTests(test.TestCase):
-
     def test_zero_quota(self):
         sa = archiver.SwiftArchiver(PROJECT)
         with mock.patch.object(sa, 's_client') as mock_swift:
             sa.zero_quota()
             mock_swift.post_account.assert_called_once_with(
-                headers={'x-account-meta-quota-bytes': 0})
+                headers={'x-account-meta-quota-bytes': 0}
+            )
 
     def test_delete_resources(self):
         sa = archiver.SwiftArchiver(PROJECT)
@@ -897,8 +987,9 @@ class SwiftArchiverTests(test.TestCase):
 
             sa.delete_resources(force=True)
             mock_swift.get_account.assert_called_once_with()
-            mock_delete.assert_called_once_with({'name': 'private'},
-                                                ['fake-object1'])
+            mock_delete.assert_called_once_with(
+                {'name': 'private'}, ['fake-object1']
+            )
 
     def test_delete_container(self):
         sa = archiver.SwiftArchiver(PROJECT)
@@ -909,16 +1000,18 @@ class SwiftArchiverTests(test.TestCase):
 
         with mock.patch.object(sa, 's_client') as mock_swift:
             sa._delete_container(container, objects)
-            delete_calls = [mock.call(container['name'], obj1['name']),
-                            mock.call(container['name'], obj2['name'])]
+            delete_calls = [
+                mock.call(container['name'], obj1['name']),
+                mock.call(container['name'], obj2['name']),
+            ]
             mock_swift.delete_object.assert_has_calls(delete_calls)
             mock_swift.delete_container.assert_called_once_with(
-                container['name'])
+                container['name']
+            )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class DesignateArchiverTests(test.TestCase):
-
     def test_delete_resources(self):
         da = archiver.DesignateArchiver(PROJECT)
         with test.nested(
@@ -940,8 +1033,7 @@ class DesignateArchiverTests(test.TestCase):
             mock_designate.zones.list.return_value = zones
             da.delete_resources(force=True)
             mock_designate.zones.list.assert_called_once_with()
-            mock_delete.assert_has_calls([mock.call(zone1),
-                                          mock.call(zone2)])
+            mock_delete.assert_has_calls([mock.call(zone1), mock.call(zone2)])
             self.assertEqual(mock_delete.call_count, 2)
 
     def test_clean_zone_name(self):
@@ -977,22 +1069,27 @@ class DesignateArchiverTests(test.TestCase):
         ) as (mock_designate, mock_clean_zone_name):
             mock_clean_zone_name.return_value = fakes.ZONE['name']
             mock_designate.zones.get.side_effect = designate_exc.NotFound()
-            mock_designate.zone_transfers.create_request.return_value = \
+            mock_designate.zone_transfers.create_request.return_value = (
                 fakes.ZONE_CREATE_TRANSFER
-            mock_designate.zone_transfers.accept_request.return_value = \
+            )
+            mock_designate.zone_transfers.accept_request.return_value = (
                 fakes.ZONE_ACCEPT_TRANSFER
+            )
 
             da._create_zone(fakes.ZONE['name'])
 
             mock_designate.zones.create.assert_called_once_with(
-                'myproject.example.com.', email=CONF.designate.zone_email)
+                'myproject.example.com.', email=CONF.designate.zone_email
+            )
 
-            mock_designate.zone_transfers.create_request.\
-                assert_called_once_with(fakes.ZONE['name'], PROJECT.id)
+            mock_designate.zone_transfers.create_request.assert_called_once_with(
+                fakes.ZONE['name'], PROJECT.id
+            )
 
-            mock_designate.zone_transfers.accept_request.\
-                assert_called_once_with(fakes.ZONE_CREATE_TRANSFER['id'],
-                                        fakes.ZONE_CREATE_TRANSFER['key'])
+            mock_designate.zone_transfers.accept_request.assert_called_once_with(
+                fakes.ZONE_CREATE_TRANSFER['id'],
+                fakes.ZONE_CREATE_TRANSFER['key'],
+            )
 
     def test_create_zone_exists_not_transferred(self):
         da = archiver.DesignateArchiver(PROJECT)
@@ -1002,26 +1099,29 @@ class DesignateArchiverTests(test.TestCase):
         ) as (mock_designate, mock_clean_zone_name):
             mock_clean_zone_name.return_value = fakes.ZONE['name']
             mock_designate.zones.get.side_effect = None
-            mock_designate.zone_transfers.create_request.return_value = \
+            mock_designate.zone_transfers.create_request.return_value = (
                 fakes.ZONE_CREATE_TRANSFER
-            mock_designate.zone_transfers.accept_request.return_value = \
+            )
+            mock_designate.zone_transfers.accept_request.return_value = (
                 fakes.ZONE_ACCEPT_TRANSFER
+            )
 
             da._create_zone(fakes.ZONE['name'])
 
             mock_designate.zones.create.assert_not_called()
 
-            mock_designate.zone_transfers.create_request.\
-                assert_called_once_with(fakes.ZONE['name'], PROJECT.id)
+            mock_designate.zone_transfers.create_request.assert_called_once_with(
+                fakes.ZONE['name'], PROJECT.id
+            )
 
-            mock_designate.zone_transfers.accept_request.\
-                assert_called_once_with(fakes.ZONE_CREATE_TRANSFER['id'],
-                                        fakes.ZONE_CREATE_TRANSFER['key'])
+            mock_designate.zone_transfers.accept_request.assert_called_once_with(
+                fakes.ZONE_CREATE_TRANSFER['id'],
+                fakes.ZONE_CREATE_TRANSFER['key'],
+            )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ImageArchiverTests(test.TestCase):
-
     @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._delete_image')
     def test_delete_resources(self, mock_delete):
         ia = archiver.ImageArchiver(IMAGE)
@@ -1034,22 +1134,19 @@ class ImageArchiverTests(test.TestCase):
         ia.restrict_resources()
         self.assertEqual(mock_restrict.call_count, 1)
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._hide_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._hide_image')
     def test_stop_resources(self, mock_hide):
         ia = archiver.ImageArchiver(IMAGE)
         ia.stop_resources()
         self.assertEqual(mock_hide.call_count, 1)
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unhide_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unhide_image')
     def test_start_resources(self, mock_unhide):
         ia = archiver.ImageArchiver(IMAGE)
         ia.start_resources()
         self.assertEqual(mock_unhide.call_count, 1)
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
     def test_delete_image(self, mock_unprotect):
         image = fakes.FakeImage(visibility='private', owner='123')
         ia = archiver.ImageArchiver(image)
@@ -1058,8 +1155,7 @@ class ImageArchiverTests(test.TestCase):
             mock_unprotect.assert_not_called()
             mock_image.images.delete.assert_called_once_with(image.id)
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
     def test_delete_image_public(self, mock_unprotect):
         image = fakes.FakeImage(visibility='public', owner='123')
         ia = archiver.ImageArchiver(image)
@@ -1068,11 +1164,11 @@ class ImageArchiverTests(test.TestCase):
             mock_unprotect.assert_not_called()
             mock_image.images.delete.assert_called_once_with(image.id)
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
     def test_delete_image_public_protected(self, mock_unprotect):
-        image = fakes.FakeImage(visibility='public', owner='123',
-                                protected=True)
+        image = fakes.FakeImage(
+            visibility='public', owner='123', protected=True
+        )
         ia = archiver.ImageArchiver(image)
         with mock.patch.object(ia, 'g_client') as mock_image:
             ia._delete_image(image)
@@ -1085,7 +1181,8 @@ class ImageArchiverTests(test.TestCase):
         with mock.patch.object(ia, 'g_client') as mock_image:
             ia._restrict_image(image)
             mock_image.images.update.assert_called_once_with(
-                image.id, visibility='private')
+                image.id, visibility='private'
+            )
 
     def test_restrict_image_not_private(self):
         image = fakes.FakeImage(visibility='private', owner='123')
@@ -1094,8 +1191,7 @@ class ImageArchiverTests(test.TestCase):
             ia._restrict_image(image)
             mock_image.images.update.assert_not_called()
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
     def test_hide_image(self, mock_unprotect):
         image = fakes.FakeImage(os_hidden=False)
         ia = archiver.ImageArchiver(image)
@@ -1103,10 +1199,10 @@ class ImageArchiverTests(test.TestCase):
             ia._hide_image(image)
             mock_unprotect.assert_not_called()
             mock_image.images.update.assert_called_once_with(
-                image.id, os_hidden=True)
+                image.id, os_hidden=True
+            )
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
     def test_hide_image_protected(self, mock_unprotect):
         image = fakes.FakeImage(os_hidden=False, protected=True)
         ia = archiver.ImageArchiver(image)
@@ -1114,10 +1210,10 @@ class ImageArchiverTests(test.TestCase):
             ia._hide_image(image)
             mock_unprotect.assert_called_once_with(image)
             mock_image.images.update.assert_called_once_with(
-                image.id, os_hidden=True)
+                image.id, os_hidden=True
+            )
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
     def test_hide_image_hidden(self, mock_unprotect):
         image = fakes.FakeImage(os_hidden=True)
         ia = archiver.ImageArchiver(image)
@@ -1126,8 +1222,7 @@ class ImageArchiverTests(test.TestCase):
             mock_unprotect.assert_not_called()
             mock_image.images.update.assert_not_called()
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
     def test_unhide_image(self, mock_unprotect):
         image = fakes.FakeImage(os_hidden=True)
         ia = archiver.ImageArchiver(image)
@@ -1135,10 +1230,10 @@ class ImageArchiverTests(test.TestCase):
             ia._unhide_image(image)
             mock_unprotect.assert_not_called()
             mock_image.images.update.assert_called_once_with(
-                image.id, os_hidden=False)
+                image.id, os_hidden=False
+            )
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
     def test_unhide_image_protected(self, mock_unprotect):
         image = fakes.FakeImage(os_hidden=True, protected=True)
         ia = archiver.ImageArchiver(image)
@@ -1146,10 +1241,10 @@ class ImageArchiverTests(test.TestCase):
             ia._unhide_image(image)
             mock_unprotect.assert_called_once_with(image)
             mock_image.images.update.assert_called_once_with(
-                image.id, os_hidden=False)
+                image.id, os_hidden=False
+            )
 
-    @mock.patch(
-        'nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
+    @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._unprotect_image')
     def test_unhide_image_unhidden(self, mock_unprotect):
         image = fakes.FakeImage(os_hidden=False)
         ia = archiver.ImageArchiver(image)
@@ -1164,19 +1259,20 @@ class ImageArchiverTests(test.TestCase):
         with mock.patch.object(ia, 'g_client') as mock_image:
             ia._unprotect_image(image)
             mock_image.images.update.assert_called_once_with(
-                image.id, protected=False)
+                image.id, protected=False
+            )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ProjectImagesArchiverTests(test.TestCase):
-
     def test_delete_resources(self):
         project = fakes.FakeProject(id='123')
         pia = archiver.ProjectImagesArchiver(project)
         image1 = fakes.FakeImage(visibility='private', id=1, owner='123')
         image2 = fakes.FakeImage(visibility='public', id=2, owner='123')
-        image3 = fakes.FakeImage(visibility='private', id=3, protected=True,
-                                 owner='123')
+        image3 = fakes.FakeImage(
+            visibility='private', id=3, protected=True, owner='123'
+        )
         images = [image1, image2, image3]
         with mock.patch.object(pia, 'g_client') as mock_image:
             mock_image.images.list.return_value = images
@@ -1188,22 +1284,24 @@ class ProjectImagesArchiverTests(test.TestCase):
         pia = archiver.ProjectImagesArchiver(project)
         image1 = fakes.FakeImage(visibility='private', id=1, project_id='123')
         image2 = fakes.FakeImage(visibility='public', id=2, project_id='123')
-        image3 = fakes.FakeImage(visibility='private', id=3, protected=True,
-                                 project_id='123')
+        image3 = fakes.FakeImage(
+            visibility='private', id=3, protected=True, project_id='123'
+        )
         images = [image1, image2, image3]
         with mock.patch.object(pia, 'g_client') as mock_image:
             mock_image.images.list.return_value = images
             pia.restrict_resources(force=True)
             mock_image.images.update.assert_has_calls(
-                [mock.call(image2.id, visibility='private')])
+                [mock.call(image2.id, visibility='private')]
+            )
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ResourcerArchiverTests(test.TestCase):
-
     def test_init(self):
-        ra = archiver.ResourceArchiver(PROJECT,
-            archivers=['nova', 'cinder', 'projectimages'])
+        ra = archiver.ResourceArchiver(
+            PROJECT, archivers=['nova', 'cinder', 'projectimages']
+        )
         self.assertEqual(3, len(ra.archivers))
         self.assertIs(archiver.NovaArchiver, type(ra.archivers[0]))
         self.assertIs(archiver.CinderArchiver, type(ra.archivers[1]))
@@ -1212,7 +1310,6 @@ class ResourcerArchiverTests(test.TestCase):
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ArchiverTests(test.TestCase):
-
     def setUp(self):
         super().setUp()
         self.myid = 'fake'
@@ -1226,26 +1323,41 @@ class ArchiverTests(test.TestCase):
     def test_remove_resource_with_exception(self):
         arc = archiver.Archiver()
         self.check_method.side_effect = Exception
-        arc.remove_resource(self.del_method, self.check_method,
-                            self.myid, Exception, timeout=2)
+        arc.remove_resource(
+            self.del_method, self.check_method, self.myid, Exception, timeout=2
+        )
         self.del_method.assert_called_once_with(self.myid)
         self.check_method.assert_called_once_with(self.myid)
 
     def test_remove_resource_with_property(self):
         arc = archiver.Archiver()
         self.check_method.return_value = self.res
-        arc.remove_resource(self.del_method, self.check_method,
-                            self.myid, Exception, state_property='state',
-                            status=self.res.state, timeout=2)
+        arc.remove_resource(
+            self.del_method,
+            self.check_method,
+            self.myid,
+            Exception,
+            state_property='state',
+            status=self.res.state,
+            timeout=2,
+        )
         self.del_method.assert_called_with(self.myid)
         self.check_method.assert_called_with(self.myid)
 
     def test_remove_resource_with_timeout(self):
         arc = archiver.Archiver()
         self.check_method.return_value = self.res
-        self.assertRaises(exceptions.TimeoutError,
-            arc.remove_resource, self.del_method, self.check_method, self.myid,
-            Exception, state_property='state', status='blah', timeout=2)
+        self.assertRaises(
+            exceptions.TimeoutError,
+            arc.remove_resource,
+            self.del_method,
+            self.check_method,
+            self.myid,
+            Exception,
+            state_property='state',
+            status='blah',
+            timeout=2,
+        )
         self.del_method.assert_called_with(self.myid)
         self.check_method.assert_called_with(self.myid)
 
@@ -1253,11 +1365,17 @@ class ArchiverTests(test.TestCase):
         self.res.state = 'error'
         arc = archiver.Archiver()
         self.check_method.return_value = self.res
-        self.assertRaises(exceptions.DeleteFailure,
-                          arc.remove_resource, self.del_method,
-                          self.check_method,
-                          self.myid, Exception, state_property='state',
-                          status='deleted', timeout=2,
-                          error_status='error')
+        self.assertRaises(
+            exceptions.DeleteFailure,
+            arc.remove_resource,
+            self.del_method,
+            self.check_method,
+            self.myid,
+            Exception,
+            state_property='state',
+            status='deleted',
+            timeout=2,
+            error_status='error',
+        )
         self.del_method.assert_called_with(self.myid)
         self.check_method.assert_called_with(self.myid)

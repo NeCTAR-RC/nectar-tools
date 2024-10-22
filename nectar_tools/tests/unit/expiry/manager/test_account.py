@@ -14,16 +14,15 @@ YESTERDAY = '2016-12-31'
 
 
 @freeze_time("2017-01-01")
-@mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier',
-            new=mock.Mock())
+@mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class AccountExpiryTests(test.TestCase):
-
     def setUp(self):
         super().setUp()
 
         last_login = datetime.datetime.strptime(
-            YESTERDAY, expierer_base.DATE_FORMAT)
+            YESTERDAY, expierer_base.DATE_FORMAT
+        )
         account = mock.Mock(id='fake', last_login=last_login)
         self.account = account
 
@@ -50,7 +49,9 @@ class AccountExpiryTests(test.TestCase):
         ex = expirer.AccountExpirer(self.account)
         with mock.patch.object(ex, '_update_resource') as update:
             ex.deactivate_account()
-            update.assert_called_once_with(expiry_status='inactive',
-                                           expiry_next_step=None)
+            update.assert_called_once_with(
+                expiry_status='inactive', expiry_next_step=None
+            )
         keystone.users.update.assert_called_once_with(
-            ex.account.id, enabled=False, inactive=True)
+            ex.account.id, enabled=False, inactive=True
+        )

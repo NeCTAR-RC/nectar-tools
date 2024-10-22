@@ -10,7 +10,6 @@ LOG = logging.getLogger(__name__)
 
 
 class FlavorAuditor(base.RatingAuditor):
-
     def ensure_flavor_spec(self):
         FLAVOR_KEY = 'nectar:rate'
 
@@ -36,16 +35,24 @@ class FlavorAuditor(base.RatingAuditor):
 
             if not cost and flavor_rate:
                 LOG.warning(f"Flavor {flavor.name} has no cost")
-                self.repair(f"Removing rate metadata for {flavor.name}",
-                            flavor.unset_keys, keys=[FLAVOR_KEY])
+                self.repair(
+                    f"Removing rate metadata for {flavor.name}",
+                    flavor.unset_keys,
+                    keys=[FLAVOR_KEY],
+                )
                 continue
 
             if flavor_rate != cost:
-                LOG.warning(f"Flavor {flavor.name} cost out of sync. "
-                            f"Current {flavor_rate}")
-                self.repair(f"Setting flavor {flavor.name} metadata "
-                            f"rate to {cost}",
-                            flavor.set_keys, metadata={FLAVOR_KEY: cost})
+                LOG.warning(
+                    f"Flavor {flavor.name} cost out of sync. "
+                    f"Current {flavor_rate}"
+                )
+                self.repair(
+                    f"Setting flavor {flavor.name} metadata "
+                    f"rate to {cost}",
+                    flavor.set_keys,
+                    metadata={FLAVOR_KEY: cost},
+                )
 
     def ensure_cost(self):
         cpu_weight = Decimal('0.00494')
@@ -88,52 +95,70 @@ class FlavorAuditor(base.RatingAuditor):
                     self.repair(
                         f"Removing mapping for {flavor.name}",
                         self.c_client.rating.hashmap.delete_mapping,
-                        mapping_id=mapping_id)
+                        mapping_id=mapping_id,
+                    )
                 LOG.debug(f"Skipping {flavor.name}, disabled")
                 continue
 
-            multiplier = Decimal(flavor.extra_specs.get(
-                'nectar:rate:multiplier', 1))
-            addition = Decimal(flavor.extra_specs.get(
-                'nectar:rate:addition', 0))
+            multiplier = Decimal(
+                flavor.extra_specs.get('nectar:rate:multiplier', 1)
+            )
+            addition = Decimal(
+                flavor.extra_specs.get('nectar:rate:addition', 0)
+            )
             cpu_shares = flavor.extra_specs.get('quota:cpu_shares')
             if cpu_shares:
-                cpu_shares_weight = \
-                    Decimal(int(cpu_shares) / (flavor.vcpus * 64))
+                cpu_shares_weight = Decimal(
+                    int(cpu_shares) / (flavor.vcpus * 64)
+                )
             else:
                 cpu_shares_weight = 1
 
-            prefix_weight = prefix_weights.get(
-                flavor.name.split('.')[0], 1)
+            prefix_weight = prefix_weights.get(flavor.name.split('.')[0], 1)
             computed_cost = (
-                ((Decimal(flavor.vcpus) * cpu_weight * cpu_shares_weight)
-                 + (flavor.ram / Decimal('1024') * ram_weight)) * prefix_weight
-                * multiplier) + addition
+                (
+                    (Decimal(flavor.vcpus) * cpu_weight * cpu_shares_weight)
+                    + (flavor.ram / Decimal('1024') * ram_weight)
+                )
+                * prefix_weight
+                * multiplier
+            ) + addition
             computed_cost = round(computed_cost, 3)
             computed_cost = Decimal(computed_cost)
-            formula = (f"(({flavor.vcpus} * {cpu_weight} "
-                       f"* {cpu_shares_weight}) + ({flavor.ram} / 1024 "
-                       f"* {ram_weight})) * {prefix_weight}")
-            formula_text = ("((flavor.vcpus * cpu_weight "
-                            "* cpu_shares_weight) + (flavor.ram / 1024 "
-                            "* ram_weight)) * prefix_weight")
+            formula = (
+                f"(({flavor.vcpus} * {cpu_weight} "
+                f"* {cpu_shares_weight}) + ({flavor.ram} / 1024 "
+                f"* {ram_weight})) * {prefix_weight}"
+            )
+            formula_text = (
+                "((flavor.vcpus * cpu_weight "
+                "* cpu_shares_weight) + (flavor.ram / 1024 "
+                "* ram_weight)) * prefix_weight"
+            )
 
             LOG.debug(formula_text)
             LOG.debug(formula)
 
             if cost != computed_cost:
                 LOG.warning(
-                    f"{flavor.name} cost {cost} should be {computed_cost}")
+                    f"{flavor.name} cost {cost} should be {computed_cost}"
+                )
                 if mapping_id:
                     self.repair(
                         f"Updating flavor {flavor.name} "
                         f"rate to {computed_cost}",
                         self.c_client.rating.hashmap.update_mapping,
-                        mapping_id=mapping_id, cost=str(computed_cost))
+                        mapping_id=mapping_id,
+                        cost=str(computed_cost),
+                    )
                 else:
                     self.repair(
                         f"Setting flavor {flavor.name} "
                         f"rate to {computed_cost}",
                         self.c_client.rating.hashmap.create_mapping,
-                        field_id=field_id, group_id=group_id, type='flat',
-                        value=flavor.id, cost=str(computed_cost))
+                        field_id=field_id,
+                        group_id=group_id,
+                        type='flat',
+                        value=flavor.id,
+                        cost=str(computed_cost),
+                    )

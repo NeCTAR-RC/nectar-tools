@@ -14,7 +14,6 @@
 #
 
 NETWORK_SITE_MAP = {
-
     # Dev
     'public': 'luna',
     # Test
@@ -36,7 +35,6 @@ NETWORK_SITE_MAP = {
 }
 
 AZ_SITE_MAP = {
-
     # Dev
     'lani': 'lani',
     'luna': 'luna',
@@ -63,5 +61,5 @@ AZ_SITE_MAP = {
     'intersect-adelaide': 'adelaide',
     # Shared
     'internal': 'unknown',
-    'nova': 'unknown'
+    'nova': 'unknown',
 }

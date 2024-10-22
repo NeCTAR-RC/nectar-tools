@@ -1,5 +1,4 @@
-
-
+#!/usr/bin/env python
 import argparse
 import math
 
@@ -9,9 +8,11 @@ from prettytable import PrettyTable
 
 def get_host_list(agg_name, zone, aggrlist):
     hosts = set()
-    hosts.update(get_hosts_from_aggregates(agg_name=agg_name,
-                                           zone=zone,
-                                           aggrlist=aggrlist))
+    hosts.update(
+        get_hosts_from_aggregates(
+            agg_name=agg_name, zone=zone, aggrlist=aggrlist
+        )
+    )
     return hosts
 
 
@@ -43,7 +44,7 @@ def get_total_usable_inventory(inventory):
     total = inventory["total"]
     alloc_ratio = inventory["allocation_ratio"]
     reserved = inventory["reserved"]
-    return ((total - reserved) * alloc_ratio)
+    return (total - reserved) * alloc_ratio
 
 
 def get_hosts_inventory_usage(hosts):
@@ -54,69 +55,74 @@ def get_hosts_inventory_usage(hosts):
         for rp in rps:
             if rp.name.split(".")[0] == host.split(".")[0]:
                 try:
-                    total_usable_vcpu = \
-                        math.floor(get_total_usable_inventory(
-                                   rp.inventories().VCPU))
+                    total_usable_vcpu = math.floor(
+                        get_total_usable_inventory(rp.inventories().VCPU)
+                    )
                 except AttributeError:
                     total_usable_vcpu = 0
                 try:
-                    total_usable_pcpu = \
-                        math.floor(get_total_usable_inventory(
-                                   rp.inventories().PCPU))
+                    total_usable_pcpu = math.floor(
+                        get_total_usable_inventory(rp.inventories().PCPU)
+                    )
                 except AttributeError:
                     total_usable_pcpu = 0
                 try:
-                    total_usable_memory_gb = \
-                        math.floor(get_total_usable_inventory(
-                                   rp.inventories().MEMORY_MB) / 1024)
+                    total_usable_memory_gb = math.floor(
+                        get_total_usable_inventory(rp.inventories().MEMORY_MB)
+                        / 1024
+                    )
                 except AttributeError:
                     continue
-                total_usable_disk_gb = \
-                    math.floor(get_total_usable_inventory(
-                               rp.inventories().DISK_GB))
+                total_usable_disk_gb = math.floor(
+                    get_total_usable_inventory(rp.inventories().DISK_GB)
+                )
                 try:
                     used_vcpu = rp.usages().VCPU
-                    used_vcpu_percent = percentage(used_vcpu,
-                                                   total_usable_vcpu)
+                    used_vcpu_percent = percentage(
+                        used_vcpu, total_usable_vcpu
+                    )
                 except AttributeError:
                     used_vcpu = 0
                     used_vcpu_percent = 0
                 try:
                     used_pcpu = rp.usages().PCPU
-                    used_pcpu_percent = percentage(used_pcpu,
-                                                   total_usable_pcpu)
+                    used_pcpu_percent = percentage(
+                        used_pcpu, total_usable_pcpu
+                    )
                 except AttributeError:
                     used_pcpu = 0
                     used_pcpu_percent = 0
                 used_memory_gb = math.floor((rp.usages().MEMORY_MB) / 1024)
-                used_memory_gb_percent = percentage(used_memory_gb,
-                                                    total_usable_memory_gb)
+                used_memory_gb_percent = percentage(
+                    used_memory_gb, total_usable_memory_gb
+                )
                 used_disk_gb = rp.usages().DISK_GB
-                used_disk_gb_percent = percentage(used_disk_gb,
-                                                  total_usable_disk_gb)
+                used_disk_gb_percent = percentage(
+                    used_disk_gb, total_usable_disk_gb
+                )
                 avail_vcpu = total_usable_vcpu - used_vcpu
                 avail_pcpu = total_usable_pcpu - used_pcpu
                 avail_memory_gb = total_usable_memory_gb - used_memory_gb
                 avail_disk_gb = total_usable_disk_gb - used_disk_gb
                 host_inventory_usage = {
-                                  "host": host,
-                                  "VCPU": total_usable_vcpu,
-                                  "USED_VCPU": used_vcpu,
-                                  "AVAIL_VCPU": avail_vcpu,
-                                  "USED_VCPU_%": used_vcpu_percent,
-                                  "PCPU": total_usable_pcpu,
-                                  "USED_PCPU": used_pcpu,
-                                  "AVAIL_PCPU": avail_pcpu,
-                                  "USED_PCPU_%": used_pcpu_percent,
-                                  "MEMORY_GB": total_usable_memory_gb,
-                                  "USED_MEMORY_GB": used_memory_gb,
-                                  "AVAIL_MEMORY_GB": avail_memory_gb,
-                                  "USED_MEMORY_GB_%": used_memory_gb_percent,
-                                  "DISK_GB": total_usable_disk_gb,
-                                  "USED_DISK_GB": used_disk_gb,
-                                  "AVAIL_DISK_GB": avail_disk_gb,
-                                  "USED_DISK_GB_%": used_disk_gb_percent,
-                                  }
+                    "host": host,
+                    "VCPU": total_usable_vcpu,
+                    "USED_VCPU": used_vcpu,
+                    "AVAIL_VCPU": avail_vcpu,
+                    "USED_VCPU_%": used_vcpu_percent,
+                    "PCPU": total_usable_pcpu,
+                    "USED_PCPU": used_pcpu,
+                    "AVAIL_PCPU": avail_pcpu,
+                    "USED_PCPU_%": used_pcpu_percent,
+                    "MEMORY_GB": total_usable_memory_gb,
+                    "USED_MEMORY_GB": used_memory_gb,
+                    "AVAIL_MEMORY_GB": avail_memory_gb,
+                    "USED_MEMORY_GB_%": used_memory_gb_percent,
+                    "DISK_GB": total_usable_disk_gb,
+                    "USED_DISK_GB": used_disk_gb,
+                    "AVAIL_DISK_GB": avail_disk_gb,
+                    "USED_DISK_GB_%": used_disk_gb_percent,
+                }
                 hosts_inventory_usage.append(host_inventory_usage)
     return hosts_inventory_usage
 
@@ -156,29 +162,28 @@ def get_totals(hosts_inventory_usage):
         avail_disk_gb += host["AVAIL_DISK_GB"]
     used_vcpu_percent = percentage(used_vcpu, total_usable_vcpu)
     used_pcpu_percent = percentage(used_pcpu, total_usable_pcpu)
-    used_memory_gb_percent = percentage(used_memory_gb,
-                                        total_usable_memory_gb)
+    used_memory_gb_percent = percentage(used_memory_gb, total_usable_memory_gb)
     used_disk_gb_percent = percentage(used_disk_gb, total_usable_disk_gb)
-    space = (len(longest_hostname) * " ")
+    space = len(longest_hostname) * " "
     total_inventory_usage = {
-                            space: "TOTAL",
-                            "VCPU": total_usable_vcpu,
-                            "USED_VCPU": used_vcpu,
-                            "AVAIL_VCPU": avail_vcpu,
-                            "USED_VCPU_%": used_vcpu_percent,
-                            "PCPU": total_usable_pcpu,
-                            "USED_PCPU": used_pcpu,
-                            "AVAIL_PCPU": avail_pcpu,
-                            "USED_PCPU_%": used_pcpu_percent,
-                            "MEMORY_GB": total_usable_memory_gb,
-                            "USED_MEMORY_GB": used_memory_gb,
-                            "AVAIL_MEMORY_GB": avail_memory_gb,
-                            "USED_MEMORY_GB_%": used_memory_gb_percent,
-                            "DISK_GB": total_usable_disk_gb,
-                            "USED_DISK_GB": used_disk_gb,
-                            "AVAIL_DISK_GB": avail_disk_gb,
-                            "USED_DISK_GB_%": used_disk_gb_percent,
-                            }
+        space: "TOTAL",
+        "VCPU": total_usable_vcpu,
+        "USED_VCPU": used_vcpu,
+        "AVAIL_VCPU": avail_vcpu,
+        "USED_VCPU_%": used_vcpu_percent,
+        "PCPU": total_usable_pcpu,
+        "USED_PCPU": used_pcpu,
+        "AVAIL_PCPU": avail_pcpu,
+        "USED_PCPU_%": used_pcpu_percent,
+        "MEMORY_GB": total_usable_memory_gb,
+        "USED_MEMORY_GB": used_memory_gb,
+        "AVAIL_MEMORY_GB": avail_memory_gb,
+        "USED_MEMORY_GB_%": used_memory_gb_percent,
+        "DISK_GB": total_usable_disk_gb,
+        "USED_DISK_GB": used_disk_gb,
+        "AVAIL_DISK_GB": avail_disk_gb,
+        "USED_DISK_GB_%": used_disk_gb_percent,
+    }
     return total_inventory_usage
 
 
@@ -188,9 +193,14 @@ def percentage(part, whole):
     return math.floor(100 * float(part) / float(whole))
 
 
-def print_table(hosts_inventory_usage, primary_sort_key=None,
-                format='text', print_hosts=True, print_totals=True,
-                reverse_sort=True):
+def print_table(
+    hosts_inventory_usage,
+    primary_sort_key=None,
+    format='text',
+    print_hosts=True,
+    print_totals=True,
+    reverse_sort=True,
+):
     table = PrettyTable()
     for c in hosts_inventory_usage[0]:
         table.add_column(c, [])
@@ -216,57 +226,88 @@ def print_table(hosts_inventory_usage, primary_sort_key=None,
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--aggregate", type=str,
-                        help="name of aggregate to filter host list",
-                        default=None)
-    parser.add_argument("-z", "--zone", type=str,
-                        help="availability zone to filter host list",
-                        default=None)
-    parser.add_argument("--print_hosts", dest='print_hosts',
-                        help="print list of selected hosts (default)",
-                        action='store_true')
-    parser.add_argument("--no_print_hosts", dest='print_hosts',
-                        help="do not print list of selected hosts",
-                        action='store_false')
-    parser.add_argument("--print_totals", dest='print_totals',
-                        help="print totals (default)", action='store_true')
-    parser.add_argument("--no_print_totals", dest='print_totals',
-                        help="do not print totals", action='store_false')
-    parser.add_argument("--sort_key", type=str,
-                        help="key on which to sort table."
-                             "(default=AVAIL_MEMORY_GB)",
-                        choices=['host',
-                                 'VCPU',
-                                 'USED_VCPU',
-                                 'AVAIL_VCPU',
-                                 'USED_VCPU_%',
-                                 'PCPU',
-                                 'USED_PCPU',
-                                 'AVAIL_PCPU',
-                                 'USED_PCPU_%',
-                                 'MEMORY_GB',
-                                 'USED_MEMORY_GB',
-                                 'AVAIL_MEMORY_GB',
-                                 'USED_MEMORY_GB_%',
-                                 'DISK_GB',
-                                 'USED_DISK_GB',
-                                 'AVAIL_DISK_GB',
-                                 'USED_DISK_GB_%'],
-                        default='AVAIL_MEMORY_GB')
-    parser.add_argument("--format", type=str,
-                        help="output format",
-                        choices=['text',
-                                 'html',
-                                 'json',
-                                 'csv',
-                                 'latex'],
-                        default='text')
-    parser.add_argument("--reverse_sort", dest='reverse_sort',
-                        help="reverse sort order (default)",
-                        action='store_true')
-    parser.add_argument("--no_reverse_sort", dest='reverse_sort',
-                        help="do not reverse sort order",
-                        action='store_false')
+    parser.add_argument(
+        "-a",
+        "--aggregate",
+        type=str,
+        help="name of aggregate to filter host list",
+        default=None,
+    )
+    parser.add_argument(
+        "-z",
+        "--zone",
+        type=str,
+        help="availability zone to filter host list",
+        default=None,
+    )
+    parser.add_argument(
+        "--print_hosts",
+        dest='print_hosts',
+        help="print list of selected hosts (default)",
+        action='store_true',
+    )
+    parser.add_argument(
+        "--no_print_hosts",
+        dest='print_hosts',
+        help="do not print list of selected hosts",
+        action='store_false',
+    )
+    parser.add_argument(
+        "--print_totals",
+        dest='print_totals',
+        help="print totals (default)",
+        action='store_true',
+    )
+    parser.add_argument(
+        "--no_print_totals",
+        dest='print_totals',
+        help="do not print totals",
+        action='store_false',
+    )
+    parser.add_argument(
+        "--sort_key",
+        type=str,
+        help="key on which to sort table." "(default=AVAIL_MEMORY_GB)",
+        choices=[
+            'host',
+            'VCPU',
+            'USED_VCPU',
+            'AVAIL_VCPU',
+            'USED_VCPU_%',
+            'PCPU',
+            'USED_PCPU',
+            'AVAIL_PCPU',
+            'USED_PCPU_%',
+            'MEMORY_GB',
+            'USED_MEMORY_GB',
+            'AVAIL_MEMORY_GB',
+            'USED_MEMORY_GB_%',
+            'DISK_GB',
+            'USED_DISK_GB',
+            'AVAIL_DISK_GB',
+            'USED_DISK_GB_%',
+        ],
+        default='AVAIL_MEMORY_GB',
+    )
+    parser.add_argument(
+        "--format",
+        type=str,
+        help="output format",
+        choices=['text', 'html', 'json', 'csv', 'latex'],
+        default='text',
+    )
+    parser.add_argument(
+        "--reverse_sort",
+        dest='reverse_sort',
+        help="reverse sort order (default)",
+        action='store_true',
+    )
+    parser.add_argument(
+        "--no_reverse_sort",
+        dest='reverse_sort',
+        help="do not reverse sort order",
+        action='store_false',
+    )
     parser.set_defaults(print_hosts=True)
     parser.set_defaults(print_totals=True)
     parser.set_defaults(reverse_sort=True)
@@ -285,13 +326,18 @@ def main():
     aggrlist = get_aggregate_list()
     hosts = get_host_list(agg_name, zone, aggrlist)
     if output_format == 'text':
-        print("Zone Filter: %s" % (zone))
-        print("Aggregate Filter: %s" % (agg_name))
+        print(f"Zone Filter: {zone}")
+        print(f"Aggregate Filter: {agg_name}")
     if hosts:
         hosts_inventory_usage = get_hosts_inventory_usage(hosts)
-        print_table(hosts_inventory_usage, primary_sort_key=sort_key,
-                    reverse_sort=reverse_sort, format=output_format,
-                    print_hosts=print_hosts, print_totals=print_totals)
+        print_table(
+            hosts_inventory_usage,
+            primary_sort_key=sort_key,
+            reverse_sort=reverse_sort,
+            format=output_format,
+            print_hosts=print_hosts,
+            print_totals=print_totals,
+        )
     else:
         print("No hosts found.")
 

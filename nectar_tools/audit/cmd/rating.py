@@ -5,15 +5,18 @@ from nectar_tools.audit.rating import reservation
 
 
 class RatingAuditorCmd(base.AuditCmdBase):
-
-    AUDITORS = [flavor.FlavorAuditor, project.ProjectAuditor,
-                reservation.ReservationFlavorAuditor]
+    AUDITORS = [
+        flavor.FlavorAuditor,
+        project.ProjectAuditor,
+        reservation.ReservationFlavorAuditor,
+    ]
 
     def add_args(self):
-        super(RatingAuditorCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Rating auditor'
-        self.parser.add_argument('-p', '--project-id',
-                                 help='Project ID to process')
+        self.parser.add_argument(
+            '-p', '--project-id', help='Project ID to process'
+        )
 
     def get_extra_args(self):
         return {'project_id': self.args.project_id}

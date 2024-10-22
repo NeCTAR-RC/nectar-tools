@@ -12,7 +12,6 @@ LOG = logging.getLogger(__name__)
 
 
 class LoadBalancerAuditor(base.Auditor):
-
     def setup_clients(self):
         super().setup_clients()
         self.openstack = auth.get_openstacksdk(sess=self.ks_session)
@@ -21,8 +20,11 @@ class LoadBalancerAuditor(base.Auditor):
 
     def check_nova_instances(self):
         instances = self.n_client.servers.list(
-            search_opts={'all_tenants': True,
-                         'tenant_id': CONF.octavia.project_id})
+            search_opts={
+                'all_tenants': True,
+                'tenant_id': CONF.octavia.project_id,
+            }
+        )
         for instance in instances:
             if not instance.name.startswith('amphora-'):
                 LOG.debug("Skipping instance %s", instance.name)
@@ -31,10 +33,15 @@ class LoadBalancerAuditor(base.Auditor):
             try:
                 self.openstack.load_balancer.get_amphora(amp_id)
             except openstack.exceptions.ResourceNotFound:
-                LOG.warning("No amp found for instance %s(%s)",
-                            instance.name, instance.id)
-                self.repair(f"Deleting orphaned amp instance {instance.id}",
-                            lambda: instance.delete())
+                LOG.warning(
+                    "No amp found for instance %s(%s)",
+                    instance.name,
+                    instance.id,
+                )
+                self.repair(
+                    f"Deleting orphaned amp instance {instance.id}",
+                    lambda: instance.delete(),
+                )
 
     def old_amphora_image(self):
         images = self.g_client.images.list(filters={'tag': ['octavia']})
@@ -49,15 +56,17 @@ class LoadBalancerAuditor(base.Auditor):
                 continue
 
             amphorae = self.openstack.load_balancer.amphorae(
-                loadbalancer_id=lb.id)
+                loadbalancer_id=lb.id
+            )
             for amp in amphorae:
                 if amp.get('image_id') != latest_image.id:
                     LOG.warning(f"LB {lb.id} not using latest image")
                     self.repair(
-                        f"Fail over LB {lb.id}", lambda:
-                        self.openstack.load_balancer.failover_load_balancer(
-                            lb.id)
-                        )
+                        f"Fail over LB {lb.id}",
+                        lambda: self.openstack.load_balancer.failover_load_balancer(
+                            lb.id
+                        ),
+                    )
                     break
                 else:
                     LOG.debug(f"LB {lb.id} using latest image")

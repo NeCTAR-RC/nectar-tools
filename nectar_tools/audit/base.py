@@ -9,8 +9,7 @@ LOG = logging.getLogger(__name__)
 REPAIR_COUNT = 0
 
 
-class Auditor(object):
-
+class Auditor:
     # public methods that are not "checks"
     BASE_METHODS = ['setup_clients', 'run_all', 'repair', 'summary']
 
@@ -30,15 +29,17 @@ class Auditor(object):
         self.sdk_client = auth.get_openstacksdk(sess=self.ks_session)
 
     def run_all(self, list_not_run=False, **kwargs):
-        public_method_names = [method for method in dir(self)
-                               if callable(getattr(self, method))
-                               if not method.startswith('_')
-                               and method not in self.BASE_METHODS]
+        public_method_names = [
+            method
+            for method in dir(self)
+            if callable(getattr(self, method))
+            if not method.startswith('_') and method not in self.BASE_METHODS
+        ]
         for method in public_method_names:
             if list_not_run:
-                path = "%s:%s.%s" % (type(self).__module__,
-                                     type(self).__name__,
-                                     method)
+                path = (
+                    f"{type(self).__module__}:{type(self).__name__}.{method}"
+                )
                 print(path)
                 continue
             LOG.debug("Starting %s", method)
@@ -61,7 +62,8 @@ class Auditor(object):
 
         if self.dry_run:
             self.repair_log.info(
-                f"Found {REPAIR_COUNT} items to repair, run with -y to action")
+                f"Found {REPAIR_COUNT} items to repair, run with -y to action"
+            )
         else:
             self.repair_log.info(f"Repaired {REPAIR_COUNT} items")
 

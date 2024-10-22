@@ -8,7 +8,6 @@ from nectar_tools.tests import fakes
 
 
 class SUinfoTests(test.TestCase):
-
     def setUp(self):
         super().setUp()
         self.session = mock.Mock()
@@ -18,10 +17,12 @@ class SUinfoTests(test.TestCase):
         si = service_units.SUinfo(self.session, self.allocation)
         self.assertEqual(self.session, si.session)
         self.assertEqual(self.allocation, si.allocation)
-        self.assertEqual(datetime.datetime(2015, 2, 26, 0, 0),
-                         si.allocation_start)
-        self.assertEqual(datetime.datetime(2015, 8, 25, 0, 0),
-                         si.allocation_end)
+        self.assertEqual(
+            datetime.datetime(2015, 2, 26, 0, 0), si.allocation_start
+        )
+        self.assertEqual(
+            datetime.datetime(2015, 8, 25, 0, 0), si.allocation_end
+        )
         self.assertEqual(180, si.allocation_total_days)
 
     def test_over_budget(self):
@@ -59,15 +60,18 @@ class SUinfoTests(test.TestCase):
         usage = si.usage
 
         client.summary.get_summary.assert_called_once_with(
-            begin=self.allocation.start_date, end=self.allocation.end_date,
+            begin=self.allocation.start_date,
+            end=self.allocation.end_date,
             filters={'project_id': self.allocation.project_id},
-            response_format='object')
+            response_format='object',
+        )
 
         self.assertEqual(21, usage)
 
     def test_budget(self):
-        with mock.patch.object(self.allocation,
-                               'get_allocated_cloudkitty_quota') as quota:
+        with mock.patch.object(
+            self.allocation, 'get_allocated_cloudkitty_quota'
+        ) as quota:
             quota.return_value = {'budget': 23}
 
             si = service_units.SUinfo(self.session, self.allocation)
@@ -77,8 +81,9 @@ class SUinfoTests(test.TestCase):
             quota.assert_called_once_with()
 
     def test_daily_average_budget(self):
-        with mock.patch.object(self.allocation,
-                               'get_allocated_cloudkitty_quota') as quota:
+        with mock.patch.object(
+            self.allocation, 'get_allocated_cloudkitty_quota'
+        ) as quota:
             quota.return_value = {'budget': 3600}
 
             si = service_units.SUinfo(self.session, self.allocation)
@@ -87,8 +92,9 @@ class SUinfoTests(test.TestCase):
 
     @freeze_time("2015-04-01")
     def test_expected(self):
-        with mock.patch.object(self.allocation,
-                               'get_allocated_cloudkitty_quota') as quota:
+        with mock.patch.object(
+            self.allocation, 'get_allocated_cloudkitty_quota'
+        ) as quota:
             quota.return_value = {'budget': 3600}
 
             si = service_units.SUinfo(self.session, self.allocation)
@@ -96,8 +102,9 @@ class SUinfoTests(test.TestCase):
             self.assertEqual(680.0, si.expected)
 
     def test_is_tracking_over(self):
-        with mock.patch.object(self.allocation,
-                               'get_allocated_cloudkitty_quota') as quota:
+        with mock.patch.object(
+            self.allocation, 'get_allocated_cloudkitty_quota'
+        ) as quota:
             quota.return_value = {'budget': 10}
 
             self.allocation.start_date = '2017-01-01'
@@ -123,8 +130,9 @@ class SUinfoTests(test.TestCase):
                 self.assertFalse(si.is_tracking_over())
 
     def test_is_tracking_over_no_budget(self):
-        with mock.patch.object(self.allocation,
-                               'get_allocated_cloudkitty_quota') as quota:
+        with mock.patch.object(
+            self.allocation, 'get_allocated_cloudkitty_quota'
+        ) as quota:
             quota.return_value = {'budget': None}
 
             self.allocation.start_date = '2017-01-01'

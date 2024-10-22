@@ -7,8 +7,7 @@ CONFIG = config.CONFIG
 OSLO_CONF = config.OSLO_CONF
 
 
-class CmdBase(object):
-
+class CmdBase:
     def __init__(self, log_filename=None):
         self.parser = CONFIG.get_parser()
         self.add_args()
@@ -26,6 +25,10 @@ class CmdBase(object):
         self.k_client = auth.get_keystone_client(self.session)
 
     def add_args(self):
-        self.parser.add_argument('-y', '--no-dry-run', action='store_true',
-                        help='Perform the actual actions, default is to \
-                              only show what would happen')
+        self.parser.add_argument(
+            '-y',
+            '--no-dry-run',
+            action='store_true',
+            help='Perform the actual actions, default is to \
+                              only show what would happen',
+        )

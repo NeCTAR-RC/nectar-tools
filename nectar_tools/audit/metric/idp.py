@@ -8,16 +8,17 @@ LOG = logging.getLogger(__name__)
 
 
 class IDPAuditor(base.ResourceAuditor):
-
     def ensure_country(self):
         resources = self.g_client.resource.search(
-            resource_type='idp',
-            query='country=null')
+            resource_type='idp', query='country=null'
+        )
 
         for idp in resources:
-            LOG.error("IDP %s has no country",
-                      idp['original_resource_id'])
-            LOG.info("To fix with: "
-                     "gnocchi resource update "
-                     "--type idp "
-                     "-a 'country:<AU or NZ>' %s", idp['id'])
+            LOG.error("IDP %s has no country", idp['original_resource_id'])
+            LOG.info(
+                "To fix with: "
+                "gnocchi resource update "
+                "--type idp "
+                "-a 'country:<AU or NZ>' %s",
+                idp['id'],
+            )

@@ -4,9 +4,9 @@ import testtools
 
 from nectar_tools import config
 
-filename = os.path.realpath(os.path.join(
-    os.path.dirname(__file__),
-    'tests/nectar-tools.conf'))
+filename = os.path.realpath(
+    os.path.join(os.path.dirname(__file__), 'tests/nectar-tools.conf')
+)
 
 CONF = config.CONFIG
 CONF.read(filename)
@@ -21,6 +21,5 @@ def nested(*contexts):
 
 
 class TestCase(testtools.TestCase):
-
     def setUp(self):
-        super(TestCase, self).setUp()
+        super().setUp()

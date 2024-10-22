@@ -16,11 +16,11 @@ background: #fff;
 </head>
 
 <body>
-<strong>---NeCTAR Research Cloud Usage Report---</strong> 
+<strong>---NeCTAR Research Cloud Usage Report---</strong>
 <br>
 <br>
 
-{% for item in cell %}    
+{% for item in cell %}
 {%if item.get('node_name') == "np"%}
 <strong>NeCTAR Research Cloud, Melbourne Node, Noble Park Cell</strong>
 {%elif item.get('node_name') == "qh2"%}
@@ -30,24 +30,24 @@ background: #fff;
 {%elif item.get('node_name') == "qld"%}
 <strong>NeCTAR Research Cloud, Queensland, Queensland Cell</strong>
 {%endif%}
-	
+
 <br>
 <strong>Resource Usage update as at:</strong> {{ date }}
 
 <br>
-<strong>Total available nodes, cores and memory:</strong> {{ item.get('node_count') }}, {{ item.get('nac') }}, {{ item.get('nam') }} GB
+<strong>Total available nodes, cores and memory:</strong> {{ item.get('node_count') }}, {{ item.get('nac') }}, {{ item.get('name') }} GB
 <br>
 <strong>Used cores and memory:</strong> {{ item.get('nuc') }}, {{ item.get('num') }} GB
-<br> 
+<br>
 <strong>Free cores and memory:</strong> {{ item.get('nfc') }}, {{ item.get('nfm') }} GB
 <br>
 <strong>VM sizes in use (s, m, l, xl, xxl, others):</strong> {{ item.get('t_s') }},{{ item.get('t_m') }}
-								    {{ item.get('t_l') }},{{ item.get('t_xl') }} 
+								    {{ item.get('t_l') }},{{ item.get('t_xl') }}
 								    {{ item.get('t_xxl') }},{{ item.get('oth')}}
 <br>
 <br>
 {% endfor %}
- 
+
 <br>
 <br>
 
@@ -57,9 +57,9 @@ background: #fff;
 <strong>Resource Usage update as at:</strong> {{ date }}
 <br>
 <strong>Total available nodes, cores and memory:</strong> {{ rc.get('total_nodes')}}, {{ rc.get('total_cores')}}, {{ rc.get('total_mem')}} GB
-<br> 
+<br>
 <strong>Used cores and memory:</strong> {{ rc.get('used_cores')}}, {{ rc.get('used_mem')}} GB
-<br> 
+<br>
 <strong>Free cores and memory:</strong> {{ rc.get('free_cores')}}, {{ rc.get('free_mem')}} GB
 <br>
 <strong>VM sizes in use (s, m, l, xl, xxl, others):</strong> {{ rc.get('total_small')}}, {{ rc.get('total_medium')}},

@@ -3,11 +3,10 @@ from nectar_tools.audit.network import floating_ip
 
 
 class NetworkAuditorCmd(base.AuditCmdBase):
-
     AUDITORS = [floating_ip.FloatingIPAuditor]
 
     def add_args(self):
-        super(NetworkAuditorCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Network auditor'
 
 

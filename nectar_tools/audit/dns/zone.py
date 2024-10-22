@@ -13,19 +13,24 @@ STATES = ['ERROR', 'PENDING']
 
 
 class DnsAuditor(base.Auditor):
-
     def setup_clients(self):
         super().setup_clients()
-        self.dc = auth.get_designate_client(sess=self.ks_session,
-                                            all_projects=True)
+        self.dc = auth.get_designate_client(
+            sess=self.ks_session, all_projects=True
+        )
 
     def check_zone_states(self):
         time_diff = datetime.now() - timedelta(hours=12)
         for state in STATES:
-            for zone in utils.list_resources(self.dc.zones.list,
-                                             criterion={'status': state}):
-                updated_at = datetime.strptime(zone['updated_at'],
-                                               '%Y-%m-%dT%H:%M:%S.%f')
+            for zone in utils.list_resources(
+                self.dc.zones.list, criterion={'status': state}
+            ):
+                updated_at = datetime.strptime(
+                    zone['updated_at'], '%Y-%m-%dT%H:%M:%S.%f'
+                )
                 if updated_at < time_diff:
-                    LOG.info("zone %s in state %s for more than 12 hours",
-                             zone['id'], zone['status'])
+                    LOG.info(
+                        "zone %s in state %s for more than 12 hours",
+                        zone['id'],
+                        zone['status'],
+                    )

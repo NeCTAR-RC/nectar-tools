@@ -32,13 +32,15 @@ LOG = logging.getLogger(__name__)
 
 
 @configurable('openstack.client', env_prefix='OS')
-def get_session(auth_url, username, password, project_name=None,
-                system_scope='project'):
+def get_session(
+    auth_url, username, password, project_name=None, system_scope='project'
+):
     loader = loading.get_plugin_loader('password')
-    kwargs = {'auth_url': auth_url,
-              'username': username,
-              'password': password,
-              'user_domain_id': 'default',
+    kwargs = {
+        'auth_url': auth_url,
+        'username': username,
+        'password': password,
+        'user_domain_id': 'default',
     }
     if system_scope == 'project':
         kwargs['project_name'] = project_name
@@ -101,9 +103,12 @@ def get_trove_client(sess=None):
 def get_designate_client(sess=None, project_id=None, all_projects=False):
     if not sess:
         sess = get_session()
-    return designateclient.Client('2', session=sess,
-                                  sudo_project_id=project_id,
-                                  all_projects=all_projects)
+    return designateclient.Client(
+        '2',
+        session=sess,
+        sudo_project_id=project_id,
+        all_projects=all_projects,
+    )
 
 
 def get_gnocchi_client(sess=None):
@@ -119,9 +124,10 @@ def get_swift_client(sess=None, project_id=None):
     if project_id:
         endpoint = sess.get_endpoint(service_type='object-store')
         auth_project = sess.get_project_id()
-        endpoint = endpoint.replace('AUTH_%s' % auth_project,
-                                    'AUTH_%s' % project_id)
-        os_opts['object_storage_url'] = '%s' % endpoint
+        endpoint = endpoint.replace(
+            f'AUTH_{auth_project}', f'AUTH_{project_id}'
+        )
+        os_opts['object_storage_url'] = f'{endpoint}'
     return swiftclient.Connection(session=sess, os_options=os_opts)
 
 
@@ -134,8 +140,9 @@ def get_openstacksdk(sess=None):
 def get_murano_client(sess=None):
     if not sess:
         sess = get_session()
-    return muranoclient.Client(version='1', session=sess,
-                               service_type='application-catalog')
+    return muranoclient.Client(
+        version='1', session=sess, service_type='application-catalog'
+    )
 
 
 def get_placement_client(sess=None):

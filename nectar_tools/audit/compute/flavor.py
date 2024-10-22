@@ -13,7 +13,6 @@ LAST_YEAR = (datetime.today() - timedelta(days=YEAR)).date()
 
 
 class FlavorAuditor(base.Auditor):
-
     def setup_clients(self):
         super().setup_clients()
         self.n_client = auth.get_nova_client(sess=self.ks_session)
@@ -27,11 +26,11 @@ class FlavorAuditor(base.Auditor):
             if flavor.name.startswith('reservation:'):
                 continue
 
-            opts = {'all_tenants': True,
-                    'flavor': flavor.id}
+            opts = {'all_tenants': True, 'flavor': flavor.id}
 
-            servers = len(self.n_client.servers.list(
-                search_opts=opts, limit=1))
+            servers = len(
+                self.n_client.servers.list(search_opts=opts, limit=1)
+            )
             if not servers:
                 instances = self.g_client.resource.search(
                     resource_type='instance',
@@ -43,15 +42,16 @@ class FlavorAuditor(base.Auditor):
                     LOG.error(f"Flavor {flavor.name} hasn't been used ever!")
                     continue
                 try:
-                    last_date = datetime.strptime(instances[0].get('ended_at'),
-                                                  "%Y-%m-%dT%H:%M:%S.%f%z")
+                    last_date = datetime.strptime(
+                        instances[0].get('ended_at'), "%Y-%m-%dT%H:%M:%S.%f%z"
+                    )
                 except ValueError:
-                    last_date = datetime.strptime(instances[0].get('ended_at'),
-                                                  "%Y-%m-%dT%H:%M:%S%z")
+                    last_date = datetime.strptime(
+                        instances[0].get('ended_at'), "%Y-%m-%dT%H:%M:%S%z"
+                    )
 
                 if last_date.date() < LAST_YEAR:
-                    LOG.warning(
-                        f"Flavor {flavor.name} last used {last_date}")
+                    LOG.warning(f"Flavor {flavor.name} last used {last_date}")
 
     def flavor_accessible(self):
         flavors = self.n_client.flavors.list(is_public=None)
@@ -64,16 +64,21 @@ class FlavorAuditor(base.Auditor):
                 access = self.n_client.flavor_access.list(flavor=flavor.id)
                 if not access:
                     LOG.warning(
-                        f"Flavor {flavor.name} isn't accessable to anyone")
+                        f"Flavor {flavor.name} isn't accessible to anyone"
+                    )
                     continue
                 active = False
                 for a in access:
                     project = self.k_client.projects.get(a.tenant_id)
-                    if project.enabled and getattr(
-                            project, 'expiry_status', 'active') != 'deleted':
+                    if (
+                        project.enabled
+                        and getattr(project, 'expiry_status', 'active')
+                        != 'deleted'
+                    ):
                         active = True
                         break
                 if not active:
                     LOG.warning(
-                        f"Flavor {flavor.name} isn't accessable to any "
-                        "active project")
+                        f"Flavor {flavor.name} isn't accessible to any "
+                        "active project"
+                    )

@@ -12,28 +12,32 @@ LOG = logging.getLogger(__name__)
 
 
 class SUReportCmd(cmd_base.CmdBase):
-
     def __init__(self):
-        super(SUReportCmd, self).__init__(log_filename='reports.log')
+        super().__init__(log_filename='reports.log')
         self.manager = manager.SUReporter(self.session, self.dry_run)
 
     def add_args(self):
         """Handle command-line options"""
-        super(SUReportCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'SUReport Allocations'
         project_group = self.parser.add_mutually_exclusive_group()
-        project_group.add_argument('--all', action='store_true',
-                                   help='Run over all pending allocations')
-        project_group.add_argument('-a', '--allocation-id',
-                                   type=int,
-                                   help='Allocation ID to process')
-        project_group.add_argument('--skip-to-allocation-id',
-                                   type=int,
-                                   required=False,
-                                   default=None,
-                                   help='Skip processing up to a given \
+        project_group.add_argument(
+            '--all',
+            action='store_true',
+            help='Run over all pending allocations',
+        )
+        project_group.add_argument(
+            '-a', '--allocation-id', type=int, help='Allocation ID to process'
+        )
+        project_group.add_argument(
+            '--skip-to-allocation-id',
+            type=int,
+            required=False,
+            default=None,
+            help='Skip processing up to a given \
                                    allocation. Useful in cases where the \
-                                   script has partially completed.')
+                                   script has partially completed.',
+        )
 
 
 def main():

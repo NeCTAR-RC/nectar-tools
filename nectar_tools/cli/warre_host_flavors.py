@@ -4,15 +4,15 @@ import re
 from nectar_tools import auth
 
 
-class WarreHostFlavors():
-
+class WarreHostFlavors:
     def run(self):
         w_client = auth.get_warre_client()
         b_client = auth.get_blazar_client()
         hosts = b_client.host.list()
         flavors = w_client.flavors.list(all_projects=True)
-        pt = prettytable.PrettyTable(['Blazar_Hostname', 'Warre_ID',
-                                      'Warre_Flavor_Name'])
+        pt = prettytable.PrettyTable(
+            ['Blazar_Hostname', 'Warre_ID', 'Warre_Flavor_Name']
+        )
         pt = self.add_hosts_flavors_to_table(hosts, flavors, pt)
         pt.sortby = "Blazar_Hostname"
         print(pt)

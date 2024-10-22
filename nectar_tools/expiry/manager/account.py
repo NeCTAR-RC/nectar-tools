@@ -14,16 +14,20 @@ LOG = logging.getLogger(__name__)
 
 
 class AccountExpirer(base.Expirer):
-
     EVENT_PREFIX = 'expiry.account'
 
-    def __init__(self, account, ks_session=None, dry_run=False,
-                 force_disable=False):
+    def __init__(
+        self, account, ks_session=None, dry_run=False, force_disable=False
+    ):
         notifier = expiry_notifier.ExpiryNotifier(
-            resource_type='account', resource=account, template_dir='accounts',
+            resource_type='account',
+            resource=account,
+            template_dir='accounts',
             group_id=CONF.freshdesk.accounts_group,
             subject="Deactivation of your Nectar Research Cloud Account",
-            ks_session=ks_session, dry_run=dry_run)
+            ks_session=ks_session,
+            dry_run=dry_run,
+        )
         self.account = account
         self.force_disable = force_disable
         self.m_client = auth.get_manuka_client(ks_session)
@@ -34,15 +38,16 @@ class AccountExpirer(base.Expirer):
         six_months_ago = self.now - relativedelta(months=6)
         if self.account.last_login < six_months_ago:
             return True
-        LOG.debug("%s: Account has had recent login, skipping",
-                  self.account.id)
+        LOG.debug(
+            "%s: Account has had recent login, skipping", self.account.id
+        )
         return False
 
     def _update_resource(self, **kwargs):
         if self.dry_run:
-            msg = '%s: Would update %s' % (self.account.id, kwargs)
+            msg = f'{self.account.id}: Would update {kwargs}'
         else:
-            msg = '%s: Updated %s' % (self.account.id, kwargs)
+            msg = f'{self.account.id}: Updated {kwargs}'
             self.m_client.users.update(self.account.id, **kwargs)
         LOG.info(msg)
 
@@ -50,12 +55,12 @@ class AccountExpirer(base.Expirer):
         if self.dry_run:
             LOG.info("%s: Would disable user", self.account.id)
         else:
-            self.k_client.users.update(self.account.id, enabled=False,
-                                       inactive=True)
+            self.k_client.users.update(
+                self.account.id, enabled=False, inactive=True
+            )
             LOG.info("%s: Disabled user", self.account.id)
 
-        self._update_resource(expiry_status='inactive',
-                              expiry_next_step=None)
+        self._update_resource(expiry_status='inactive', expiry_next_step=None)
         self.send_event('disabled')
 
     def _get_recipients(self):

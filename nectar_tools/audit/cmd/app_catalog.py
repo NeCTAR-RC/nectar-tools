@@ -3,11 +3,10 @@ from nectar_tools.audit.cmd import base
 
 
 class AppCatalogAuditorCmd(base.AuditCmdBase):
-
     AUDITORS = [environment.EnvironmentAuditor]
 
     def add_args(self):
-        super(AppCatalogAuditorCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Application catalog auditor'
 
 

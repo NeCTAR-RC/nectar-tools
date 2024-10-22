@@ -12,7 +12,6 @@ LOG = logging.getLogger(__name__)
 
 
 class ImageAuditor(base.Auditor):
-
     def setup_clients(self):
         super().setup_clients()
         self.g_client = auth.get_glance_client(sess=self.ks_session)
@@ -20,23 +19,21 @@ class ImageAuditor(base.Auditor):
         self.t_client = auth.get_trove_client(sess=self.ks_session)
 
     def _is_image_unused(self, image_id):
-        search_opts = {'image': image_id,
-                       'all_tenants': True}
+        search_opts = {'image': image_id, 'all_tenants': True}
         try:
             instances = self.n_client.servers.list(search_opts=search_opts)
             if not instances:
                 return True
-            LOG.debug("Image %s is in use by %s instances", image_id,
-                     len(instances))
+            LOG.debug(
+                "Image %s is in use by %s instances", image_id, len(instances)
+            )
         except Exception as e:
-            LOG.error(
-                "Image %s: Can't get related instance", image_id)
+            LOG.error("Image %s: Can't get related instance", image_id)
             LOG.error(e)
         return False
 
     def _get_images(self, project_id):
-        images = list(self.g_client.images.list(
-            filters={'owner': project_id}))
+        images = list(self.g_client.images.list(filters={'owner': project_id}))
         LOG.debug("Found %s images owned by %s", len(images), project_id)
         return images
 
@@ -70,5 +67,6 @@ class ImageAuditor(base.Auditor):
         images = self._get_images(project_id)
         for image in images:
             if image.id not in active_images and self._is_image_unused(
-                    image.id):
+                image.id
+            ):
                 self._delete_unused(image.id)

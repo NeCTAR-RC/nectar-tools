@@ -13,7 +13,6 @@ EMAIL_RE = re.compile(r"^[\w.!#$%&'*+\-/=?^_`{|}~]+@([\w\-]+\.)+[\w\-]{2,4}$")
 
 
 class UserAuditor(base.IdentityAuditor):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.users = self.k_client.users.list(domain='default')
@@ -36,8 +35,9 @@ class UserAuditor(base.IdentityAuditor):
             # Users with no "@" in the name are typically service or
             # cloud operator a/c's
             if "@" in user.name and not EMAIL_RE.match(user.name):
-                LOG.error("User name '%s' is a malformed email address",
-                          user.name)
+                LOG.error(
+                    "User name '%s' is a malformed email address", user.name
+                )
 
     def check_default_project_id(self):
         for user in self.users:
@@ -48,8 +48,10 @@ class UserAuditor(base.IdentityAuditor):
             try:
                 project = self.k_client.projects.get(default_project_id)
             except keystoneauth1.exceptions.http.NotFound:
-                LOG.warning("User %s default_project_id is a non-existent "
-                            "project", user.name)
+                LOG.warning(
+                    "User %s default_project_id is a non-existent " "project",
+                    user.name,
+                )
                 continue
             if getattr(project, 'expiry_status', None) == 'admin':
                 # Ignore admin project
@@ -58,5 +60,6 @@ class UserAuditor(base.IdentityAuditor):
                 # Ignore bot accounts
                 continue
             if not project.name.startswith('pt-'):
-                LOG.warning("User %s default_project_id is not a PT",
-                            user.name)
+                LOG.warning(
+                    "User %s default_project_id is not a PT", user.name
+                )

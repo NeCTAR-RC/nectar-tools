@@ -10,6 +10,7 @@ LOG = logging.getLogger(__name__)
 
 class FloatingIPAuditor(base.ResourceAuditor):
     """Finds floating IPs that are attached to instances at different sites"""
+
     def setup_clients(self):
         super().setup_clients()
         self.neutronc = auth.get_neutron_client(sess=self.ks_session)
@@ -40,7 +41,8 @@ class FloatingIPAuditor(base.ResourceAuditor):
             device_id = port['port']['device_id']
             floating_ip_id = floating_ip['id']
             net_name = self.neutronc.show_network(
-                floating_ip['floating_network_id'])['network']['name']
+                floating_ip['floating_network_id']
+            )['network']['name']
 
             instance = self.novac.servers.get(device_id)
             az = getattr(instance, 'OS-EXT-AZ:availability_zone', None)
@@ -50,6 +52,10 @@ class FloatingIPAuditor(base.ResourceAuditor):
             AZSite = look_up_table.AZ_SITE_MAP.get(az)
 
             if net_name is None or AZSite is None or networkSite != AZSite:
-                LOG.info("Floating IP %s is from %s but instance %s is in %s",
-                          floating_ip_id, networkSite, device_id, AZSite
-            )
+                LOG.info(
+                    "Floating IP %s is from %s but instance %s is in %s",
+                    floating_ip_id,
+                    networkSite,
+                    device_id,
+                    AZSite,
+                )

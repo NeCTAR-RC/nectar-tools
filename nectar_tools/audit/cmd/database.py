@@ -3,11 +3,10 @@ from nectar_tools.audit.database import instance
 
 
 class DatabaseAuditorCmd(base.AuditCmdBase):
-
     AUDITORS = [instance.DatabaseInstanceAuditor]
 
     def add_args(self):
-        super(DatabaseAuditorCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Database auditor'
 
 

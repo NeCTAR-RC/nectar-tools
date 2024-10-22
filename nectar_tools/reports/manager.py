@@ -12,10 +12,10 @@ DATE_FORMAT = '%Y-%m-%d'
 LOG = logging.getLogger(__name__)
 
 
-class SUReporter(object):
-
-    def __init__(self, ks_session=None, noop=False, force=False,
-                 *args, **kwargs):
+class SUReporter:
+    def __init__(
+        self, ks_session=None, noop=False, force=False, *args, **kwargs
+    ):
         self.force = force
         self.noop = noop
         self.ks_session = ks_session
@@ -24,12 +24,14 @@ class SUReporter(object):
 
     def send_over_budget_report(self, allocation):
         n = notifier.AllocationNotifier(
-            allocation=allocation, ks_session=self.ks_session, noop=self.noop)
+            allocation=allocation, ks_session=self.ks_session, noop=self.noop
+        )
         n.send_over_budget()
 
     def send_all_reports(self, skip_to=None):
         allocations = self.a_client.allocations.list(
-            status='A', parent_request__isnull=True)
+            status='A', parent_request__isnull=True
+        )
 
         if skip_to:
             LOG.info(f"Skipping to allocation {skip_to}")
@@ -57,25 +59,29 @@ class SUReporter(object):
 
         if not allocation.project_id:
             raise exceptions.InvalidProjectAllocation(
-                f"No project id for {allocation}")
+                f"No project id for {allocation}"
+            )
         project = self.k_client.projects.get(allocation.project_id)
         expiry_status = getattr(project, 'expiry_status', None)
-        if expiry_status in [expiry_states.WARNING,
-                             expiry_states.RESTRICTED,
-                             expiry_states.STOPPED,
-                             expiry_states.ARCHIVING,
-                             expiry_states.ARCHIVED]:
-            LOG.debug(
-                f"Skipping {allocation.id} expiry process in progress")
+        if expiry_status in [
+            expiry_states.WARNING,
+            expiry_states.RESTRICTED,
+            expiry_states.STOPPED,
+            expiry_states.ARCHIVING,
+            expiry_states.ARCHIVED,
+        ]:
+            LOG.debug(f"Skipping {allocation.id} expiry process in progress")
             return
 
         if not project.enabled:
             raise exceptions.InvalidProjectAllocation(
-                f"Project {project.id} disabled")
+                f"Project {project.id} disabled"
+            )
 
         if not allocation.start_date or not allocation.end_date:
             raise exceptions.InvalidProjectAllocation(
-                f"Project {project.id} start or end date missing")
+                f"Project {project.id} start or end date missing"
+            )
 
         su_info = service_units.SUinfo(self.ks_session, allocation)
 
@@ -83,8 +89,10 @@ class SUReporter(object):
             today = datetime.datetime.today()
             days_used = (today - su_info.allocation_start).days
             if (days_used / su_info.allocation_total_days) < 0.25:
-                LOG.debug(f"{allocation.id}: Skipping, allocation less "
-                          "than 25% through allocated period")
+                LOG.debug(
+                    f"{allocation.id}: Skipping, allocation less "
+                    "than 25% through allocated period"
+                )
                 return
 
             self.send_over_budget_report(allocation)

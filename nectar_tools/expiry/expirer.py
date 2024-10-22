@@ -41,16 +41,22 @@ class CPULimit(enum.Enum):
     OVER_LIMIT = 3
 
 
-class ResourceRollback(object):
-
+class ResourceRollback:
     def __init__(self, expirer):
         self.expirer = expirer
         self.resource = expirer.resource
-        self.kwargs = dict([
-            (expirer.STATUS_KEY,
-             self.expirer.get_metadata(expirer.STATUS_KEY)),
-            (expirer.NEXT_STEP_KEY,
-             self.expirer.get_metadata(expirer.NEXT_STEP_KEY))])
+        self.kwargs = dict(
+            [
+                (
+                    expirer.STATUS_KEY,
+                    self.expirer.get_metadata(expirer.STATUS_KEY),
+                ),
+                (
+                    expirer.NEXT_STEP_KEY,
+                    self.expirer.get_metadata(expirer.NEXT_STEP_KEY),
+                ),
+            ]
+        )
 
     def __enter__(self):
         return self
@@ -65,15 +71,15 @@ class ResourceRollback(object):
         self.expirer._update_resource(**self.kwargs)
 
 
-class Expirer(object):
-
+class Expirer:
     STATUS_KEY = 'expiry_status'
     NEXT_STEP_KEY = 'expiry_next_step'
     TICKET_ID_KEY = 'expiry_ticket_id'
     UPDATED_AT_KEY = 'expiry_updated_at'
 
-    def __init__(self, resource_type, resource, notifier,
-                 ks_session=None, dry_run=False):
+    def __init__(
+        self, resource_type, resource, notifier, ks_session=None, dry_run=False
+    ):
         self.k_client = auth.get_keystone_client(ks_session)
         self.g_client = auth.get_glance_client(ks_session)
         self.dry_run = dry_run
@@ -88,11 +94,13 @@ class Expirer(object):
 
         transport = oslo_messaging.get_notification_transport(OSLO_CONF)
         self.event_notifier = oslo_messaging.Notifier(transport, 'expiry')
-        target = oslo_messaging.Target(exchange='openstack',
-                                       topic='notifications')
+        target = oslo_messaging.Target(
+            exchange='openstack', topic='notifications'
+        )
         for queue in CONF.events.notifier_queues.split(','):
-            transport._driver.listen_for_notifications([(target, 'audit')],
-                                                       queue, 1, 1)
+            transport._driver.listen_for_notifications(
+                [(target, 'audit')], queue, 1, 1
+            )
 
     @property
     def project(self):
@@ -103,15 +111,15 @@ class Expirer(object):
     def _get_project_managers(self):
         if self.managers is None:
             self.managers = utils.get_project_users(
-                self.k_client, self.project,
-                role=CONF.keystone.manager_role_id)
+                self.k_client, self.project, role=CONF.keystone.manager_role_id
+            )
         return self.managers
 
     def _get_project_members(self):
         if self.members is None:
             self.members = utils.get_project_users(
-                self.k_client, self.project,
-                role=CONF.keystone.member_role_id)
+                self.k_client, self.project, role=CONF.keystone.member_role_id
+            )
         return self.members
 
     @staticmethod
@@ -126,25 +134,35 @@ class Expirer(object):
 
     def _send_notification(self, stage, extra_context={}, tags=[]):
         if self.get_status() == expiry_states.DELETED:
-            LOG.info("%s: Skipping notification, project already deleted",
-                     self.resource.id)
+            LOG.info(
+                "%s: Skipping notification, project already deleted",
+                self.resource.id,
+            )
             return
         context = self._get_notification_context()
         context.update(extra_context)
         recipient, extras = self._get_recipients()
         if recipient:
-            self.notifier.send_message(stage, recipient, extra_context=context,
-                                       extra_recipients=extras, tags=tags)
+            self.notifier.send_message(
+                stage,
+                recipient,
+                extra_context=context,
+                extra_recipients=extras,
+                tags=tags,
+            )
         else:
-            LOG.warning("%s: No valid recipient, skip notification!",
-                        self.resource.id)
+            LOG.warning(
+                "%s: No valid recipient, skip notification!", self.resource.id
+            )
 
     def send_event(self, event, extra_context={}):
         if self.get_status() == expiry_states.DELETED:
-            LOG.info("%s: Skipping event, project alreaded deleted",
-                     self.resource.id)
+            LOG.info(
+                "%s: Skipping event, project alreaded deleted",
+                self.resource.id,
+            )
             return
-        event_type = '%s.%s' % (self.EVENT_PREFIX, event)
+        event_type = f'{self.EVENT_PREFIX}.{event}'
         event_notification = self._get_notification_context()
         event_notification.update(extra_context)
         self._send_event(event_type, event_notification)
@@ -160,21 +178,27 @@ class Expirer(object):
         return resources
 
     def get_status(self):
-        if not hasattr(self.resource, self.STATUS_KEY) or \
-           not getattr(self.resource, self.STATUS_KEY):
+        if not hasattr(self.resource, self.STATUS_KEY) or not getattr(
+            self.resource, self.STATUS_KEY
+        ):
             setattr(self.resource, self.STATUS_KEY, expiry_states.ACTIVE)
         return getattr(self.resource, self.STATUS_KEY)
 
     def get_next_step_date(self):
-        if not hasattr(self.resource, self.NEXT_STEP_KEY) or \
-           not getattr(self.resource, self.NEXT_STEP_KEY):
+        if not hasattr(self.resource, self.NEXT_STEP_KEY) or not getattr(
+            self.resource, self.NEXT_STEP_KEY
+        ):
             return None
         try:
             expiry_next_step = getattr(self.resource, self.NEXT_STEP_KEY)
             return datetime.datetime.strptime(expiry_next_step, DATE_FORMAT)
         except ValueError:
-            LOG.error('%s: Invalid %s date: %s',
-                      self.resource.id, self.NEXT_STEP_KEY, expiry_next_step)
+            LOG.error(
+                '%s: Invalid %s date: %s',
+                self.resource.id,
+                self.NEXT_STEP_KEY,
+                expiry_next_step,
+            )
         return None
 
     def at_next_step(self):
@@ -182,12 +206,16 @@ class Expirer(object):
         if not next_step:
             return True
         if next_step <= datetime.datetime.now():
-            LOG.debug('%s: Ready for next step (%s)', self.resource.id,
-                      next_step)
+            LOG.debug(
+                '%s: Ready for next step (%s)', self.resource.id, next_step
+            )
             return True
         else:
-            LOG.debug('%s: Not yet ready for next step (%s)',
-                      self.resource.id, next_step)
+            LOG.debug(
+                '%s: Not yet ready for next step (%s)',
+                self.resource.id,
+                next_step,
+            )
             return False
 
     @staticmethod
@@ -226,11 +254,11 @@ class Expirer(object):
         if not self.dry_run:
             # Update remote (e.g. OpenStack) resource via API
             self._update_object(**kwargs)
-            msg = '%s - %s: Updating %s' % (self.resource_type,
-                                            self.resource.id, kwargs)
+            msg = (
+                f'{self.resource_type} - {self.resource.id}: Updating {kwargs}'
+            )
         else:
-            msg = '%s - %s: Would update %s' % (self.resource_type,
-                                                self.resource.id, kwargs)
+            msg = f'{self.resource_type} - {self.resource.id}: Would update {kwargs}'
         LOG.debug(msg)
 
         # Update local copy of the resource
@@ -260,8 +288,10 @@ class Expirer(object):
         LOG.info("%s: Stopping %s", self.resource.id, self.resource_type)
         self.archiver.stop_resources()
         expiry_date = self.make_next_step_date(self.now)
-        update_kwargs = {self.STATUS_KEY: expiry_states.STOPPED,
-                         self.NEXT_STEP_KEY: expiry_date}
+        update_kwargs = {
+            self.STATUS_KEY: expiry_states.STOPPED,
+            self.NEXT_STEP_KEY: expiry_date,
+        }
         with ResourceRollback(self):
             self._update_resource(**update_kwargs)
             self._send_notification('stop')
@@ -271,14 +301,17 @@ class Expirer(object):
         LOG.info("%s: Sending warning", self.resource.id)
         next_step_date = self.get_expiry_date()
 
-        update_kwargs = {self.STATUS_KEY: expiry_states.WARNING,
-                         self.NEXT_STEP_KEY: next_step_date}
+        update_kwargs = {
+            self.STATUS_KEY: expiry_states.WARNING,
+            self.NEXT_STEP_KEY: next_step_date,
+        }
 
         extra_context = {'expiry_date': next_step_date}
         with ResourceRollback(self):
             self._update_resource(**update_kwargs)
-            self._send_notification('first-warning',
-                                    extra_context=extra_context)
+            self._send_notification(
+                'first-warning', extra_context=extra_context
+            )
         self.send_event('first-warning', extra_context=extra_context)
 
     def get_expiry_date(self):
@@ -286,27 +319,37 @@ class Expirer(object):
 
 
 class ProjectExpirer(Expirer):
-
-    def __init__(self, project, archivers, notifier, ks_session=None,
-                 dry_run=False, disable_project=False):
-        super(ProjectExpirer, self).__init__(
-            'project', project, notifier, ks_session, dry_run)
+    def __init__(
+        self,
+        project,
+        archivers,
+        notifier,
+        ks_session=None,
+        dry_run=False,
+        disable_project=False,
+    ):
+        super().__init__('project', project, notifier, ks_session, dry_run)
         self.project_set_defaults()
         self.disable_project = disable_project
-        self.archiver = archiver.ResourceArchiver(project,
-                                                  archivers=archivers,
-                                                  ks_session=ks_session,
-                                                  dry_run=dry_run)
+        self.archiver = archiver.ResourceArchiver(
+            project,
+            archivers=archivers,
+            ks_session=ks_session,
+            dry_run=dry_run,
+        )
         self.a_client = auth.get_allocation_client(ks_session)
 
     def process(self):
-
         expiry_status = self.get_status()
         expiry_next_step = self.get_next_step_date()
 
-        LOG.debug("%s: Processing project=%s status=%s next_step=%s",
-                  self.project.id, self.project.name, expiry_status,
-                  expiry_next_step)
+        LOG.debug(
+            "%s: Processing project=%s status=%s next_step=%s",
+            self.project.id,
+            self.project.name,
+            expiry_status,
+            expiry_next_step,
+        )
 
         if self.force_delete:
             LOG.info("%s: Force deleting project", self.project.id)
@@ -345,8 +388,10 @@ class ProjectExpirer(Expirer):
 
         elif expiry_status == expiry_states.ARCHIVING:
             if self.at_next_step():
-                LOG.warning("%s: Archiving longer than next step, move on",
-                            self.project.id)
+                LOG.warning(
+                    "%s: Archiving longer than next step, move on",
+                    self.project.id,
+                )
                 self.set_project_archived()
             else:
                 self.check_archiving_status()
@@ -367,10 +412,12 @@ class ProjectExpirer(Expirer):
     def project_set_defaults(self):
         self.project.owner = getattr(self.project, 'owner', None)
         self.project.expiry_status = getattr(self.project, 'expiry_status', '')
-        self.project.expiry_next_step = getattr(self.project,
-                                                'expiry_next_step', '')
-        self.project.expiry_ticket_id = getattr(self.project,
-                                                'expiry_ticket_id', '0')
+        self.project.expiry_next_step = getattr(
+            self.project, 'expiry_next_step', ''
+        )
+        self.project.expiry_ticket_id = getattr(
+            self.project, 'expiry_ticket_id', '0'
+        )
 
     def check_archiving_status(self):
         LOG.debug("%s: Checking archive status", self.project.id)
@@ -389,8 +436,10 @@ class ProjectExpirer(Expirer):
         self.archiver.zero_quota()
 
         expiry_date = self.make_next_step_date(self.now)
-        restrict_kwargs = {self.STATUS_KEY: expiry_states.RESTRICTED,
-                           self.NEXT_STEP_KEY: expiry_date}
+        restrict_kwargs = {
+            self.STATUS_KEY: expiry_states.RESTRICTED,
+            self.NEXT_STEP_KEY: expiry_date,
+        }
         with ResourceRollback(self):
             self._update_resource(**restrict_kwargs)
             self._send_notification('restrict')
@@ -401,11 +450,13 @@ class ProjectExpirer(Expirer):
         status = self.get_status()
         if status != expiry_states.ARCHIVING:
             LOG.info("%s: Archiving project", self.project.id)
-            next_step = (self.now
-                         + datetime.timedelta(days=duration)).strftime(
-                    DATE_FORMAT)
-            update_kwargs = {self.STATUS_KEY: expiry_states.ARCHIVING,
-                             self.NEXT_STEP_KEY: next_step}
+            next_step = (
+                self.now + datetime.timedelta(days=duration)
+            ).strftime(DATE_FORMAT)
+            update_kwargs = {
+                self.STATUS_KEY: expiry_states.ARCHIVING,
+                self.NEXT_STEP_KEY: next_step,
+            }
             self._update_resource(**update_kwargs)
 
         self.archiver.archive_resources()
@@ -415,12 +466,14 @@ class ProjectExpirer(Expirer):
         if status is None:
             return False
         elif status == expiry_states.ADMIN:
-            LOG.debug('Project %s is admin. Will never expire',
-                      self.project.id)
+            LOG.debug(
+                'Project %s is admin. Will never expire', self.project.id
+            )
             return True
         elif status.startswith('ticket-'):
-            url = 'https://support.ehelp.edu.au/helpdesk/tickets/%s' \
-                  % status.rsplit('-', 1)[1]
+            url = 'https://support.ehelp.edu.au/helpdesk/tickets/{}'.format(
+                status.rsplit('-', 1)[1]
+            )
             LOG.warning('Project %s is ignored. See %s', self.project.id, url)
             return True
         return False
@@ -438,14 +491,18 @@ class ProjectExpirer(Expirer):
             if self.get_status() != expiry_states.DELETED:
                 self.notifier.finish(message="Project deleted")
             else:
-                LOG.info("%s: Skipping notification, project alreaded deleted",
-                         self.resource.id)
+                LOG.info(
+                    "%s: Skipping notification, project alreaded deleted",
+                    self.resource.id,
+                )
         except Exception:
             pass
         today = self.now.strftime(DATE_FORMAT)
-        delete_kwargs = {self.STATUS_KEY: expiry_states.DELETED,
-                         self.NEXT_STEP_KEY: '',
-                         'expiry_deleted_at': today}
+        delete_kwargs = {
+            self.STATUS_KEY: expiry_states.DELETED,
+            self.NEXT_STEP_KEY: '',
+            'expiry_deleted_at': today,
+        }
         self._update_resource(**delete_kwargs)
 
         if self.disable_project:
@@ -455,28 +512,46 @@ class ProjectExpirer(Expirer):
 
 
 class AllocationExpirer(ProjectExpirer):
-
     EVENT_PREFIX = 'expiry.allocation'
 
-    def __init__(self, project, ks_session=None, dry_run=False,
-                 force_no_allocation=False, force_delete=False,
-                 disable_project=True,
-                 archivers=['nova', 'cinder', 'octavia', 'neutron',
-                            'projectimages', 'swift', 'magnum', 'manila',
-                            'murano', 'trove', 'heat'],
-                 template_dir='allocations',
-                 subject='Nectar Project Allocation Renewal - '):
-
+    def __init__(
+        self,
+        project,
+        ks_session=None,
+        dry_run=False,
+        force_no_allocation=False,
+        force_delete=False,
+        disable_project=True,
+        archivers=[
+            'nova',
+            'cinder',
+            'octavia',
+            'neutron',
+            'projectimages',
+            'swift',
+            'magnum',
+            'manila',
+            'murano',
+            'trove',
+            'heat',
+        ],
+        template_dir='allocations',
+        subject='Nectar Project Allocation Renewal - ',
+    ):
         notifier = expiry_notifier.ExpiryNotifier(
-            resource_type='project', resource=project,
+            resource_type='project',
+            resource=project,
             template_dir=template_dir,
             group_id=CONF.freshdesk.allocation_group,
             subject=subject + project.name,
-            ks_session=ks_session, dry_run=dry_run,
-            ticket_id_key=self.TICKET_ID_KEY)
+            ks_session=ks_session,
+            dry_run=dry_run,
+            ticket_id_key=self.TICKET_ID_KEY,
+        )
 
-        super(AllocationExpirer, self).__init__(
-            project, archivers, notifier, ks_session, dry_run, disable_project)
+        super().__init__(
+            project, archivers, notifier, ks_session, dry_run, disable_project
+        )
 
         self.force_no_allocation = force_no_allocation
         self.force_delete = force_delete
@@ -484,7 +559,8 @@ class AllocationExpirer(ProjectExpirer):
 
     def get_current_allocation(self):
         return self.a_client.allocations.get_current(
-            project_id=self.project.id)
+            project_id=self.project.id
+        )
 
     def get_allocation(self):
         try:
@@ -496,51 +572,69 @@ class AllocationExpirer(ProjectExpirer):
             if self.force_no_allocation:
                 allocation = allocations.Allocation(
                     None,
-                    {'id': 'NO-ALLOCATION',
-                     'status': allocation_states.APPROVED,
-                     'quotas': [],
-                     'start_date': '1970-01-01',
-                     'end_date': '1970-01-01'},
-                    None)
+                    {
+                        'id': 'NO-ALLOCATION',
+                        'status': allocation_states.APPROVED,
+                        'quotas': [],
+                        'start_date': '1970-01-01',
+                        'end_date': '1970-01-01',
+                    },
+                    None,
+                )
             else:
                 raise exceptions.AllocationDoesNotExist(
-                    project_id=self.project.id)
+                    project_id=self.project.id
+                )
 
         allocation_status = allocation.status
 
-        if allocation_status in (allocation_states.UPDATE_DECLINED,
-                                 allocation_states.UPDATE_PENDING,
-                                 allocation_states.DECLINED):
-
+        if allocation_status in (
+            allocation_states.UPDATE_DECLINED,
+            allocation_states.UPDATE_PENDING,
+            allocation_states.DECLINED,
+        ):
             if allocation_status == allocation_states.UPDATE_PENDING:
                 cutoff = self.now - relativedelta(months=6)
             else:
                 cutoff = self.now - relativedelta(months=1)
 
             mod_time = datetime.datetime.strptime(
-                allocation.modified_time, DATETIME_FORMAT)
+                allocation.modified_time, DATETIME_FORMAT
+            )
 
             if mod_time < cutoff:
                 approved = self.a_client.allocations.get_last_approved(
-                    project_id=self.project.id)
+                    project_id=self.project.id
+                )
                 if approved:
-                    LOG.debug("%s: Allocation has old unapproved application, "
-                              "using last approved allocation",
-                              self.project.id)
-                    LOG.debug("%s: Changing allocation from %s to %s",
-                              self.project.id, allocation.id,
-                              approved.id)
+                    LOG.debug(
+                        "%s: Allocation has old unapproved application, "
+                        "using last approved allocation",
+                        self.project.id,
+                    )
+                    LOG.debug(
+                        "%s: Changing allocation from %s to %s",
+                        self.project.id,
+                        allocation.id,
+                        approved.id,
+                    )
                     allocation = approved
 
         allocation_status = allocation.status
         allocation_start = datetime.datetime.strptime(
-            allocation.start_date, DATE_FORMAT)
+            allocation.start_date, DATE_FORMAT
+        )
         allocation_end = datetime.datetime.strptime(
-            allocation.end_date, DATE_FORMAT)
-        LOG.debug("%s: Allocation id=%s, status='%s', start=%s, end=%s",
-                  self.project.id, allocation.id,
-                  allocation_states.STATES[allocation_status],
-                  allocation_start.date(), allocation_end.date())
+            allocation.end_date, DATE_FORMAT
+        )
+        LOG.debug(
+            "%s: Allocation id=%s, status='%s', start=%s, end=%s",
+            self.project.id,
+            allocation.id,
+            allocation_states.STATES[allocation_status],
+            allocation_start.date(),
+            allocation_end.date(),
+        )
         return allocation
 
     def get_notice_period_days(self):
@@ -550,9 +644,11 @@ class AllocationExpirer(ProjectExpirer):
         the length of the allocation until the end -- whichever is shorter.
         """
         allocation_start = datetime.datetime.strptime(
-            self.allocation.start_date, DATE_FORMAT)
+            self.allocation.start_date, DATE_FORMAT
+        )
         allocation_end = datetime.datetime.strptime(
-            self.allocation.end_date, DATE_FORMAT)
+            self.allocation.end_date, DATE_FORMAT
+        )
 
         allocation_days = (allocation_end - allocation_start).days
         notice_days = int(allocation_days - (allocation_days * 0.8))
@@ -564,7 +660,8 @@ class AllocationExpirer(ProjectExpirer):
 
     def get_expiry_date(self):
         allocation_end = datetime.datetime.strptime(
-            self.allocation.end_date, DATE_FORMAT)
+            self.allocation.end_date, DATE_FORMAT
+        )
         notice_days = self.get_notice_period_days()
         next_step_date = self.now + datetime.timedelta(days=notice_days)
         if allocation_end > next_step_date:
@@ -574,7 +671,8 @@ class AllocationExpirer(ProjectExpirer):
     def get_warning_date(self):
         notice_period = self.get_notice_period_days()
         allocation_end = datetime.datetime.strptime(
-            self.allocation.end_date, DATE_FORMAT)
+            self.allocation.end_date, DATE_FORMAT
+        )
         return allocation_end - datetime.timedelta(days=notice_period)
 
     def ready_for_warning(self):
@@ -596,19 +694,23 @@ class AllocationExpirer(ProjectExpirer):
         if status == expiry_states.ACTIVE:
             return
 
-        LOG.info("%s: Allocation has been renewed, reverting expiry",
-                 self.project.id)
+        LOG.info(
+            "%s: Allocation has been renewed, reverting expiry",
+            self.project.id,
+        )
 
         self.archiver.enable_resources()
 
-        if status in [expiry_states.STOPPED, expiry_states.RESTRICTED,
-                      expiry_states.RENEWED]:
+        if status in [
+            expiry_states.STOPPED,
+            expiry_states.RESTRICTED,
+            expiry_states.RENEWED,
+        ]:
             self.archiver.reset_quota()
 
         self.finish_expiry(message='Allocation has been renewed')
 
     def should_process(self):
-
         if not self.project.enabled:
             LOG.debug("%s: Project is disabled", self.project.id)
             return False
@@ -625,13 +727,18 @@ class AllocationExpirer(ProjectExpirer):
         if allocation_status == allocation_states.APPROVED:
             return True
         elif allocation_status == allocation_states.UPDATE_PENDING:
-            LOG.debug("%s: Skipping, allocation is pending modified=%s",
-                      self.project.id, self.allocation.modified_time)
+            LOG.debug(
+                "%s: Skipping, allocation is pending modified=%s",
+                self.project.id,
+                self.allocation.modified_time,
+            )
             return False
         else:
-            LOG.debug("%s: Can't process allocation, state='%s'",
-                      self.project.id,
-                      allocation_states.STATES[allocation_status])
+            LOG.debug(
+                "%s: Can't process allocation, state='%s'",
+                self.project.id,
+                allocation_states.STATES[allocation_status],
+            )
             return False
 
         return True
@@ -643,26 +750,34 @@ class AllocationExpirer(ProjectExpirer):
         managers = self._get_project_managers()
         members = self._get_project_members()
         su_info = service_units.SUinfo(self.ks_session, self.allocation)
-        context = {'managers': [i.to_dict() for i in managers],
-                   'members': [i.to_dict() for i in members],
-                   'allocation': self.allocation.to_dict(),
-                   'su_info': su_info.to_dict()}
+        context = {
+            'managers': [i.to_dict() for i in managers],
+            'members': [i.to_dict() for i in members],
+            'allocation': self.allocation.to_dict(),
+            'su_info': su_info.to_dict(),
+        }
         return context
 
     def _send_notification(self, stage, extra_context={}):
         if self.force_no_allocation:
-            LOG.info("%s: Skipping notification due to force no "
-                        "allocation being set", self.project.id)
+            LOG.info(
+                "%s: Skipping notification due to force no "
+                "allocation being set",
+                self.project.id,
+            )
         elif self.allocation.notifications:
-            super(AllocationExpirer, self)._send_notification(
-                stage, extra_context,
-                tags=[f'allocation-{self.allocation.id}'])
+            super()._send_notification(
+                stage, extra_context, tags=[f'allocation-{self.allocation.id}']
+            )
         else:
-            LOG.info("%s: Skipping notification due to allocation "
-                     "notifications being set False", self.project.id)
+            LOG.info(
+                "%s: Skipping notification due to allocation "
+                "notifications being set False",
+                self.project.id,
+            )
 
     def delete_project(self):
-        super(AllocationExpirer, self).delete_project()
+        super().delete_project()
 
         # If no allocation then this is all we need to do
         if self.force_no_allocation:
@@ -671,8 +786,11 @@ class AllocationExpirer(ProjectExpirer):
         # self.allocation may be a history record which cannot be deleted.)
         allocation = self.get_current_allocation()
         if allocation.id != self.allocation.id:
-            LOG.debug("%s: Change allocation back to %s for deletion",
-                      self.project.id, allocation.id)
+            LOG.debug(
+                "%s: Change allocation back to %s for deletion",
+                self.project.id,
+                allocation.id,
+            )
 
         LOG.info("%s: Deleting allocation", allocation.id)
         if self.dry_run:
@@ -682,20 +800,30 @@ class AllocationExpirer(ProjectExpirer):
 
 
 class PTExpirer(ProjectExpirer):
-
     EVENT_PREFIX = 'expiry.pt'
 
-    def __init__(self, project, ks_session=None, dry_run=False,
-                 disable_project=False, force_delete=False):
+    def __init__(
+        self,
+        project,
+        ks_session=None,
+        dry_run=False,
+        disable_project=False,
+        force_delete=False,
+    ):
         archivers = ['nova', 'neutron_basic', 'swift', 'heat', 'murano']
         notifier = expiry_notifier.ExpiryNotifier(
-            resource_type='project', resource=project, template_dir='pts',
+            resource_type='project',
+            resource=project,
+            template_dir='pts',
             group_id=CONF.freshdesk.pt_group,
-            subject="Nectar Project Trial Expiry - %s" % project.name,
-            ks_session=ks_session, dry_run=dry_run)
+            subject=f"Nectar Project Trial Expiry - {project.name}",
+            ks_session=ks_session,
+            dry_run=dry_run,
+        )
 
-        super(PTExpirer, self).__init__(project, archivers, notifier,
-                                        ks_session, dry_run, disable_project)
+        super().__init__(
+            project, archivers, notifier, ks_session, dry_run, disable_project
+        )
         self.n_client = auth.get_nova_client(ks_session)
         self.m_client = auth.get_manuka_client(ks_session)
         self.force_delete = force_delete
@@ -717,8 +845,11 @@ class PTExpirer(ProjectExpirer):
 
         allocations = self.pending_allocations()
         if allocations:
-            LOG.warning("%s: Skipping expiry due to pending allocations %s",
-                        self.project.id, [a.id for a in allocations])
+            LOG.warning(
+                "%s: Skipping expiry due to pending allocations %s",
+                self.project.id,
+                [a.id for a in allocations],
+            )
             return False
 
         return True
@@ -735,7 +866,8 @@ class PTExpirer(ProjectExpirer):
             status=allocation_states.SUBMITTED,
             convert_trial_project=True,
             parent_request__isnull=True,
-            modified_time__lt=three_months_ago.isoformat())
+            modified_time__lt=three_months_ago.isoformat(),
+        )
 
     def ready_for_warning(self):
         limit = None
@@ -744,8 +876,7 @@ class PTExpirer(ProjectExpirer):
         except exceptions.NoUsageError:
             LOG.debug("%s: Usage is None", self.project.id)
         except Exception as e:
-            LOG.error("Failed to get usage for project %s",
-                      self.project.id)
+            LOG.error("Failed to get usage for project %s", self.project.id)
             LOG.error(e)
 
         return limit == CPULimit.OVER_LIMIT or self.is_pt_too_old()
@@ -759,7 +890,7 @@ class PTExpirer(ProjectExpirer):
     def check_cpu_usage(self):
         limit = USAGE_LIMIT_HOURS
         start = datetime.datetime(2011, 1, 1)
-        end = (self.now + relativedelta(days=1))
+        end = self.now + relativedelta(days=1)
         usage = self.n_client.usage.get(self.project.id, start, end)
         cpu_hours = getattr(usage, 'total_vcpus_usage', None)
 
@@ -782,22 +913,26 @@ class PTExpirer(ProjectExpirer):
 
 
 class AllocationInstanceExpirer(AllocationExpirer):
-
     STATUS_KEY = 'zone_expiry_status'
     NEXT_STEP_KEY = 'zone_expiry_next_step'
     TICKET_ID_KEY = 'zone_expiry_ticket_id'
     UPDATED_AT_KEY = 'zone_expiry_updated_at'
     EVENT_PREFIX = 'expiry.allocation.instance'
 
-    def __init__(self, project, ks_session=None, dry_run=False,
-                 force_delete=False):
+    def __init__(
+        self, project, ks_session=None, dry_run=False, force_delete=False
+    ):
         archivers = ['zoneinstance']
 
-        super(AllocationInstanceExpirer, self).__init__(
-            project, ks_session=ks_session, dry_run=dry_run,
-            force_delete=force_delete, archivers=archivers,
+        super().__init__(
+            project,
+            ks_session=ks_session,
+            dry_run=dry_run,
+            force_delete=force_delete,
+            archivers=archivers,
             template_dir='allocation_instances',
-            subject="Nectar Allocation Instances Expiry - ")
+            subject="Nectar Allocation Instances Expiry - ",
+        )
 
         self._instances = None
 
@@ -805,26 +940,29 @@ class AllocationInstanceExpirer(AllocationExpirer):
     def instances(self):
         if self._instances is None:
             self._instances = utils.get_out_of_zone_instances(
-                self.ks_session, self.allocation, self.project)
+                self.ks_session, self.allocation, self.project
+            )
         return self._instances
 
     def project_set_defaults(self):
-        super(AllocationInstanceExpirer, self).project_set_defaults()
-        self.project.compute_zones = getattr(self.project,
-            'compute_zones', '')
-        self.project.zone_expiry_status = getattr(self.project,
-            'zone_expiry_status', '')
-        self.project.zone_expiry_next_step = getattr(self.project,
-            'zone_expiry_next_step', '')
-        self.project.zone_expiry_ticket_id = getattr(self.project,
-            'zone_expiry_ticket_id', '0')
+        super().project_set_defaults()
+        self.project.compute_zones = getattr(self.project, 'compute_zones', '')
+        self.project.zone_expiry_status = getattr(
+            self.project, 'zone_expiry_status', ''
+        )
+        self.project.zone_expiry_next_step = getattr(
+            self.project, 'zone_expiry_next_step', ''
+        )
+        self.project.zone_expiry_ticket_id = getattr(
+            self.project, 'zone_expiry_ticket_id', '0'
+        )
 
     def _get_notification_context(self):
-        context = super(AllocationInstanceExpirer,
-                        self)._get_notification_context()
-        extra_context = {'compute_zones': self.project.compute_zones,
-                         'out_of_zone_instances': [
-                             i.to_dict() for i in self.instances]}
+        context = super()._get_notification_context()
+        extra_context = {
+            'compute_zones': self.project.compute_zones,
+            'out_of_zone_instances': [i.to_dict() for i in self.instances],
+        }
         context.update(extra_context)
         return context
 
@@ -832,8 +970,9 @@ class AllocationInstanceExpirer(AllocationExpirer):
         return super(ProjectExpirer, self).get_expiry_date()
 
     def get_warning_date(self):
-        start_date = datetime.datetime.strptime(self.allocation.start_date,
-                                                DATE_FORMAT)
+        start_date = datetime.datetime.strptime(
+            self.allocation.start_date, DATE_FORMAT
+        )
         return start_date + relativedelta(days=60)
 
     def ready_for_warning(self):
@@ -843,44 +982,58 @@ class AllocationInstanceExpirer(AllocationExpirer):
         # if allocation changes to national, expiry should not continue
         # if there is ongoing expiry process, finish it up
         if not self.project.compute_zones:
-            if self.project.zone_expiry_status != expiry_states.ACTIVE or \
-               self.project.zone_expiry_ticket_id != '0' or \
-               self.project.zone_expiry_next_step != '':
+            if (
+                self.project.zone_expiry_status != expiry_states.ACTIVE
+                or self.project.zone_expiry_ticket_id != '0'
+                or self.project.zone_expiry_next_step != ''
+            ):
                 self.finish_expiry(
-                    message='Out-of-zone instances expiry is complete')
+                    message='Out-of-zone instances expiry is complete'
+                )
             return False
 
         # (rocky) if user moves instances away when the project in 'archiving'
         # or 'archived' we should continue to delete the archives.
-        if not self.instances and \
-           self.project.zone_expiry_status not in [expiry_states.ARCHIVING,
-                                                   expiry_states.ARCHIVED]:
-            if self.project.zone_expiry_status != expiry_states.ACTIVE or \
-               self.project.zone_expiry_ticket_id != '0' or \
-               self.project.zone_expiry_next_step != '':
+        if not self.instances and self.project.zone_expiry_status not in [
+            expiry_states.ARCHIVING,
+            expiry_states.ARCHIVED,
+        ]:
+            if (
+                self.project.zone_expiry_status != expiry_states.ACTIVE
+                or self.project.zone_expiry_ticket_id != '0'
+                or self.project.zone_expiry_next_step != ''
+            ):
                 self.finish_expiry(
-                    message='Out-of-zone instances expiry is complete')
+                    message='Out-of-zone instances expiry is complete'
+                )
             return False
         return True
 
     def process(self):
-
         zone_expiry_status = self.get_status()
         zone_expiry_next_step = self.get_next_step_date()
 
         if self.force_delete:
-            LOG.info("%s: Force deleting out of zone instances=%s",
-                     self.project.id, self.instances)
+            LOG.info(
+                "%s: Force deleting out of zone instances=%s",
+                self.project.id,
+                self.instances,
+            )
             self.delete_resources(force=True)
             return True
 
         if not self.should_process():
             return False
 
-        LOG.debug("%s: Processing out of zone instances project=%s "
-                  "status=%s next_step=%s number_of_instances=%s",
-                  self.project.id, self.project.name, zone_expiry_status,
-                  zone_expiry_next_step, len(self.instances))
+        LOG.debug(
+            "%s: Processing out of zone instances project=%s "
+            "status=%s next_step=%s number_of_instances=%s",
+            self.project.id,
+            self.project.name,
+            zone_expiry_status,
+            zone_expiry_next_step,
+            len(self.instances),
+        )
 
         if zone_expiry_status == expiry_states.ACTIVE:
             if self.ready_for_warning():
@@ -899,8 +1052,10 @@ class AllocationInstanceExpirer(AllocationExpirer):
             return False
         elif zone_expiry_status == expiry_states.ARCHIVING:
             if self.at_next_step():
-                LOG.debug("%s: Archiving longer than next step, move on",
-                          self.project.id)
+                LOG.debug(
+                    "%s: Archiving longer than next step, move on",
+                    self.project.id,
+                )
                 self.set_project_archived()
             else:
                 self.check_archiving_status()
@@ -910,39 +1065,43 @@ class AllocationInstanceExpirer(AllocationExpirer):
                 self.archiver.delete_archives()
                 self.delete_resources(force=True)
                 self.finish_expiry(
-                    message='Out-of-zone instances expiry is complete')
+                    message='Out-of-zone instances expiry is complete'
+                )
                 return True
             return False
 
 
 class ImageExpirer(Expirer):
-
     STATUS_KEY = 'nectar_expiry_status'
     NEXT_STEP_KEY = 'nectar_expiry_next_step'
     TICKET_ID_KEY = 'nectar_expiry_ticket_id'
     UPDATED_AT_KEY = 'nectar_expiry_updated_at'
     EVENT_PREFIX = 'expiry.image'
 
-    def __init__(self, image, ks_session=None, dry_run=False,
-                 force_delete=False):
-
+    def __init__(
+        self, image, ks_session=None, dry_run=False, force_delete=False
+    ):
         notifier = expiry_notifier.ExpiryNotifier(
-            resource_type='image', resource=image, template_dir='images',
+            resource_type='image',
+            resource=image,
+            template_dir='images',
             group_id=CONF.freshdesk.image_group,
-            subject="Nectar Image Expiry - %s" % image.name,
-            ks_session=ks_session, dry_run=dry_run,
-            ticket_id_key=self.TICKET_ID_KEY)
+            subject=f"Nectar Image Expiry - {image.name}",
+            ks_session=ks_session,
+            dry_run=dry_run,
+            ticket_id_key=self.TICKET_ID_KEY,
+        )
 
-        self.archiver = archiver.ImageArchiver(image, ks_session=ks_session,
-                                               dry_run=dry_run)
+        self.archiver = archiver.ImageArchiver(
+            image, ks_session=ks_session, dry_run=dry_run
+        )
 
         self.image = image
         self.force_delete = force_delete
         self.image_set_defaults()
         self.g_client = auth.get_glance_client(ks_session)
         self.n_client = auth.get_nova_client(ks_session)
-        super(ImageExpirer, self).__init__('image', image, notifier,
-                                           ks_session, dry_run)
+        super().__init__('image', image, notifier, ks_session, dry_run)
 
     def get_project(self):
         if not hasattr(self.image, 'owner'):
@@ -955,20 +1114,25 @@ class ImageExpirer(Expirer):
 
     def image_set_defaults(self):
         self.image.nectar_expiry_status = getattr(
-            self.image, self.STATUS_KEY, '')
+            self.image, self.STATUS_KEY, ''
+        )
         self.image.nectar_expiry_next_step = getattr(
-            self.image, self.NEXT_STEP_KEY, '')
+            self.image, self.NEXT_STEP_KEY, ''
+        )
         self.image.nectar_expiry_ticket_id = getattr(
-            self.image, self.TICKET_ID_KEY, '0')
+            self.image, self.TICKET_ID_KEY, '0'
+        )
 
     def _get_notification_context(self):
         managers = self._get_project_managers()
         members = self._get_project_members()
-        context = {'managers': [i.to_dict() for i in managers],
-                   'members': [i.to_dict() for i in members],
-                   'project': self.project.to_dict(),
-                   'image': dict(self.image.items()),
-                   'expiry_date': self.make_next_step_date(self.now)}
+        context = {
+            'managers': [i.to_dict() for i in managers],
+            'members': [i.to_dict() for i in members],
+            'project': self.project.to_dict(),
+            'image': dict(self.image.items()),
+            'expiry_date': self.make_next_step_date(self.now),
+        }
         return context
 
     def _is_ignored_image(self):
@@ -979,8 +1143,7 @@ class ImageExpirer(Expirer):
         return False
 
     def _has_no_running_instance(self):
-        search_opts = {'image': self.image.id,
-                       'all_tenants': True}
+        search_opts = {'image': self.image.id, 'all_tenants': True}
         try:
             instances = self.n_client.servers.list(search_opts=search_opts)
             if len(instances):
@@ -988,8 +1151,7 @@ class ImageExpirer(Expirer):
                 return False
             return True
         except Exception as e:
-            LOG.error(
-                "Image %s: Can't get related instance", self.image.id)
+            LOG.error("Image %s: Can't get related instance", self.image.id)
             LOG.error(e)
             return False
 
@@ -997,11 +1159,13 @@ class ImageExpirer(Expirer):
         changes_since = self.now - relativedelta(days=days)
         # changes_since needs ISO 8061 formatted time
         changes_since = changes_since.isoformat()
-        search_opts = {'image': self.image.id,
-                       'all_tenants': True,
-                       'deleted': True,
-                       'limit': 1,  # aviod too many returns
-                       'changes-since': changes_since}
+        search_opts = {
+            'image': self.image.id,
+            'all_tenants': True,
+            'deleted': True,
+            'limit': 1,  # avoid too many returns
+            'changes-since': changes_since,
+        }
         try:
             instances = self.n_client.servers.list(search_opts=search_opts)
             if len(instances):
@@ -1015,19 +1179,21 @@ class ImageExpirer(Expirer):
 
     def get_warning_date(self):
         created_at = datetime.datetime.strptime(
-            self.image.created_at, DATETIME_FORMAT)
+            self.image.created_at, DATETIME_FORMAT
+        )
         return created_at + datetime.timedelta(days=THREE_YEARS_IN_DAYS)
 
     def should_process(self):
-
-        if self.ready_for_warning() \
-            and self.project.enabled \
-            and not self._is_ignored_image() \
-            and self._has_no_running_instance() \
-            and self._has_no_recent_boot():
-
-            LOG.debug("Image %s: Expiry process is in progress!",
-                      self.image.id)
+        if (
+            self.ready_for_warning()
+            and self.project.enabled
+            and not self._is_ignored_image()
+            and self._has_no_running_instance()
+            and self._has_no_recent_boot()
+        ):
+            LOG.debug(
+                "Image %s: Expiry process is in progress!", self.image.id
+            )
             return True
 
         LOG.debug("Image %s: Expiry process is not triggered", self.image.id)
@@ -1041,18 +1207,25 @@ class ImageExpirer(Expirer):
         expiry_status = self.get_status()
         expiry_next_step = self.get_next_step_date()
 
-        LOG.debug("Image %s: Processing image=%s status=%s next_step=%s",
-                  self.image.id, self.image.name, expiry_status,
-                  expiry_next_step)
+        LOG.debug(
+            "Image %s: Processing image=%s status=%s next_step=%s",
+            self.image.id,
+            self.image.name,
+            expiry_status,
+            expiry_next_step,
+        )
 
         if not self.should_process():
-            if self.image.nectar_expiry_status != expiry_states.ACTIVE or \
-               self.image.nectar_expiry_ticket_id != '0' or \
-               self.image.nectar_expiry_next_step != '':
+            if (
+                self.image.nectar_expiry_status != expiry_states.ACTIVE
+                or self.image.nectar_expiry_ticket_id != '0'
+                or self.image.nectar_expiry_next_step != ''
+            ):
                 if self.image.os_hidden:
                     self.archiver.start_resources()
                 self.finish_expiry(
-                    'Reset status, expiry work flow is complete')
+                    'Reset status, expiry work flow is complete'
+                )
             return False
 
         if expiry_status == expiry_states.ACTIVE:
@@ -1073,6 +1246,7 @@ class ImageExpirer(Expirer):
                 return True
             return False
         else:
-            LOG.warning("Image %s: Unspecified status %s",
-                        self.image.id, expiry_status)
+            LOG.warning(
+                "Image %s: Unspecified status %s", self.image.id, expiry_status
+            )
             return False

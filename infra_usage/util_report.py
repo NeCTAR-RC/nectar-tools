@@ -41,7 +41,7 @@ def getOrdinal(num):
     if (l2dig == 1) or (ldig > 3) or (num == 20) or (num == 30):
         return '%d%s' % (num, 'th')
     else:
-        return '%d%s' % (num, {1: 'st', 2: 'nd', 3: 'rd'}.get(ldig))
+        return '%d%s' % (num, {1: 'st', 2: 'and', 3: 'rd'}.get(ldig))
 
 
 def getDate(type_):

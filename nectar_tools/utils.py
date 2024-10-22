@@ -65,9 +65,10 @@ def list_resources(list_method, marker_name='id', **list_method_kwargs):
     """
     results = list_method(**list_method_kwargs)
     if results:
-        while (True):
-            next = list_method(**list_method_kwargs,
-                               marker=results[-1].get(marker_name))
+        while True:
+            next = list_method(
+                **list_method_kwargs, marker=results[-1].get(marker_name)
+            )
             if len(next) == 0:
                 break
             results += next
@@ -103,8 +104,7 @@ def get_emails(users):
 
 def get_project_users(client, project, role):
     """Returns a list of users of a project based on role"""
-    members = client.role_assignments.list(
-        project=project, role=role)
+    members = client.role_assignments.list(project=project, role=role)
     users = []
     for member in members:
         users.append(client.users.get(member.user['id']))
@@ -141,21 +141,29 @@ def get_allocation_recipients(client, allocation):
     # should be the current project allocation "owner"; i.e. the
     # allocation's contact email.
     owner_email = allocation.contact_email.lower()
-    approver_email = (allocation.approver_email.lower()
-                      if is_email_address(allocation.approver_email) else None)
+    approver_email = (
+        allocation.approver_email.lower()
+        if is_email_address(allocation.approver_email)
+        else None
+    )
 
-    return _do_get_recipients(client, allocation.project_id,
-                              owner=owner_email, approver=approver_email)
+    return _do_get_recipients(
+        client,
+        allocation.project_id,
+        owner=owner_email,
+        approver=approver_email,
+    )
 
 
-def _do_get_recipients(client, project, owner=None, approver=None,
-                       limit=MAX_CC_COUNT):
+def _do_get_recipients(
+    client, project, owner=None, approver=None, limit=MAX_CC_COUNT
+):
     managers = get_project_users(
-        client, project,
-        role=CONF.keystone.manager_role_id)
+        client, project, role=CONF.keystone.manager_role_id
+    )
     members = get_project_users(
-        client, project,
-        role=CONF.keystone.member_role_id)
+        client, project, role=CONF.keystone.member_role_id
+    )
     manager_emails = get_emails(managers)
     member_emails = get_emails(members)
     approver_emails = [approver] if approver else []
@@ -167,11 +175,17 @@ def _do_get_recipients(client, project, owner=None, approver=None,
 
     # Take care: some projects have no allocation (contact),
     # no project manager and no project members
-    recipient = (owner if owner
-                 else manager_emails[0] if manager_emails
-                 else approver if approver
-                 else member_emails[0] if member_emails
-                 else None)
+    recipient = (
+        owner
+        if owner
+        else manager_emails[0]
+        if manager_emails
+        else approver
+        if approver
+        else member_emails[0]
+        if member_emails
+        else None
+    )
     if recipient and recipient in extra_emails:
         extra_emails.remove(recipient)
     return (recipient, extra_emails[0:limit])

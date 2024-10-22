@@ -11,7 +11,6 @@ LOG = logging.getLogger(__name__)
 
 
 class ReservationFlavorAuditor(base.RatingAuditor):
-
     def setup_clients(self):
         super().setup_clients()
         self.w_client = auth.get_warre_client(sess=self.ks_session)
@@ -48,17 +47,24 @@ class ReservationFlavorAuditor(base.RatingAuditor):
 
             if cost != computed_cost:
                 LOG.warning(
-                    f"{flavor.name} cost {cost} should be {computed_cost}")
+                    f"{flavor.name} cost {cost} should be {computed_cost}"
+                )
                 if mapping_id:
                     self.repair(
                         f"Updating flavor {flavor.name} "
                         f"rate to {computed_cost}",
                         self.c_client.rating.hashmap.update_mapping,
-                        mapping_id=mapping_id, cost=str(computed_cost))
+                        mapping_id=mapping_id,
+                        cost=str(computed_cost),
+                    )
                 else:
                     self.repair(
                         f"Setting flavor {flavor.name} "
                         f"rate to {computed_cost}",
                         self.c_client.rating.hashmap.create_mapping,
-                        field_id=field_id, group_id=group_id, type='flat',
-                        value=flavor.id, cost=str(computed_cost))
+                        field_id=field_id,
+                        group_id=group_id,
+                        type='flat',
+                        value=flavor.id,
+                        cost=str(computed_cost),
+                    )

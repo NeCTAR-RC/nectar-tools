@@ -18,13 +18,18 @@ def retries(func):
             except ClientException:
                 time.sleep(5)
         return func(*args, **kwargs)
+
     return _decorator
 
 
 def createNovaConnection(username, key, tenant_id, auth_url):
     try:
-        conn = client.Client(username=username, api_key=key,
-                             project_id=tenant_id, auth_url=auth_url)
+        conn = client.Client(
+            username=username,
+            api_key=key,
+            project_id=tenant_id,
+            auth_url=auth_url,
+        )
         return conn
     except ClientException:
         return False
@@ -47,15 +52,14 @@ def filterAz(client, zone):
         else:
             cells.append(cell_name[1])
 
-    return [dict([("fq_cell", fq_cell), ("cell", cell),
-                  ("host_name", host_name)])
-            for fq_cell, cell, host_name
-            in zip(fq_cells, cells, list(set(hosts)))]
+    return [
+        dict([("fq_cell", fq_cell), ("cell", cell), ("host_name", host_name)])
+        for fq_cell, cell, host_name in zip(fq_cells, cells, list(set(hosts)))
+    ]
 
 
 def returnNodes(client, zone, search_):
-
-    query = re.compile(r'%s@' % search_)
+    query = re.compile(rf'{search_}@')
     host_count = []
     for i in client.hosts.list_all(zone):
         if query.search(i.host_name):
@@ -71,22 +75,25 @@ def statsCount(data):
     used_memory = data.get('used_mem') / 1024
     free_cores = total_cores - used_cores
     free_memory = total_memory - used_memory
-    resources = {'total_cores': total_cores,
-                 'total_memory': total_memory,
-                 'used_cores': used_cores,
-                 'used_memory': used_memory,
-                 'free_cores': free_cores,
-                 'free_memory': free_memory,
-                 'instance_count': data.get("instances")}
-    resources["percent_cores_utilised"] = (float(resources["used_cores"])
-                                           / resources["total_cores"]) * 100
-    resources["percent_memory_utilised"] = (float(resources["used_memory"])
-                                            / resources["total_memory"]) * 100
+    resources = {
+        'total_cores': total_cores,
+        'total_memory': total_memory,
+        'used_cores': used_cores,
+        'used_memory': used_memory,
+        'free_cores': free_cores,
+        'free_memory': free_memory,
+        'instance_count': data.get("instances"),
+    }
+    resources["percent_cores_utilised"] = (
+        float(resources["used_cores"]) / resources["total_cores"]
+    ) * 100
+    resources["percent_memory_utilised"] = (
+        float(resources["used_memory"]) / resources["total_memory"]
+    ) * 100
     return resources
 
 
 def getResources(cell, client):
-
     host_list = []
     total_avail = instance_count = total_used = 0
     total_avail_mem = total_used_mem = 0
@@ -106,9 +113,13 @@ def getResources(cell, client):
         total_used_mem += int(used.memory_mb)
         instance_count += len(host[3:])
 
-    resources = {'avail_cpu': total_avail, 'avail_mem': total_avail_mem,
-                 'used_cpu': total_used, 'used_mem': total_used_mem,
-                 'instances': instance_count}
+    resources = {
+        'avail_cpu': total_avail,
+        'avail_mem': total_avail_mem,
+        'used_cpu': total_used,
+        'used_mem': total_used_mem,
+        'instances': instance_count,
+    }
 
     return resources
 
@@ -119,7 +130,6 @@ def hosts(client, cell):
 
 
 def returnServers(client, cell):
-
     count_all = []
     args_a = {'all_tenants': 1, 'host': cell}
     instances = client.servers.list(search_opts=args_a)
@@ -131,7 +141,6 @@ def returnServers(client, cell):
 
 
 def totalVMType(flavour_list, host):
-
     count = []
     for i in host:
         if i in flavour_list.values():

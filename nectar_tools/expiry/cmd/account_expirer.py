@@ -30,8 +30,9 @@ class AccountExpiryCmd(cmd_base.CmdBase):
         elif self.args.all or self.args.filename:
             now = datetime.datetime.now()
             six_months_ago = now - relativedelta(months=6)
-            accounts = self.m_client.users.list(last_login__lt=six_months_ago,
-                                                expiry_status='active')
+            accounts = self.m_client.users.list(
+                last_login__lt=six_months_ago, expiry_status='active'
+            )
 
             if self.args.filename:
                 wanted_accounts = self.read_file(self.args.filename)
@@ -46,36 +47,52 @@ class AccountExpiryCmd(cmd_base.CmdBase):
         self.accounts = accounts
 
     def get_expirer(self, account):
-        return expirer.AccountExpirer(account=account,
-                                      ks_session=self.session,
-                                      dry_run=self.dry_run,
-                                      force_disable=self.args.force_disable)
+        return expirer.AccountExpirer(
+            account=account,
+            ks_session=self.session,
+            dry_run=self.dry_run,
+            force_disable=self.args.force_disable,
+        )
 
     def add_args(self):
-        super(AccountExpiryCmd, self).add_args()
+        super().add_args()
         self.parser.description = 'Expires Nectar Accounts'
         account_group = self.parser.add_mutually_exclusive_group()
-        account_group.add_argument('-f', '--filename',
-                                 type=argparse.FileType('r'),
-                                 help='File path with a list of account IDs, \
-                                 one on each line')
-        account_group.add_argument('-i', '--account-id',
-                                 help='Account ID to process')
-        account_group.add_argument('--all', action='store_true',
-                                 help='Run over all accounts')
-        self.parser.add_argument('--force-disable', action='store_true',
-                                 help='Disable an account no matter what \
-                                 state it is in (with -i only)')
-        self.parser.add_argument('-l', '--limit',
-                                 type=int,
-                                 default=0,
-                                 help='Only process this many \
-                                 eligible accounts')
-        self.parser.add_argument('-o', '--offset',
-                                 type=int,
-                                 default=None,
-                                 help='Skip this many accounts \
-                                 before processing')
+        account_group.add_argument(
+            '-f',
+            '--filename',
+            type=argparse.FileType('r'),
+            help='File path with a list of account IDs, \
+                                 one on each line',
+        )
+        account_group.add_argument(
+            '-i', '--account-id', help='Account ID to process'
+        )
+        account_group.add_argument(
+            '--all', action='store_true', help='Run over all accounts'
+        )
+        self.parser.add_argument(
+            '--force-disable',
+            action='store_true',
+            help='Disable an account no matter what \
+                                 state it is in (with -i only)',
+        )
+        self.parser.add_argument(
+            '-l',
+            '--limit',
+            type=int,
+            default=0,
+            help='Only process this many \
+                                 eligible accounts',
+        )
+        self.parser.add_argument(
+            '-o',
+            '--offset',
+            type=int,
+            default=None,
+            help='Skip this many accounts \
+                                 before processing',
+        )
 
     def process_accounts(self):
         LOG.info("Processing accounts")
@@ -94,8 +111,9 @@ class AccountExpiryCmd(cmd_base.CmdBase):
                     if ex.process():
                         processed += 1
                 except Exception:
-                    LOG.exception('Exception processing Account %s',
-                                  account.id)
+                    LOG.exception(
+                        'Exception processing Account %s', account.id
+                    )
                     processed += 1
 
             if limit > 0 and processed >= limit:
