@@ -21,6 +21,7 @@ domain_site_mapping = {
     'mgmt.sut': 'swinburne',
     'os.sut': 'swinburne',
     'mel-1.rc.nectar.org.au': 'ardc',
+    'adelaide.nectar.org.au': 'adelaide',
     'test.rc.nectar.org.au': 'coreservices',
 }
 

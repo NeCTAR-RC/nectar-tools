@@ -60,6 +60,7 @@ AZ_SITE_MAP = {
     'tasmania-02': 'tasmania',
     'tasmania-s': 'tasmania',
     'ardc-mel-1': 'ardc',
+    'intersect-adelaide': 'adelaide',
     # Shared
     'internal': 'unknown',
     'nova': 'unknown'
