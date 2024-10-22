@@ -24,7 +24,7 @@ logs/*
 
 # Unit test / coverage reports
 .coverage/*
-.coverage
+.coverage*
 .cache
 .tox
 nosetests.xml
