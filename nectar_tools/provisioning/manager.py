@@ -779,12 +779,14 @@ class ProvisioningManager:
 
         if allocated_quota:
             body = {'quota': allocated_quota}
-            for quota in ['security_group', 'security_group_rule']:
-                if (
-                    quota in current_quota
-                    and current_quota[quota] > def_quota[quota]
-                ):
-                    body['quota'][quota] = current_quota[quota]
+            for name in ['security_group', 'security_group_rule']:
+                if name in current_quota:
+                    current = current_quota[name]
+                    if (
+                        current > allocated_quota.get(name, 0)
+                        and current > def_quota[name]
+                    ):
+                        body['quota'][name] = current
             client.update_quota(allocation.project_id, body)
             LOG.info(
                 "%s: Set Neutron Quota: %s", allocation.id, allocated_quota
