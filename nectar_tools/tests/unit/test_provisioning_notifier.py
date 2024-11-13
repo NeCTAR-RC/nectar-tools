@@ -12,44 +12,33 @@ CONF = config.CONFIG
 PROJECT = fakes.FakeProject('active')
 
 
-@mock.patch('freshdesk.v2.api.API')
-@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ProvisioningNotifierTests(test.TestCase):
-    def _test_send_message(self, stage, template):
-        n = notifier.ProvisioningNotifier(PROJECT)
-
-        self.assertEqual(int(CONF.freshdesk.provisioning_group), n.group_id)
+    def _test_send_provisioning(self, stage, template):
+        mock_session = mock.Mock()
+        n = notifier.ProvisioningNotifier(PROJECT, mock_session)
         self.assertEqual('provisioning', n.template_dir)
         notification_prefix = "Nectar Allocation Provisioned:"
         expected_subject = f"{notification_prefix} {PROJECT.name}"
         self.assertEqual(expected_subject, n.subject)
         allocation = mock.Mock()
         allocation.contact_email = 'owner@fake.org'
-
-        with test.nested(
-            mock.patch.object(n, 'render_template'),
-            mock.patch.object(n, '_create_ticket'),
-        ) as (mock_render, mock_create):
-            mock_render.return_value = 'text'
-            n.send_message(
+        with mock.patch.object(n, 'send_message') as mock_send:
+            n.send_provisioning(
                 stage,
                 allocation,
                 extra_context={'allocation': allocation},
                 extra_recipients=['manager1@fake.org', 'manager2@fake.org'],
             )
-            mock_render.assert_called_once_with(
-                template, {'allocation': allocation}
-            )
-            mock_create.assert_called_with(
-                email='owner@fake.org',
-                cc_emails=['manager1@fake.org', 'manager2@fake.org'],
-                description='text',
+            mock_send.assert_called_with(
+                stage=template,
+                owner='owner@fake.org',
+                extra_recipients=['manager1@fake.org', 'manager2@fake.org'],
                 extra_context={'allocation': allocation},
                 tags=['allocations', f'allocation-{allocation.id}'],
             )
 
-    def test_send_message_new(self, mock_api):
-        self._test_send_message('new', 'allocation-new.tmpl')
+    def test_send_message_new(self):
+        self._test_send_provisioning('new', 'allocation-new')
 
-    def test_send_message_update(self, mock_api):
-        self._test_send_message('update', 'allocation-update.tmpl')
+    def test_send_message_update(self):
+        self._test_send_provisioning('update', 'allocation-update')

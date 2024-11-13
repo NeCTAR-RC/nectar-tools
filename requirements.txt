@@ -25,7 +25,7 @@ openstacksdk>=0.22.0
 manukaclient
 python-magnumclient
 warreclient>=2.13.0
-taynacclient
+taynacclient>=1.3.0
 requests
 nectarclient-lib
 kubernetes

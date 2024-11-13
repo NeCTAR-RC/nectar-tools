@@ -476,7 +476,7 @@ class ProvisionerTests(test.TestCase):
             self.manager.notify_provisioned(
                 self.allocation, True, None, report='bar'
             )
-            mock_notifier.send_message.assert_called_once_with(
+            mock_notifier.send_provisioning.assert_called_once_with(
                 'new',
                 self.allocation,
                 extra_context={
@@ -502,7 +502,7 @@ class ProvisionerTests(test.TestCase):
             self.manager.notify_provisioned(
                 self.allocation, False, None, report='bar'
             )
-            mock_notifier.send_message.assert_called_once_with(
+            mock_notifier.send_provisioning.assert_called_once_with(
                 'update',
                 self.allocation,
                 extra_context={

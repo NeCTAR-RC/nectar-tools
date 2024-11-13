@@ -12,6 +12,7 @@ FAKE_FD_API_CLASS = mock.MagicMock(return_value=FAKE_FD_API)
 FAKE_GET_SESSION = mock.MagicMock()
 FAKE_MANUKA = mock.MagicMock()
 FAKE_NOVA = mock.MagicMock()
+FAKE_TAYNAC = mock.MagicMock()
 SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
 
@@ -165,6 +166,10 @@ def get_manuka(session):
 
 def get_warre(session):
     return FAKE_WARRE
+
+
+def get_taynac(session):
+    return FAKE_TAYNAC
 
 
 def get_openstacksdk(sess):

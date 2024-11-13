@@ -155,7 +155,7 @@ class TaynacNotifier(Notifier):
         self.t_client = auth.get_taynac_client(session)
 
     def send_message(
-        self, stage, owner, extra_context={}, extra_recipients=[]
+        self, stage, owner, extra_context={}, extra_recipients=[], tags=[]
     ):
         text = self.render_template(f'{stage}.tmpl', extra_context)
 
@@ -165,6 +165,7 @@ class TaynacNotifier(Notifier):
                 body=text,
                 recipient=owner,
                 cc=extra_recipients,
+                tags=tags,
             )
         else:
             print(text)
