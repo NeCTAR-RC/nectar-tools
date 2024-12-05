@@ -2,6 +2,7 @@ from nectar_tools.audit.cmd import base
 from nectar_tools.audit.metric import cinder_pool
 from nectar_tools.audit.metric import idp
 from nectar_tools.audit.metric import instance
+from nectar_tools.audit.metric import reservation
 from nectar_tools.audit.metric import resource_provider
 from nectar_tools.audit.metric import tempest_test
 
@@ -13,6 +14,7 @@ class MetricAuditorCmd(base.AuditCmdBase):
         tempest_test.TempestTestAuditor,
         idp.IDPAuditor,
         cinder_pool.CinderPoolAuditor,
+        reservation.ReservationAuditor,
     ]
 
     def add_args(self):
