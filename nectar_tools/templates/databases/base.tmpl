@@ -32,8 +32,12 @@ via the Nectar Research Cloud dashboard, or via the OpenStack CLI tools.
 <br/>
 During the upgrade operation your database instance will be unavailable.
 <br/>
-This typically takes around 10 minutes but actual times can vary.
+This typically takes around 10 minutes but actual times can vary depending on several factors. Large PostgreSQL DBs greater than 10GB can take over an hour.
 <br/>
+{% if used != "Unknown" %}
+<b> Your instance is currently using  {{ used }}GB
+<br/>
+{% endif %}
 <b>We recommend you <a href="https://tutorials.rc.nectar.org.au/database/04-database-backups">create a backup</a></b> of your database instance(s) before the
 maintenance window. You can reference the Nectar Database service support
 documentation at https://support.ehelp.edu.au/support/solutions/articles/6000178670

@@ -109,6 +109,8 @@ class DatabaseInstanceAuditor(base.Auditor):
         ids = [i.id for i in instances]
 
         for v in volumes:
+            if not v.name:
+                continue
             if v.name.startswith('trove-'):
                 id = v.name[6:]
             elif v.name.startswith('datastore-'):

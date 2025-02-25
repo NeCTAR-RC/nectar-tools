@@ -1,4 +1,5 @@
 import datetime
+import re
 import sys
 import time
 
@@ -72,6 +73,10 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             '--datastore', help='Only act on certain datastore type'
         )
         self.parser.add_argument(
+            '--datastore-version-regex',
+            help='Only act on certain datastore versions',
+        )
+        self.parser.add_argument(
             '--action', default='report', help='Action to perform'
         )
         self.parser.add_argument(
@@ -101,6 +106,10 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             ):
                 continue
             ds_version = inst.datastore.get('version')
+            if self.args.datastore_version_regex and not re.search(
+                self.args.datastore_version_regex, ds_version
+            ):
+                continue
             datastore_version = self.t_client.datastore_versions.get(
                 ds_type, ds_version
             )
@@ -131,8 +140,9 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
                     else:
                         count += 1
 
-    def notify(self, inst, ds_type, ds_version, ds_latest_version, project):
+    def notify(self, inst, ds_type, ds_version, ds_latest_version):
         self.notifier.resource = inst
+        used = inst.volume.get('used', 'Unknown')
         stage = 'warning-{}-{}'.format(
             ds_type.lower(), ds_version.split('-')[0]
         )
@@ -142,6 +152,7 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             'project': project,
             'start': self.args.start,
             'end': self.args.end,
+            'used': used,
         }
         recipient, cc = utils.get_project_recipients(self.k_client, project)
         message = self.notifier.send_message(
@@ -166,7 +177,7 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             return
 
         backups = self.t_client.backups.list(instance_id=inst.id)
-        needs_backup = False
+        needs_backup = True
         for b in backups:
             if b.name == 'Pre Upgrade':
                 if b.status == 'BUILDING':
@@ -181,6 +192,12 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
                         needs_backup = False
                         break
 
+        if not self.args.no_dry_run:
+            if needs_backup:
+                print(f"Would back up and upgrade {inst.id}")
+            else:
+                print(f"Would upgrade {inst.id}")
+            return
         if needs_backup:
             print(f"Backing up {inst.id}")
             backup = self.t_client.backups.create(
@@ -189,7 +206,7 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
                 description="Admin inititated backup pre upgrade",
             )
             start_time = int(time.time())
-            timeout = 1800
+            timeout = 3600
             interval = 5
             while True:
                 backup = self.t_client.backups.get(backup.id)
