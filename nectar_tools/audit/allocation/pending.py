@@ -25,8 +25,7 @@ class PendingAllocationAuditor(base.AllocationAuditorBase):
                     expiry_status = getattr(p, 'expiry_status', '')
                 except keystoneauth1.exceptions.http.NotFound:
                     LOG.warning(
-                        "Allocation %s: allocation's project (%s) "
-                        "is missing",
+                        "Allocation %s: allocation's project (%s) is missing",
                         a.id,
                         a.project_id,
                     )

@@ -84,7 +84,7 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             '--limit',
             type=int,
             default=0,
-            help='Only process this many eligible ' 'instances.',
+            help='Only process this many eligible instances.',
         )
 
     def run(self):

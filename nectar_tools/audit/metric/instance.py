@@ -165,8 +165,7 @@ class InstanceAuditor(base.ResourceAuditor):
                     LOG.warning('Running instance %s not in gnocchi', id)
                 elif duration.total_seconds() > MAX_TIME_DIFF:
                     LOG.warning(
-                        "No instance in gnocchi %s - project: %s "
-                        "duration: %s",
+                        "No instance in gnocchi %s - project: %s duration: %s",
                         id,
                         project_id,
                         duration,
@@ -227,7 +226,7 @@ class InstanceAuditor(base.ResourceAuditor):
                         # Trying to set end before start in gnocchi so update
                         # both
                         LOG.error(
-                            f"Repair: {id}: end before start updating " "both"
+                            f"Repair: {id}: end before start updating both"
                         )
                         self.repair(
                             f"{id}: Setting started_at",

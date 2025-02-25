@@ -140,8 +140,7 @@ class DatabaseInstanceAuditor(base.Auditor):
                     )
                 except Exception as e:
                     LOG.error(
-                        f"Failed to delete volume {v.id}, "
-                        f"for instance {id}"
+                        f"Failed to delete volume {v.id}, for instance {id}"
                     )
                     LOG.exception(e)
 

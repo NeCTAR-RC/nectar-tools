@@ -172,7 +172,8 @@ class NovaArchiverTests(test.TestCase):
             for state in [
                 'suspending',
                 'image_snapshot_pending',
-                'deleting' 'image_snapshot',
+                'deleting',
+                'image_snapshot',
                 'image_pending_upload',
             ]:
                 instance = fakes.FakeInstance(

@@ -25,8 +25,7 @@ class WarreMaintenance(cmd_base.CmdBase):
                     instance_count=flavor.slots,
                 )
                 print(
-                    f"Set maintenance window for {flavor.name} "
-                    f"{start} - {end}"
+                    f"Set maintenance window for {flavor.name} {start} - {end}"
                 )
             except Exception as e:
                 print(f"Failed to set maintenance window for {flavor.name}")

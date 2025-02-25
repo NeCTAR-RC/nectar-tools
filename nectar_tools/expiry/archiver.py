@@ -440,7 +440,7 @@ class NovaArchiver(Archiver):
             # Instance should be stopped when moving into suspended status
             # but we can stop for now and start archiving next run
             LOG.warning(
-                "%s: Instance %s is running, " "expected it to be stopped",
+                "%s: Instance %s is running, expected it to be stopped",
                 self.project.id,
                 instance.id,
             )

@@ -99,8 +99,7 @@ class ResourceProviderAuditor(base.ResourceAuditor):
                     "Resource provider %s no longer exists", resource['name']
                 )
                 self.repair(
-                    f"Marking resource provider {resource['name']} "
-                    "as ended",
+                    f"Marking resource provider {resource['name']} as ended",
                     lambda: self.g_client.resource.update(
                         resource_type='resource_provider',
                         resource_id=resource['id'],

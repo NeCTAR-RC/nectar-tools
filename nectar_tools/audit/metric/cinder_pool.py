@@ -24,7 +24,7 @@ class CinderPoolAuditor(base.ResourceAuditor):
             id = cinder_pool['id']
             if site:
                 self.repair(
-                    f"Setting site for {id} and az={az} " f"to {site}",
+                    f"Setting site for {id} and az={az} to {site}",
                     lambda: self.g_client.resource.update(
                         resource_type='cinder_pool',
                         resource_id=id,

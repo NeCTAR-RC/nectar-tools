@@ -48,8 +48,7 @@ class FlavorAuditor(base.RatingAuditor):
                     f"Current {flavor_rate}"
                 )
                 self.repair(
-                    f"Setting flavor {flavor.name} metadata "
-                    f"rate to {cost}",
+                    f"Setting flavor {flavor.name} metadata rate to {cost}",
                     flavor.set_keys,
                     metadata={FLAVOR_KEY: cost},
                 )

@@ -142,8 +142,7 @@ class ProvisioningManager:
                 allocation, is_new_project, project, report
             )
             LOG.info(
-                "%s: Allocation re-provisioned, not updating "
-                "start/end date",
+                "%s: Allocation re-provisioned, not updating start/end date",
                 allocation.id,
             )
         return allocation

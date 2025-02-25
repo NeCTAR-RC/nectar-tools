@@ -267,7 +267,7 @@ def parse_args():
     parser.add_argument(
         "--sort_key",
         type=str,
-        help="key on which to sort table." "(default=AVAIL_MEMORY_GB)",
+        help="key on which to sort table.(default=AVAIL_MEMORY_GB)",
         choices=[
             'host',
             'VCPU',

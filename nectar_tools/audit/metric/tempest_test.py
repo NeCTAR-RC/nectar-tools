@@ -26,7 +26,7 @@ class TempestTestAuditor(base.ResourceAuditor):
             )
             if site:
                 self.repair(
-                    f"Setting site for {tt['name']} and az={az} " f"to {site}",
+                    f"Setting site for {tt['name']} and az={az} to {site}",
                     lambda: self.g_client.resource.update(
                         resource_type='tempest_test',
                         resource_id=tt['id'],

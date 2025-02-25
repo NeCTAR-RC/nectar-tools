@@ -35,8 +35,7 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
                 )
                 return
             self.repair(
-                f"{self.project.id}: Setting allocation_id"
-                f" = {allocation.id}",
+                f"{self.project.id}: Setting allocation_id = {allocation.id}",
                 lambda: self.k_client.projects.update(
                     self.project.id, allocation_id=allocation.id
                 ),
@@ -136,8 +135,7 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
                 )
             else:
                 LOG.error(
-                    "%s: Allocation expiry in unknown state: "
-                    "expiry status %s",
+                    "%s: Allocation expiry in unknown state: expiry status %s",
                     self.project.id,
                     expiry_status,
                 )
@@ -159,7 +157,7 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
                 expiry_states.ARCHIVED,
             ):
                 LOG.error(
-                    "%s: Instance zone expiry stuck: " "zone expiry status %s",
+                    "%s: Instance zone expiry stuck: zone expiry status %s",
                     self.project.id,
                     zone_expiry_status,
                 )

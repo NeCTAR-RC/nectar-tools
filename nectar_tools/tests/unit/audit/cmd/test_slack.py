@@ -35,8 +35,7 @@ class SlackFilterSpecTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             slack.SlackConfigError,
-            "Expected key-value pair but got 'lock' in "
-            "filter spec for 'foo'",
+            "Expected key-value pair but got 'lock' in filter spec for 'foo'",
         ):
             slack.SlackFilterSpec('lock', 'foo', ',', '=')
 

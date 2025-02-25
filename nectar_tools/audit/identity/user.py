@@ -49,7 +49,7 @@ class UserAuditor(base.IdentityAuditor):
                 project = self.k_client.projects.get(default_project_id)
             except keystoneauth1.exceptions.http.NotFound:
                 LOG.warning(
-                    "User %s default_project_id is a non-existent " "project",
+                    "User %s default_project_id is a non-existent project",
                     user.name,
                 )
                 continue
