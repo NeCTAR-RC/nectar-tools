@@ -32,10 +32,11 @@ via the Nectar Research Cloud dashboard, or via the OpenStack CLI tools.
 <br/>
 During the upgrade operation your database instance will be unavailable.
 <br/>
-This typically takes around 10 minutes but actual times can vary depending on several factors. Large PostgreSQL DBs greater than 10GB can take over an hour.
+This typically takes around 10 minutes but actual times can vary depending on several factors.
+Large PostgreSQL DBs greater than 10GB can take over an hour when doing a major upgrade. Eg. from 11 -> 16
 <br/>
 {% if used != "Unknown" %}
-<b> Your instance is currently using  {{ used }}GB
+<b> Your instance is currently using  {{ used }}GB</b>
 <br/>
 {% endif %}
 <b>We recommend you <a href="https://tutorials.rc.nectar.org.au/database/04-database-backups">create a backup</a></b> of your database instance(s) before the
@@ -60,15 +61,14 @@ Using the CLI tools, simply load your credentials and start the upgrade by typin
 <pre>openstack database instance upgrade {{ database.name }} {{ datastore_latest_version.name }}</pre>
 <br/>
 {% endblock %}
-If you have any queries regarding this announcement, please reply to this email or
-contact us at support@nectar.org.au. with the subject "Database Upgrade".
+If you have any queries regarding this announcement, please reply to this email.
 <br/>
 <br/>
 <br/>
 <br/>
-Regards,
+Kind regards,
 <br/>
-The Nectar Research Cloud Support Team
+The ARDC Nectar Research Cloud Support Team
 <br/>
 --
 <br/>
