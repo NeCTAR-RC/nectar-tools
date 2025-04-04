@@ -43,6 +43,7 @@ AZ_SITE_MAP = {
     'coreservices': 'coreservices',
     'qh2-test-floating': 'melbourne',
     # Prod
+    'adelaide': 'adelaide',
     'auckland': 'auckland',
     'intersect': 'intersect',
     'intersect-01': 'intersect',
@@ -58,6 +59,7 @@ AZ_SITE_MAP = {
     'tasmania-02': 'tasmania',
     'tasmania-s': 'tasmania',
     'ardc-mel-1': 'ardc',
+    'ardc-syd-1': 'ardc',
     'intersect-adelaide': 'adelaide',
     # Shared
     'internal': 'unknown',
