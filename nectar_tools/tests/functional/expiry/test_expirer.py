@@ -22,6 +22,7 @@ FAKE_SWIFT = mock.MagicMock()
 FAKE_GLANCE = mock.MagicMock()
 FAKE_HEAT = mock.MagicMock()
 FAKE_MURANO = mock.MagicMock()
+FAKE_MAGNUM = mock.MagicMock()
 TODAY = "2017-07-01"
 TODAY_DATE = datetime.datetime(2017, 7, 1)
 FUTURE = "2017-07-02"
@@ -52,6 +53,10 @@ def get_murano(session):
     return FAKE_MURANO
 
 
+def get_magnum(session):
+    return FAKE_MAGNUM
+
+
 def get_allocation_client(session):
     return FAKE_ALLOCATION_CLIENT
 
@@ -69,6 +74,7 @@ def get_allocation_client(session):
 )
 @mock.patch('nectar_tools.auth.get_nova_client', new=get_nova)
 @mock.patch('nectar_tools.auth.get_manuka_client', new=fake_clients.get_manuka)
+@mock.patch('nectar_tools.auth.get_magnum_client', new=get_magnum)
 @mock.patch(
     'nectar_tools.auth.get_allocation_client', new=get_allocation_client
 )
@@ -85,6 +91,7 @@ class PTExpiryTests(test.TestCase):
         FAKE_GLANCE.reset_mock()
         FAKE_HEAT.reset_mock()
         FAKE_MURANO.reset_mock()
+        FAKE_MAGNUM.reset_mock()
         # Set up a fake PT with an owner
         project = fakes.FakeProjectWithOwner(
             id='q12w',
@@ -108,6 +115,7 @@ class PTExpiryTests(test.TestCase):
         glance_calls=[],
         heat_calls=[],
         murano_calls=[],
+        magnum_calls=[],
     ):
         """Runs the actual expiry process
 
@@ -122,6 +130,7 @@ class PTExpiryTests(test.TestCase):
         :param glance_calls: Expected calls for glance client
         :param heat_calls: Expected calls for heat client
         :param murano_calls: Expected calls for murano client
+        :param magnum_calls: Expected calls for magnum client
         """
 
         keystone_client = fake_clients.FAKE_KEYSTONE
@@ -134,6 +143,7 @@ class PTExpiryTests(test.TestCase):
         murano_client = FAKE_MURANO
         fd_client = fake_clients.FAKE_FD_API
         allocation_client = FAKE_ALLOCATION_CLIENT
+        magnum_client = FAKE_MAGNUM
 
         fake_account = mock.Mock(registered_at=registered_at)
         manuka_client.users.get.return_value = fake_account
@@ -166,6 +176,7 @@ class PTExpiryTests(test.TestCase):
         self.assertEqual(glance_calls, glance_client.method_calls)
         self.assertEqual(heat_calls, heat_client.method_calls)
         self.assertEqual(murano_calls, murano_client.method_calls)
+        self.assertEqual(magnum_calls, magnum_client.method_calls)
 
     def get_fd_calls(self):
         """Helper method to get expected calls for freshdesk"""
@@ -765,6 +776,10 @@ class PTExpiryTests(test.TestCase):
             mock.call.delete_container(c1['name']),
         ]
 
+        magnum_calls = [
+            mock.call.clusters.list(detail=True),
+        ]
+
         keystone_calls = self.get_keystone_calls(expiry_states.DELETED)
         self._test_process(
             nova_calls=nova_calls,
@@ -775,6 +790,7 @@ class PTExpiryTests(test.TestCase):
             swift_calls=swift_calls,
             heat_calls=heat_calls,
             murano_calls=murano_calls,
+            magnum_calls=magnum_calls,
         )
 
     def test_deleted(self):
