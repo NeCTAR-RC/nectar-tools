@@ -2,7 +2,7 @@ import logging
 
 from nectar_tools.audit import base
 from nectar_tools import auth
-
+from nectar_tools.expiry import expiry_states
 
 LOG = logging.getLogger(__name__)
 
@@ -24,11 +24,12 @@ class ClusterAuditor(base.Auditor):
         for cluster in clusters:
             project = self.k_client.projects.get(cluster.project_id)
 
-            if not project.enabled:
+            if getattr(project, 'expiry_status', '') == expiry_states.DELETED:
                 LOG.error(
-                    "%s - Running cluster of disabled project", cluster.uuid
+                    "%s - Running cluster of deleted project", cluster.uuid
                 )
                 self._delete_cluster(cluster)
+
             elif cluster.status == 'CREATE_FAILED':
                 if (
                     "Quota exceeded for resources" in cluster.status_reason
