@@ -150,7 +150,8 @@ class ClusterAuditor(base.Auditor):
                     )
                     driver = Driver.HEAT
                 # CAPI clusters have stack_id like <cluster_name>-XXXXXXXXXXXX
-                elif cluster.stack_id.startswith(cluster.name):
+                # stack_id is derived from cluster name but truncated to 31 chars
+                elif cluster.stack_id.startswith(cluster.name[:30]):
                     LOG.debug(
                         "%s - Driver is CAPI cluster with stack_id %s",
                         cluster.uuid,
