@@ -1,0 +1,46 @@
+<p>Dear Nectar Research Cloud User,</p>
+<br/>
+<p>We’re reaching out to let you know that your Kubernetes cluster on the <strong>Nectar Kubernetes Service</strong> is currently running a version that has reached its end of life and is no longer supported.</p>
+<br/>
+<p><strong>Cluster Details:</strong></p>
+<ul>
+  <li><strong>Cluster ID:</strong> {{ cluster.uuid }}</li>
+  <li><strong>Cluster Name:</strong> {{ cluster.name }}</li>
+  <li><strong>Project Name:</strong> {{ project.name }}</li>
+</ul>
+
+<p>To ensure continued security, stability, and access to new features, you’ll need to choose one of the following options by <strong>{{ date }}</strong>:</p>
+
+<ol>
+  <li>
+    <strong>Automatic Upgrade (Default):</strong>
+    If we don’t hear back from you, we will proceed with an automatic upgrade of your cluster to version <strong>1.32.8</strong>.
+    <br><br>
+    <em>Please note:</em> While we aim to make this process as smooth as possible, there is a risk that your applications may break due to changes in the Kubernetes version. It will be your responsibility to test and resolve any issues that arise post-upgrade. <a href="https://kubernetes.io/blog/2024/08/13/kubernetes-v1-31-release/">v1.31 release notes</a>, <a href="https://kubernetes.io/blog/2024/12/11/kubernetes-v1-32-release/">v1.32 release notes</a>
+  </li>
+  <li>
+    <strong>Green-Blue Upgrade:</strong>
+    If you prefer a more controlled upgrade process, you can opt for a green-blue upgrade. This involves provisioning a new cluster and migrating workloads over, allowing for testing and validation before decommissioning the old cluster.
+  </li>
+  <li>
+    <strong>Schedule a Convenient Upgrade Time:</strong>
+    If the default timing doesn’t suit your operations, you can contact us to arrange a more convenient time for the upgrade. We’ll work with you to minimize disruption and ensure a smooth transition.
+  </li>
+</ol>
+
+<p>Please reply to this email with your preferred option by <strong>{{ date }}</strong>. If we don’t receive a response, we will proceed with the <strong>automatic upgrade</strong>.</p>
+<br/>
+<p>If you have any questions or need assistance with the upgrade process, feel free to reach out.</p>
+<br/>
+<p>Kind regards,<br/>
+The ARDC Nectar Research Cloud Support Team
+<br/>
+--
+<br/>
+This email has been sent to users of the Nectar Research Cloud. It has been
+sent to the email address associated with your Research Cloud login. These
+emails are essential communications which we endeavour to keep to a minimum.
+They only relate to events that may affect your Nectar Research Cloud resources
+or data integrity. If you receive multiple copies of this email, it may be due
+to the fact that you are a member of multiple projects.
+</p>
