@@ -5,7 +5,6 @@ import time
 from designateclient import exceptions as designate_exc
 from heatclient import exc as heat_exc
 from magnumclient import exceptions as magnum_exc
-from muranoclient.common import exceptions as murano_exc
 from novaclient import exceptions as nova_exc
 from swiftclient import exceptions as swift_exc
 
@@ -1129,38 +1128,17 @@ class MuranoArchiver(Archiver):
         for environment in environments:
             if self.dry_run:
                 LOG.info(
-                    "%s: Would delete environment %s",
+                    "%s: Would abandon (delete) environment %s",
                     self.project.id,
                     environment.id,
                 )
             else:
                 LOG.info(
-                    "%s: Deleting environment %s",
+                    "%s: Abandoning (delete) environment %s",
                     self.project.id,
                     environment.id,
                 )
-                try:
-                    self.remove_resource(
-                        self.m_client.environments.delete,
-                        self.m_client.environments.get,
-                        environment.id,
-                        murano_exc.HTTPNotFound,
-                        state_property='status',
-                        error_status='delete failure',
-                    )
-                except exceptions.DeleteFailure:
-                    self.m_client.environments.delete(
-                        environment.id, abandon=True
-                    )
-                    # Run remove_resource again to ensure the abandon worked
-                    self.remove_resource(
-                        self.m_client.environments.delete,
-                        self.m_client.environments.get,
-                        environment.id,
-                        murano_exc.HTTPNotFound,
-                        state_property='status',
-                        error_status='delete failure',
-                    )
+                self.m_client.environments.delete(environment.id, abandon=True)
 
 
 class TroveArchiver(Archiver):

@@ -736,8 +736,7 @@ class PTExpiryTests(test.TestCase):
 
         murano_calls = [
             mock.call.environments.list(tenant_id=self.project.id),
-            mock.call.environments.delete(env1.id),
-            mock.call.environments.get(env1.id),
+            mock.call.environments.delete(env1.id, abandon=True),
         ]
 
         neutron_calls = [

@@ -3,7 +3,6 @@ from unittest import mock
 from designateclient import exceptions as designate_exc
 from heatclient import exc as heat_exc
 from magnumclient import exceptions as magnum_exc
-from muranoclient.common import exceptions as murano_exc
 from novaclient import exceptions as nova_exc
 
 from nectar_tools import auth
@@ -812,10 +811,7 @@ class MuranoArchiverTests(test.TestCase):
         e1.id = 'fake1'
         e2 = mock.Mock()
         e2.id = 'fake2'
-        with test.nested(
-            mock.patch.object(ma, 'm_client'),
-            mock.patch.object(ma, 'remove_resource'),
-        ) as (mock_murano, mock_rr):
+        with mock.patch.object(ma, 'm_client') as mock_murano:
             mock_murano.environments.list.return_value = [e1, e2]
 
             ma.delete_resources(force=True)
@@ -824,53 +820,11 @@ class MuranoArchiverTests(test.TestCase):
                 tenant_id=PROJECT.id
             )
 
-            mock_rr.assert_has_calls(
+            mock_murano.environments.delete.assert_has_calls(
                 [
-                    mock.call(
-                        mock_murano.environments.delete,
-                        mock_murano.environments.get,
-                        e1.id,
-                        murano_exc.HTTPNotFound,
-                        state_property='status',
-                        error_status='delete failure',
-                    ),
-                    mock.call(
-                        mock_murano.environments.delete,
-                        mock_murano.environments.get,
-                        e2.id,
-                        murano_exc.HTTPNotFound,
-                        state_property='status',
-                        error_status='delete failure',
-                    ),
+                    mock.call(e1.id, abandon=True),
+                    mock.call(e2.id, abandon=True),
                 ]
-            )
-
-    def test_delete_resources_delete_failed(self):
-        ma = archiver.MuranoArchiver(PROJECT)
-        e1 = mock.Mock(id='fake1', status='delete failure')
-        with test.nested(
-            mock.patch.object(ma, 'm_client'),
-            mock.patch.object(ma, 'remove_resource'),
-        ) as (mock_murano, mock_rr):
-            mock_rr.side_effect = [exceptions.DeleteFailure(), mock.DEFAULT]
-            mock_murano.environments.list.return_value = [e1]
-
-            ma.delete_resources(force=True)
-
-            mock_murano.environments.list.assert_called_once_with(
-                tenant_id=PROJECT.id
-            )
-            mock_murano.environments.delete.assert_called_once_with(
-                e1.id, abandon=True
-            )
-
-            mock_rr.assert_called_with(
-                mock_murano.environments.delete,
-                mock_murano.environments.get,
-                e1.id,
-                murano_exc.HTTPNotFound,
-                state_property='status',
-                error_status='delete failure',
             )
 
 
