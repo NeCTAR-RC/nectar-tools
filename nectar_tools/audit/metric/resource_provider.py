@@ -25,6 +25,7 @@ domain_site_mapping = {
     'syd-1.rc.nectar.org.au': 'ardc',
     'mel-1.rc.nectar.org.au': 'ardc',
     'adelaide.nectar.org.au': 'adelaide',
+    'nectar.pawsey.org.au': 'pawsey',
     'test.rc.nectar.org.au': 'coreservices',
 }
 

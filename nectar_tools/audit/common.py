@@ -61,6 +61,7 @@ AZ_SITE_MAP = {
     'ardc-mel-1': 'ardc',
     'ardc-syd-1': 'ardc',
     'intersect-adelaide': 'adelaide',
+    'pawsey': 'pawsey',
     # Shared
     'internal': 'unknown',
     'nova': 'unknown',
