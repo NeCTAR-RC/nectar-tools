@@ -904,7 +904,7 @@ class ProvisioningManager:
         if allocated_quota:
             resource_names = ["hours", "reservation"]
             for resource_name in resource_names:
-                limit = int(allocated_quota.get(resource_name))
+                limit = int(allocated_quota.get(resource_name, 0))
                 if limit:
                     self.k_client_sys.limits.create(
                         project=allocation.project_id,
