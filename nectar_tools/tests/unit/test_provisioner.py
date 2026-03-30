@@ -656,34 +656,6 @@ class ProvisionerTests(test.TestCase):
                 ram=quota['ram'],
             )
 
-    def test_set_nova_quota_has_rating_budget(self):
-        with test.nested(
-            mock.patch.object(self.allocation, 'get_allocated_nova_quota'),
-            mock.patch('nectar_tools.auth.get_nova_client'),
-            mock.patch.object(self.manager, 'flavor_grant'),
-        ) as (mock_alloc_nova_quota, mock_get_nova, mock_flavor_grant):
-            nova_client = mock.Mock()
-            mock_get_nova.return_value = nova_client
-            quota = {'instances': 2, 'ram': 16, 'cores': 4}
-            mock_alloc_nova_quota.return_value = quota
-            self.manager.set_nova_quota(self.allocation)
-            flavor_calls = [
-                mock.call(self.allocation, 'compute-v3'),
-                mock.call(self.allocation, 'memory-v3'),
-            ]
-
-            mock_flavor_grant.assert_has_calls(flavor_calls, any_order=True)
-            nova_client.quotas.delete.assert_called_once_with(
-                tenant_id=self.allocation.project_id
-            )
-            nova_client.quotas.update.assert_called_once_with(
-                tenant_id=self.allocation.project_id,
-                force=True,
-                cores=quota['cores'],
-                instances=quota['instances'],
-                ram=quota['ram'],
-            )
-
     @mock.patch('nectar_tools.auth.get_nova_client')
     def test_set_nova_quota_ram_set(self, mock_get_nova):
         nova_client = mock.Mock()

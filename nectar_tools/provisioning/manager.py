@@ -357,8 +357,6 @@ class ProvisioningManager:
             'nova.instances': 'Instances',
             'nova.cores': 'VCPUs',
             'nova.ram': 'RAM (GB)',
-            'nova.flavor:compute-v3': 'Compute Optimised Flavors (c3)',
-            'nova.flavor:memory-v3': 'RAM Optimised Flavors (r3)',
             'nova.flavor:hugeram-v3': 'Huge RAM Flavors (h3)',
             'swift.object': 'Object store (GB)',
             'trove.ram': 'Database RAM (GB)',
@@ -400,8 +398,6 @@ class ProvisioningManager:
             'warre.flavor:Huge RAM': 'Huge RAM flavors',
         }
         boolean_resources = [
-            'nova.flavor:compute-v3',
-            'nova.flavor:memory-v3',
             'nova.flavor:hugeram-v3',
             'warre.flavor:GPU',
             'warre.flavor:Huge RAM',
@@ -541,10 +537,6 @@ class ProvisioningManager:
         for flavor_class in flavor_classes:
             self.flavor_grant(allocation, flavor_class)
 
-        cloudkitty_quota = allocation.get_allocated_cloudkitty_quota()
-        if cloudkitty_quota.get('budget', 0) > 0:
-            self.flavor_grant(allocation, 'compute-v3')
-            self.flavor_grant(allocation, 'memory-v3')
         if self.noop:
             LOG.info(
                 "%s: Would set nova quota to %s",

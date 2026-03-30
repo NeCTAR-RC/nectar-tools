@@ -152,18 +152,6 @@ class ProvisionerTests(test.TestCase):
                 cores=4,
                 ram=16384,
             )
-            # Ensure access to compute and memory flavors since new allocation
-            # will have rating budget
-            flavor_grant_calls = [
-                mock.call(flavor1, old_pt.id),
-                mock.call(flavor2, old_pt.id),
-            ]
-            nova_client.flavor_access.add_tenant_access.assert_has_calls(
-                flavor_grant_calls
-            )
-            self.assertEqual(
-                2, nova_client.flavor_access.add_tenant_access.call_count
-            )
 
             # Ensure the new PT has same name/domain as old PT
             self.assertEqual(old_pt.name, new_pt.name)
