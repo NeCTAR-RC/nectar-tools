@@ -1,6 +1,8 @@
 import re
 import sys
 
+from magnumclient.common.apiclient import exceptions as magnum_exc
+
 from nectar_tools import auth
 from nectar_tools import cmd_base
 from nectar_tools import config
@@ -10,8 +12,9 @@ from nectar_tools import utils
 
 CONF = config.CONFIG
 
-supported_version_re = r'v1.32|v1.33'
-near_eol_version_re = r'v1.31'
+# supported_version_re = r'v1.32|v1.33'
+supported_version_re = r'v1.34'
+near_eol_version_re = r'v1.33'
 
 
 class ActionError(Exception):
@@ -100,7 +103,11 @@ class MagnumDatastoreUpgradesCmd(cmd_base.CmdBase):
         else:
             clusters = self.m_client.clusters.list(detail=True)
         for cluster in clusters:
-            cluster = self.m_client.clusters.get(cluster.uuid)
+            try:
+                cluster = self.m_client.clusters.get(cluster.uuid)
+            except magnum_exc.NotFound:
+                # Incase cluster deleted while running
+                continue
             cluster_template = self.m_client.cluster_templates.get(
                 cluster.cluster_template_id
             )
@@ -119,8 +126,25 @@ class MagnumDatastoreUpgradesCmd(cmd_base.CmdBase):
                 )
                 continue
             if cluster.health_status != "HEALTHY":
-                print(f"Cluster {cluster.name} {cluster.uuid} not HEALTHY")
-                continue
+                reason = cluster.health_status_reason
+                cluster_healthy = True
+                if reason.get('cluster') != 'Ready':
+                    cluster_healthy = False
+                elif reason.get('controlplane') != 'Ready':
+                    cluster_healthy = False
+                elif reason.get('infrastructure') != 'Ready':
+                    cluster_healthy = False
+                if not cluster_healthy:
+                    print(
+                        f"ERROR: Cluster {cluster.name} {cluster.uuid} not HEALTHY, skipping"
+                    )
+                    continue
+                else:
+                    nodegroup_status = reason.get('nodegroup')
+                    print(
+                        f"WARN: Cluster {cluster.name} {cluster.uuid} "
+                        f"nodegroup not HEALTHY but continuing {nodegroup_status}"
+                    )
 
             if not re.search(supported_version_re, cluster_template.name):
                 if self.limit and count >= self.limit:
