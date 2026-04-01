@@ -463,6 +463,13 @@ def get_allocation():
     )
 
 
+class FakeReservation:
+    def __init__(self, id='fake-reservation', **kwargs):
+        self.id = id
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
 class FakeZone:
     def __init__(self, id='fake', name='myproject.example.com.', **kwargs):
         self.id = id

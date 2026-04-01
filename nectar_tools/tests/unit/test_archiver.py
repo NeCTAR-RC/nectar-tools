@@ -1252,6 +1252,38 @@ class ProjectImagesArchiverTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+class WarreArchiverTests(test.TestCase):
+    def test_delete_resources(self):
+        wa = archiver.WarreArchiver(PROJECT)
+        with mock.patch.object(wa, 'w_client') as mock_warre:
+            wa.delete_resources()
+            mock_warre.reservations.list.assert_not_called()
+
+    def test_delete_resources_force(self):
+        wa = archiver.WarreArchiver(PROJECT)
+        r1 = fakes.FakeReservation(id='res-1')
+        r2 = fakes.FakeReservation(id='res-2')
+        with mock.patch.object(wa, 'w_client') as mock_warre:
+            mock_warre.reservations.list.return_value = [r1, r2]
+            wa.delete_resources(force=True)
+            mock_warre.reservations.list.assert_called_once_with(
+                project_id=PROJECT.id
+            )
+            mock_warre.reservations.delete.assert_has_calls(
+                [mock.call('res-1'), mock.call('res-2')]
+            )
+            self.assertEqual(mock_warre.reservations.delete.call_count, 2)
+
+    def test_delete_resources_force_dry_run(self):
+        wa = archiver.WarreArchiver(PROJECT, dry_run=True)
+        r1 = fakes.FakeReservation(id='res-1')
+        with mock.patch.object(wa, 'w_client') as mock_warre:
+            mock_warre.reservations.list.return_value = [r1]
+            wa.delete_resources(force=True)
+            mock_warre.reservations.delete.assert_not_called()
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ResourcerArchiverTests(test.TestCase):
     def test_init(self):
         ra = archiver.ResourceArchiver(

@@ -534,6 +534,7 @@ class AllocationExpirer(ProjectExpirer):
             'murano',
             'trove',
             'heat',
+            'warre',
         ],
         template_dir='allocations',
         subject='Nectar Project Allocation Renewal - ',

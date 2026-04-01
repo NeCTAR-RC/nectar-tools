@@ -1203,6 +1203,35 @@ class TroveArchiver(Archiver):
                 self.t_client.instances.delete(db)
 
 
+class WarreArchiver(Archiver):
+    def __init__(self, project, ks_session=None, dry_run=False):
+        super().__init__(ks_session, dry_run)
+        self.project = project
+        self.w_client = auth.get_warre_client(ks_session)
+
+    def delete_resources(self, force=False):
+        if not force:
+            return
+
+        reservations = self.w_client.reservations.list(
+            project_id=self.project.id
+        )
+        for reservation in reservations:
+            if self.dry_run:
+                LOG.info(
+                    "%s: Would delete reservation %s",
+                    self.project.id,
+                    reservation.id,
+                )
+            else:
+                LOG.info(
+                    "%s: Deleting reservation %s",
+                    self.project.id,
+                    reservation.id,
+                )
+                self.w_client.reservations.delete(reservation.id)
+
+
 class HeatArchiver(Archiver):
     def __init__(self, project, ks_session=None, dry_run=False):
         super().__init__(ks_session, dry_run)
@@ -1267,6 +1296,8 @@ class ResourceArchiver:
             enabled.append(ManilaArchiver(project, ks_session, dry_run))
         if 'trove' in archivers:
             enabled.append(TroveArchiver(project, ks_session, dry_run))
+        if 'warre' in archivers:
+            enabled.append(WarreArchiver(project, ks_session, dry_run))
         self.archivers = enabled
 
     def is_archive_successful(self):
