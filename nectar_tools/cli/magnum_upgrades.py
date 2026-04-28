@@ -13,7 +13,7 @@ from nectar_tools import utils
 CONF = config.CONFIG
 
 # supported_version_re = r'v1.32|v1.33'
-supported_version_re = r'v1.34'
+supported_version_re = r'v1.34|v1.35'
 near_eol_version_re = r'v1.33'
 
 
