@@ -4,6 +4,7 @@ import re
 import keystoneauth1
 
 from nectar_tools.audit.identity import base
+from nectar_tools import utils
 
 
 LOG = logging.getLogger(__name__)
@@ -15,7 +16,9 @@ EMAIL_RE = re.compile(r"^[\w.!#$%&'*+\-/=?^_`{|}~]+@([\w\-]+\.)+[\w\-]{2,4}$")
 class UserAuditor(base.IdentityAuditor):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.users = self.k_client.users.list(domain='default')
+        self.users = utils.list_resources(
+            self.k_client.users.list, domain='default'
+        )
 
     def check_users_no_projects(self):
         for user in self.users:

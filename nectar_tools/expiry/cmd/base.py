@@ -23,8 +23,10 @@ class ProjectExpiryBaseCmd(cmd_base.CmdBase):
             project = self.k_client.projects.get(self.args.project_id)
             projects.append(project)
         elif self.args.all or self.args.filename:
-            projects = self.k_client.projects.list(
-                enabled=True, domain=self.args.domain
+            projects = utils.list_resources(
+                self.k_client.projects.list,
+                enabled=True,
+                domain=self.args.domain,
             )
             if self.args.filename:
                 wanted_projects = utils.read_file(self.args.filename)

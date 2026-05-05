@@ -3,6 +3,7 @@ import logging
 
 from nectar_tools.audit.identity import base
 from nectar_tools.expiry import archiver
+from nectar_tools import utils
 
 
 LOG = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ LOG = logging.getLogger(__name__)
 
 class ProjectAuditor(base.IdentityAuditor):
     def check_deleted_no_instances(self):
-        projects = self.k_client.projects.list()
+        projects = utils.list_resources(self.k_client.projects.list)
         for project in projects:
             status = getattr(project, 'expiry_status', None)
             if status == 'deleted':
