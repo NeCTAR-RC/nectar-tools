@@ -71,7 +71,9 @@ class MagnumDatastoreUpgradesCmd(cmd_base.CmdBase):
         cluster_templates = self.m_client.cluster_templates.list()
         for ct in cluster_templates:
             if ct.hidden:
-                pass
+                continue
+            if not ct.public:
+                continue
             self.cluster_template_map[ct.uuid] = ct
 
     def add_args(self):
