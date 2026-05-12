@@ -842,7 +842,7 @@ class PTExpirer(ProjectExpirer):
     ):
         archivers = [
             'nova',
-            'neutron_basic',
+            'neutron',
             'swift',
             'heat',
             'magnum',

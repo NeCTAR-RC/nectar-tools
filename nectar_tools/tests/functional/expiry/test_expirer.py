@@ -736,6 +736,10 @@ class PTExpiryTests(test.TestCase):
         neutron_client.list_security_group_rules.return_value = (
             secgroup_rules_response
         )
+        neutron_client.list_floatingips.return_value = {'floatingips': []}
+        neutron_client.list_routers.return_value = {'routers': []}
+        neutron_client.list_subnets.return_value = {'subnets': []}
+        neutron_client.list_networks.return_value = {'networks': []}
 
         nova_calls = [
             mock.call.servers.list(
@@ -761,6 +765,8 @@ class PTExpiryTests(test.TestCase):
         ]
 
         neutron_calls = [
+            mock.call.list_floatingips(tenant_id=self.project.id),
+            mock.call.list_routers(tenant_id=self.project.id),
             mock.call.list_ports(tenant_id=self.project.id),
             mock.call.delete_port('fakeport1'),
             mock.call.list_security_groups(tenant_id=self.project.id),
@@ -768,6 +774,8 @@ class PTExpiryTests(test.TestCase):
             mock.call.list_security_group_rules(tenant_id=self.project.id),
             mock.call.delete_security_group_rule('rule1'),
             mock.call.delete_security_group_rule('rule2'),
+            mock.call.list_subnets(tenant_id=self.project.id),
+            mock.call.list_networks(tenant_id=self.project.id),
         ]
 
         swift_calls = [
@@ -822,6 +830,10 @@ class PTExpiryTests(test.TestCase):
         neutron_client.list_security_groups.return_value = {
             'security_groups': [{'id': 'default', 'name': 'default'}]
         }
+        neutron_client.list_floatingips.return_value = {'floatingips': []}
+        neutron_client.list_routers.return_value = {'routers': []}
+        neutron_client.list_subnets.return_value = {'subnets': []}
+        neutron_client.list_networks.return_value = {'networks': []}
 
         nova_calls = [
             mock.call.servers.list(
@@ -840,6 +852,10 @@ class PTExpiryTests(test.TestCase):
         neutron_calls = [
             mock.call.list_ports(tenant_id=self.project.id),
             mock.call.list_security_groups(tenant_id=self.project.id),
+            mock.call.list_floatingips(tenant_id=self.project.id),
+            mock.call.list_routers(tenant_id=self.project.id),
+            mock.call.list_subnets(tenant_id=self.project.id),
+            mock.call.list_networks(tenant_id=self.project.id),
         ]
         swift_calls = [
             mock.call.get_account(),
