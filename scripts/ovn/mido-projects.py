@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from nectar_tools import auth
+from nectar_tools import utils
 
 
 def run():
@@ -18,7 +19,7 @@ def run():
     for n in networks:
         projects.append(n.get('tenant_id'))
 
-    all_projects = k_client.projects.list()
+    all_projects = utils.list_resources(k_client.projects.list)
     tempest_projects = []
     for p in all_projects:
         if 'tempest' in p.name:

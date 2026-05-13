@@ -1,4 +1,5 @@
 from nectar_tools.audit.cmd import base
+from nectar_tools import utils
 
 
 class ProjectAuditorCmd(base.AuditCmdBase):
@@ -28,10 +29,14 @@ class ProjectAuditorCmd(base.AuditCmdBase):
             project = self.k_client.projects.get(self.args.project_id)
             projects.append(project)
         elif self.args.all and self.args.include_disabled:
-            projects = self.k_client.projects.list(domain=self.args.domain)
+            projects = utils.list_resources(
+                self.k_client.projects.list, domain=self.args.domain
+            )
         elif self.args.all:
-            projects = self.k_client.projects.list(
-                enabled=True, domain=self.args.domain
+            projects = utils.list_resources(
+                self.k_client.projects.list,
+                enabled=True,
+                domain=self.args.domain,
             )
 
         projects.sort(key=lambda p: p.name.split('-')[-1].zfill(5))

@@ -13,6 +13,8 @@ from keystoneauth1 import session
 from keystoneclient.v3 import client
 from nectarallocationclient import client as allocation_client
 
+from nectar_tools import utils
+
 
 SWIFT_QUOTA_KEY = 'x-account-meta-quota-bytes'
 
@@ -105,7 +107,7 @@ if __name__ == '__main__':
         project = allocation.project_id
         quota = allocation.get_allocated_swift_quota()['object']
         quota_dict[project] = int(quota) * 1024 * 1024 * 1024
-    projects = kc.projects.list()
+    projects = utils.list_resources(kc.projects.list)
 
     # t = kc.projects.get('23')
     # projects = [t]

@@ -4,6 +4,7 @@ import logging
 
 from nectar_tools.expiry.cmd import base
 from nectar_tools.expiry import expirer
+from nectar_tools import utils
 
 
 LOG = logging.getLogger(__name__)
@@ -36,11 +37,12 @@ class PTExpiryCmd(base.ProjectExpiryBaseCmd):
         LOG.debug("Pre processing projects")
         projects_dict = {project.id: project for project in self.projects}
         if len(self.projects) == 1:
-            users = self.k_client.users.list(
-                default_project=self.projects[0].id
+            users = utils.list_resources(
+                self.k_client.users.list,
+                default_project=self.projects[0].id,
             )
         else:
-            users = self.k_client.users.list()
+            users = utils.list_resources(self.k_client.users.list)
         for user in users:
             project_id = getattr(user, 'default_project_id', None)
             if project_id:
