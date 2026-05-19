@@ -811,7 +811,14 @@ class PTExpirer(ProjectExpirer):
         disable_project=False,
         force_delete=False,
     ):
-        archivers = ['nova', 'neutron_basic', 'swift', 'heat', 'murano']
+        archivers = [
+            'nova',
+            'neutron_basic',
+            'swift',
+            'heat',
+            'magnum',
+            'murano',
+        ]
         notifier = expiry_notifier.ExpiryNotifier(
             resource_type='project',
             resource=project,
