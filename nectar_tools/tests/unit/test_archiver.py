@@ -1,7 +1,9 @@
 from unittest import mock
 
 from designateclient import exceptions as designate_exc
+import glanceclient.exc as glance_exc
 from heatclient import exc as heat_exc
+from kubernetes.client.rest import ApiException as kube_api_exc
 from magnumclient import exceptions as magnum_exc
 from novaclient import exceptions as nova_exc
 
@@ -31,6 +33,20 @@ class NovaArchiverTests(test.TestCase):
 
         with mock.patch.object(na, '_all_instances', return_value=[]):
             self.assertTrue(na.is_archive_successful())
+
+    def test_is_delete_successful_no_instances(self):
+        na = archiver.NovaArchiver(PROJECT)
+
+        with mock.patch.object(na, '_all_instances', return_value=[]):
+            self.assertTrue(na.is_delete_successful())
+
+    def test_is_delete_successful_with_instances(self):
+        na = archiver.NovaArchiver(PROJECT)
+
+        with mock.patch.object(
+            na, '_all_instances', return_value=[fakes.FakeInstance()]
+        ):
+            self.assertFalse(na.is_delete_successful())
 
     def test_is_archive_instance_has_archive(self):
         na = archiver.NovaArchiver(PROJECT)
@@ -536,6 +552,32 @@ class ZoneInstanceArchiverTests(NovaArchiverTests):
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class CinderArchiverTests(test.TestCase):
+    def test_is_delete_successful_empty(self):
+        ca = archiver.CinderArchiver(PROJECT)
+        with test.nested(
+            mock.patch.object(ca, '_all_volumes', return_value=[]),
+            mock.patch.object(ca, '_all_backups', return_value=[]),
+        ):
+            self.assertTrue(ca.is_delete_successful())
+
+    def test_is_delete_successful_with_volume(self):
+        ca = archiver.CinderArchiver(PROJECT)
+        with test.nested(
+            mock.patch.object(
+                ca, '_all_volumes', return_value=[fakes.FakeVolume()]
+            ),
+            mock.patch.object(ca, '_all_backups', return_value=[]),
+        ):
+            self.assertFalse(ca.is_delete_successful())
+
+    def test_is_delete_successful_with_backup(self):
+        ca = archiver.CinderArchiver(PROJECT)
+        with test.nested(
+            mock.patch.object(ca, '_all_volumes', return_value=[]),
+            mock.patch.object(ca, '_all_backups', return_value=[mock.Mock()]),
+        ):
+            self.assertFalse(ca.is_delete_successful())
+
     def test_delete_resources(self):
         ca = archiver.CinderArchiver(PROJECT)
         volume1 = fakes.FakeVolume()
@@ -617,6 +659,36 @@ class CinderArchiverTests(test.TestCase):
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class NeutronBasicArchiverTests(test.TestCase):
+    def test_is_delete_successful_empty(self):
+        na = archiver.NeutronBasicArchiver(PROJECT)
+        with mock.patch.object(na, 'ne_client') as mock_neutron:
+            mock_neutron.list_ports.return_value = {'ports': []}
+            mock_neutron.list_security_groups.return_value = {
+                'security_groups': [{'id': 'sg1', 'name': 'default'}]
+            }
+            self.assertTrue(na.is_delete_successful())
+
+    def test_is_delete_successful_with_ports(self):
+        na = archiver.NeutronBasicArchiver(PROJECT)
+        with mock.patch.object(na, 'ne_client') as mock_neutron:
+            mock_neutron.list_ports.return_value = {'ports': [{'id': 'p1'}]}
+            mock_neutron.list_security_groups.return_value = {
+                'security_groups': []
+            }
+            self.assertFalse(na.is_delete_successful())
+
+    def test_is_delete_successful_with_non_default_sg(self):
+        na = archiver.NeutronBasicArchiver(PROJECT)
+        with mock.patch.object(na, 'ne_client') as mock_neutron:
+            mock_neutron.list_ports.return_value = {'ports': []}
+            mock_neutron.list_security_groups.return_value = {
+                'security_groups': [
+                    {'id': 'sg1', 'name': 'default'},
+                    {'id': 'sg2', 'name': 'custom'},
+                ]
+            }
+            self.assertFalse(na.is_delete_successful())
+
     def test_zero_quota(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
         with mock.patch.object(na, 'ne_client') as mock_neutron:
@@ -1083,6 +1155,19 @@ class ImageArchiverTests(test.TestCase):
         ia.delete_resources(force=True)
         self.assertEqual(mock_delete.call_count, 1)
 
+    def test_is_delete_successful_gone(self):
+        ia = archiver.ImageArchiver(IMAGE)
+        with mock.patch.object(ia, 'g_client') as mock_glance:
+            mock_glance.images.get.side_effect = glance_exc.HTTPNotFound
+            self.assertTrue(ia.is_delete_successful())
+            mock_glance.images.get.assert_called_once_with(IMAGE.id)
+
+    def test_is_delete_successful_still_exists(self):
+        ia = archiver.ImageArchiver(IMAGE)
+        with mock.patch.object(ia, 'g_client') as mock_glance:
+            mock_glance.images.get.return_value = IMAGE
+            self.assertFalse(ia.is_delete_successful())
+
     @mock.patch('nectar_tools.expiry.archiver.ImageArchiver._restrict_image')
     def test_restrict_resources(self, mock_restrict):
         ia = archiver.ImageArchiver(IMAGE)
@@ -1249,6 +1334,39 @@ class ProjectImagesArchiverTests(test.TestCase):
             mock_image.images.update.assert_has_calls(
                 [mock.call(image2.id, visibility='private')]
             )
+
+
+@mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_kube_client', new=mock.Mock())
+class JupyterHubVolumeArchiverTests(test.TestCase):
+    def _get_archiver(self):
+        metadata = fakes.FakeK8sObject(name='claim-fake')
+        pvc = fakes.FakeK8sObject(metadata=metadata)
+        return archiver.JupyterHubVolumeArchiver(pvc)
+
+    def test_is_delete_successful_gone(self):
+        ja = self._get_archiver()
+        with mock.patch.object(ja, 'kube_client') as mock_kube:
+            mock_kube.read_namespaced_persistent_volume_claim.side_effect = (
+                kube_api_exc(status=404)
+            )
+            self.assertTrue(ja.is_delete_successful())
+
+    def test_is_delete_successful_still_exists(self):
+        ja = self._get_archiver()
+        with mock.patch.object(ja, 'kube_client') as mock_kube:
+            mock_kube.read_namespaced_persistent_volume_claim.return_value = (
+                mock.Mock()
+            )
+            self.assertFalse(ja.is_delete_successful())
+
+    def test_is_delete_successful_other_error_raises(self):
+        ja = self._get_archiver()
+        with mock.patch.object(ja, 'kube_client') as mock_kube:
+            mock_kube.read_namespaced_persistent_volume_claim.side_effect = (
+                kube_api_exc(status=500)
+            )
+            self.assertRaises(kube_api_exc, ja.is_delete_successful)
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())

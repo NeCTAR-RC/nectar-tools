@@ -2,6 +2,7 @@ import datetime
 from freezegun import freeze_time
 from unittest import mock
 
+from nectar_tools import exceptions
 from nectar_tools import test
 
 from nectar_tools.expiry import expirer as base_expirer
@@ -207,8 +208,23 @@ class JupyterHubVolumeExpiryTests(test.TestCase):
 
     def test_process_force_delete(self):
         ex = expirer.JupyterHubVolumeExpirer(self.pvc, force_delete=True)
-        with mock.patch.object(ex, 'delete_resources') as mock_delete:
+        with test.nested(
+            mock.patch.object(ex, 'delete_resources'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = True
             self.assertTrue(ex.process())
+            mock_delete.assert_called_with(force=True)
+            mock_archiver.is_delete_successful.assert_called_once_with()
+
+    def test_process_force_delete_resources_remain(self):
+        ex = expirer.JupyterHubVolumeExpirer(self.pvc, force_delete=True)
+        with test.nested(
+            mock.patch.object(ex, 'delete_resources'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = False
+            self.assertRaises(exceptions.DeleteFailure, ex.process)
             mock_delete.assert_called_with(force=True)
 
     def test_process_should_not_process(self):

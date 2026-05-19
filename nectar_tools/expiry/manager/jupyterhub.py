@@ -5,6 +5,7 @@ import requests
 
 from nectar_tools import auth
 from nectar_tools import config
+from nectar_tools import exceptions
 
 from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expirer as base
@@ -180,6 +181,10 @@ class JupyterHubVolumeExpirer(base.Expirer):
         if self.force_delete:
             LOG.info("Force deleting PVC: %s", self.id)
             self.delete_resources(force=True)
+            if not self.archiver.is_delete_successful():
+                raise exceptions.DeleteFailure(
+                    f"PVC {self.id}: Volume still exists after force delete"
+                )
             return True
 
         if not self.should_process():

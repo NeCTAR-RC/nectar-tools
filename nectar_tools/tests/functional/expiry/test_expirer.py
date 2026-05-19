@@ -237,6 +237,15 @@ class PTExpiryTests(test.TestCase):
                     expiry_updated_at=TODAY,
                 ),
             ]
+        elif state == expiry_states.DELETING:
+            keystone_calls = [
+                mock.call.projects.update(
+                    self.project.id,
+                    expiry_next_step='',
+                    expiry_status=state,
+                    expiry_updated_at=TODAY,
+                ),
+            ]
         else:
             keystone_calls = [
                 mock.call.projects.update(
@@ -666,7 +675,8 @@ class PTExpiryTests(test.TestCase):
                      2 security groups
                      2 security group rules
 
-        Expected: Delete instance archive, status -> DELETED
+        Expected: Resources deleted, status -> DELETING (finalisation
+        to DELETED is gated on a subsequent is_delete_successful check).
 
         """
         self.project.expiry_status = expiry_states.ARCHIVED
@@ -760,15 +770,6 @@ class PTExpiryTests(test.TestCase):
             mock.call.delete_security_group_rule('rule2'),
         ]
 
-        fd_calls = [
-            mock.call.comments.create_note(
-                int(self.project.expiry_ticket_id), 'Project deleted'
-            ),
-            mock.call.tickets.update_ticket(
-                int(self.project.expiry_ticket_id), status=5
-            ),
-        ]
-
         swift_calls = [
             mock.call.get_account(),
             mock.call.get_container(c1['name']),
@@ -780,17 +781,88 @@ class PTExpiryTests(test.TestCase):
             mock.call.clusters.list(detail=True),
         ]
 
-        keystone_calls = self.get_keystone_calls(expiry_states.DELETED)
+        keystone_calls = self.get_keystone_calls(expiry_states.DELETING)
         self._test_process(
             nova_calls=nova_calls,
             glance_calls=glance_calls,
-            fd_calls=fd_calls,
             keystone_calls=keystone_calls,
             neutron_calls=neutron_calls,
             swift_calls=swift_calls,
             heat_calls=heat_calls,
             murano_calls=murano_calls,
             magnum_calls=magnum_calls,
+        )
+
+    def test_deleting_ready(self):
+        """Project in deleting state with all resources already gone
+
+        Expected: is_delete_successful() returns True, project is
+        finalised to DELETED with FreshDesk close.
+        """
+        self.project.expiry_status = expiry_states.DELETING
+        self.project.expiry_next_step = ''
+        self.project.expiry_ticket_id = '2'
+
+        nova_client = FAKE_NOVA
+        heat_client = FAKE_HEAT
+        murano_client = FAKE_MURANO
+        swift_client = FAKE_SWIFT
+        neutron_client = FAKE_NEUTRON
+        magnum_client = FAKE_MAGNUM
+
+        def fake_list(search_opts):
+            return []
+
+        nova_client.servers.list.side_effect = fake_list
+        heat_client.stacks.list.return_value = []
+        murano_client.environments.list.return_value = []
+        magnum_client.clusters.list.return_value = []
+        swift_client.get_account.return_value = ('fake-account', [])
+        neutron_client.list_ports.return_value = {'ports': []}
+        neutron_client.list_security_groups.return_value = {
+            'security_groups': [{'id': 'default', 'name': 'default'}]
+        }
+
+        nova_calls = [
+            mock.call.servers.list(
+                search_opts={'all_tenants': True, 'tenant_id': self.project.id}
+            ),
+        ]
+        heat_calls = [
+            mock.call.stacks.list(filters={'tenant': self.project.id}),
+        ]
+        murano_calls = [
+            mock.call.environments.list(tenant_id=self.project.id),
+        ]
+        magnum_calls = [
+            mock.call.clusters.list(detail=True),
+        ]
+        neutron_calls = [
+            mock.call.list_ports(tenant_id=self.project.id),
+            mock.call.list_security_groups(tenant_id=self.project.id),
+        ]
+        swift_calls = [
+            mock.call.get_account(),
+        ]
+        fd_calls = [
+            mock.call.comments.create_note(
+                int(self.project.expiry_ticket_id), 'Project deleted'
+            ),
+            mock.call.tickets.update_ticket(
+                int(self.project.expiry_ticket_id), status=5
+            ),
+        ]
+        keystone_calls = self.get_keystone_calls(expiry_states.DELETED)
+
+        self._test_process(
+            nova_calls=nova_calls,
+            heat_calls=heat_calls,
+            murano_calls=murano_calls,
+            magnum_calls=magnum_calls,
+            neutron_calls=neutron_calls,
+            swift_calls=swift_calls,
+            fd_calls=fd_calls,
+            keystone_calls=keystone_calls,
         )
 
     def test_deleted(self):

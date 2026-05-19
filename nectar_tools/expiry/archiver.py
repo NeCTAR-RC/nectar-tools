@@ -3,7 +3,9 @@ import re
 import time
 
 from designateclient import exceptions as designate_exc
+import glanceclient.exc as glance_exc
 from heatclient import exc as heat_exc
+from kubernetes.client.rest import ApiException as kube_api_exc
 from magnumclient import exceptions as magnum_exc
 from novaclient import exceptions as nova_exc
 from swiftclient import exceptions as swift_exc
@@ -28,6 +30,9 @@ class Archiver:
         self.ks_session = ks_session
 
     def is_archive_successful(self):
+        return True
+
+    def is_delete_successful(self):
         return True
 
     def zero_quota(self):
@@ -142,11 +147,31 @@ class JupyterHubVolumeArchiver(Archiver):
             return
         self._delete_pvc()
 
+    def is_delete_successful(self):
+        try:
+            self.kube_client.read_namespaced_persistent_volume_claim(
+                self.id, self.kube_ns
+            )
+        except kube_api_exc as e:
+            if e.status == 404:
+                return True
+            raise
+        LOG.debug("JupyterHub PVC %s still exists", self.id)
+        return False
+
 
 class ImageArchiver(Archiver):
     def __init__(self, image, ks_session=None, dry_run=False):
         super().__init__(ks_session, dry_run)
         self.image = image
+
+    def is_delete_successful(self):
+        try:
+            self.g_client.images.get(self.image.id)
+        except glance_exc.HTTPNotFound:
+            return True
+        LOG.debug("Image %s still exists", self.image.id)
+        return False
 
     def _delete_image(self, image):
         LOG.debug("Found image %s", image.id)
@@ -251,6 +276,13 @@ class NovaArchiver(Archiver):
             if not self._instance_has_archive(instance):
                 project_archive_success = False
         return project_archive_success
+
+    def is_delete_successful(self):
+        instances = self._all_instances()
+        if len(instances) == 0:
+            return True
+        LOG.debug("%s: %d instances remain", self.project.id, len(instances))
+        return False
 
     def _instance_has_archive(self, instance):
         LOG.debug('Checking instance: %s (%s)', instance.id, instance.status)
@@ -630,6 +662,19 @@ class CinderArchiver(Archiver):
         self.volumes = None
         self.backups = None
 
+    def is_delete_successful(self):
+        volumes = self._all_volumes()
+        backups = self._all_backups()
+        if not volumes and not backups:
+            return True
+        LOG.debug(
+            "%s: %d volumes and %d backups remain",
+            self.project.id,
+            len(volumes),
+            len(backups),
+        )
+        return False
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -681,6 +726,33 @@ class NeutronBasicArchiver(Archiver):
         super().__init__(ks_session, dry_run)
         self.ne_client = auth.get_neutron_client(ks_session)
         self.project = project
+
+    def is_delete_successful(self):
+        remaining = self._list_remaining_resources()
+        if not remaining:
+            return True
+        LOG.debug(
+            "%s: Neutron resources remain: %s",
+            self.project.id,
+            ', '.join(remaining),
+        )
+        return False
+
+    def _list_remaining_resources(self):
+        remaining = []
+        ports = self.ne_client.list_ports(tenant_id=self.project.id)['ports']
+        if ports:
+            remaining.append(f'{len(ports)} ports')
+        sgs = [
+            sg
+            for sg in self.ne_client.list_security_groups(
+                tenant_id=self.project.id
+            )['security_groups']
+            if sg['name'] != 'default'
+        ]
+        if sgs:
+            remaining.append(f'{len(sgs)} security_groups')
+        return remaining
 
     def zero_quota(self):
         body = {
@@ -754,6 +826,30 @@ class NeutronBasicArchiver(Archiver):
 
 
 class NeutronArchiver(NeutronBasicArchiver):
+    def _list_remaining_resources(self):
+        remaining = super()._list_remaining_resources()
+        fips = self.ne_client.list_floatingips(tenant_id=self.project.id)[
+            'floatingips'
+        ]
+        if fips:
+            remaining.append(f'{len(fips)} floatingips')
+        routers = self.ne_client.list_routers(tenant_id=self.project.id)[
+            'routers'
+        ]
+        if routers:
+            remaining.append(f'{len(routers)} routers')
+        subnets = self.ne_client.list_subnets(tenant_id=self.project.id)[
+            'subnets'
+        ]
+        if subnets:
+            remaining.append(f'{len(subnets)} subnets')
+        networks = self.ne_client.list_networks(tenant_id=self.project.id)[
+            'networks'
+        ]
+        if networks:
+            remaining.append(f'{len(networks)} networks')
+        return remaining
+
     def delete_resources(self, force=False):
         # Because we can't archive only delete when forced
         if not force:
@@ -812,6 +908,13 @@ class OctaviaArchiver(Archiver):
         self.lb_client = auth.get_openstacksdk(ks_session).load_balancer
         self.project = project
 
+    def is_delete_successful(self):
+        lbs = list(self.lb_client.load_balancers(project_id=self.project.id))
+        if not lbs:
+            return True
+        LOG.debug("%s: %d load balancers remain", self.project.id, len(lbs))
+        return False
+
     def zero_quota(self):
         if not self.dry_run:
             LOG.info("%s: Zero octavia quota", self.project.id)
@@ -835,6 +938,15 @@ class ProjectImagesArchiver(ImageArchiver):
     def __init__(self, project, ks_session=None, dry_run=False):
         Archiver.__init__(self, ks_session, dry_run)
         self.project = project
+
+    def is_delete_successful(self):
+        images = list(
+            self.g_client.images.list(filters={'owner': self.project.id})
+        )
+        if not images:
+            return True
+        LOG.debug("%s: %d project images remain", self.project.id, len(images))
+        return False
 
     def delete_resources(self, force=False):
         if not force:
@@ -875,6 +987,17 @@ class SwiftArchiver(Archiver):
         self.s_client = auth.get_swift_client(
             ks_session, project_id=self.project.id
         )
+
+    def is_delete_successful(self):
+        _, containers = self.s_client.get_account()
+        if not containers:
+            return True
+        LOG.debug(
+            "%s: %d swift containers remain",
+            self.project.id,
+            len(containers),
+        )
+        return False
 
     def zero_quota(self):
         if not self.dry_run:
@@ -955,6 +1078,15 @@ class DesignateArchiver(Archiver):
             self.d_client = auth.get_designate_client(
                 ks_session, project_id=self.project.id
             )
+
+    def is_delete_successful(self):
+        if self.dry_run:
+            return True
+        zones = list(self.d_client.zones.list())
+        if not zones:
+            return True
+        LOG.debug("%s: %d designate zones remain", self.project.id, len(zones))
+        return False
 
     def delete_resources(self, force=False):
         if not force:
@@ -1052,6 +1184,17 @@ class MagnumArchiver(Archiver):
         self.project = project
         self.m_client = auth.get_magnum_client(ks_session)
 
+    def is_delete_successful(self):
+        clusters = [
+            c
+            for c in self.m_client.clusters.list(detail=True)
+            if c.project_id == self.project.id
+        ]
+        if not clusters:
+            return True
+        LOG.debug("%s: %d COE clusters remain", self.project.id, len(clusters))
+        return False
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -1086,6 +1229,16 @@ class ManilaArchiver(Archiver):
         self.project = project
         self.m_client = auth.get_manila_client(ks_session)
 
+    def is_delete_successful(self):
+        shares = self.m_client.shares.list(
+            detailed=False,
+            search_opts={"all_tenants": "1", "project_id": self.project.id},
+        )
+        if not shares:
+            return True
+        LOG.debug("%s: %d manila shares remain", self.project.id, len(shares))
+        return False
+
     def zero_quota(self):
         if not self.dry_run:
             LOG.info("%s: Zero manila quota", self.project.id)
@@ -1117,6 +1270,19 @@ class MuranoArchiver(Archiver):
         self.project = project
         self.m_client = auth.get_murano_client(ks_session)
 
+    def is_delete_successful(self):
+        environments = self.m_client.environments.list(
+            tenant_id=self.project.id
+        )
+        if not environments:
+            return True
+        LOG.debug(
+            "%s: %d murano environments remain",
+            self.project.id,
+            len(environments),
+        )
+        return False
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -1146,6 +1312,13 @@ class TroveArchiver(Archiver):
         super().__init__(ks_session, dry_run)
         self.project = project
         self.t_client = auth.get_trove_client(ks_session)
+
+    def is_delete_successful(self):
+        dbs = self.t_client.mgmt_instances.list(project_id=self.project.id)
+        if not dbs:
+            return True
+        LOG.debug("%s: %d trove instances remain", self.project.id, len(dbs))
+        return False
 
     def zero_quota(self):
         body = {"ram": 0, "volumes": 0}
@@ -1209,6 +1382,19 @@ class WarreArchiver(Archiver):
         self.project = project
         self.w_client = auth.get_warre_client(ks_session)
 
+    def is_delete_successful(self):
+        reservations = self.w_client.reservations.list(
+            project_id=self.project.id
+        )
+        if not reservations:
+            return True
+        LOG.debug(
+            "%s: %d warre reservations remain",
+            self.project.id,
+            len(reservations),
+        )
+        return False
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -1237,6 +1423,15 @@ class HeatArchiver(Archiver):
         super().__init__(ks_session, dry_run)
         self.project = project
         self.h_client = auth.get_heat_client(ks_session)
+
+    def is_delete_successful(self):
+        stacks = list(
+            self.h_client.stacks.list(filters={'tenant': self.project.id})
+        )
+        if not stacks:
+            return True
+        LOG.debug("%s: %d heat stacks remain", self.project.id, len(stacks))
+        return False
 
     def delete_resources(self, force=False):
         if not force:
@@ -1304,6 +1499,13 @@ class ResourceArchiver:
         success = True
         for archiver in self.archivers:
             if not archiver.is_archive_successful():
+                success = False
+        return success
+
+    def is_delete_successful(self):
+        success = True
+        for archiver in self.archivers:
+            if not archiver.is_delete_successful():
                 success = False
         return success
 

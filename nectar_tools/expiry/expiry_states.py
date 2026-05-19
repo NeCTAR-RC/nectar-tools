@@ -10,6 +10,8 @@ ARCHIVING = 'archiving'
 
 ARCHIVED = 'archived'
 
+DELETING = 'deleting'
+
 DELETED = 'deleted'
 
 ARCHIVE_ERROR = 'archive error'
@@ -25,6 +27,7 @@ ALL_STATES = [
     STOPPED,
     ARCHIVING,
     ARCHIVED,
+    DELETING,
     DELETED,
     ARCHIVE_ERROR,
     RENEWED,

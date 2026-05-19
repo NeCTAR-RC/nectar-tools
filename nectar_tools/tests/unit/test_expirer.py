@@ -430,18 +430,72 @@ class ProjectExpirerTests(test.TestCase):
             mock_event.assert_called_once_with('archived')
 
     def test_delete_project(self):
+        project = fakes.FakeProject(expiry_status=expiry_states.ARCHIVED)
+        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
+        with test.nested(
+            mock.patch.object(ex, '_update_resource'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_update_resource, mock_archiver):
+            ex.delete_project()
+            mock_update_resource.assert_called_with(
+                expiry_status=expiry_states.DELETING,
+                expiry_next_step='',
+            )
+            mock_archiver.delete_resources.assert_called_once_with(force=True)
+            mock_archiver.delete_archives.assert_called_once_with()
+
+    def test_delete_project_retry(self):
+        project = fakes.FakeProject(expiry_status=expiry_states.DELETING)
+        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
+        with test.nested(
+            mock.patch.object(ex, '_update_resource'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_update_resource, mock_archiver):
+            ex.delete_project()
+            mock_update_resource.assert_not_called()
+            mock_archiver.delete_resources.assert_called_once_with(force=True)
+            mock_archiver.delete_archives.assert_called_once_with()
+
+    def test_check_deleting_status_success(self):
+        project = fakes.FakeProject()
+        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
+
+        with test.nested(
+            mock.patch.object(ex, 'set_project_deleted'),
+            mock.patch.object(ex, 'archiver'),
+            mock.patch.object(ex, 'delete_project'),
+        ) as (mock_set_deleted, mock_archiver, mock_delete):
+            mock_archiver.is_delete_successful.return_value = True
+            ex.check_deleting_status()
+            mock_archiver.is_delete_successful.assert_called_once_with()
+            mock_set_deleted.assert_called_once_with()
+            mock_delete.assert_not_called()
+
+    def test_check_deleting_status_negative(self):
+        project = fakes.FakeProject()
+        ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
+
+        with test.nested(
+            mock.patch.object(ex, 'set_project_deleted'),
+            mock.patch.object(ex, 'archiver'),
+            mock.patch.object(ex, 'delete_project'),
+        ) as (mock_set_deleted, mock_archiver, mock_delete):
+            mock_archiver.is_delete_successful.return_value = False
+            ex.check_deleting_status()
+            mock_archiver.is_delete_successful.assert_called_once_with()
+            mock_set_deleted.assert_not_called()
+            mock_delete.assert_called_once_with()
+
+    def test_set_project_deleted(self):
         project = fakes.FakeProject()
         ex = expirer.ProjectExpirer(project, archivers='fake', notifier='fake')
         today = datetime.datetime.now().strftime(expirer.DATE_FORMAT)
         with test.nested(
             mock.patch.object(ex, '_update_resource'),
-            mock.patch.object(ex, 'archiver'),
             mock.patch.object(ex, 'notifier'),
             mock.patch.object(ex, 'send_event'),
-        ) as (mock_update_resource, mock_archiver, mock_notifier, mock_event):
-            ex.delete_project()
-            mock_archiver.delete_resources.assert_called_once_with(force=True)
-            mock_archiver.delete_archives.assert_called_once_with()
+        ) as (mock_update_resource, mock_notifier, mock_event):
+            ex.set_project_deleted()
             mock_notifier.finish.assert_called_with(message='Project deleted')
             mock_update_resource.assert_called_with(
                 expiry_status=expiry_states.DELETED,
@@ -667,9 +721,30 @@ class AllocationExpiryTests(test.TestCase):
         project = fakes.FakeProject('warning1')
         ex = expirer.AllocationExpirer(project, force_delete=True)
 
-        with mock.patch.object(ex, 'delete_project') as mock_delete:
+        with test.nested(
+            mock.patch.object(ex, 'delete_project'),
+            mock.patch.object(ex, 'set_project_deleted'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_set_deleted, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = True
             self.assertTrue(ex.process())
             mock_delete.assert_called_with()
+            mock_archiver.is_delete_successful.assert_called_once_with()
+            mock_set_deleted.assert_called_with()
+
+    def test_process_force_delete_resources_remain(self):
+        project = fakes.FakeProject('warning1')
+        ex = expirer.AllocationExpirer(project, force_delete=True)
+
+        with test.nested(
+            mock.patch.object(ex, 'delete_project'),
+            mock.patch.object(ex, 'set_project_deleted'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_set_deleted, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = False
+            self.assertRaises(exceptions.DeleteFailure, ex.process)
+            mock_delete.assert_called_with()
+            mock_set_deleted.assert_not_called()
 
     def test_process_active(self):
         project = fakes.FakeProject('active')
@@ -764,6 +839,14 @@ class AllocationExpiryTests(test.TestCase):
         with mock.patch.object(ex, 'delete_resources') as mock_delete:
             self.assertTrue(ex.process())
             mock_delete.assert_called_with()
+
+    def test_process_deleting(self):
+        project = fakes.FakeProject(expiry_status=expiry_states.DELETING)
+        ex = expirer.AllocationExpirer(project)
+
+        with mock.patch.object(ex, 'check_deleting_status') as mock_check:
+            self.assertTrue(ex.process())
+            mock_check.assert_called_with()
 
     def test_get_notice_period_days(self):
         project = fakes.FakeProject()
@@ -1192,7 +1275,7 @@ class AllocationExpiryTests(test.TestCase):
         cc.sort()
         self.assertEqual(['manager2@example.org', 'member1@example.org'], cc)
 
-    def test_delete_project(self):
+    def test_set_project_deleted(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
         allocations = fakes.FakeAllocationManager()
@@ -1200,14 +1283,15 @@ class AllocationExpiryTests(test.TestCase):
 
         with test.nested(
             mock.patch(
-                'nectar_tools.expiry.expirer.ProjectExpirer.delete_project'
+                'nectar_tools.expiry.expirer.ProjectExpirer.'
+                'set_project_deleted'
             ),
             mock.patch.object(ex, 'allocation', return_value=allocation),
             mock.patch.object(ex, 'get_current_allocation'),
-        ) as (mock_parent_delete, mock_allocation, mock_get_current):
+        ) as (mock_parent_set_deleted, mock_allocation, mock_get_current):
             mock_get_current.return_value = mock_allocation
-            ex.delete_project()
-            mock_parent_delete.assert_called_once_with()
+            ex.set_project_deleted()
+            mock_parent_set_deleted.assert_called_once_with()
             mock_get_current.assert_called_once_with()
             mock_allocation.delete.assert_called_once_with()
 
@@ -1516,6 +1600,16 @@ class PTExpiryProcessTests(test.TestCase):
             mock_delete.assert_called_with()
             self.assertTrue(processed)
 
+    def test_process_deleting(self):
+        project = fakes.FakeProjectWithOwner(
+            expiry_status=expiry_states.DELETING
+        )
+        ex = expirer.PTExpirer(project)
+        with mock.patch.object(ex, 'check_deleting_status') as mock_check:
+            processed = ex.process()
+            mock_check.assert_called_with()
+            self.assertTrue(processed)
+
 
 @freeze_time('2017-01-01')
 @mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier', new=mock.Mock())
@@ -1726,8 +1820,25 @@ class AllocationInstanceExpiryTests(test.TestCase):
     def test_process_force_delete(self, mock_instances):
         project = fakes.FakeProject(allocation_id=1, zone_expiry_status='fake')
         ex = expirer.AllocationInstanceExpirer(project, force_delete=True)
-        with mock.patch.object(ex, 'delete_resources') as mock_delete:
+        with test.nested(
+            mock.patch.object(ex, 'delete_resources'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = True
             self.assertTrue(ex.process())
+            mock_delete.assert_called_with(force=True)
+            mock_archiver.is_delete_successful.assert_called_once_with()
+
+    @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
+    def test_process_force_delete_resources_remain(self, mock_instances):
+        project = fakes.FakeProject(allocation_id=1, zone_expiry_status='fake')
+        ex = expirer.AllocationInstanceExpirer(project, force_delete=True)
+        with test.nested(
+            mock.patch.object(ex, 'delete_resources'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = False
+            self.assertRaises(exceptions.DeleteFailure, ex.process)
             mock_delete.assert_called_with(force=True)
 
     @mock.patch('nectar_tools.utils.get_out_of_zone_instances')
@@ -2259,8 +2370,24 @@ class ImageExpiryTests(test.TestCase):
     def test_process_force_delete(self):
         image = fakes.FakeImage(owner='fake')
         ex = expirer.ImageExpirer(image, force_delete=True)
-        with mock.patch.object(ex, 'delete_resources') as mock_delete:
+        with test.nested(
+            mock.patch.object(ex, 'delete_resources'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = True
             self.assertTrue(ex.process())
+            mock_delete.assert_called_with(force=True)
+            mock_archiver.is_delete_successful.assert_called_once_with()
+
+    def test_process_force_delete_resources_remain(self):
+        image = fakes.FakeImage(owner='fake')
+        ex = expirer.ImageExpirer(image, force_delete=True)
+        with test.nested(
+            mock.patch.object(ex, 'delete_resources'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = False
+            self.assertRaises(exceptions.DeleteFailure, ex.process)
             mock_delete.assert_called_with(force=True)
 
     def test_process_should_not_process(self):

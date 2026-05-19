@@ -354,6 +354,12 @@ class ProjectExpirer(Expirer):
         if self.force_delete:
             LOG.info("%s: Force deleting project", self.project.id)
             self.delete_project()
+            if not self.archiver.is_delete_successful():
+                raise exceptions.DeleteFailure(
+                    f"{self.project.id}: Resources still exist after "
+                    "force delete"
+                )
+            self.set_project_deleted()
             return True
 
         if not self.should_process():
@@ -402,6 +408,10 @@ class ProjectExpirer(Expirer):
                 self.delete_project()
             else:
                 self.delete_resources()
+            return True
+
+        elif expiry_status == expiry_states.DELETING:
+            self.check_deleting_status()
             return True
         else:
             LOG.error("%s: Invalid status %s", self.project.id, expiry_status)
@@ -484,15 +494,34 @@ class ProjectExpirer(Expirer):
         self.send_event('archived')
 
     def delete_project(self):
-        LOG.info("%s: Deleting project resources", self.project.id)
+        status = self.get_status()
+        if status != expiry_states.DELETING:
+            LOG.info("%s: Deleting project resources", self.project.id)
+            update_kwargs = {
+                self.STATUS_KEY: expiry_states.DELETING,
+                self.NEXT_STEP_KEY: '',
+            }
+            self._update_resource(**update_kwargs)
+
         self.archiver.delete_resources(force=True)
         self.archiver.delete_archives()
+
+    def check_deleting_status(self):
+        LOG.debug("%s: Checking delete status", self.project.id)
+        if self.archiver.is_delete_successful():
+            LOG.info("%s: Delete successful", self.project.id)
+            self.set_project_deleted()
+        else:
+            LOG.info("%s: Retrying delete", self.project.id)
+            self.delete_project()
+
+    def set_project_deleted(self):
         try:
             if self.get_status() != expiry_states.DELETED:
                 self.notifier.finish(message="Project deleted")
             else:
                 LOG.info(
-                    "%s: Skipping notification, project alreaded deleted",
+                    "%s: Skipping notification, project already deleted",
                     self.resource.id,
                 )
         except Exception:
@@ -777,8 +806,8 @@ class AllocationExpirer(ProjectExpirer):
                 self.project.id,
             )
 
-    def delete_project(self):
-        super().delete_project()
+    def set_project_deleted(self):
+        super().set_project_deleted()
 
         # If no allocation then this is all we need to do
         if self.force_no_allocation:
@@ -1028,6 +1057,11 @@ class AllocationInstanceExpirer(AllocationExpirer):
                 self.instances,
             )
             self.delete_resources(force=True)
+            if not self.archiver.is_delete_successful():
+                raise exceptions.DeleteFailure(
+                    f"{self.project.id}: Out of zone instances still "
+                    "exist after force delete"
+                )
             return True
 
         if not self.should_process():
@@ -1211,6 +1245,11 @@ class ImageExpirer(Expirer):
         if self.force_delete:
             LOG.info("Image %s: Force deleting image", self.image.id)
             self.delete_resources(force=True)
+            if not self.archiver.is_delete_successful():
+                raise exceptions.DeleteFailure(
+                    f"Image {self.image.id}: Image still exists after "
+                    "force delete"
+                )
             return True
         expiry_status = self.get_status()
         expiry_next_step = self.get_next_step_date()
