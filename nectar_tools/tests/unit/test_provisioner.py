@@ -156,7 +156,9 @@ class ProvisionerTests(test.TestCase):
             mock_update_project.return_value = project
             self.manager.provision(self.allocation)
             mock_update.assert_not_called()
-            mock_send_event.assert_not_called()
+            mock_send_event.assert_called_once_with(
+                self.allocation, 'reprovision'
+            )
             mock_revert.assert_not_called()
             mock_notify.assert_called_once_with(
                 self.allocation, False, project, mock_report.return_value
