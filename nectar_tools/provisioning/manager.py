@@ -386,6 +386,7 @@ class ProvisioningManager:
             'neutron.security_group': "Security Groups",
             'neutron.floatingip': "Floating IPs",
             'octavia.load_balancers': "Load Balancers",
+            'pawsey-object.object': "Pawsey Object Store (GB)",
             'manila.gigabytes_QRIScloud-GPFS': 'Shared Filesystem Storage QRIScloud (GB)',
             'manila.snapshot_gigabytes_QRIScloud-GPFS': 'Shared Filesystem Snapshot Storage QRIScloud (GB)',
             'manila.snapshots_QRIScloud-GPFS': 'Shared Filesystem Snapshots QRIScloud',
