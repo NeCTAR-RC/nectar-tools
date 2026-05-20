@@ -136,6 +136,8 @@ class ProvisioningManager:
             if not is_new_project:
                 self.revert_expiry(project=project)
         else:
+            event_type = 'reprovision'
+            self.send_event(allocation, event_type)
             # If you don't want the notification to happen in this
             # case, set no_notify=True
             self.notify_provisioned(
