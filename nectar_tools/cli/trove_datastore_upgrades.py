@@ -203,7 +203,7 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             backup = self.t_client.backups.create(
                 name="Pre Upgrade",
                 instance=inst,
-                description="Admin inititated backup pre upgrade",
+                description="Admin initiated backup pre upgrade",
             )
             start_time = int(time.time())
             timeout = 3600

@@ -260,7 +260,7 @@ class ProvisioningManager:
 
     def notify_provisioned(self, allocation, is_new_project, project, report):
         if not allocation.notifications or self.no_notify:
-            LOG.info("%s: Noifications disabled, skipping", allocation.id)
+            LOG.info("%s: Notifications disabled, skipping", allocation.id)
             return
         if self.noop:
             LOG.info(

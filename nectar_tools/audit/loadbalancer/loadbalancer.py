@@ -63,8 +63,10 @@ class LoadBalancerAuditor(base.Auditor):
                     LOG.warning(f"LB {lb.id} not using latest image")
                     self.repair(
                         f"Fail over LB {lb.id}",
-                        lambda: self.openstack.load_balancer.failover_load_balancer(
-                            lb.id
+                        lambda: (
+                            self.openstack.load_balancer.failover_load_balancer(
+                                lb.id
+                            )
                         ),
                     )
                     break
