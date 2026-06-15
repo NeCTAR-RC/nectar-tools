@@ -7,8 +7,6 @@ from designateclient import client as designateclient
 import glanceclient
 from gnocchiclient import client as gnocchiclient
 from heatclient import client as heatclient
-from keystoneauth1 import loading
-from keystoneauth1 import session
 from keystoneclient.v3 import client
 from kubernetes import client as kube_client
 from magnumclient import client as magnumclient
@@ -18,6 +16,7 @@ from muranoclient import client as muranoclient
 from nectarallocationclient import client as allocationclient
 from neutronclient.neutron import client as neutronclient
 from novaclient import client as novaclient
+import openstack
 from openstack import connection as sdkconnection
 from placementclient import client as placementclient
 from swiftclient import client as swiftclient
@@ -33,23 +32,35 @@ LOG = logging.getLogger(__name__)
 
 @configurable('openstack.client', env_prefix='OS')
 def get_session(
-    auth_url, username, password, project_name=None, system_scope='project'
+    auth_url,
+    username=None,
+    password=None,
+    project_name=None,
+    system_scope='project',
+    auth_type=None,
+    token=None,
 ):
-    loader = loading.get_plugin_loader('password')
     kwargs = {
         'auth_url': auth_url,
-        'username': username,
-        'password': password,
-        'user_domain_id': 'default',
     }
+    if auth_type:
+        kwargs['auth_type'] = auth_type
+    if token:
+        kwargs['token'] = token
+    if username:
+        kwargs['username'] = username
+        kwargs['user_domain_id'] = 'default'
+    if password:
+        kwargs['password'] = password
+
     if system_scope == 'project':
         kwargs['project_name'] = project_name
         kwargs['project_domain_id'] = 'default'
     elif system_scope == 'all':
         kwargs['system_scope'] = 'all'
 
-    auth = loader.load_from_options(**kwargs)
-    return session.Session(auth=auth)
+    conn = openstack.connect(**kwargs)
+    return conn.session
 
 
 def get_keystone_client(sess=None):
