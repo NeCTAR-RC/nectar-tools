@@ -1467,6 +1467,8 @@ class ResourceArchiver:
             enabled.append(MuranoArchiver(project, ks_session, dry_run))
         if 'magnum' in archivers:
             enabled.append(MagnumArchiver(project, ks_session, dry_run))
+        if 'trove' in archivers:
+            enabled.append(TroveArchiver(project, ks_session, dry_run))
         if 'heat' in archivers:
             enabled.append(HeatArchiver(project, ks_session, dry_run))
         if 'nova' in archivers:
@@ -1489,8 +1491,6 @@ class ResourceArchiver:
             enabled.append(DesignateArchiver(project, ks_session, dry_run))
         if 'manila' in archivers:
             enabled.append(ManilaArchiver(project, ks_session, dry_run))
-        if 'trove' in archivers:
-            enabled.append(TroveArchiver(project, ks_session, dry_run))
         if 'warre' in archivers:
             enabled.append(WarreArchiver(project, ks_session, dry_run))
         self.archivers = enabled
