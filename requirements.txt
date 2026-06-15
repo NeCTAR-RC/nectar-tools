@@ -16,7 +16,7 @@ python-heatclient
 gnocchiclient
 placementclient
 jinja2
-prettytable
+prettytable>=3.8.0
 python-freshdesk
 nectarallocationclient>=1.8.0
 oslo.messaging
