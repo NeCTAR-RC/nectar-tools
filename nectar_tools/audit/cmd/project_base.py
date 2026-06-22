@@ -22,8 +22,7 @@ class ProjectAuditorCmd(base.AuditCmdBase):
             '--domain', default='default', help='Project domain.'
         )
 
-    def run_audits(self):
-        manager = self.get_manager()
+    def _get_projects(self):
         projects = []
         if self.args.project_id:
             project = self.k_client.projects.get(self.args.project_id)
@@ -40,8 +39,11 @@ class ProjectAuditorCmd(base.AuditCmdBase):
             )
 
         projects.sort(key=lambda p: p.name.split('-')[-1].zfill(5))
+        return projects
 
-        for project in projects:
+    def run_audits(self):
+        manager = self.get_manager()
+        for project in self._get_projects():
             if self.is_valid_project(project):
                 auditor = manager(
                     ks_session=self.session,
@@ -49,3 +51,24 @@ class ProjectAuditorCmd(base.AuditCmdBase):
                     dry_run=self.dry_run,
                 )
                 auditor.run_all(list_not_run=self.list_not_run)
+
+    def run_check(self, check):
+        # Project auditors need a project, so the base single-instance
+        # mechanism can't be used.  Run the named check over every valid
+        # project instead.
+        method_str = check.split(':')[1].split('.')[1]
+        manager = self.get_manager()
+        auditor = None
+        with base.slack_context(self):
+            for project in self._get_projects():
+                if not self.is_valid_project(project):
+                    continue
+                auditor = manager(
+                    ks_session=self.session,
+                    project=project,
+                    dry_run=self.dry_run,
+                    limit=self.limit,
+                )
+                getattr(auditor, method_str)()
+            if auditor is not None:
+                auditor.summary()

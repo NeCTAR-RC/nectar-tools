@@ -6,11 +6,29 @@ from nectarallocationclient import states as allocation_states
 
 from nectar_tools.audit.projects import base
 from nectar_tools import auth
+from nectar_tools.expiry import archiver
 from nectar_tools.expiry import expiry_states
 
 
 LOG = logging.getLogger(__name__)
 TICKET_RE = re.compile(r'^ticket-.+$')
+
+# The set of archivers used by the allocation expirer to delete a project's
+# resources.  Keep this in sync with AllocationExpirer's default archivers.
+DELETE_ARCHIVERS = [
+    'nova',
+    'cinder',
+    'octavia',
+    'neutron',
+    'projectimages',
+    'swift',
+    'magnum',
+    'manila',
+    'murano',
+    'trove',
+    'heat',
+    'warre',
+]
 
 
 class ProjectAllocationAuditor(base.ProjectAuditor):
@@ -253,3 +271,51 @@ class ProjectAllocationAuditor(base.ProjectAuditor):
                 f"as deleted",
                 lambda: self.a_client.allocations.delete(allocation.id),
             )
+
+    def check_deleted_resources(self):
+        """Find deleted projects that still have resources.
+
+        A project with expiry_status 'deleted' is no longer processed by the
+        expirer, so any resources it still has will never be cleaned up.  If
+        we find such a project, revert its expiry status to 'deleting' so the
+        expirer picks it up again and finishes deleting the resources.
+
+        Only revert when the linked allocation also exists and is in the
+        deleted state.  A deleted project linked to a live (or missing)
+        allocation is a different out-of-sync problem, reported by
+        check_deleted_allocation; reverting there would fight the allocation
+        state rather than fix it.
+        """
+        expiry_status = getattr(self.project, 'expiry_status', '')
+        if expiry_status != expiry_states.DELETED:
+            return
+
+        allocation = self._get_allocation_or_none()
+        if (
+            allocation is None
+            or allocation.status != allocation_states.DELETED
+        ):
+            LOG.debug(
+                "%s: Skipping deleted project, allocation is not deleted",
+                self.project.id,
+            )
+            return
+
+        resource_archiver = archiver.ResourceArchiver(
+            self.project,
+            archivers=DELETE_ARCHIVERS,
+            ks_session=self.ks_session,
+            dry_run=self.dry_run,
+        )
+        if resource_archiver.is_delete_successful():
+            # No resources remain, nothing to do.
+            return
+
+        LOG.info("%s: Deleted project still has resources", self.project.id)
+        self.repair(
+            f"{self.project.id}: Reverting expiry status from "
+            f"deleted to deleting due to remaining resources",
+            lambda: self.k_client.projects.update(
+                self.project.id, expiry_status=expiry_states.DELETING
+            ),
+        )

@@ -29,25 +29,10 @@ class AuditCmdBase(cmd_base.CmdBase):
         super().__init__(log_filename='audit.log')
         self.list_not_run = self.args.list
         self.limit = self.args.limit
-        extra_args = self.get_extra_args()
 
         if self.args.check:
             try:
-                module_str, class_method_str = self.args.check.split(':')
-                class_str, method_str = class_method_str.split('.')
-                module = importlib.import_module(module_str)
-                auditor_class = getattr(module, class_str)
-                auditor = auditor_class(
-                    ks_session=self.session,
-                    dry_run=self.dry_run,
-                    limit=self.limit,
-                    **extra_args,
-                )
-                method = getattr(auditor, method_str)
-                with slack_context(self):
-                    method()
-                    summary = getattr(auditor, 'summary')
-                    summary()
+                self.run_check(self.args.check)
                 sys.exit(0)
             except exceptions.LimitReached:
                 LOG.info("Limit has been reached")
@@ -55,6 +40,23 @@ class AuditCmdBase(cmd_base.CmdBase):
             except Exception as e:
                 LOG.exception(e)
                 sys.exit(1)
+
+    def run_check(self, check):
+        extra_args = self.get_extra_args()
+        module_str, class_method_str = check.split(':')
+        class_str, method_str = class_method_str.split('.')
+        module = importlib.import_module(module_str)
+        auditor_class = getattr(module, class_str)
+        auditor = auditor_class(
+            ks_session=self.session,
+            dry_run=self.dry_run,
+            limit=self.limit,
+            **extra_args,
+        )
+        method = getattr(auditor, method_str)
+        with slack_context(self):
+            method()
+            auditor.summary()
 
     def get_extra_args(self):
         return {}
