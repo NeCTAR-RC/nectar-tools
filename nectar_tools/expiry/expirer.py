@@ -266,8 +266,10 @@ class Expirer:
             if key in kwargs.keys():
                 self.set_metadata(key, kwargs[key])
 
-    def finish_expiry(self, message='Expiry work flow is complete'):
-        if self.get_status() == expiry_states.DELETED:
+    def finish_expiry(
+        self, message='Expiry work flow is complete', force=False
+    ):
+        if not force and self.get_status() == expiry_states.DELETED:
             return
         try:
             self.notifier.finish(message=message)
@@ -738,7 +740,10 @@ class AllocationExpirer(ProjectExpirer):
         ]:
             self.archiver.reset_quota()
 
-        self.finish_expiry(message='Allocation has been renewed')
+        # force=True so the expiry status is cleared even when the project
+        # was already expired to 'deleted' (e.g. a project trial that was
+        # expired before being converted to an allocation).
+        self.finish_expiry(message='Allocation has been renewed', force=True)
 
     def should_process(self):
         if not self.project.enabled:

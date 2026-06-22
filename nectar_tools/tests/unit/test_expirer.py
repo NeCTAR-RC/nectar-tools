@@ -261,6 +261,41 @@ class ExpiryTests(test.TestCase):
                 expiry_status='', expiry_next_step='', expiry_ticket_id='0'
             )
 
+    def test_finish_expiry_deleted(self):
+        resource = mock.Mock()
+        resource.expiry_status = expiry_states.DELETED
+        resource.expiry_next_step = 'step'
+        resource.expiry_ticket_id = 'id'
+
+        ex = expirer.Expirer('fake_type', resource, notifier='fake')
+
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, '_update_resource'),
+        ) as (mock_notifier, mock_update_resource):
+            ex.finish_expiry()
+            mock_notifier.finish.assert_not_called()
+            mock_update_resource.assert_not_called()
+
+    def test_finish_expiry_deleted_force(self):
+        resource = mock.Mock()
+        resource.expiry_status = expiry_states.DELETED
+        resource.expiry_next_step = 'step'
+        resource.expiry_ticket_id = 'id'
+
+        ex = expirer.Expirer('fake_type', resource, notifier='fake')
+        message = 'expiry is finished'
+
+        with test.nested(
+            mock.patch.object(ex, 'notifier'),
+            mock.patch.object(ex, '_update_resource'),
+        ) as (mock_notifier, mock_update_resource):
+            ex.finish_expiry(message=message, force=True)
+            mock_notifier.finish.assert_called_once_with(message=message)
+            mock_update_resource.assert_called_once_with(
+                expiry_status='', expiry_next_step='', expiry_ticket_id='0'
+            )
+
     def test_get_expiry_date(self):
         resource = mock.Mock()
         ex = expirer.Expirer('fake_type', resource, notifier='fake')
@@ -1035,7 +1070,7 @@ class AllocationExpiryTests(test.TestCase):
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
             mock_finish.assert_called_once_with(
-                message='Allocation has been renewed'
+                message='Allocation has been renewed', force=True
             )
             mock_archiver.reset_quota.assert_not_called()
             mock_archiver.enable_resources.assert_called_once_with()
@@ -1054,7 +1089,7 @@ class AllocationExpiryTests(test.TestCase):
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
             mock_finish.assert_called_once_with(
-                message='Allocation has been renewed'
+                message='Allocation has been renewed', force=True
             )
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
@@ -1073,7 +1108,7 @@ class AllocationExpiryTests(test.TestCase):
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
             mock_finish.assert_called_once_with(
-                message='Allocation has been renewed'
+                message='Allocation has been renewed', force=True
             )
             mock_archiver.reset_quota.assert_called_once_with()
             mock_archiver.enable_resources.assert_called_once_with()
@@ -1092,9 +1127,30 @@ class AllocationExpiryTests(test.TestCase):
         ) as (mock_archiver, mock_finish):
             ex.revert_expiry()
             mock_finish.assert_called_once_with(
-                message='Allocation has been renewed'
+                message='Allocation has been renewed', force=True
             )
             mock_archiver.reset_quota.assert_called_once_with()
+            mock_archiver.enable_resources.assert_called_once_with()
+
+    def test_revert_expiry_deleted(self):
+        # A project trial expired all the way to 'deleted' and then converted
+        # to an allocation must still have its expiry status cleared.
+        project = fakes.FakeProject(
+            expiry_status=expiry_states.DELETED,
+            expiry_next_step=BEFORE,
+            expiry_ticket_id='20',
+        )
+        ex = expirer.AllocationExpirer(project)
+
+        with test.nested(
+            mock.patch.object(ex, 'archiver'),
+            mock.patch.object(ex, 'finish_expiry'),
+        ) as (mock_archiver, mock_finish):
+            ex.revert_expiry()
+            mock_finish.assert_called_once_with(
+                message='Allocation has been renewed', force=True
+            )
+            mock_archiver.reset_quota.assert_not_called()
             mock_archiver.enable_resources.assert_called_once_with()
 
     def test_send_warning(self):
