@@ -1271,9 +1271,23 @@ class MuranoArchiver(Archiver):
         self.m_client = auth.get_murano_client(ks_session)
 
     def is_delete_successful(self):
-        environments = self.m_client.environments.list(
-            tenant_id=self.project.id
-        )
+        try:
+            environments = self.m_client.environments.list(
+                tenant_id=self.project.id
+            )
+        except Exception as e:
+            # python-muranoclient raises a bare TypeError when murano returns
+            # an error body that is neither JSON nor HTML (a bug in its
+            # from_response()), which masks the real error.  Treat any failure
+            # to query murano as "resources may remain" rather than crashing
+            # the run.
+            LOG.warning(
+                "%s: Unable to list murano environments, assuming resources "
+                "remain: %s",
+                self.project.id,
+                e,
+            )
+            return False
         if not environments:
             return True
         LOG.debug(
@@ -1287,9 +1301,20 @@ class MuranoArchiver(Archiver):
         if not force:
             return
 
-        environments = self.m_client.environments.list(
-            tenant_id=self.project.id
-        )
+        try:
+            environments = self.m_client.environments.list(
+                tenant_id=self.project.id
+            )
+        except Exception as e:
+            # See is_delete_successful() for why this is caught broadly.
+            # is_delete_successful() will report failure so the project is
+            # retried rather than finalised.
+            LOG.warning(
+                "%s: Unable to list murano environments, skipping: %s",
+                self.project.id,
+                e,
+            )
+            return
 
         for environment in environments:
             if self.dry_run:

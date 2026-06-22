@@ -899,6 +899,40 @@ class MuranoArchiverTests(test.TestCase):
                 ]
             )
 
+    def test_delete_resources_list_error(self):
+        ma = archiver.MuranoArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_murano:
+            mock_murano.environments.list.side_effect = TypeError(
+                "a bytes-like object is required, not 'str'"
+            )
+
+            ma.delete_resources(force=True)
+
+            mock_murano.environments.delete.assert_not_called()
+
+    def test_is_delete_successful(self):
+        ma = archiver.MuranoArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_murano:
+            mock_murano.environments.list.return_value = []
+
+            self.assertTrue(ma.is_delete_successful())
+
+    def test_is_delete_successful_remaining(self):
+        ma = archiver.MuranoArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_murano:
+            mock_murano.environments.list.return_value = [mock.Mock()]
+
+            self.assertFalse(ma.is_delete_successful())
+
+    def test_is_delete_successful_list_error(self):
+        ma = archiver.MuranoArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_murano:
+            mock_murano.environments.list.side_effect = TypeError(
+                "a bytes-like object is required, not 'str'"
+            )
+
+            self.assertFalse(ma.is_delete_successful())
+
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class TroveArchiverTests(test.TestCase):
