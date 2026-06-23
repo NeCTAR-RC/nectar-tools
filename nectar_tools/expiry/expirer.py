@@ -746,7 +746,12 @@ class AllocationExpirer(ProjectExpirer):
         self.finish_expiry(message='Allocation has been renewed', force=True)
 
     def should_process(self):
-        if not self.project.enabled:
+        # A disabled project is still processed while it is being deleted,
+        # so that resource deletion can run to completion.
+        if (
+            not self.project.enabled
+            and self.get_status() != expiry_states.DELETING
+        ):
             LOG.debug("%s: Project is disabled", self.project.id)
             return False
         if PT_RE.match(self.project.name):

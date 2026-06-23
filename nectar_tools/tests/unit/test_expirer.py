@@ -1034,6 +1034,20 @@ class AllocationExpiryTests(test.TestCase):
         ex = expirer.AllocationExpirer(project)
         self.assertFalse(ex.should_process())
 
+        # A disabled project is skipped ...
+        project = fakes.FakeProject(name='Allocation', enabled=False)
+        ex = expirer.AllocationExpirer(project)
+        self.assertFalse(ex.should_process())
+
+        # ... unless it is being deleted, so the delete can complete.
+        project = fakes.FakeProject(
+            name='Allocation',
+            enabled=False,
+            expiry_status=expiry_states.DELETING,
+        )
+        ex = expirer.AllocationExpirer(project)
+        self.assertTrue(ex.should_process())
+
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)
         mock_allocations = fakes.FakeAllocationManager()
