@@ -1169,9 +1169,15 @@ class SwiftArchiverTests(test.TestCase):
 
             sa.delete_resources(force=True)
             mock_swift.get_account.assert_called_once_with()
-            mock_delete.assert_called_once_with(
-                {'name': 'private'}, ['fake-object1']
+            # Both containers are deleted, including the public one with a
+            # read ACL set.
+            mock_delete.assert_has_calls(
+                [
+                    mock.call({'name': 'public'}, ['fake-object']),
+                    mock.call({'name': 'private'}, ['fake-object1']),
+                ]
             )
+            self.assertEqual(2, mock_delete.call_count)
 
     def test_delete_container(self):
         sa = archiver.SwiftArchiver(PROJECT)

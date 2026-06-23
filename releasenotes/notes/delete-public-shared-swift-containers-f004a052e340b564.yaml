@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    When a project expires, the swift archiver now deletes all swift
+    containers, including public and shared containers (those with a
+    read ACL set). Previously these were skipped and only logged as a
+    warning, leaving public and shared swift data behind after expiry.

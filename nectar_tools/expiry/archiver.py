@@ -1063,16 +1063,9 @@ class SwiftArchiver(Archiver):
 
         account, containers = self.s_client.get_account()
         for c in containers:
-            container_stat, objects = self.s_client.get_container(c['name'])
-            if 'x-container-read' in container_stat:
-                read_acl = container_stat['x-container-read']
-                LOG.warning(
-                    "%s: Ignoring container %s due to read_acl %s",
-                    self.project.id,
-                    c['name'],
-                    read_acl,
-                )
-                continue
+            # Delete every container, including public and shared ones
+            # (those with a read ACL set).
+            _, objects = self.s_client.get_container(c['name'])
             self._delete_container(c, objects)
 
     def _delete_container(self, container, objects):
