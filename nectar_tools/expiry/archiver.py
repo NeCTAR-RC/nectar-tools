@@ -675,6 +675,11 @@ class CinderArchiver(Archiver):
         )
         return False
 
+    def zero_quota(self):
+        if not self.dry_run:
+            self.c_client.quotas.delete(tenant_id=self.project.id)
+        LOG.debug("%s: Zero cinder quota", self.project.id)
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -1088,6 +1093,21 @@ class DesignateArchiver(Archiver):
         LOG.debug("%s: %d designate zones remain", self.project.id, len(zones))
         return False
 
+    def zero_quota(self):
+        if self.dry_run:
+            LOG.info("%s: Would zero designate quota", self.project.id)
+            return
+        quota = {
+            'zones': 0,
+            'zone_recordsets': 0,
+            'zone_records': 0,
+            'recordset_records': 0,
+            'api_export_size': 0,
+        }
+        self.d_client.session.sudo_project_id = None  # admin
+        self.d_client.quotas.update(self.project.id, quota)
+        LOG.debug("%s: Zero designate quota", self.project.id)
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -1194,6 +1214,24 @@ class MagnumArchiver(Archiver):
             return True
         LOG.debug("%s: %d COE clusters remain", self.project.id, len(clusters))
         return False
+
+    def zero_quota(self):
+        if self.dry_run:
+            LOG.info("%s: Would zero magnum quota", self.project.id)
+            return
+        # Magnum only tracks a quota for the 'Cluster' resource.  Setting the
+        # hard limit to 0 blocks new clusters.  A per-project quota record may
+        # not exist yet, in which case create it.
+        patch = {
+            'project_id': self.project.id,
+            'resource': 'Cluster',
+            'hard_limit': 0,
+        }
+        try:
+            self.m_client.quotas.create(**patch)
+        except magnum_exc.Conflict:
+            self.m_client.quotas.update(self.project.id, 'Cluster', patch)
+        LOG.debug("%s: Zero magnum quota", self.project.id)
 
     def delete_resources(self, force=False):
         if not force:
@@ -1419,6 +1457,25 @@ class WarreArchiver(Archiver):
             len(reservations),
         )
         return False
+
+    def zero_quota(self):
+        if self.dry_run:
+            LOG.info("%s: Would zero warre quota", self.project.id)
+            return
+        # Warre has no client-side quota; reservation quota is enforced by
+        # Keystone unified limits, which require a system-scoped session.
+        # Deleting the project's limits reverts it to the registered default
+        # (the baseline for projects without a reservation allocation), the
+        # same way provisioning removes reservation quota.
+        system_session = auth.get_session(system_scope='all')
+        k_client = auth.get_keystone_client(system_session)
+        service = k_client.services.list(type='nectar-reservation').pop()
+        limits = k_client.limits.list(
+            service=service, project_id=self.project.id
+        )
+        for limit in limits:
+            k_client.limits.delete(limit)
+        LOG.debug("%s: Zero warre quota", self.project.id)
 
     def delete_resources(self, force=False):
         if not force:

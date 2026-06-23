@@ -552,6 +552,14 @@ class ZoneInstanceArchiverTests(NovaArchiverTests):
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class CinderArchiverTests(test.TestCase):
+    def test_zero_quota(self):
+        ca = archiver.CinderArchiver(PROJECT)
+        with mock.patch.object(ca, 'c_client') as mock_cinder:
+            ca.zero_quota()
+            mock_cinder.quotas.delete.assert_called_once_with(
+                tenant_id=PROJECT.id
+            )
+
     def test_is_delete_successful_empty(self):
         ca = archiver.CinderArchiver(PROJECT)
         with test.nested(
@@ -811,6 +819,36 @@ class OctaviaArchiverTests(test.TestCase):
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class MagnumArchiverTests(test.TestCase):
+    def test_zero_quota(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_magnum:
+            ma.zero_quota()
+            mock_magnum.quotas.create.assert_called_once_with(
+                project_id=PROJECT.id, resource='Cluster', hard_limit=0
+            )
+            mock_magnum.quotas.update.assert_not_called()
+
+    def test_zero_quota_existing(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        patch = {
+            'project_id': PROJECT.id,
+            'resource': 'Cluster',
+            'hard_limit': 0,
+        }
+        with mock.patch.object(ma, 'm_client') as mock_magnum:
+            mock_magnum.quotas.create.side_effect = magnum_exc.Conflict()
+            ma.zero_quota()
+            mock_magnum.quotas.update.assert_called_once_with(
+                PROJECT.id, 'Cluster', patch
+            )
+
+    def test_zero_quota_dry_run(self):
+        ma = archiver.MagnumArchiver(PROJECT, dry_run=True)
+        with mock.patch.object(ma, 'm_client') as mock_magnum:
+            ma.zero_quota()
+            mock_magnum.quotas.create.assert_not_called()
+            mock_magnum.quotas.update.assert_not_called()
+
     def test_delete_resources(self):
         ma = archiver.MagnumArchiver(PROJECT)
         c1 = mock.Mock()
@@ -1073,6 +1111,26 @@ class SwiftArchiverTests(test.TestCase):
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class DesignateArchiverTests(test.TestCase):
+    def test_zero_quota(self):
+        da = archiver.DesignateArchiver(PROJECT)
+        with mock.patch.object(da, 'd_client') as mock_designate:
+            da.zero_quota()
+            mock_designate.quotas.update.assert_called_once_with(
+                PROJECT.id,
+                {
+                    'zones': 0,
+                    'zone_recordsets': 0,
+                    'zone_records': 0,
+                    'recordset_records': 0,
+                    'api_export_size': 0,
+                },
+            )
+            self.assertIsNone(mock_designate.session.sudo_project_id)
+
+    def test_zero_quota_dry_run(self):
+        da = archiver.DesignateArchiver(PROJECT, dry_run=True)
+        da.zero_quota()
+
     def test_delete_resources(self):
         da = archiver.DesignateArchiver(PROJECT)
         with test.nested(
@@ -1405,6 +1463,35 @@ class JupyterHubVolumeArchiverTests(test.TestCase):
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class WarreArchiverTests(test.TestCase):
+    def test_zero_quota(self):
+        wa = archiver.WarreArchiver(PROJECT)
+        service = mock.Mock()
+        limit1 = mock.Mock()
+        limit2 = mock.Mock()
+        with mock.patch('nectar_tools.auth.get_keystone_client') as mock_gkc:
+            mock_keystone = mock_gkc.return_value
+            mock_keystone.services.list.return_value = [service]
+            mock_keystone.limits.list.return_value = [limit1, limit2]
+
+            wa.zero_quota()
+
+            mock_keystone.services.list.assert_called_once_with(
+                type='nectar-reservation'
+            )
+            mock_keystone.limits.list.assert_called_once_with(
+                service=service, project_id=PROJECT.id
+            )
+            mock_keystone.limits.delete.assert_has_calls(
+                [mock.call(limit1), mock.call(limit2)]
+            )
+            self.assertEqual(2, mock_keystone.limits.delete.call_count)
+
+    def test_zero_quota_dry_run(self):
+        wa = archiver.WarreArchiver(PROJECT, dry_run=True)
+        with mock.patch('nectar_tools.auth.get_keystone_client') as mock_gkc:
+            wa.zero_quota()
+            mock_gkc.assert_not_called()
+
     def test_delete_resources(self):
         wa = archiver.WarreArchiver(PROJECT)
         with mock.patch.object(wa, 'w_client') as mock_warre:

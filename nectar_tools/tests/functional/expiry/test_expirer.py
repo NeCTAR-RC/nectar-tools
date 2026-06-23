@@ -384,6 +384,12 @@ class PTExpiryTests(test.TestCase):
             mock.call.post_account(headers={'x-account-meta-quota-bytes': 0})
         ]
 
+        magnum_calls = [
+            mock.call.quotas.create(
+                project_id=self.project.id, resource='Cluster', hard_limit=0
+            )
+        ]
+
         fd_calls = self.get_fd_calls()
 
         self._test_process(
@@ -392,6 +398,7 @@ class PTExpiryTests(test.TestCase):
             nova_calls=nova_calls,
             neutron_calls=neutron_calls,
             swift_calls=swift_calls,
+            magnum_calls=magnum_calls,
         )
 
     def test_warning_pending_allocation(self):
