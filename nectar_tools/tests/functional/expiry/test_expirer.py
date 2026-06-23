@@ -792,8 +792,8 @@ class PTExpiryTests(test.TestCase):
         ]
 
         swift_calls = [
-            mock.call.get_account(),
-            mock.call.get_container(c1['name']),
+            mock.call.get_account(full_listing=True),
+            mock.call.get_container(c1['name'], full_listing=True),
             mock.call.delete_object(c1['name'], o1['name']),
             mock.call.delete_container(c1['name']),
         ]

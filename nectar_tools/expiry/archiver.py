@@ -1061,11 +1061,16 @@ class SwiftArchiver(Archiver):
         if not force:
             return
 
-        account, containers = self.s_client.get_account()
+        # full_listing=True pages through all containers/objects; Swift
+        # otherwise caps each listing at 10000 and we would only delete the
+        # first page in a single run.
+        account, containers = self.s_client.get_account(full_listing=True)
         for c in containers:
             # Delete every container, including public and shared ones
             # (those with a read ACL set).
-            _, objects = self.s_client.get_container(c['name'])
+            _, objects = self.s_client.get_container(
+                c['name'], full_listing=True
+            )
             self._delete_container(c, objects)
 
     def _delete_container(self, container, objects):

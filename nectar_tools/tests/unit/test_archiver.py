@@ -1154,7 +1154,7 @@ class SwiftArchiverTests(test.TestCase):
         containers = [{'name': 'public'}, {'name': 'private'}]
         account = ('fake', containers)
 
-        def _get_container(value):
+        def _get_container(value, full_listing=False):
             if value == 'public':
                 return ({'x-container-read': 'r'}, ['fake-object'])
             else:
@@ -1168,15 +1168,11 @@ class SwiftArchiverTests(test.TestCase):
             mock_swift.get_container.side_effect = _get_container
 
             sa.delete_resources(force=True)
-            mock_swift.get_account.assert_called_once_with()
+            mock_swift.get_account.assert_called_once_with(full_listing=True)
             # Both containers are deleted, including the public one with a
-            # read ACL set.
-            mock_delete.assert_has_calls(
-                [
-                    mock.call({'name': 'public'}, ['fake-object']),
-                    mock.call({'name': 'private'}, ['fake-object1']),
-                ]
-            )
+            # read ACL set.  Order is not significant.
+            mock_delete.assert_any_call({'name': 'public'}, ['fake-object'])
+            mock_delete.assert_any_call({'name': 'private'}, ['fake-object1'])
             self.assertEqual(2, mock_delete.call_count)
 
     def test_delete_container(self):
