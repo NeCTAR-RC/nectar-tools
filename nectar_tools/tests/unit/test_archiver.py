@@ -28,6 +28,12 @@ class NovaArchiverTests(test.TestCase):
             na.zero_quota()
             mock_quotas.delete.assert_called_with(tenant_id=PROJECT.id)
 
+    def test_delete_quota(self):
+        na = archiver.NovaArchiver(PROJECT)
+        with mock.patch.object(na.n_client, 'quotas') as mock_quotas:
+            na.delete_quota()
+            mock_quotas.delete.assert_called_with(tenant_id=PROJECT.id)
+
     def test_is_archive_successful_no_instances(self):
         na = archiver.NovaArchiver(PROJECT)
 
@@ -510,6 +516,14 @@ class NovaArchiverTests(test.TestCase):
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class ZoneInstanceArchiverTests(NovaArchiverTests):
+    @mock.patch('nectar_tools.auth.get_allocation_client')
+    def test_delete_quota(self, mock_a_client):
+        # Out-of-zone instance cleanup must not touch the project's quota.
+        project = fakes.FakeProject(allocation_id='fake')
+        mock_a_client.return_value.allocations.get.return_value = 'allocation1'
+        za = archiver.ZoneInstanceArchiver(project)
+        self.assertRaises(NotImplementedError, za.delete_quota)
+
     def test_all_instances(self):
         project = fakes.FakeProject(allocation_id='fake')
         with test.nested(
@@ -556,6 +570,14 @@ class CinderArchiverTests(test.TestCase):
         ca = archiver.CinderArchiver(PROJECT)
         with mock.patch.object(ca, 'c_client') as mock_cinder:
             ca.zero_quota()
+            mock_cinder.quotas.delete.assert_called_once_with(
+                tenant_id=PROJECT.id
+            )
+
+    def test_delete_quota(self):
+        ca = archiver.CinderArchiver(PROJECT)
+        with mock.patch.object(ca, 'c_client') as mock_cinder:
+            ca.delete_quota()
             mock_cinder.quotas.delete.assert_called_once_with(
                 tenant_id=PROJECT.id
             )
@@ -714,6 +736,12 @@ class NeutronBasicArchiverTests(test.TestCase):
             }
             mock_neutron.update_quota.assert_called_with(PROJECT.id, body)
 
+    def test_delete_quota(self):
+        na = archiver.NeutronBasicArchiver(PROJECT)
+        with mock.patch.object(na, 'ne_client') as mock_neutron:
+            na.delete_quota()
+            mock_neutron.delete_quota.assert_called_once_with(PROJECT.id)
+
     def test_delete_neutron_resources(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
 
@@ -803,6 +831,12 @@ class OctaviaArchiverTests(test.TestCase):
             oa.zero_quota()
             mock_octavia.delete_quota.assert_called_once_with(PROJECT.id)
 
+    def test_delete_quota(self):
+        oa = archiver.OctaviaArchiver(PROJECT)
+        with mock.patch.object(oa, 'lb_client') as mock_octavia:
+            oa.delete_quota()
+            mock_octavia.delete_quota.assert_called_once_with(PROJECT.id)
+
     def test_delete_resources(self):
         oa = archiver.OctaviaArchiver(PROJECT)
         lb1 = mock.Mock()
@@ -849,6 +883,29 @@ class MagnumArchiverTests(test.TestCase):
             mock_magnum.quotas.create.assert_not_called()
             mock_magnum.quotas.update.assert_not_called()
 
+    def test_delete_quota(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_magnum:
+            ma.delete_quota()
+            mock_magnum.quotas.delete.assert_called_once_with(
+                PROJECT.id, 'Cluster'
+            )
+
+    def test_delete_quota_not_found(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_magnum:
+            mock_magnum.quotas.delete.side_effect = magnum_exc.NotFound()
+            ma.delete_quota()
+            mock_magnum.quotas.delete.assert_called_once_with(
+                PROJECT.id, 'Cluster'
+            )
+
+    def test_delete_quota_dry_run(self):
+        ma = archiver.MagnumArchiver(PROJECT, dry_run=True)
+        with mock.patch.object(ma, 'm_client') as mock_magnum:
+            ma.delete_quota()
+            mock_magnum.quotas.delete.assert_not_called()
+
     def test_delete_resources(self):
         ma = archiver.MagnumArchiver(PROJECT)
         c1 = mock.Mock()
@@ -893,6 +950,12 @@ class ManilaArchiverTests(test.TestCase):
         ma = archiver.ManilaArchiver(PROJECT)
         with mock.patch.object(ma, 'm_client') as mock_manila:
             ma.zero_quota()
+            mock_manila.quotas.delete.assert_called_once_with(PROJECT.id)
+
+    def test_delete_quota(self):
+        ma = archiver.ManilaArchiver(PROJECT)
+        with mock.patch.object(ma, 'm_client') as mock_manila:
+            ma.delete_quota()
             mock_manila.quotas.delete.assert_called_once_with(PROJECT.id)
 
     def test_delete_resources(self):
@@ -1130,6 +1193,17 @@ class DesignateArchiverTests(test.TestCase):
     def test_zero_quota_dry_run(self):
         da = archiver.DesignateArchiver(PROJECT, dry_run=True)
         da.zero_quota()
+
+    def test_delete_quota(self):
+        da = archiver.DesignateArchiver(PROJECT)
+        with mock.patch.object(da, 'd_client') as mock_designate:
+            da.delete_quota()
+            mock_designate.quotas.reset.assert_called_once_with(PROJECT.id)
+            self.assertIsNone(mock_designate.session.sudo_project_id)
+
+    def test_delete_quota_dry_run(self):
+        da = archiver.DesignateArchiver(PROJECT, dry_run=True)
+        da.delete_quota()
 
     def test_delete_resources(self):
         da = archiver.DesignateArchiver(PROJECT)
@@ -1492,6 +1566,35 @@ class WarreArchiverTests(test.TestCase):
             wa.zero_quota()
             mock_gkc.assert_not_called()
 
+    def test_delete_quota(self):
+        wa = archiver.WarreArchiver(PROJECT)
+        service = mock.Mock()
+        limit1 = mock.Mock()
+        limit2 = mock.Mock()
+        with mock.patch('nectar_tools.auth.get_keystone_client') as mock_gkc:
+            mock_keystone = mock_gkc.return_value
+            mock_keystone.services.list.return_value = [service]
+            mock_keystone.limits.list.return_value = [limit1, limit2]
+
+            wa.delete_quota()
+
+            mock_keystone.services.list.assert_called_once_with(
+                type='nectar-reservation'
+            )
+            mock_keystone.limits.list.assert_called_once_with(
+                service=service, project_id=PROJECT.id
+            )
+            mock_keystone.limits.delete.assert_has_calls(
+                [mock.call(limit1), mock.call(limit2)]
+            )
+            self.assertEqual(2, mock_keystone.limits.delete.call_count)
+
+    def test_delete_quota_dry_run(self):
+        wa = archiver.WarreArchiver(PROJECT, dry_run=True)
+        with mock.patch('nectar_tools.auth.get_keystone_client') as mock_gkc:
+            wa.delete_quota()
+            mock_gkc.assert_not_called()
+
     def test_delete_resources(self):
         wa = archiver.WarreArchiver(PROJECT)
         with mock.patch.object(wa, 'w_client') as mock_warre:
@@ -1532,6 +1635,51 @@ class ResourcerArchiverTests(test.TestCase):
         self.assertIs(archiver.NovaArchiver, type(ra.archivers[0]))
         self.assertIs(archiver.CinderArchiver, type(ra.archivers[1]))
         self.assertIs(archiver.ProjectImagesArchiver, type(ra.archivers[2]))
+
+    def test_delete_quota(self):
+        ra = archiver.ResourceArchiver(PROJECT, archivers=['nova', 'cinder'])
+        with test.nested(
+            mock.patch.object(ra.archivers[0], 'delete_quota'),
+            mock.patch.object(ra.archivers[1], 'delete_quota'),
+        ) as (mock_nova_dq, mock_cinder_dq):
+            ra.delete_quota()
+            mock_nova_dq.assert_called_once_with()
+            mock_cinder_dq.assert_called_once_with()
+
+    def test_delete_quota_not_implemented(self):
+        # projectimages has no quota; the NotImplementedError is swallowed.
+        ra = archiver.ResourceArchiver(
+            PROJECT, archivers=['nova', 'projectimages']
+        )
+        with mock.patch.object(
+            ra.archivers[0], 'delete_quota'
+        ) as mock_nova_dq:
+            ra.delete_quota()
+            mock_nova_dq.assert_called_once_with()
+
+    def test_delete_resources_force_deletes_quota(self):
+        ra = archiver.ResourceArchiver(PROJECT, archivers=['nova', 'cinder'])
+        with test.nested(
+            mock.patch.object(ra.archivers[0], 'delete_resources'),
+            mock.patch.object(ra.archivers[1], 'delete_resources'),
+            mock.patch.object(ra, 'delete_quota'),
+        ) as (mock_nova_dr, mock_cinder_dr, mock_dq):
+            ra.delete_resources(force=True)
+            mock_nova_dr.assert_called_once_with(force=True)
+            mock_cinder_dr.assert_called_once_with(force=True)
+            mock_dq.assert_called_once_with()
+
+    def test_delete_resources_no_force_keeps_quota(self):
+        ra = archiver.ResourceArchiver(PROJECT, archivers=['nova', 'cinder'])
+        with test.nested(
+            mock.patch.object(ra.archivers[0], 'delete_resources'),
+            mock.patch.object(ra.archivers[1], 'delete_resources'),
+            mock.patch.object(ra, 'delete_quota'),
+        ) as (mock_nova_dr, mock_cinder_dr, mock_dq):
+            ra.delete_resources()
+            mock_nova_dr.assert_called_once_with(force=False)
+            mock_cinder_dr.assert_called_once_with(force=False)
+            mock_dq.assert_not_called()
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())

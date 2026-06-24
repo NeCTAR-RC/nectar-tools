@@ -41,6 +41,9 @@ class Archiver:
     def reset_quota(self):
         raise NotImplementedError
 
+    def delete_quota(self):
+        raise NotImplementedError
+
     def stop_resources(self):
         raise NotImplementedError
 
@@ -338,6 +341,11 @@ class NovaArchiver(Archiver):
             self.n_client.quotas.delete(tenant_id=self.project.id)
         LOG.debug("%s: Zero nova quota", self.project.id)
 
+    def delete_quota(self):
+        if not self.dry_run:
+            self.n_client.quotas.delete(tenant_id=self.project.id)
+        LOG.debug("%s: Delete nova quota", self.project.id)
+
     def stop_resources(self):
         instances = self._all_instances()
         for instance in instances:
@@ -631,6 +639,11 @@ class ZoneInstanceArchiver(NovaArchiver):
         self.a_client = auth.get_allocation_client(ks_session)
         self.allocation = self.a_client.allocations.get(project.allocation_id)
 
+    def delete_quota(self):
+        # This archiver only removes a project's out-of-zone instances; the
+        # project itself remains active, so its nova quota must be left alone.
+        raise NotImplementedError
+
     def _all_instances(self):
         instances = utils.get_out_of_zone_instances(
             self.ks_session, self.allocation, self.project
@@ -679,6 +692,11 @@ class CinderArchiver(Archiver):
         if not self.dry_run:
             self.c_client.quotas.delete(tenant_id=self.project.id)
         LOG.debug("%s: Zero cinder quota", self.project.id)
+
+    def delete_quota(self):
+        if not self.dry_run:
+            self.c_client.quotas.delete(tenant_id=self.project.id)
+        LOG.debug("%s: Delete cinder quota", self.project.id)
 
     def delete_resources(self, force=False):
         if not force:
@@ -778,6 +796,11 @@ class NeutronBasicArchiver(Archiver):
         if not self.dry_run:
             self.ne_client.update_quota(self.project.id, body)
         LOG.debug("%s: Zero neutron quota", self.project.id)
+
+    def delete_quota(self):
+        if not self.dry_run:
+            self.ne_client.delete_quota(self.project.id)
+        LOG.debug("%s: Delete neutron quota", self.project.id)
 
     def delete_resources(self, force=False):
         # Because we can't archive only delete when forced
@@ -926,6 +949,13 @@ class OctaviaArchiver(Archiver):
             self.lb_client.delete_quota(self.project.id)
         else:
             LOG.info("%s: Would zero octavia quota", self.project.id)
+
+    def delete_quota(self):
+        if not self.dry_run:
+            LOG.info("%s: Delete octavia quota", self.project.id)
+            self.lb_client.delete_quota(self.project.id)
+        else:
+            LOG.info("%s: Would delete octavia quota", self.project.id)
 
     def delete_resources(self, force=False):
         if not force:
@@ -1108,6 +1138,14 @@ class DesignateArchiver(Archiver):
         self.d_client.quotas.update(self.project.id, quota)
         LOG.debug("%s: Zero designate quota", self.project.id)
 
+    def delete_quota(self):
+        if self.dry_run:
+            LOG.info("%s: Would delete designate quota", self.project.id)
+            return
+        self.d_client.session.sudo_project_id = None  # admin
+        self.d_client.quotas.reset(self.project.id)
+        LOG.debug("%s: Delete designate quota", self.project.id)
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -1233,6 +1271,18 @@ class MagnumArchiver(Archiver):
             self.m_client.quotas.update(self.project.id, 'Cluster', patch)
         LOG.debug("%s: Zero magnum quota", self.project.id)
 
+    def delete_quota(self):
+        if self.dry_run:
+            LOG.info("%s: Would delete magnum quota", self.project.id)
+            return
+        # Magnum only tracks a quota for the 'Cluster' resource, and a
+        # per-project record may not exist.
+        try:
+            self.m_client.quotas.delete(self.project.id, 'Cluster')
+        except magnum_exc.NotFound:
+            pass
+        LOG.debug("%s: Delete magnum quota", self.project.id)
+
     def delete_resources(self, force=False):
         if not force:
             return
@@ -1283,6 +1333,13 @@ class ManilaArchiver(Archiver):
             self.m_client.quotas.delete(self.project.id)
         else:
             LOG.info("%s: Would zero manila quota", self.project.id)
+
+    def delete_quota(self):
+        if not self.dry_run:
+            LOG.info("%s: Delete manila quota", self.project.id)
+            self.m_client.quotas.delete(self.project.id)
+        else:
+            LOG.info("%s: Would delete manila quota", self.project.id)
 
     def delete_resources(self, force=False):
         if not force:
@@ -1458,10 +1515,7 @@ class WarreArchiver(Archiver):
         )
         return False
 
-    def zero_quota(self):
-        if self.dry_run:
-            LOG.info("%s: Would zero warre quota", self.project.id)
-            return
+    def _delete_limits(self):
         # Warre has no client-side quota; reservation quota is enforced by
         # Keystone unified limits, which require a system-scoped session.
         # Deleting the project's limits reverts it to the registered default
@@ -1475,7 +1529,20 @@ class WarreArchiver(Archiver):
         )
         for limit in limits:
             k_client.limits.delete(limit)
+
+    def zero_quota(self):
+        if self.dry_run:
+            LOG.info("%s: Would zero warre quota", self.project.id)
+            return
+        self._delete_limits()
         LOG.debug("%s: Zero warre quota", self.project.id)
+
+    def delete_quota(self):
+        if self.dry_run:
+            LOG.info("%s: Would delete warre quota", self.project.id)
+            return
+        self._delete_limits()
+        LOG.debug("%s: Delete warre quota", self.project.id)
 
     def delete_resources(self, force=False):
         if not force:
@@ -1605,6 +1672,13 @@ class ResourceArchiver:
             except NotImplementedError:
                 continue
 
+    def delete_quota(self):
+        for archiver in self.archivers:
+            try:
+                archiver.delete_quota()
+            except NotImplementedError:
+                continue
+
     def start_resources(self):
         for archiver in self.archivers:
             try:
@@ -1632,6 +1706,10 @@ class ResourceArchiver:
                 archiver.delete_resources(force=force)
             except NotImplementedError:
                 continue
+        # When force-deleting (the project is being deleted) also remove the
+        # project's quota for any service whose client supports it.
+        if force:
+            self.delete_quota()
 
     def delete_archives(self):
         for archiver in self.archivers:

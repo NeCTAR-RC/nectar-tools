@@ -752,6 +752,7 @@ class PTExpiryTests(test.TestCase):
             mock.call.servers.list(
                 search_opts={'all_tenants': True, 'tenant_id': self.project.id}
             ),
+            mock.call.quotas.delete(tenant_id=self.project.id),
         ]
         glance_calls = [
             mock.call.images.list(
@@ -783,6 +784,7 @@ class PTExpiryTests(test.TestCase):
             mock.call.delete_security_group_rule('rule2'),
             mock.call.list_subnets(tenant_id=self.project.id),
             mock.call.list_networks(tenant_id=self.project.id),
+            mock.call.delete_quota(self.project.id),
         ]
 
         swift_calls = [
@@ -794,6 +796,7 @@ class PTExpiryTests(test.TestCase):
 
         magnum_calls = [
             mock.call.clusters.list(detail=True),
+            mock.call.quotas.delete(self.project.id, 'Cluster'),
         ]
 
         keystone_calls = self.get_keystone_calls(expiry_states.DELETING)
