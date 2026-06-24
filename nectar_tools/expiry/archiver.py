@@ -536,6 +536,13 @@ class NovaArchiver(Archiver):
                     LOG.info(
                         "%s: Archived image id: %s", self.project.id, image_id
                     )
+                    # The snapshot is created owned by the project running
+                    # expiry. Transfer ownership to the target project so it
+                    # is found by the archive checks (which filter images by
+                    # owner) and is cleaned up along with the project.
+                    self.g_client.images.update(
+                        image_id, owner=self.project.id
+                    )
                 except Exception as e:
                     LOG.error(
                         "%s: Error creating archive: %s", self.project.id, e

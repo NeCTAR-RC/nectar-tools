@@ -138,12 +138,18 @@ class NovaArchiverTests(test.TestCase):
     def test_archive_instance(self):
         na = archiver.NovaArchiver(PROJECT)
         instance = fakes.FakeInstance(status='SHUTDOWN', vm_state='stopped')
-        with mock.patch.object(na.n_client, 'servers') as mock_servers:
+        with (
+            mock.patch.object(na.n_client, 'servers') as mock_servers,
+            mock.patch.object(na, 'g_client') as mock_glance,
+        ):
             na._archive_instance(instance)
             mock_servers.create_image.assert_called_with(
                 instance.id,
                 f'{instance.id}_archive',
                 metadata={'nectar_archive': 'True'},
+            )
+            mock_glance.images.update.assert_called_once_with(
+                mock_servers.create_image.return_value, owner=PROJECT.id
             )
 
     def test_archive_instance_active(self):

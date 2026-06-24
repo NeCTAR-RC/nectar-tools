@@ -543,6 +543,10 @@ class PTExpiryTests(test.TestCase):
             mock.call.images.list(
                 filters={'owner_id': self.project.id, 'nectar_archive': 'True'}
             ),
+            mock.call.images.update(
+                nova_client.servers.create_image.return_value,
+                owner=self.project.id,
+            ),
         ]
 
         self._test_process(
