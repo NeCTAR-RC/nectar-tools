@@ -1,0 +1,37 @@
+---
+features:
+  - |
+    When a project is restricted, the expiry archiver now zeroes quotas for
+    Cinder, Magnum, Designate and Warre as well as the services it already
+    covered (Nova, Neutron, Octavia, Swift, Manila and Trove). This stops a
+    restricted project from creating new resources in those services while it
+    is being archived. Heat and Murano have no quota API, so there is nothing
+    to zero.
+  - |
+    When a project's resources are force-deleted as part of deleting the
+    project, the archiver now also deletes the project's quota records for
+    Nova, Cinder, Neutron, Octavia, Magnum, Manila, Designate and Warre,
+    rather than leaving the zeroed quotas behind as stale records. Swift and
+    Trove are skipped because their clients can only set a quota value, not
+    delete the record. Quota is only deleted on the forced delete path, so the
+    non-forced retry path leaves quota untouched.
+fixes:
+  - |
+    Archive snapshots are now reassigned to the target project immediately
+    after they are created. Nova created the snapshot owned by the project the
+    expiry tool authenticates as, but the archive checks filter Glance images
+    by the target project's owner. As a result snapshots landed in the expiry
+    project and were never matched or cleaned up with the project.
+  - |
+    The allocation expirer now processes a disabled project when its expiry
+    status is ``deleting``, so the delete workflow can run to completion.
+    Previously a project that was disabled while still in the deleting state
+    was skipped and its resource deletion never finished. Disabled projects in
+    any other state are still skipped.
+  - |
+    The Murano archiver now handles errors when listing environments.
+    python-muranoclient 2.8.0 could raise a bare ``TypeError`` instead of the
+    real Murano error, which masked the underlying problem and crashed the
+    whole audit or expiry run. Failures to list environments are now caught
+    and treated as the project still having resources, so the project is
+    retried rather than finalised.
