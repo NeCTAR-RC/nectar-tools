@@ -17,8 +17,8 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'NeCTAR Tools'
-copyright = '2019, Australian Research Data Commons (ARDC)'
+project = 'Nectar Tools'
+copyright = '2026, Australian Research Data Commons (ARDC)'
 author = 'ARDC Nectar Cloud Services'
 
 # -- General configuration ---------------------------------------------------
