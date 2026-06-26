@@ -1,0 +1,6 @@
+==============================
+1.x Series Release Notes
+==============================
+
+.. release-notes::
+   :earliest-version: 1.0.0

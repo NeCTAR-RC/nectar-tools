@@ -51,6 +51,7 @@ output/*/index.html
 
 # Sphinx
 docs/_build
+releasenotes/build
 
 # ctags
 tags
