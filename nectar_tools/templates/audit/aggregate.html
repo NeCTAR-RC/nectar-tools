@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aggregate routing audit — {{ az }}</title>
+  <style>
+    :root {
+      --bg: #FAF7F2; --surface: #FFFFFF; --text: #2C2A28;
+      --muted: #6B6560; --border: #E5DFD6; --accent: #2E7D63;
+      --error: #C93B3B; --error-bg: #FDE8E8; --ok-bg: #E8F5EE;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, "DM Sans", sans-serif;
+           background: var(--bg); color: var(--text); line-height: 1.5; }
+    .page { max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    h1 { font-size: 1.8rem; margin: 0 0 .25rem; }
+    h2 { font-size: 1.25rem; margin: 2rem 0 .75rem;
+         border-bottom: 1px solid var(--border); padding-bottom: .25rem; }
+    .eyebrow { font-family: monospace; text-transform: uppercase;
+               letter-spacing: .12em; color: var(--accent); font-size: .8rem; }
+    .meta { color: var(--muted); font-size: .9rem; margin-bottom: 1.5rem; }
+    .board { background: var(--surface); border: 1px solid var(--border);
+             border-radius: 12px; padding: 1rem; overflow-x: auto; }
+    .node-subj rect, .node-agg rect { stroke-width: 1.5; }
+    .node-subj rect { fill: #FFFFFF; }
+    .node-agg rect { fill: #F5F0E8; stroke: #3B6EA5; }
+    .node-label { font-family: monospace; font-size: 11px; fill: var(--text); }
+    .edge-label { font-family: monospace; font-size: 9px; fill: var(--muted); }
+    .route { fill: none; stroke-width: 2; opacity: .8; }
+    table { width: 100%; border-collapse: collapse; margin-top: .5rem;
+            font-size: .88rem; background: var(--surface); }
+    th, td { border: 1px solid var(--border); padding: .4rem .6rem;
+             text-align: left; vertical-align: top; }
+    th { background: #FDF9F3; font-family: monospace; font-size: .75rem;
+         text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    code { font-family: monospace; background: #F5F0E8; padding: 1px 5px;
+           border-radius: 4px; }
+    .conflict-count { font-weight: 700; }
+    .ok { color: var(--accent); }
+    .bad { color: var(--error); }
+    .findings { list-style: none; padding: 0; margin: .5rem 0; }
+    .findings li { background: var(--error-bg); border-left: 3px solid var(--error);
+                   padding: .5rem .75rem; border-radius: 6px; margin-bottom: .4rem;
+                   font-size: .88rem; }
+    .none { background: var(--ok-bg); border-left: 3px solid var(--accent);
+            padding: .5rem .75rem; border-radius: 6px; font-size: .88rem; }
+    .legend { display: flex; gap: 1rem; font-size: .8rem; color: var(--muted);
+              font-family: monospace; margin-top: .5rem; flex-wrap: wrap; }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .legend i { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="eyebrow">OpenStack Nova · aggregate routing audit</div>
+    <h1>Availability zone: {{ az }}</h1>
+    <p class="meta">{{ aggregates|length }} aggregate(s) · {{ host_count }} host(s)
+       · {{ flavor_count }} flavor(s) · {{ image_count }} image(s) scanned</p>
+
+    <h2>Routing relation chart</h2>
+    <div class="board">
+      {% if svg.edges %}
+      <svg width="{{ svg.width }}" height="{{ svg.height }}"
+           viewBox="0 0 {{ svg.width }} {{ svg.height }}" role="img"
+           aria-label="Subject to aggregate routing">
+        {% for e in svg.edges %}
+        <path class="route" stroke="{{ e.colour }}"
+              d="M{{ e.x1 }},{{ e.y1 }} C{{ e.x1 + 100 }},{{ e.y1 }} {{ e.x2 - 100 }},{{ e.y2 }} {{ e.x2 }},{{ e.y2 }}"></path>
+        <text class="edge-label" x="{{ (e.x1 + e.x2) / 2 }}" y="{{ (e.y1 + e.y2) / 2 - 3 }}"
+              text-anchor="middle">{{ e.via }}</text>
+        {% endfor %}
+        {% for n in svg.subjects %}
+        <g class="node-subj">
+          <rect x="{{ n.x }}" y="{{ n.y - 16 }}" width="180" height="32" rx="6"
+                stroke="{{ n.colour }}"></rect>
+          <text class="node-label" x="{{ n.x + 8 }}" y="{{ n.y + 4 }}">{{ n.kind }}: {{ n.name }}</text>
+        </g>
+        {% endfor %}
+        {% for n in svg.aggregates %}
+        <g class="node-agg">
+          <rect x="{{ n.x }}" y="{{ n.y - 16 }}" width="180" height="32" rx="6"></rect>
+          <text class="node-label" x="{{ n.x + 8 }}" y="{{ n.y + 4 }}">{{ n.name }}</text>
+        </g>
+        {% endfor %}
+      </svg>
+      <div class="legend">
+        <span><i style="background:#2A7B9B"></i> flavor</span>
+        <span><i style="background:#7B6DAA"></i> image</span>
+        <span><i style="background:#D4A843"></i> project</span>
+      </div>
+      {% else %}
+      <p class="none">No routing edges found: no flavor, image, or project
+         metadata references the aggregates in this zone.</p>
+      {% endif %}
+    </div>
+
+    <h2>Aggregates</h2>
+    <table>
+      <thead><tr><th>Aggregate</th><th>AZ</th><th>Hosts</th><th>Properties</th></tr></thead>
+      <tbody>
+        {% for a in aggregates %}
+        <tr>
+          <td><strong>{{ a.name }}</strong></td>
+          <td>{{ a.availability_zone or '—' }}</td>
+          <td>{{ a.hosts|length }}</td>
+          <td>
+            {% for k, v in a.properties.items() %}<code>{{ k }}={{ v }}</code> {% else %}—{% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Conflicts</h2>
+    {% set sections = [
+        ('Hosts in Placement but in no aggregate', conflicts.hosts_without_aggregate),
+        ('Orphaned aggregate properties', conflicts.orphaned_properties),
+        ('Metadata syntax errors', conflicts.metadata_syntax)] %}
+    {% for title, findings in sections %}
+    <h3>{{ title }}
+      <span class="conflict-count {{ 'bad' if findings else 'ok' }}">({{ findings|length }})</span>
+    </h3>
+    {% if findings %}
+    <ul class="findings">
+      {% for f in findings %}<li>{{ f }}</li>{% endfor %}
+    </ul>
+    {% else %}
+    <p class="none">No issues found.</p>
+    {% endif %}
+    {% endfor %}
+  </div>
+</body>
+</html>
