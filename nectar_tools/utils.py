@@ -74,13 +74,19 @@ def list_resources(list_method, marker_name='id', **list_method_kwargs):
 
     results = list_method(**list_method_kwargs)
     if results:
+        # Stop when the marker stops advancing, not when a page is empty.
+        # Some APIs (e.g. keystone for small collections such as roles)
+        # ignore the `marker` parameter and return the full list on every
+        # call; waiting for an empty page would loop forever and exhaust
+        # memory. Assumes results are sorted by the marker field and that
+        # paging is exclusive, which holds for the keystone, nova and
+        # designate callers here.
         while True:
-            next = list_method(
-                **list_method_kwargs, marker=_marker_value(results[-1])
-            )
-            if len(next) == 0:
+            marker = _marker_value(results[-1])
+            page = list_method(**list_method_kwargs, marker=marker)
+            if not page or _marker_value(page[-1]) == marker:
                 break
-            results += next
+            results += page
     return results
 
 

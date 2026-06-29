@@ -346,3 +346,81 @@ class UtilsTests(test.TestCase):
                 ),
             ]
         )
+
+
+def _marker_of(item):
+    return item.id if hasattr(item, 'id') else item['id']
+
+
+def _paginating_list_method(items, page_size):
+    """Fake list call that honours the `marker` kwarg (nova/designate)."""
+
+    def _call(marker=None, **kwargs):
+        if marker is None:
+            start = 0
+        else:
+            ids = [_marker_of(i) for i in items]
+            start = ids.index(marker) + 1
+        return items[start : start + page_size]
+
+    return mock.Mock(side_effect=_call)
+
+
+def _marker_ignoring_list_method(items, max_calls=50):
+    """Fake list call that ignores `marker` and always returns everything.
+
+    Models keystone users/projects/roles with no list_limit configured.
+    Raises rather than hanging the test suite if the helper fails to
+    terminate.
+    """
+
+    def _call(marker=None, **kwargs):
+        if _call_mock.call_count > max_calls:
+            raise AssertionError("list_resources did not terminate")
+        return list(items)
+
+    _call_mock = mock.Mock(side_effect=_call)
+    return _call_mock
+
+
+class ListResourcesTests(test.TestCase):
+    def test_empty(self):
+        list_method = mock.Mock(return_value=[])
+        self.assertEqual([], utils.list_resources(list_method))
+        list_method.assert_called_once_with()
+
+    def test_single_page_attribute_style(self):
+        items = [mock.Mock(id='a'), mock.Mock(id='b')]
+        list_method = _paginating_list_method(items, page_size=10)
+        result = utils.list_resources(list_method)
+        self.assertEqual(items, result)
+
+    def test_marker_pagination_attribute_style(self):
+        items = [mock.Mock(id=c) for c in 'abcde']
+        list_method = _paginating_list_method(items, page_size=2)
+        result = utils.list_resources(list_method)
+        self.assertEqual(items, result)
+        self.assertEqual(['a', 'b', 'c', 'd', 'e'], [r.id for r in result])
+
+    def test_marker_pagination_dict_style(self):
+        items = [{'id': c} for c in 'abcde']
+        list_method = _paginating_list_method(items, page_size=2)
+        result = utils.list_resources(list_method)
+        self.assertEqual(items, result)
+
+    def test_kwargs_passed_through(self):
+        items = [mock.Mock(id='a')]
+        list_method = _paginating_list_method(items, page_size=10)
+        utils.list_resources(list_method, domain='default')
+        for call in list_method.call_args_list:
+            self.assertEqual('default', call.kwargs['domain'])
+
+    def test_marker_ignored_terminates(self):
+        # Regression: keystone without list_limit ignores `marker` and
+        # returns the full list every call. Must terminate, not OOM.
+        items = [mock.Mock(id=c) for c in 'abc']
+        list_method = _marker_ignoring_list_method(items)
+        result = utils.list_resources(list_method)
+        self.assertEqual(items, result)
+        # One initial call + one probe that yields no new items, then stop.
+        self.assertEqual(2, list_method.call_count)
