@@ -7,6 +7,7 @@ import glanceclient.exc as glance_exc
 from heatclient import exc as heat_exc
 from kubernetes.client.rest import ApiException as kube_api_exc
 from magnumclient import exceptions as magnum_exc
+from neutronclient.common import exceptions as neutron_exc
 from novaclient import exceptions as nova_exc
 from swiftclient import exceptions as swift_exc
 
@@ -805,8 +806,16 @@ class NeutronBasicArchiver(Archiver):
         LOG.debug("%s: Zero neutron quota", self.project.id)
 
     def delete_quota(self):
-        if not self.dry_run:
+        if self.dry_run:
+            LOG.debug("%s: Would delete neutron quota", self.project.id)
+            return
+        # A project may have no custom neutron quota, in which case Neutron
+        # returns NotFound.  The default quota still applies and there is
+        # nothing to delete, so treat this as success.
+        try:
             self.ne_client.delete_quota(self.project.id)
+        except neutron_exc.NotFound:
+            pass
         LOG.debug("%s: Delete neutron quota", self.project.id)
 
     def delete_resources(self, force=False):

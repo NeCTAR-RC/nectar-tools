@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    Deleting a project no longer aborts when the project has no custom Neutron
+    quota. Neutron returns ``NotFound`` when asked to delete a quota that was
+    never set, which previously raised out of the archiver and stopped the
+    whole delete workflow. The Neutron archiver now treats a missing quota as
+    success, matching the behaviour already used for Magnum.

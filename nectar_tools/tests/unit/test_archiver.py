@@ -5,6 +5,7 @@ import glanceclient.exc as glance_exc
 from heatclient import exc as heat_exc
 from kubernetes.client.rest import ApiException as kube_api_exc
 from magnumclient import exceptions as magnum_exc
+from neutronclient.common import exceptions as neutron_exc
 from novaclient import exceptions as nova_exc
 
 from nectar_tools import auth
@@ -747,6 +748,19 @@ class NeutronBasicArchiverTests(test.TestCase):
         with mock.patch.object(na, 'ne_client') as mock_neutron:
             na.delete_quota()
             mock_neutron.delete_quota.assert_called_once_with(PROJECT.id)
+
+    def test_delete_quota_not_found(self):
+        na = archiver.NeutronBasicArchiver(PROJECT)
+        with mock.patch.object(na, 'ne_client') as mock_neutron:
+            mock_neutron.delete_quota.side_effect = neutron_exc.NotFound()
+            na.delete_quota()
+            mock_neutron.delete_quota.assert_called_once_with(PROJECT.id)
+
+    def test_delete_quota_dry_run(self):
+        na = archiver.NeutronBasicArchiver(PROJECT, dry_run=True)
+        with mock.patch.object(na, 'ne_client') as mock_neutron:
+            na.delete_quota()
+            mock_neutron.delete_quota.assert_not_called()
 
     def test_delete_neutron_resources(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
