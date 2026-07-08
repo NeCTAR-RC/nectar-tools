@@ -415,6 +415,11 @@ ALLOCATION_RESPONSE = {
             "zone": "nectar",
             "quota": 2,
         },
+        {
+            "resource": "pawsey-object.object",
+            "zone": "pawsey",
+            "quota": 1000,
+        },
     ],
     "id": 1,
     "parent_request": None,

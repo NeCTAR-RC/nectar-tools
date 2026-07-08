@@ -605,6 +605,13 @@ class ProvisionerTests(test.TestCase):
             with testfixtures.ShouldRaise(exceptions.InvalidProjectAllocation):
                 self.manager.convert_trial(self.allocation)
 
+    def test_quota_report_pawsey_object(self):
+        report = self.manager.quota_report(
+            self.allocation, show_current=False, html=True
+        )
+        self.assertIn('Pawsey Object Store (GB)', report)
+        self.assertIn('1000', report)
+
     @mock.patch('nectar_tools.auth.get_nova_client')
     def test_get_current_nova_quota(self, mock_get_nova):
         self.allocation.project_id = PROJECT.id

@@ -409,6 +409,11 @@ class ProvisioningManager:
             'warre.flavor:GPU',
             'warre.flavor:Huge RAM',
         ]
+        # Resources provisioned externally, where we can't query the
+        # current quota
+        no_current_resources = [
+            'pawsey-object.object',
+        ]
         current = collections.OrderedDict()
         allocated = collections.OrderedDict()
 
@@ -479,6 +484,16 @@ class ProvisioningManager:
         _prefix_dict(
             allocation.get_allocated_warre_quota(), 'warre', allocated
         )
+        # Pawsey object storage is provisioned externally so there is no
+        # client to fetch the current quota from; show allocated only.
+        _prefix_dict(
+            {
+                quota.resource.split('.', 1)[1]: quota.quota
+                for quota in allocation.get_quota('pawsey-object')
+            },
+            'pawsey-object',
+            allocated,
+        )
 
         table = prettytable.PrettyTable(
             ["Resource", "Current", "Allocated", "Diff"]
@@ -507,6 +522,9 @@ class ProvisioningManager:
                 if resource in boolean_resources:
                     current_quota = _boolean_resource_enabled(current_quota)
                     allocated = _boolean_resource_enabled(allocated)
+                    diff = ''
+                if resource in no_current_resources:
+                    current_quota = ''
                     diff = ''
 
                 table.add_row(
