@@ -57,8 +57,12 @@ class TestSentrySetup(test.TestCase):
 
 class TestGetRelease(test.TestCase):
     def test_get_release(self):
-        version = importlib.metadata.version('nectar-tools')
-        self.assertEqual(f'nectar-tools@{version}', sentry._get_release())
+        with mock.patch(
+            'nectar_tools.sentry.importlib.metadata.version',
+            return_value='1.0.0',
+        ) as mock_version:
+            self.assertEqual('nectar-tools@1.0.0', sentry._get_release())
+        mock_version.assert_called_once_with('nectar-tools')
 
     def test_get_release_not_installed(self):
         with mock.patch(
