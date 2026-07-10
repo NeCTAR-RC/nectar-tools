@@ -548,7 +548,7 @@ class ProvisioningManager:
         current = client.quotas.get(allocation.project_id)
         quotas = current._info
         if int(quotas['ram']) != -1:
-            quotas['ram'] = int(quotas['ram']) / 1024
+            quotas['ram'] = int(quotas['ram']) // 1024
         return quotas
 
     def set_nova_quota(self, allocation):
@@ -642,7 +642,7 @@ class ProvisioningManager:
         )
         account = client.get_account()
         try:
-            quota = int(account[0][SWIFT_QUOTA_KEY]) / 1024 / 1024 / 1024
+            quota = int(account[0][SWIFT_QUOTA_KEY]) // 1024 // 1024 // 1024
         except KeyError:
             quota = 0
         return {'object': quota}
@@ -673,7 +673,7 @@ class ProvisioningManager:
         data = {}
         for resource in current:
             if resource.resource == 'ram':
-                limit = resource.limit / 1024
+                limit = resource.limit // 1024
             else:
                 limit = resource.limit
             data[resource.resource] = limit

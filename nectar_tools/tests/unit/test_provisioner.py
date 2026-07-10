@@ -623,6 +623,7 @@ class ProvisionerTests(test.TestCase):
 
         current = self.manager.get_current_nova_quota(self.allocation)
         self.assertEqual({'instance': 30, 'ram': 1, 'cores': 33}, current)
+        self.assertIsInstance(current['ram'], int)
         nova_client.quotas.get.assert_called_once_with(
             self.allocation.project_id
         )
@@ -641,6 +642,35 @@ class ProvisionerTests(test.TestCase):
         nova_client.quotas.get.assert_called_once_with(
             self.allocation.project_id
         )
+
+    @mock.patch('nectar_tools.auth.get_swift_client')
+    def test_get_current_swift_quota(self, mock_get_swift):
+        self.allocation.project_id = PROJECT.id
+        swift_client = mock.Mock()
+        mock_get_swift.return_value = swift_client
+        swift_client.get_account.return_value = (
+            {'x-account-meta-quota-bytes': str(100 * 1024 * 1024 * 1024)},
+            [],
+        )
+
+        current = self.manager.get_current_swift_quota(self.allocation)
+        self.assertEqual({'object': 100}, current)
+        self.assertIsInstance(current['object'], int)
+
+    @mock.patch('nectar_tools.auth.get_trove_client')
+    def test_get_current_trove_quota(self, mock_get_trove):
+        self.allocation.project_id = PROJECT.id
+        trove_client = mock.Mock()
+        mock_get_trove.return_value = trove_client
+        ram = mock.Mock(limit=8192)
+        ram.resource = 'ram'
+        volumes = mock.Mock(limit=100)
+        volumes.resource = 'volumes'
+        trove_client.quota.show.return_value = [ram, volumes]
+
+        current = self.manager.get_current_trove_quota(self.allocation)
+        self.assertEqual({'ram': 8, 'volumes': 100}, current)
+        self.assertIsInstance(current['ram'], int)
 
     def test_set_nova_quota_no_ram(self):
         # override and set rating budget to 0
