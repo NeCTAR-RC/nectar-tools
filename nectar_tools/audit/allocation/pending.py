@@ -60,5 +60,5 @@ class PendingAllocationAuditor(base.AllocationAuditorBase):
                     a.modified_time,
                     expiry_status,
                     approver_info['expiry_state'],
-                    extra={'extra': {'site': site}},
+                    extra={'site': site},
                 )

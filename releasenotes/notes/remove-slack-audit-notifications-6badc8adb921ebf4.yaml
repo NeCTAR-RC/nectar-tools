@@ -1,0 +1,9 @@
+---
+upgrade:
+  - |
+    The unused Slack audit notification support has been removed,
+    including the ``--slack-categories``, ``--slack-config`` and
+    ``--slack-debug`` options on the audit commands. The
+    ``/etc/nectar/slack_config.ini`` file is no longer read. Error
+    reporting is now handled by GlitchTip/Sentry via the ``[sentry]``
+    config section.

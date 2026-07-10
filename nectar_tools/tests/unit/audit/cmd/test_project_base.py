@@ -18,7 +18,6 @@ class AuditCmdBaseTests(test.TestCase):
         cmd.session = mock.Mock()
         cmd.dry_run = True
         cmd.limit = 0
-        cmd.args = mock.Mock(slack_categories=None)
         return cmd
 
     def test_run_check_single_instance(self):
@@ -49,7 +48,6 @@ class ProjectAuditorCmdTests(test.TestCase):
         cmd.dry_run = dry_run
         cmd.limit = limit
         cmd.list_not_run = False
-        cmd.args = mock.Mock(slack_categories=None)
         return cmd
 
     def test_run_check_runs_named_check_per_valid_project(self):

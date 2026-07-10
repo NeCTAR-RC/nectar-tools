@@ -59,16 +59,15 @@ class ProjectAuditorCmd(base.AuditCmdBase):
         method_str = check.split(':')[1].split('.')[1]
         manager = self.get_manager()
         auditor = None
-        with base.slack_context(self):
-            for project in self._get_projects():
-                if not self.is_valid_project(project):
-                    continue
-                auditor = manager(
-                    ks_session=self.session,
-                    project=project,
-                    dry_run=self.dry_run,
-                    limit=self.limit,
-                )
-                getattr(auditor, method_str)()
-            if auditor is not None:
-                auditor.summary()
+        for project in self._get_projects():
+            if not self.is_valid_project(project):
+                continue
+            auditor = manager(
+                ks_session=self.session,
+                project=project,
+                dry_run=self.dry_run,
+                limit=self.limit,
+            )
+            getattr(auditor, method_str)()
+        if auditor is not None:
+            auditor.summary()
