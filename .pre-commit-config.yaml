@@ -22,7 +22,7 @@ repos:
     hooks:
       - id: doc8
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.17
+    rev: v0.15.20
     hooks:
       - id: ruff
         args: ['--fix', '--unsafe-fixes']
@@ -35,6 +35,6 @@ repos:
           - flake8-import-order~=0.19.2
         exclude: '^(doc|releasenotes|tools)/.*$'
   - repo: https://github.com/crate-ci/typos
-    rev: v1.47.2
+    rev: v1.48.0
     hooks:
       - id: typos
