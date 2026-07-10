@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    All commands now support error reporting to GlitchTip (or Sentry).
+    When a ``dsn`` is set in the ``[sentry]`` section of the config file
+    (or via the ``SENTRY_DSN`` environment variable), unhandled exceptions
+    and ERROR level log messages, such as failures processing individual
+    projects during expiry or provisioning runs, are reported
+    automatically. Events are tagged with the command name so operators
+    can set up alert rules per tool.

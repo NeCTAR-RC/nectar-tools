@@ -78,8 +78,10 @@ directory holding the CLI entry points, plus manager/notifier/auditor logic:
 - **`notifier.py`** — base `Notifier` that renders Jinja2 templates from
   `nectar_tools/templates/<dir>/` and sends via Freshdesk. Subsystems have their
   own notifier subclasses (`expiry/notifier.py`, `provisioning/notifier.py`).
-  Slack notifications for audits go through `audit/cmd/slack.py` and the
-  `slack_context` context manager.
+- **`sentry.py`** — error reporting to GlitchTip/Sentry. `sentry.setup()` is
+  called from `CmdBase.__init__` and is a no-op unless a `dsn` is set in the
+  `[sentry]` config section; when set, unhandled exceptions and ERROR-level
+  log records from any command are reported automatically.
 
 ### Tests
 

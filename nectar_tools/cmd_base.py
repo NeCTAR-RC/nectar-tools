@@ -1,6 +1,7 @@
 from nectar_tools import auth
 from nectar_tools import config
 from nectar_tools import log
+from nectar_tools import sentry
 
 
 CONFIG = config.CONFIG
@@ -14,6 +15,7 @@ class CmdBase:
         self.args = CONFIG.parse()
 
         log.setup(filename=log_filename)
+        sentry.setup()
 
         OSLO_CONF([], default_config_files=[self.args.config])
 
