@@ -27,9 +27,8 @@ class ImageAuditor(base.Auditor):
             LOG.debug(
                 "Image %s is in use by %s instances", image_id, len(instances)
             )
-        except Exception as e:
-            LOG.error("Image %s: Can't get related instance", image_id)
-            LOG.error(e)
+        except Exception:
+            LOG.exception("Image %s: Can't get related instance", image_id)
         return False
 
     def _get_images(self, project_id):

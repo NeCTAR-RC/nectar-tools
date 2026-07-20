@@ -39,7 +39,7 @@ class ReservationFlavorAuditor(base.RatingAuditor):
 
             cost_spec = flavor.extra_specs.get(RATE_KEY)
             if not cost_spec:
-                LOG.error(f"No nectar:rate set for {flavor.name}")
+                LOG.error("No nectar:rate set for %s", flavor.name)
                 continue
             else:
                 computed_cost = round(Decimal(cost_spec), 3)

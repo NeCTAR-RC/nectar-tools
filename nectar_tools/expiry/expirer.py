@@ -922,9 +922,10 @@ class PTExpirer(ProjectExpirer):
             limit = self.check_cpu_usage()
         except exceptions.NoUsageError:
             LOG.debug("%s: Usage is None", self.project.id)
-        except Exception as e:
-            LOG.error("Failed to get usage for project %s", self.project.id)
-            LOG.error(e)
+        except Exception:
+            LOG.exception(
+                "Failed to get usage for project %s", self.project.id
+            )
 
         return limit == CPULimit.OVER_LIMIT or self.is_pt_too_old()
 
@@ -1202,9 +1203,10 @@ class ImageExpirer(Expirer):
                 LOG.debug("Image %s: Has running instances", self.image.id)
                 return False
             return True
-        except Exception as e:
-            LOG.error("Image %s: Can't get related instance", self.image.id)
-            LOG.error(e)
+        except Exception:
+            LOG.exception(
+                "Image %s: Can't get related instance", self.image.id
+            )
             return False
 
     def _has_no_recent_boot(self, days=THREE_YEARS_IN_DAYS):
@@ -1224,9 +1226,10 @@ class ImageExpirer(Expirer):
                 LOG.debug("Image %s: Has been booted recently", self.image.id)
                 return False
             return True
-        except Exception as e:
-            LOG.error("Image %s: Can't get related instance", self.image.id)
-            LOG.error(e)
+        except Exception:
+            LOG.exception(
+                "Image %s: Can't get related instance", self.image.id
+            )
             return False
 
     def get_warning_date(self):

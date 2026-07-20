@@ -84,4 +84,4 @@ class ProjectAuditor(base.RatingAuditor):
             instance_id_diff = df_instance_ids.symmetric_difference(
                 nova_instance_ids
             )
-            LOG.error(f"Instance IDs different = {instance_id_diff}")
+            LOG.error("Instance IDs different = %s", instance_id_diff)

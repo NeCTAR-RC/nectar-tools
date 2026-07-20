@@ -91,12 +91,12 @@ class DatabaseInstanceAuditor(base.Auditor):
                         self.q_client.delete_security_group,
                         security_group=g.get('id'),
                     )
-                except Exception as e:
-                    LOG.error(
-                        f"Failed to delete secgroup {g.get('id')}, "
-                        f"for instance {id}"
+                except Exception:
+                    LOG.exception(
+                        "Failed to delete secgroup %s, for instance %s",
+                        g.get('id'),
+                        id,
                     )
-                    LOG.exception(e)
 
     def clean_stale_volumes(self):
         search_opts = {
@@ -138,11 +138,12 @@ class DatabaseInstanceAuditor(base.Auditor):
                         self.c_client.volumes.force_delete,
                         volume=v.id,
                     )
-                except Exception as e:
-                    LOG.error(
-                        f"Failed to delete volume {v.id}, for instance {id}"
+                except Exception:
+                    LOG.exception(
+                        "Failed to delete volume %s, for instance %s",
+                        v.id,
+                        id,
                     )
-                    LOG.exception(e)
 
     def check_running_with_deleted_project(self):
         for inst in self.t_client.mgmt_instances.list():
@@ -165,22 +166,22 @@ class DatabaseInstanceAuditor(base.Auditor):
     def check_status(self):
         for inst in self.t_client.mgmt_instances.list():
             if inst.status == 'ERROR':
-                LOG.error(f"Instance {inst.id} in {inst.status} state")
+                LOG.error("Instance %s in %s state", inst.id, inst.status)
             elif inst.status == 'SHUTDOWN':
                 project = self.k_client.projects.get(inst.tenant_id)
                 expiry_status = getattr(project, 'expiry_status', 'active')
                 if expiry_status == 'active':
                     LOG.error(
-                        f"Instance {inst.id} shut down but project not "
-                        "under expiry"
+                        "Instance %s shut down but project not under expiry",
+                        inst.id,
                     )
             elif inst.server.get('status') == 'SHUTOFF':
-                LOG.error(f"Instance {inst.id} nova instance shutoff")
+                LOG.error("Instance %s nova instance shutoff", inst.id)
             else:
                 try:
                     self.t_client.databases.list(inst)
                 except t_exc.BadRequest:
-                    LOG.error(f"Instance {inst.id} RPC communication error")
+                    LOG.error("Instance %s RPC communication error", inst.id)
                 else:
                     LOG.debug(f"Instance {inst.id} RPC communication active")
 
@@ -197,6 +198,8 @@ class DatabaseInstanceAuditor(base.Auditor):
             )
             if default_datastores[ds_type] != datastore_version.id:
                 LOG.error(
-                    f"Outdated datastore, {inst.id} running "
-                    f"{ds_type} {ds_version}"
+                    "Outdated datastore, %s running %s %s",
+                    inst.id,
+                    ds_type,
+                    ds_version,
                 )

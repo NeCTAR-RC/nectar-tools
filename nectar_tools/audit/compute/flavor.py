@@ -39,7 +39,7 @@ class FlavorAuditor(base.Auditor):
                     sorts=["ended_at:desc"],
                 )
                 if not instances:
-                    LOG.error(f"Flavor {flavor.name} hasn't been used ever!")
+                    LOG.error("Flavor %s hasn't been used ever!", flavor.name)
                     continue
                 try:
                     last_date = datetime.strptime(

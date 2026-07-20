@@ -226,7 +226,7 @@ class InstanceAuditor(base.ResourceAuditor):
                         # Trying to set end before start in gnocchi so update
                         # both
                         LOG.error(
-                            f"Repair: {id}: end before start updating both"
+                            "Repair: %s: end before start updating both", id
                         )
                         self.repair(
                             f"{id}: Setting started_at",

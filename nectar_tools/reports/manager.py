@@ -45,13 +45,13 @@ class SUReporter:
             try:
                 self.send_reports(allocation)
             except exceptions.InvalidProjectAllocation as e:
-                LOG.error(e)
+                LOG.error("Invalid project allocation: %s", e)
                 continue
             except Exception as e:
-                LOG.error(f"Error processing allocation {allocation.id}")
+                LOG.error("Error processing allocation %s", allocation.id)
                 raise e
         if skip_to:
-            LOG.error(f"Didn't find --skip-to-... allocation {skip_to}")
+            LOG.error("Didn't find --skip-to-... allocation %s", skip_to)
 
     def send_reports(self, allocation):
         if isinstance(allocation, int):
