@@ -49,7 +49,9 @@ directory holding the CLI entry points, plus manager/notifier/auditor logic:
   (`setup_clients`, `run_all`, `repair`, `summary`) is treated as a "check" and
   invoked automatically.** CLI commands in `audit/cmd/` subclass
   `audit/cmd/base.py:AuditCmdBase`, declare an `AUDITORS` list, and support
-  `--check module:Class.method` to run a single check, `--list`, and `--limit`.
+  running a single check via a positional `module:Class.method` argument
+  (e.g. `nectar_tools.audit.compute.instance:InstanceAuditor.check_instance_states`),
+  plus `--list` and `--limit`.
 - **`expiry/`** — resource/allocation/account/image expiry. State machine logic
   in `expiry/expirer.py`; valid states in `expiry/expiry_states.py`; archiving in
   `expiry/archiver.py`. Commands in `expiry/cmd/`.
