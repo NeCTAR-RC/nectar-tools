@@ -14,11 +14,25 @@ class IDPAuditor(base.ResourceAuditor):
         )
 
         for idp in resources:
-            LOG.error("IDP %s has no country", idp['original_resource_id'])
-            LOG.info(
-                "To fix with: "
-                "gnocchi resource update "
-                "--type idp "
-                "-a 'country:<AU or NZ>' %s",
-                idp['id'],
+            domain = idp['original_resource_id']
+            if domain.endswith('_au'):
+                country = 'AU'
+            elif domain.endswith('_nz'):
+                country = 'NZ'
+            else:
+                LOG.error("IDP %s has no country", domain)
+                LOG.info(
+                    "To fix with: "
+                    "gnocchi resource update "
+                    "--type idp "
+                    "-a 'country:<AU or NZ>' %s",
+                    idp['id'],
+                )
+                continue
+
+            self.repair(
+                f"{domain}: Setting country to {country}",
+                lambda: self.g_client.resource.update(
+                    'idp', idp['id'], {'country': country}
+                ),
             )
