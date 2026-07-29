@@ -22,6 +22,7 @@ from placementclient import client as placementclient
 from swiftclient import client as swiftclient
 from taynacclient import client as taynacclient
 from troveclient import client as troveclient
+from varroaclient import client as varroaclient
 from warreclient import client as warreclient
 
 from nectar_tools.config import configurable
@@ -202,6 +203,12 @@ def get_blazar_client(sess=None):
     if not sess:
         sess = get_session()
     return blazarclient.Client(session=sess, service_type='reservation')
+
+
+def get_varroa_client(sess=None):
+    if not sess:
+        sess = get_session()
+    return varroaclient.Client(version='1', session=sess)
 
 
 @configurable('kubernetes_client', env_prefix='KUBE')
