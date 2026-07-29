@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    nectar-tools can now be built as a Docker image. ``make build``
+    builds the sdist and a ``python:3.12-slim`` based image tagged
+    ``registry.rc.nectar.org.au/nectar/nectar-tools:<git describe>``,
+    and ``make push`` publishes it. Releases are built automatically
+    on tag push via the shared NeCTAR-RC GitHub workflow. The image
+    runs as a non-root user and expects its configuration at
+    ``/etc/nectar/tools.ini``; the cron jobs are run in Kubernetes by
+    the ``nectar-tools-helm`` chart.
