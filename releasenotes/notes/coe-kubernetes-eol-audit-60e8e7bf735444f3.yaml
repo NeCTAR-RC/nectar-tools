@@ -1,0 +1,17 @@
+---
+features:
+  - |
+    The COE cluster auditor has a new ``check_kubernetes_eol`` check that
+    compares each cluster's ``coe_version`` against endoflife.date and
+    reports a security risk to varroa when the version is within 60 days
+    of its EOL date (``kubernetes-nearing-eol``) or already past it
+    (``kubernetes-eol``). Risks are re-reported each run with a 7 day
+    expiry, so varroa keeps them fresh while a cluster is at risk and
+    expires them once it is upgraded or deleted. This feature was
+    released in version 1.4.0 but its release note was omitted at the
+    time.
+upgrade:
+  - |
+    The varroa client is now a dependency (``python-varroaclient`` on
+    PyPI, ``python3-varroaclient`` for the Debian package). This
+    dependency was added in version 1.4.0.
