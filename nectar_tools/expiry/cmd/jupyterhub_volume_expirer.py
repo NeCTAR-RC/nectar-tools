@@ -11,7 +11,7 @@ from nectar_tools.expiry import expiry_states
 from nectar_tools.expiry.manager import jupyterhub as expirer
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
 
 # TODO(andy) Copied from expirer, but should be imported consts
@@ -23,7 +23,7 @@ UPDATED_AT_KEY = 'nectar.org.au/expiry_updated_at'
 
 class JupyterHubVolumeExpiryCmd(cmd_base.CmdBase):
     def __init__(self):
-        super().__init__(log_filename='jupyterhub-volume-expiry.log')
+        super().__init__()
 
         self.kube_client = auth.get_kube_client()
         self.kube_ns = CONF.kubernetes_client.namespace

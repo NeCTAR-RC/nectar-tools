@@ -6,7 +6,7 @@ from nectar_tools import exceptions
 from nectar_tools import notifier
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
 
 

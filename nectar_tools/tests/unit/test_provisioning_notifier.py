@@ -8,7 +8,7 @@ from nectar_tools.provisioning import notifier
 from nectar_tools.tests import fakes
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 PROJECT = fakes.FakeProject('active')
 
 

@@ -5,7 +5,7 @@ from nectar_tools import config
 from nectar_tools import notifier
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 
 
 # Dirty hack

@@ -12,7 +12,7 @@ from nectar_tools.tests import fakes
 from nectar_tools.tests.functional import fake_clients
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 
 
 @mock.patch('nectar_tools.auth.get_taynac_client', new=fake_clients.get_taynac)

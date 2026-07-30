@@ -1,4 +1,5 @@
 import logging
+import os
 
 from blazarclient import client as blazarclient
 from cinderclient import client as cinderclient
@@ -7,6 +8,7 @@ from designateclient import client as designateclient
 import glanceclient
 from gnocchiclient import client as gnocchiclient
 from heatclient import client as heatclient
+from keystoneauth1 import loading as ks_loading
 from keystoneclient.v3 import client
 from kubernetes import client as kube_client
 from magnumclient import client as magnumclient
@@ -25,41 +27,42 @@ from troveclient import client as troveclient
 from varroaclient import client as varroaclient
 from warreclient import client as warreclient
 
-from nectar_tools.config import configurable
+from nectar_tools import config
 
+
+CONF = config.CONF
 
 LOG = logging.getLogger(__name__)
 
 
-@configurable('openstack.client', env_prefix='OS')
-def get_session(
-    auth_url,
-    username=None,
-    password=None,
-    project_name=None,
-    system_scope='project',
-    auth_type=None,
-    token=None,
-):
-    kwargs = {
-        'auth_url': auth_url,
-    }
-    if auth_type:
-        kwargs['auth_type'] = auth_type
-    if token:
-        kwargs['token'] = token
-    if username:
-        kwargs['username'] = username
-        kwargs['user_domain_id'] = 'default'
-    if password:
-        kwargs['password'] = password
+def get_session(system_scope=None):
+    """Return a keystoneauth session.
 
-    if system_scope == 'project':
-        kwargs['project_name'] = project_name
-        kwargs['project_domain_id'] = 'default'
-    elif system_scope == 'all':
-        kwargs['system_scope'] = 'all'
+    Uses the [service_auth] config section when auth_type is set
+    there, otherwise falls back to OS_* environment variables or
+    clouds.yaml via openstacksdk.
 
+    :param system_scope: set to 'all' for a system scoped session
+                         instead of the configured project scope.
+    """
+    if CONF[config.SERVICE_AUTH_GROUP].auth_type:
+        kwargs = {}
+        if system_scope:
+            # override the configured project scope
+            kwargs = {
+                'system_scope': system_scope,
+                'project_name': None,
+                'project_id': None,
+                'project_domain_name': None,
+                'project_domain_id': None,
+            }
+        auth = ks_loading.load_auth_from_conf_options(
+            CONF, config.SERVICE_AUTH_GROUP, **kwargs
+        )
+        return ks_loading.load_session_from_conf_options(
+            CONF, config.SERVICE_AUTH_GROUP, auth=auth
+        )
+    kwargs = {'system_scope': system_scope} if system_scope else {}
     conn = openstack.connect(**kwargs)
     return conn.session
 
@@ -211,8 +214,14 @@ def get_varroa_client(sess=None):
     return varroaclient.Client(version='1', session=sess)
 
 
-@configurable('kubernetes_client', env_prefix='KUBE')
-def get_kube_client(host, token):
+def get_kube_client():
+    host = CONF.kubernetes_client.host or os.environ.get('KUBE_HOST')
+    token = CONF.kubernetes_client.token or os.environ.get('KUBE_TOKEN')
+    if not host or not token:
+        raise Exception(
+            'kubernetes_client host and token must be set in the '
+            'config file or KUBE_HOST/KUBE_TOKEN environment variables'
+        )
     conf = kube_client.Configuration()
     conf.api_key_prefix['authorization'] = 'Bearer'
     conf.host = host

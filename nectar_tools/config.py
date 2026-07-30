@@ -1,136 +1,156 @@
-import argparse
-import configparser
-import functools
-import inspect
-import logging
-import os
-import sys
+import copy
+import operator
 
+from keystoneauth1 import loading as ks_loading
 from oslo_config import cfg
+from oslo_log import log as logging
+import pbr.version
 
 
-class AttrDict(dict):
-    def __getattr__(self, attr):
-        try:
-            return self[attr]
-        except KeyError:
-            raise AttributeError(attr)
+CONF = cfg.CONF
+
+DEFAULT_CONFIG_FILE = '/etc/nectar/tools.ini'
+SERVICE_AUTH_GROUP = 'service_auth'
 
 
-class ConfigBase(AttrDict):
-    def read(self, filename):
-        if not os.path.isfile(filename):
-            print(f"Config file {filename} not found.", file=sys.stderr)
-            return
-        conf = configparser.ConfigParser()
-        conf.read(filename)
-        self['DEFAULT'] = AttrDict(conf.defaults())
-        for section in conf.sections():
-            self[section] = AttrDict(conf.items(section))
+freshdesk_opts = [
+    cfg.StrOpt('domain', help='Freshdesk domain'),
+    cfg.StrOpt('key', secret=True, help='Freshdesk API key'),
+    cfg.IntOpt('email_config_id', help='Freshdesk email config ID'),
+    cfg.IntOpt('allocation_group', help='Freshdesk allocation group ID'),
+    cfg.IntOpt('pt_group', help='Freshdesk project trial group ID'),
+    cfg.IntOpt('image_group', help='Freshdesk image group ID'),
+    cfg.IntOpt('accounts_group', help='Freshdesk accounts group ID'),
+    cfg.IntOpt('jupyterhub_group', help='Freshdesk jupyterhub group ID'),
+    cfg.IntOpt('provisioning_group', help='Freshdesk provisioning group ID'),
+]
+
+keystone_opts = [
+    cfg.StrOpt('member_role_id', help='ID of the member role'),
+    cfg.StrOpt('manager_role_id', help='ID of the manager role'),
+]
+
+designate_opts = [
+    cfg.StrOpt('user_domain', help='Domain of users to create zones for'),
+    cfg.StrOpt('zone_email', help='Email address set on created zones'),
+]
+
+events_opts = [
+    cfg.ListOpt(
+        'notifier_queues',
+        default=[],
+        help='Message queues to send event notifications to',
+    ),
+]
+
+image_expiry_opts = [
+    cfg.ListOpt(
+        'official_project_ids',
+        default=[],
+        help='Projects whose images are excluded from expiry',
+    ),
+]
+
+limits_opts = [
+    cfg.StrOpt('region_id', help='Region to set limits in'),
+]
+
+jupyterhub_opts = [
+    cfg.StrOpt('api_url', help='JupyterHub API URL'),
+    cfg.StrOpt('token', secret=True, help='JupyterHub API token'),
+]
+
+kubernetes_opts = [
+    cfg.StrOpt('host', help='Kubernetes API host'),
+    cfg.StrOpt('token', secret=True, help='Kubernetes API token'),
+    cfg.StrOpt('namespace', help='Kubernetes namespace'),
+]
+
+trove_opts = [
+    cfg.StrOpt('project_id', help='Trove service project ID'),
+]
+
+octavia_opts = [
+    cfg.StrOpt('project_id', help='Octavia service project ID'),
+]
+
+tempest_opts = [
+    cfg.ListOpt(
+        'tempest_project_ids',
+        default=[],
+        help='Projects used by tempest test runs',
+    ),
+]
+
+sentry_opts = [
+    cfg.StrOpt(
+        'dsn',
+        secret=True,
+        help='GlitchTip/Sentry compatible DSN. When set, unhandled '
+        'exceptions and ERROR level log messages are reported.',
+    ),
+    cfg.StrOpt(
+        'environment',
+        help='Environment name reported with each event, '
+        'e.g. production or testing.',
+    ),
+]
+
+_OPTS = [
+    ('freshdesk', freshdesk_opts),
+    ('keystone', keystone_opts),
+    ('designate', designate_opts),
+    ('events', events_opts),
+    ('image_expiry', image_expiry_opts),
+    ('limits', limits_opts),
+    ('jupyterhub', jupyterhub_opts),
+    ('kubernetes_client', kubernetes_opts),
+    ('trove', trove_opts),
+    ('octavia', octavia_opts),
+    ('tempest', tempest_opts),
+    ('sentry', sentry_opts),
+]
+
+for _group, _opts in _OPTS:
+    CONF.register_opts(_opts, group=_group)
+
+logging.register_options(CONF)
+
+ks_loading.register_auth_conf_options(CONF, SERVICE_AUTH_GROUP)
+ks_loading.register_session_conf_options(CONF, SERVICE_AUTH_GROUP)
 
 
-class Config(ConfigBase):
-    def __init__(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument(
-            '-c',
-            '--config',
-            help='Path of configuration file',
-            default='/etc/nectar/tools.ini',
-        )
-        log_group = parser.add_mutually_exclusive_group()
-        log_group.add_argument(
-            '-d', '--debug', action='store_true', help='Show debug logging.'
-        )
-        log_group.add_argument('--loglevel', help='Set log level.')
-        parser.add_argument(
-            '-q',
-            '--quiet',
-            action='store_true',
-            help="Don't print anything on the console.",
-        )
-        parser.add_argument(
-            '--use_syslog',
-            action='store_true',
-            default=False,
-            help="Log to syslog.",
-        )
-        self._parser = parser
-        self._parsed_args = None
-
-    def get_parser(self):
-        return self._parser
-
-    def parse(self):
-        if self._parsed_args is None:
-            self._parsed_args = self.get_parser().parse_args()
-            self.read(self._parsed_args.config)
-
-            if self._parsed_args.loglevel:
-                loglevel = self._parsed_args.loglevel
-                numeric_level = getattr(logging, loglevel.upper(), None)
-
-                if not isinstance(numeric_level, int):
-                    raise ValueError(f'Invalid log level: {loglevel}')
-
-                self._parsed_args.loglevel = numeric_level
-
-        return self._parsed_args
-
-    @property
-    def args(self):
-        self.parse()
-        return self._parsed_args
+def init(args=None, **kwargs):
+    version = pbr.version.VersionInfo('nectar_tools').release_string()
+    CONF(
+        args or [],
+        project='nectar-tools',
+        version=f'%prog {version}',
+        **kwargs,
+    )
 
 
-CONFIG = Config()
-OSLO_CONF = cfg.CONF
+def setup_logging(conf):
+    """Sets up the logging options.
 
-
-def configurable(config_section, env_prefix=None):
-    """Decorator that makes all options for the function configurable
-    within the settings file.
-
-       :param str section: The name given to the config section
-
+    :param conf: a cfg.ConfOpts object
     """
+    logging.set_defaults(default_log_levels=logging.get_default_log_levels())
+    logging.setup(conf, 'nectar-tools')
 
-    def _configurable(func):
-        # If there is a . assume that the name is fully qualified.
-        args_list = inspect.getfullargspec(func)
 
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            filtered_defaults = {}
-            if env_prefix:
-                for a in args_list.args:
-                    env_name = (env_prefix + '_' + a).upper()
-                    if env_name in os.environ:
-                        filtered_defaults[a] = os.environ.get(env_name)
-            conf = CONFIG.get(config_section, {})
-            filtered_defaults.update(
-                dict((a, conf.get(a)) for a in args_list.args if a in conf)
-            )
-            arguments = dict(
-                zip(
-                    reversed(args_list.args),
-                    reversed(args_list.defaults or []),
-                )
-            )
-            arguments.update(dict(zip(args_list.args, args)))
-            arguments.update(kwargs)
-            arguments.update(filtered_defaults)
-            missing_args = [
-                arg for arg in args_list.args if arg not in arguments
-            ]
-            if missing_args:
-                raise Exception(
-                    f'Error configuring function {func.__name__}: '
-                    f'Configuration section {config_section} is missing values for {missing_args}'
-                )
+# Used by oslo-config-generator entry point
+# https://docs.openstack.org/oslo.config/latest/cli/generator.html
+def list_opts():
+    return [*_OPTS, add_auth_opts()]
 
-            return func(**arguments)
 
-        return wrapper
-
-    return _configurable
+def add_auth_opts():
+    opts = ks_loading.register_session_conf_options(CONF, SERVICE_AUTH_GROUP)
+    opt_list = copy.deepcopy(opts)
+    opt_list.insert(0, ks_loading.get_auth_common_conf_options()[0])
+    for plugin_option in ks_loading.get_auth_plugin_conf_options('password'):
+        if all(option.name != plugin_option.name for option in opt_list):
+            opt_list.append(plugin_option)
+    opt_list.sort(key=operator.attrgetter('name'))
+    return (SERVICE_AUTH_GROUP, opt_list)

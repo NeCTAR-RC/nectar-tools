@@ -14,7 +14,7 @@ from nectar_tools.tests import fakes
 from nectar_tools.tests.functional import fake_clients
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 FAKE_ALLOCATION_CLIENT = mock.MagicMock()
 FAKE_NOVA = mock.MagicMock()
 FAKE_NEUTRON = mock.MagicMock()
@@ -187,8 +187,8 @@ class PTExpiryTests(test.TestCase):
                     cc_emails=[],
                     description=mock.ANY,
                     email=self.project.owner.email,
-                    email_config_id=int(CONF.freshdesk.email_config_id),
-                    group_id=int(CONF.freshdesk.pt_group),
+                    email_config_id=CONF.freshdesk.email_config_id,
+                    group_id=CONF.freshdesk.pt_group,
                     subject=subject,
                     tags=['expiry'],
                 ),

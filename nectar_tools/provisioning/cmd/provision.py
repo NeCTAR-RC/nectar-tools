@@ -3,18 +3,16 @@ import logging
 from nectarallocationclient import states
 
 from nectar_tools import cmd_base
-from nectar_tools import config
 
 from nectar_tools.provisioning import manager
 
 
-CONF = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 
 class ProvisionCmd(cmd_base.CmdBase):
     def __init__(self):
-        super().__init__(log_filename='provisioning.log')
+        super().__init__()
         self.manager = manager.ProvisioningManager(
             ks_session=self.session, noop=self.dry_run
         )

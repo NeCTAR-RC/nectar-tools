@@ -9,7 +9,7 @@ from nectar_tools.tests import fakes
 
 
 PROJECT = fakes.FakeProject('active')
-CONF = config.CONFIG
+CONF = config.CONF
 
 
 class UtilsTests(test.TestCase):

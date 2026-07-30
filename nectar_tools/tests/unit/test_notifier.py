@@ -8,7 +8,7 @@ from nectar_tools import notifier
 from nectar_tools.tests import fakes
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 PROJECT = fakes.FakeProject('active')
 
 
@@ -89,7 +89,7 @@ class FreshDeskNotifierTests(test.TestCase):
             subject=f'Ticket-Subject {PROJECT.name}',
             description='description-text',
             email='owner@fake.org',
-            email_config_id=int(CONF.freshdesk.email_config_id),
+            email_config_id=CONF.freshdesk.email_config_id,
             group_id=1,
             cc_emails=['manager1@fake.org'],
             tags=['foo', 'bar'],

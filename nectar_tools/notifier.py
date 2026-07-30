@@ -8,7 +8,7 @@ from nectar_tools import config
 from nectar_tools import exceptions
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
 
 
@@ -69,7 +69,7 @@ class FreshDeskNotifier(Notifier):
         )
 
         self.api = fd_api.API(CONF.freshdesk.domain, CONF.freshdesk.key)
-        self.group_id = int(group_id)
+        self.group_id = group_id
 
     def _create_ticket(
         self, email, cc_emails, description, extra_context={}, tags=[]
@@ -87,7 +87,7 @@ class FreshDeskNotifier(Notifier):
                 subject=self.subject,
                 description=description,
                 email=email,
-                email_config_id=int(CONF.freshdesk.email_config_id),
+                email_config_id=CONF.freshdesk.email_config_id,
                 group_id=self.group_id,
                 cc_emails=cc_emails,
                 tags=tags,

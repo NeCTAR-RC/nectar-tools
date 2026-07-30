@@ -9,7 +9,7 @@ from nectar_tools.expiry import expiry_states
 from nectar_tools.expiry import notifier as expiry_notifier
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
 
 

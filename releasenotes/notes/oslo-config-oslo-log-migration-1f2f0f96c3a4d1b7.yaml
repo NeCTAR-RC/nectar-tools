@@ -1,0 +1,42 @@
+---
+upgrade:
+  - |
+    Configuration and logging now use oslo.config and oslo.log. Config
+    files need the following updates:
+
+    * The ``[openstack.client]`` section is replaced by a standard
+      keystoneauth ``[service_auth]`` section. Set ``auth_type =
+      password`` (or ``token``, ``v3applicationcredential``, etc.) plus
+      ``auth_url``, ``username``, ``password`` and ``project_name``.
+      The previously implicit domain values must now be explicit:
+      ``user_domain_id = default`` and ``project_domain_id = default``.
+      For system scoped operation set ``system_scope = all`` instead of
+      project options. If ``auth_type`` is not set, authentication
+      falls back to ``OS_*`` environment variables or ``clouds.yaml``
+      via openstacksdk.
+    * The ``[logging]`` section is replaced by oslo.log options in
+      ``[DEFAULT]``: use ``log_dir``/``log_file`` for file logging,
+      ``use_syslog`` for syslog and ``use_journal`` for journald.
+      Without any of these set, logs go to stderr, which suits
+      container deployments. The ``console_level``, ``file_level``,
+      ``enabled_loggers`` and ``log_format`` options are removed; use
+      ``debug``, ``default_log_levels`` and
+      ``logging_default_format_string`` instead.
+    * Unrecognised legacy options in existing config files are ignored
+      by oslo.config, so they can be cleaned up at leisure.
+
+    CLI changes: the ``--loglevel`` and ``--use_syslog`` flags are
+    removed (use ``-d`` or the config options above) and ``-q/--quiet``
+    now means "only log errors" rather than fully silencing console
+    output.
+  - |
+    When ``[service_auth] auth_type`` is set in the config file, the
+    config file credentials are used exclusively; ``OS_*`` environment
+    variables no longer override individual values from the config
+    file.
+features:
+  - |
+    A sample configuration file can now be generated with ``tox -e
+    genconfig``. Typed options mean integer and list values (Freshdesk
+    group IDs, notifier queues, project ID lists) are parsed by
+    oslo.config instead of ad hoc casting in code.

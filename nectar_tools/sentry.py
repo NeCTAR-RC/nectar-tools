@@ -8,6 +8,8 @@ import sentry_sdk
 from nectar_tools import config
 
 
+CONF = config.CONF
+
 LOG = logging.getLogger(__name__)
 
 
@@ -21,8 +23,7 @@ def _get_release():
     return f'nectar-tools@{version}'
 
 
-@config.configurable('sentry', env_prefix='SENTRY')
-def setup(dsn=None, environment=None):
+def setup():
     """Enable error reporting to GlitchTip/Sentry.
 
     A no-op unless a DSN is set in the [sentry] section of the config
@@ -30,11 +31,12 @@ def setup(dsn=None, environment=None):
     sentry-sdk default integrations report unhandled exceptions and
     ERROR level log messages.
     """
+    dsn = CONF.sentry.dsn or os.environ.get('SENTRY_DSN')
     if not dsn:
         return False
     sentry_sdk.init(
         dsn=dsn,
-        environment=environment,
+        environment=CONF.sentry.environment,
         release=_get_release(),
         # GlitchTip does not support sessions
         auto_session_tracking=False,

@@ -14,7 +14,7 @@ from nectar_tools.expiry import expiry_states
 from nectar_tools.tests import fakes
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 USAGE_LIMIT_HOURS = expirer.USAGE_LIMIT_HOURS
 CPULimit = expirer.CPULimit
 BEFORE = '2016-01-01'

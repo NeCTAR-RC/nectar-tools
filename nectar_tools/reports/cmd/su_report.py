@@ -2,18 +2,16 @@ import logging
 import sys
 
 from nectar_tools import cmd_base
-from nectar_tools import config
 
 from nectar_tools.reports import manager
 
 
-CONF = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 
 class SUReportCmd(cmd_base.CmdBase):
     def __init__(self):
-        super().__init__(log_filename='reports.log')
+        super().__init__()
         self.manager = manager.SUReporter(self.session, self.dry_run)
 
     def add_args(self):

@@ -7,7 +7,7 @@ from nectar_tools import auth
 from nectar_tools import config
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
 
 

@@ -6,20 +6,18 @@ import prettytable
 
 from nectar_tools import auth
 from nectar_tools import cmd_base
-from nectar_tools import config
 from nectar_tools import exceptions
 
 from nectar_tools.expiry import expirer
 from nectar_tools.expiry import expiry_states
 
 
-CONFIG = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 
 class ImageExpiryCmd(cmd_base.CmdBase):
     def __init__(self):
-        super().__init__(log_filename='image-expiry.log')
+        super().__init__()
 
         self.g_client = auth.get_glance_client(self.session)
 

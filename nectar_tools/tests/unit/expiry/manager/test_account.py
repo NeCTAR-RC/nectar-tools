@@ -9,7 +9,7 @@ from nectar_tools.expiry import expirer as expierer_base
 from nectar_tools.expiry.manager import account as expirer
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 YESTERDAY = '2016-12-31'
 
 

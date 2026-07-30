@@ -8,6 +8,8 @@ from nectar_tools import sentry
 from nectar_tools import test
 
 
+CONF = config.CONF
+
 DSN = 'https://key@glitchtip.example.com/1'
 RELEASE = 'nectar-tools@1.0.0'
 
@@ -20,9 +22,9 @@ class TestSentrySetup(test.TestCase):
         mock_sdk.init.assert_not_called()
 
     def test_setup_with_dsn(self, mock_sdk, mock_release):
-        section = config.AttrDict(dsn=DSN, environment='testing')
-        with mock.patch.dict(config.CONFIG, {'sentry': section}):
-            self.assertTrue(sentry.setup())
+        CONF.set_override('dsn', DSN, 'sentry')
+        CONF.set_override('environment', 'testing', 'sentry')
+        self.assertTrue(sentry.setup())
         mock_sdk.init.assert_called_once_with(
             dsn=DSN,
             environment='testing',
@@ -34,9 +36,8 @@ class TestSentrySetup(test.TestCase):
         )
 
     def test_setup_dsn_only(self, mock_sdk, mock_release):
-        section = config.AttrDict(dsn=DSN)
-        with mock.patch.dict(config.CONFIG, {'sentry': section}):
-            self.assertTrue(sentry.setup())
+        CONF.set_override('dsn', DSN, 'sentry')
+        self.assertTrue(sentry.setup())
         mock_sdk.init.assert_called_once_with(
             dsn=DSN,
             environment=None,

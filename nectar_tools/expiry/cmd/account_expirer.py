@@ -8,18 +8,16 @@ import sys
 
 from nectar_tools import auth
 from nectar_tools import cmd_base
-from nectar_tools import config
 
 from nectar_tools.expiry.manager import account as expirer
 
 
-CONFIG = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 
 class AccountExpiryCmd(cmd_base.CmdBase):
     def __init__(self):
-        super().__init__(log_filename='account-expiry.log')
+        super().__init__()
 
         self.m_client = auth.get_manuka_client(self.session)
 

@@ -3,10 +3,8 @@ import logging
 import sys
 
 from nectar_tools.audit.rating import base
-from nectar_tools import config
 
 
-CONF = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 

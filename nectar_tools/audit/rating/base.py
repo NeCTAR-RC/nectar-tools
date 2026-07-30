@@ -2,10 +2,8 @@ import logging
 
 from nectar_tools.audit import base
 from nectar_tools import auth
-from nectar_tools import config
 
 
-CONF = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 

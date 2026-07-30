@@ -21,9 +21,8 @@ from nectar_tools.provisioning import notifier as provisioning_notifier
 from nectar_tools import utils
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
-OSLO_CONF = config.OSLO_CONF
 OSLO_CONTEXT = context.RequestContext()
 
 
@@ -48,12 +47,12 @@ class ProvisioningManager:
         self.k_client_sys = auth.get_keystone_client(system_session)
         self.a_client = auth.get_allocation_client(ks_session)
 
-        transport = oslo_messaging.get_notification_transport(OSLO_CONF)
+        transport = oslo_messaging.get_notification_transport(CONF)
         self.event_notifier = oslo_messaging.Notifier(transport, 'expiry')
         target = oslo_messaging.Target(
             exchange='openstack', topic='notifications'
         )
-        for queue in CONF.events.notifier_queues.split(','):
+        for queue in CONF.events.notifier_queues:
             transport._driver.listen_for_notifications(
                 [(target, 'audit')], queue, 1, 1
             )

@@ -19,6 +19,9 @@ jinja2
 prettytable>=3.8.0
 python-freshdesk
 nectarallocationclient>=1.8.0
+keystoneauth1
+oslo.config
+oslo.log
 oslo.messaging
 oslo.context
 openstacksdk>=0.22.0

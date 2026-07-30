@@ -11,7 +11,7 @@ from nectar_tools import auth
 from nectar_tools import config
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
 
 
@@ -101,7 +101,7 @@ class InstanceAuditor(base.ResourceAuditor):
             days=self.extra_args['days_ago']
         )
         changes_since = changes_since.isoformat()
-        tempest_project_ids = CONF.tempest.tempest_project_ids.split(',')
+        tempest_project_ids = CONF.tempest.tempest_project_ids
         while True:
             # options 'deleted: False' means the return instances include
             # all states, not only deleted ones.

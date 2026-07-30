@@ -10,7 +10,7 @@ LOG = logging.getLogger(__name__)
 
 class AuditCmdBase(cmd_base.CmdBase):
     def __init__(self):
-        super().__init__(log_filename='audit.log')
+        super().__init__()
         self.list_not_run = self.args.list
         self.limit = self.args.limit
 

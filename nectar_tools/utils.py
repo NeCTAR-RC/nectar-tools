@@ -6,7 +6,7 @@ from nectar_tools import config
 from nectar_tools.expiry import archiver
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 PT_RE = re.compile(r'^pt-\d+$')
 
 

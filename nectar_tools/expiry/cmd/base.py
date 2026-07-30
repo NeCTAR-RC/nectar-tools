@@ -3,20 +3,18 @@ import logging
 import prettytable
 
 from nectar_tools import cmd_base
-from nectar_tools import config
 from nectar_tools import exceptions
 from nectar_tools import utils
 
 from nectar_tools.expiry import expiry_states
 
 
-CONFIG = config.CONFIG
 LOG = logging.getLogger(__name__)
 
 
 class ProjectExpiryBaseCmd(cmd_base.CmdBase):
     def __init__(self):
-        super().__init__(log_filename='expiry.log')
+        super().__init__()
 
         projects = []
         if self.args.project_id:

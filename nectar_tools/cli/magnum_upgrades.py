@@ -5,12 +5,9 @@ from magnumclient.common.apiclient import exceptions as magnum_exc
 
 from nectar_tools import auth
 from nectar_tools import cmd_base
-from nectar_tools import config
 from nectar_tools import notifier
 from nectar_tools import utils
 
-
-CONF = config.CONFIG
 
 # supported_version_re = r'v1.32|v1.33'
 supported_version_re = r'v1.34|v1.35'

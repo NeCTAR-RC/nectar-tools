@@ -9,7 +9,7 @@ from nectar_tools import config
 from nectar_tools.expiry import expiry_states
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
 TICKET_RE = re.compile(r'^ticket-.+$')
 

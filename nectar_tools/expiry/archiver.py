@@ -19,7 +19,7 @@ from nectar_tools import utils
 
 EXPIRY_METADATA_KEY = 'expiry_locked'
 ARCHIVE_ATTEMPTS = 10
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
 
 

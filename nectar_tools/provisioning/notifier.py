@@ -1,8 +1,4 @@
-from nectar_tools import config
 from nectar_tools import notifier
-
-
-CONF = config.CONFIG
 
 
 class ProvisioningNotifier(notifier.TaynacNotifier):

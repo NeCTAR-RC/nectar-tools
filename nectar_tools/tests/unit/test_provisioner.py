@@ -17,7 +17,7 @@ from nectar_tools import utils
 
 
 PROJECT = fakes.FakeProject('active')
-CONF = config.CONFIG
+CONF = config.CONF
 
 
 class ProvisionerTests(test.TestCase):

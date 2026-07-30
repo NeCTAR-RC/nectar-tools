@@ -21,9 +21,8 @@ from nectar_tools.expiry import expiry_states
 from nectar_tools.expiry import notifier as expiry_notifier
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 LOG = logging.getLogger(__name__)
-OSLO_CONF = config.OSLO_CONF
 OSLO_CONTEXT = context.RequestContext()
 
 DATE_FORMAT = '%Y-%m-%d'
@@ -92,12 +91,12 @@ class Expirer:
         self.resource = resource
         self._project = None
 
-        transport = oslo_messaging.get_notification_transport(OSLO_CONF)
+        transport = oslo_messaging.get_notification_transport(CONF)
         self.event_notifier = oslo_messaging.Notifier(transport, 'expiry')
         target = oslo_messaging.Target(
             exchange='openstack', topic='notifications'
         )
-        for queue in CONF.events.notifier_queues.split(','):
+        for queue in CONF.events.notifier_queues:
             transport._driver.listen_for_notifications(
                 [(target, 'audit')], queue, 1, 1
             )
@@ -1189,7 +1188,7 @@ class ImageExpirer(Expirer):
         return context
 
     def _is_ignored_image(self):
-        official_projects = CONF.image_expiry.official_project_ids.split(',')
+        official_projects = CONF.image_expiry.official_project_ids
         if self.image.owner in official_projects:
             LOG.debug("Image %s: Ignoring official image", self.image.id)
             return True

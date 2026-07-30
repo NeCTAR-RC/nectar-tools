@@ -6,7 +6,7 @@ from nectar_tools import test
 from nectar_tools.tests import fakes
 
 
-CONF = config.CONFIG
+CONF = config.CONF
 PROJECT = fakes.FakeProject('active')
 IMAGE = fakes.FakeImage(name='fake')
 INST = fakes.FakeInstance(name='fake')
