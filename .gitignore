@@ -57,3 +57,4 @@ releasenotes/build
 tags
 
 etc/*
+!etc/nectar-tools/
