@@ -31,6 +31,9 @@ DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 PT_RE = re.compile(r'^pt-\d+$')
 USAGE_LIMIT_HOURS = 4383  # 6 months in hours
 THREE_YEARS_IN_DAYS = 1095  # 3 years in days
+# How long a project can sit in the deleting state with resources
+# remaining before force delete failures are raised as errors
+FORCE_DELETE_MAX_DAYS = 10
 
 
 class CPULimit(enum.Enum):
@@ -200,6 +203,21 @@ class Expirer:
             )
         return None
 
+    def get_updated_at(self):
+        updated_at = self.get_metadata(self.UPDATED_AT_KEY)
+        if not updated_at:
+            return None
+        try:
+            return datetime.datetime.strptime(updated_at, DATE_FORMAT)
+        except ValueError:
+            LOG.error(
+                '%s: Invalid %s date: %s',
+                self.resource.id,
+                self.UPDATED_AT_KEY,
+                updated_at,
+            )
+        return None
+
     def at_next_step(self):
         next_step = self.get_next_step_date()
         if not next_step:
@@ -356,10 +374,29 @@ class ProjectExpirer(Expirer):
             LOG.info("%s: Force deleting project", self.project.id)
             self.delete_project()
             if not self.archiver.is_delete_successful():
-                raise exceptions.DeleteFailure(
-                    f"{self.project.id}: Resources still exist after "
-                    "force delete"
+                # expiry_updated_at is only stamped remotely when the
+                # project enters the deleting state, so the local value
+                # is stale on the run that starts the delete. Only
+                # escalate when the project was already deleting at the
+                # start of this run.
+                updated_at = self.get_updated_at()
+                if (
+                    expiry_status == expiry_states.DELETING
+                    and updated_at
+                    and self.now - updated_at
+                    > datetime.timedelta(days=FORCE_DELETE_MAX_DAYS)
+                ):
+                    raise exceptions.DeleteFailure(
+                        f"{self.project.id}: Resources still exist "
+                        f"{(self.now - updated_at).days} days after "
+                        "first force delete"
+                    )
+                LOG.warning(
+                    "%s: Resources still exist after force delete, "
+                    "will retry next run",
+                    self.project.id,
                 )
+                return True
             self.set_project_deleted()
             return True
 

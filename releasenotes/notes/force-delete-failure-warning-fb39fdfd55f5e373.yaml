@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    Project expiry force delete runs where resources still exist
+    afterwards now log a warning and retry on the next run instead of
+    raising an error straight away. A ``DeleteFailure`` error is only
+    raised (and therefore reported to GlitchTip) once the project has
+    been in the ``deleting`` state for more than 10 days.

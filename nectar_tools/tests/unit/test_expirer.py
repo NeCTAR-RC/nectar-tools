@@ -777,6 +777,44 @@ class AllocationExpiryTests(test.TestCase):
             mock.patch.object(ex, 'archiver'),
         ) as (mock_delete, mock_set_deleted, mock_archiver):
             mock_archiver.is_delete_successful.return_value = False
+            self.assertTrue(ex.process())
+            mock_delete.assert_called_with()
+            mock_set_deleted.assert_not_called()
+
+    def test_process_force_delete_resources_remain_deleting(self):
+        # Deleting for less than FORCE_DELETE_MAX_DAYS, only warn
+        project = fakes.FakeProject(
+            'warning1',
+            expiry_status=expiry_states.DELETING,
+            expiry_updated_at='2016-12-25',
+        )
+        ex = expirer.AllocationExpirer(project, force_delete=True)
+
+        with test.nested(
+            mock.patch.object(ex, 'delete_project'),
+            mock.patch.object(ex, 'set_project_deleted'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_set_deleted, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = False
+            self.assertTrue(ex.process())
+            mock_delete.assert_called_with()
+            mock_set_deleted.assert_not_called()
+
+    def test_process_force_delete_resources_remain_max_days(self):
+        # Deleting for more than FORCE_DELETE_MAX_DAYS, raise error
+        project = fakes.FakeProject(
+            'warning1',
+            expiry_status=expiry_states.DELETING,
+            expiry_updated_at='2016-12-10',
+        )
+        ex = expirer.AllocationExpirer(project, force_delete=True)
+
+        with test.nested(
+            mock.patch.object(ex, 'delete_project'),
+            mock.patch.object(ex, 'set_project_deleted'),
+            mock.patch.object(ex, 'archiver'),
+        ) as (mock_delete, mock_set_deleted, mock_archiver):
+            mock_archiver.is_delete_successful.return_value = False
             self.assertRaises(exceptions.DeleteFailure, ex.process)
             mock_delete.assert_called_with()
             mock_set_deleted.assert_not_called()
