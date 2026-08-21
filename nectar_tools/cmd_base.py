@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os
 
 from nectar_tools import auth
 from nectar_tools import config
@@ -16,12 +15,7 @@ class CmdBase:
         self.add_args()
         self.args = self.parser.parse_args()
 
-        config_files = []
-        if self.args.config:
-            config_files = [self.args.config]
-        elif os.path.isfile(config.DEFAULT_CONFIG_FILE):
-            config_files = [config.DEFAULT_CONFIG_FILE]
-
+        config_files = [self.args.config] if self.args.config else None
         config.init(default_config_files=config_files)
 
         if self.args.debug:
@@ -42,7 +36,8 @@ class CmdBase:
             '-c',
             '--config',
             help='Path of configuration file '
-            f'(default: {config.DEFAULT_CONFIG_FILE} if it exists)',
+            '(default: oslo.config searches its standard locations, '
+            'e.g. /etc/nectar-tools/nectar-tools.conf)',
         )
         self.parser.add_argument(
             '-d',

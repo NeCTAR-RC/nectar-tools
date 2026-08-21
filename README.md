@@ -51,11 +51,12 @@ pip install -e .
 
 ### Configure
 
-The tools read an ini-style configuration file, by default from
-`/etc/nectar/tools.ini`. An alternative path can be given with
-`-c/--config`. A starting point is provided in
-[etc/example.conf](etc/example.conf); its sections configure the
-Freshdesk notifier, the allocation system API, Sentry/GlitchTip error
+The tools read an ini-style configuration file. Without `-c/--config`,
+oslo.config searches its standard locations for `nectar-tools.conf` or
+`<prog>.conf` (e.g. `~/.nectar-tools/`, `~/`, `/etc/nectar-tools/`, `/etc/`
+in that order — see `oslo_config.cfg.find_config_files`). A starting point
+is provided in [etc/example.conf](etc/example.conf); its sections configure
+the Freshdesk notifier, the allocation system API, Sentry/GlitchTip error
 reporting, logging, and per-tool settings.
 
 The tools need OpenStack admin credentials, which are usually supplied
@@ -84,7 +85,7 @@ Common flags supported by all tools:
 
 | Flag | Description |
 |------|-------------|
-| `-c`, `--config` | Path to the configuration file (default `/etc/nectar/tools.ini`) |
+| `-c`, `--config` | Path to the configuration file (default: oslo.config's standard search locations) |
 | `-y`, `--no-dry-run` | Perform real actions instead of only reporting them |
 | `-d`, `--debug` | Show debug logging |
 | `-q`, `--quiet` | Don't print anything to the console |
