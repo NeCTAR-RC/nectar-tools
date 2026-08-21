@@ -22,8 +22,6 @@ domain_site_mapping = {
     'os.sut': 'swinburne',
     'gs-os': 'swinburne',
     'syd-1.ardc.nectar.org.au': 'ardc',
-    'syd-1.rc.nectar.org.au': 'ardc',
-    'mel-1.rc.nectar.org.au': 'ardc',
     'adelaide.nectar.org.au': 'adelaide',
     'nectar.pawsey.org.au': 'pawsey',
     'test.rc.nectar.org.au': 'coreservices',
