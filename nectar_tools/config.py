@@ -9,7 +9,6 @@ import pbr.version
 
 CONF = cfg.CONF
 
-DEFAULT_CONFIG_FILE = '/etc/nectar/tools.ini'
 SERVICE_AUTH_GROUP = 'service_auth'
 
 

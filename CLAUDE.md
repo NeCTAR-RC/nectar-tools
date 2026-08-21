@@ -68,11 +68,10 @@ directory holding the CLI entry points, plus manager/notifier/auditor logic:
   keystone, neutron, glance, magnum, allocation client, openstacksdk, etc.).
   `get_session()` builds the keystone session; per-service `get_*_client(sess)`
   helpers wrap it. Most subsystems take a `ks_session` and call these helpers.
-- **`config.py`** — config + CLI argument handling. `CONFIG` (a `Config`
-  singleton) reads an ini file (default `/etc/nectar/tools.ini`) into an
-  attribute-accessible dict, and also exposes `OSLO_CONF` (oslo.config). The
-  `@configurable(section, env_prefix=...)` decorator injects config values as
-  function defaults (used heavily in `auth.py`).
+- **`config.py`** — registers oslo.config options and provides `CONF`
+  (`oslo_config.cfg.CONF`) plus `init()`/`setup_logging()`. Without
+  `-c/--config`, oslo.config searches its own standard locations for
+  `nectar-tools.conf` (e.g. `/etc/nectar-tools/`, `~/.nectar-tools/`).
 - **`cmd_base.py:CmdBase`** — base for command classes. Wires up the arg parser,
   logging, oslo config, and a keystone session. **Tools default to dry-run; the
   `-y/--no-dry-run` flag is required to perform real actions.** Honour this
