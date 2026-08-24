@@ -1,6 +1,7 @@
 from unittest import mock
 
 from openstack.load_balancer.v2 import quota as lb_quota
+from openstack.network.v2 import quota as network_quota
 
 
 FAKE_DESIGNATE = mock.MagicMock()
@@ -49,24 +50,6 @@ class SwiftClient:
 
     @staticmethod
     def post_account(*args, **kwargs):
-        pass
-
-
-class NeutronClient:
-    @staticmethod
-    def show_quota(project_id):
-        return {'quota': {'network': 10}}
-
-    @staticmethod
-    def show_quota_default(project_id):
-        return {'quota': {'network': 5}}
-
-    @staticmethod
-    def delete_quota(*args, **kwargs):
-        pass
-
-    @staticmethod
-    def update_quota(*args, **kwargs):
         pass
 
 
@@ -120,8 +103,26 @@ class Openstack:
         def update_quota(self, quota):
             return Openstack.fake_quota
 
+    class Network:
+        @staticmethod
+        def get_quota(project_id):
+            return network_quota.Quota.existing(id=project_id, network=10)
+
+        @staticmethod
+        def get_quota_default(project_id):
+            return network_quota.Quota.existing(id=project_id, network=5)
+
+        @staticmethod
+        def delete_quota(*args, **kwargs):
+            pass
+
+        @staticmethod
+        def update_quota(*args, **kwargs):
+            pass
+
     def __init__(self):
         self.load_balancer = self.LoadBalancer()
+        self.network = self.Network()
 
 
 def get_keystone(session):
@@ -138,10 +139,6 @@ def get_cinder(session):
 
 def get_swift(session, project_id):
     return SwiftClient()
-
-
-def get_neutron(session):
-    return NeutronClient()
 
 
 def get_trove(session):

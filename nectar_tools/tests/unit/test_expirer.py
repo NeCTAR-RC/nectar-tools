@@ -1476,6 +1476,7 @@ class AllocationExpiryTests(test.TestCase):
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class PTExpiryTests(test.TestCase):
     def test_should_process(self):
         project = fakes.FakeProjectWithOwner()
@@ -1621,6 +1622,7 @@ MOCK_A_CLIENT = mock.Mock()
 @freeze_time("2017-01-01")
 @mock.patch('nectar_tools.expiry.notifier.ExpiryNotifier', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 @mock.patch('nectar_tools.auth.get_allocation_client', new=MOCK_A_CLIENT)
 class PTExpiryProcessTests(test.TestCase):
     def setUp(self):

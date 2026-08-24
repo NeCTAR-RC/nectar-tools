@@ -16,7 +16,6 @@ from manilaclient import client as manilaclient
 from manukaclient import client as manukaclient
 from muranoclient import client as muranoclient
 from nectarallocationclient import client as allocationclient
-from neutronclient.neutron import client as neutronclient
 from novaclient import client as novaclient
 import openstack
 from openstack import connection as sdkconnection
@@ -101,12 +100,6 @@ def get_glance_client(sess=None):
     if not sess:
         sess = get_session()
     return glanceclient.Client('2', session=sess)
-
-
-def get_neutron_client(sess=None):
-    if not sess:
-        sess = get_session()
-    return neutronclient.Client('2.0', session=sess)
 
 
 def get_trove_client(sess=None):

@@ -18,6 +18,7 @@ CONF = config.CONF
 FAKE_ALLOCATION_CLIENT = mock.MagicMock()
 FAKE_NOVA = mock.MagicMock()
 FAKE_NEUTRON = mock.MagicMock()
+FAKE_OPENSTACKSDK = mock.MagicMock(network=FAKE_NEUTRON)
 FAKE_SWIFT = mock.MagicMock()
 FAKE_GLANCE = mock.MagicMock()
 FAKE_HEAT = mock.MagicMock()
@@ -33,8 +34,8 @@ def get_nova(session):
     return FAKE_NOVA
 
 
-def get_neutron(session):
-    return FAKE_NEUTRON
+def get_openstacksdk(session):
+    return FAKE_OPENSTACKSDK
 
 
 def get_swift(session, project_id):
@@ -68,7 +69,7 @@ def get_allocation_client(session):
 @mock.patch('nectar_tools.auth.get_glance_client', new=get_glance)
 @mock.patch('nectar_tools.auth.get_heat_client', new=get_heat)
 @mock.patch('nectar_tools.auth.get_murano_client', new=get_murano)
-@mock.patch('nectar_tools.auth.get_neutron_client', new=get_neutron)
+@mock.patch('nectar_tools.auth.get_openstacksdk', new=get_openstacksdk)
 @mock.patch(
     'nectar_tools.auth.get_keystone_client', new=fake_clients.get_keystone
 )
@@ -365,19 +366,17 @@ class PTExpiryTests(test.TestCase):
         keystone_calls = self.get_keystone_calls(expiry_states.RESTRICTED)
 
         nova_calls = [mock.call.quotas.delete(tenant_id=self.project.id)]
-        neutron_quota = {
-            'quota': {
-                'port': 0,
-                'security_group': 0,
-                'security_group_rule': 10,
-                'floatingip': 0,
-                'router': 0,
-                'network': 0,
-                'subnet': 0,
-            }
-        }
         neutron_calls = [
-            mock.call.update_quota(self.project.id, neutron_quota)
+            mock.call.update_quota(
+                self.project.id,
+                port=0,
+                security_group=0,
+                security_group_rule=10,
+                floatingip=0,
+                router=0,
+                network=0,
+                subnet=0,
+            )
         ]
 
         swift_calls = [
@@ -729,28 +728,19 @@ class PTExpiryTests(test.TestCase):
 
         swift_client.get_account.return_value = ('fake-account', [c1])
         swift_client.get_container.return_value = ('fake-container', [o1])
-        port_response = {'ports': [{'id': 'fakeport1'}]}
-        neutron_client.list_ports.return_value = port_response
-        secgroup_response = {
-            'security_groups': [
-                {'id': 'fake', 'name': 'fake'},
-                {'id': 'fake2', 'name': 'default'},
-            ]
-        }
-        secgroup_rules_response = {
-            'security_group_rules': [
-                {'id': 'rule1', 'security_group_id': 'secgrp1'},
-                {'id': 'rule2', 'security_group_id': 'secgrp2'},
-            ]
-        }
-        neutron_client.list_security_groups.return_value = secgroup_response
-        neutron_client.list_security_group_rules.return_value = (
-            secgroup_rules_response
-        )
-        neutron_client.list_floatingips.return_value = {'floatingips': []}
-        neutron_client.list_routers.return_value = {'routers': []}
-        neutron_client.list_subnets.return_value = {'subnets': []}
-        neutron_client.list_networks.return_value = {'networks': []}
+        neutron_client.ports.return_value = [{'id': 'fakeport1'}]
+        neutron_client.security_groups.return_value = [
+            {'id': 'fake', 'name': 'fake'},
+            {'id': 'fake2', 'name': 'default'},
+        ]
+        neutron_client.security_group_rules.return_value = [
+            {'id': 'rule1', 'security_group_id': 'secgrp1'},
+            {'id': 'rule2', 'security_group_id': 'secgrp2'},
+        ]
+        neutron_client.ips.return_value = []
+        neutron_client.routers.return_value = []
+        neutron_client.subnets.return_value = []
+        neutron_client.networks.return_value = []
 
         nova_calls = [
             mock.call.servers.list(
@@ -777,17 +767,17 @@ class PTExpiryTests(test.TestCase):
         ]
 
         neutron_calls = [
-            mock.call.list_floatingips(tenant_id=self.project.id),
-            mock.call.list_routers(tenant_id=self.project.id),
-            mock.call.list_ports(tenant_id=self.project.id),
+            mock.call.ips(project_id=self.project.id),
+            mock.call.routers(project_id=self.project.id),
+            mock.call.ports(project_id=self.project.id),
             mock.call.delete_port('fakeport1'),
-            mock.call.list_security_groups(tenant_id=self.project.id),
+            mock.call.security_groups(project_id=self.project.id),
             mock.call.delete_security_group('fake'),
-            mock.call.list_security_group_rules(tenant_id=self.project.id),
+            mock.call.security_group_rules(project_id=self.project.id),
             mock.call.delete_security_group_rule('rule1'),
             mock.call.delete_security_group_rule('rule2'),
-            mock.call.list_subnets(tenant_id=self.project.id),
-            mock.call.list_networks(tenant_id=self.project.id),
+            mock.call.subnets(project_id=self.project.id),
+            mock.call.networks(project_id=self.project.id),
             mock.call.delete_quota(self.project.id),
         ]
 
@@ -840,14 +830,14 @@ class PTExpiryTests(test.TestCase):
         murano_client.environments.list.return_value = []
         magnum_client.clusters.list.return_value = []
         swift_client.get_account.return_value = ('fake-account', [])
-        neutron_client.list_ports.return_value = {'ports': []}
-        neutron_client.list_security_groups.return_value = {
-            'security_groups': [{'id': 'default', 'name': 'default'}]
-        }
-        neutron_client.list_floatingips.return_value = {'floatingips': []}
-        neutron_client.list_routers.return_value = {'routers': []}
-        neutron_client.list_subnets.return_value = {'subnets': []}
-        neutron_client.list_networks.return_value = {'networks': []}
+        neutron_client.ports.return_value = []
+        neutron_client.security_groups.return_value = [
+            {'id': 'default', 'name': 'default'}
+        ]
+        neutron_client.ips.return_value = []
+        neutron_client.routers.return_value = []
+        neutron_client.subnets.return_value = []
+        neutron_client.networks.return_value = []
 
         nova_calls = [
             mock.call.servers.list(
@@ -864,12 +854,12 @@ class PTExpiryTests(test.TestCase):
             mock.call.clusters.list(detail=True),
         ]
         neutron_calls = [
-            mock.call.list_ports(tenant_id=self.project.id),
-            mock.call.list_security_groups(tenant_id=self.project.id),
-            mock.call.list_floatingips(tenant_id=self.project.id),
-            mock.call.list_routers(tenant_id=self.project.id),
-            mock.call.list_subnets(tenant_id=self.project.id),
-            mock.call.list_networks(tenant_id=self.project.id),
+            mock.call.ports(project_id=self.project.id),
+            mock.call.security_groups(project_id=self.project.id),
+            mock.call.ips(project_id=self.project.id),
+            mock.call.routers(project_id=self.project.id),
+            mock.call.subnets(project_id=self.project.id),
+            mock.call.networks(project_id=self.project.id),
         ]
         swift_calls = [
             mock.call.get_account(),

@@ -8,7 +8,6 @@ python-glanceclient
 python-cloudkittyclient>=4.5.0
 python-cinderclient
 python-muranoclient
-python-neutronclient
 python-swiftclient
 python-troveclient
 python-manilaclient

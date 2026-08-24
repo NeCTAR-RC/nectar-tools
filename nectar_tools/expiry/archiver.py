@@ -7,7 +7,6 @@ import glanceclient.exc as glance_exc
 from heatclient import exc as heat_exc
 from kubernetes.client.rest import ApiException as kube_api_exc
 from magnumclient import exceptions as magnum_exc
-from neutronclient.common import exceptions as neutron_exc
 from novaclient import exceptions as nova_exc
 from swiftclient import exceptions as swift_exc
 
@@ -755,7 +754,7 @@ class CinderArchiver(Archiver):
 class NeutronBasicArchiver(Archiver):
     def __init__(self, project, ks_session=None, dry_run=False):
         super().__init__(ks_session, dry_run)
-        self.ne_client = auth.get_neutron_client(ks_session)
+        self.ne_client = auth.get_openstacksdk(ks_session).network
         self.project = project
 
     def is_delete_successful(self):
@@ -771,14 +770,14 @@ class NeutronBasicArchiver(Archiver):
 
     def _list_remaining_resources(self):
         remaining = []
-        ports = self.ne_client.list_ports(tenant_id=self.project.id)['ports']
+        ports = list(self.ne_client.ports(project_id=self.project.id))
         if ports:
             remaining.append(f'{len(ports)} ports')
         sgs = [
             sg
-            for sg in self.ne_client.list_security_groups(
-                tenant_id=self.project.id
-            )['security_groups']
+            for sg in self.ne_client.security_groups(
+                project_id=self.project.id
+            )
             if sg['name'] != 'default'
         ]
         if sgs:
@@ -786,36 +785,30 @@ class NeutronBasicArchiver(Archiver):
         return remaining
 
     def zero_quota(self):
-        body = {
-            'quota': {
-                'port': 0,
-                'security_group': 0,
+        if not self.dry_run:
+            self.ne_client.update_quota(
+                self.project.id,
+                port=0,
+                security_group=0,
                 # Note: if we set the 'security_group_rule' quota
                 # to zero, Neutron won't let us list the rules to
                 # be deleted.  (And a non-zero quota is harmless)
-                'security_group_rule': 10,
-                'floatingip': 0,
-                'router': 0,
-                'network': 0,
-                'subnet': 0,
-            }
-        }
-
-        if not self.dry_run:
-            self.ne_client.update_quota(self.project.id, body)
+                security_group_rule=10,
+                floatingip=0,
+                router=0,
+                network=0,
+                subnet=0,
+            )
         LOG.debug("%s: Zero neutron quota", self.project.id)
 
     def delete_quota(self):
         if self.dry_run:
             LOG.debug("%s: Would delete neutron quota", self.project.id)
             return
-        # A project may have no custom neutron quota, in which case Neutron
-        # returns NotFound.  The default quota still applies and there is
-        # nothing to delete, so treat this as success.
-        try:
-            self.ne_client.delete_quota(self.project.id)
-        except neutron_exc.NotFound:
-            pass
+        # A project may have no custom neutron quota; the SDK ignores
+        # the resulting NotFound by default (ignore_missing=True).  The
+        # default quota still applies and there is nothing to delete.
+        self.ne_client.delete_quota(self.project.id)
         LOG.debug("%s: Delete neutron quota", self.project.id)
 
     def delete_resources(self, force=False):
@@ -824,16 +817,16 @@ class NeutronBasicArchiver(Archiver):
             return
 
         self._delete_neutron_resources(
-            'ports', self.ne_client.list_ports, self.ne_client.delete_port
+            'ports', self.ne_client.ports, self.ne_client.delete_port
         )
         self._delete_neutron_resources(
             'security_groups',
-            self.ne_client.list_security_groups,
+            self.ne_client.security_groups,
             self.ne_client.delete_security_group,
         )
         self._delete_neutron_resources(
             'security_group_rules',
-            self.ne_client.list_security_group_rules,
+            self.ne_client.security_group_rules,
             self.ne_client.delete_security_group_rule,
         )
 
@@ -842,7 +835,7 @@ class NeutronBasicArchiver(Archiver):
     ):
         if not log_name:
             log_name = name
-        resources = list_method(tenant_id=self.project.id, **list_args)[name]
+        resources = list(list_method(project_id=self.project.id, **list_args))
         LOG.debug("%s: Found %s %s", self.project.id, len(resources), log_name)
         if not resources:
             return
@@ -872,24 +865,16 @@ class NeutronBasicArchiver(Archiver):
 class NeutronArchiver(NeutronBasicArchiver):
     def _list_remaining_resources(self):
         remaining = super()._list_remaining_resources()
-        fips = self.ne_client.list_floatingips(tenant_id=self.project.id)[
-            'floatingips'
-        ]
+        fips = list(self.ne_client.ips(project_id=self.project.id))
         if fips:
             remaining.append(f'{len(fips)} floatingips')
-        routers = self.ne_client.list_routers(tenant_id=self.project.id)[
-            'routers'
-        ]
+        routers = list(self.ne_client.routers(project_id=self.project.id))
         if routers:
             remaining.append(f'{len(routers)} routers')
-        subnets = self.ne_client.list_subnets(tenant_id=self.project.id)[
-            'subnets'
-        ]
+        subnets = list(self.ne_client.subnets(project_id=self.project.id))
         if subnets:
             remaining.append(f'{len(subnets)} subnets')
-        networks = self.ne_client.list_networks(tenant_id=self.project.id)[
-            'networks'
-        ]
+        networks = list(self.ne_client.networks(project_id=self.project.id))
         if networks:
             remaining.append(f'{len(networks)} networks')
         return remaining
@@ -901,8 +886,8 @@ class NeutronArchiver(NeutronBasicArchiver):
 
         self._delete_neutron_resources(
             'floatingips',
-            self.ne_client.list_floatingips,
-            self.ne_client.delete_floatingip,
+            self.ne_client.ips,
+            self.ne_client.delete_ip,
         )
         self._delete_routers()
 
@@ -910,31 +895,29 @@ class NeutronArchiver(NeutronBasicArchiver):
 
         self._delete_neutron_resources(
             'subnets',
-            self.ne_client.list_subnets,
+            self.ne_client.subnets,
             self.ne_client.delete_subnet,
         )
         self._delete_neutron_resources(
             'networks',
-            self.ne_client.list_networks,
+            self.ne_client.networks,
             self.ne_client.delete_network,
         )
 
     def _delete_routers(self):
-        routers = self.ne_client.list_routers(tenant_id=self.project.id)[
-            'routers'
-        ]
+        routers = list(self.ne_client.routers(project_id=self.project.id))
         LOG.debug("%s: Found %s routers", self.project.id, len(routers))
 
         for router in routers:
-            body = {'router': {'routes': None}}
-            self.ne_client.update_router(router['id'], body)
-            interfaces = self.ne_client.list_ports(
+            self.ne_client.update_router(router['id'], routes=[])
+            interfaces = self.ne_client.ports(
                 device_id=router['id'], device_owner='network:router_interface'
-            )['ports']
+            )
             for interface in interfaces:
-                body = {'port_id': interface['id']}
                 if not self.dry_run:
-                    self.ne_client.remove_interface_router(router['id'], body)
+                    self.ne_client.remove_interface_from_router(
+                        router['id'], port_id=interface['id']
+                    )
             if not self.dry_run:
                 self.ne_client.delete_router(router['id'])
                 LOG.info(

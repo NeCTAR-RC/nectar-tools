@@ -1,0 +1,8 @@
+---
+upgrade:
+  - |
+    All Neutron API interactions have been migrated from the deprecated
+    ``python-neutronclient`` bindings to the openstacksdk network proxy.
+    This affects the expiry archivers, the provisioning quota management,
+    and the network and database auditors. ``python-neutronclient`` is no
+    longer a dependency.

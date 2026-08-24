@@ -29,9 +29,6 @@ CONF = config.CONF
 @mock.patch('nectar_tools.auth.get_nova_client', new=fake_clients.get_nova)
 @mock.patch('nectar_tools.auth.get_cinder_client', new=fake_clients.get_cinder)
 @mock.patch('nectar_tools.auth.get_swift_client', new=fake_clients.get_swift)
-@mock.patch(
-    'nectar_tools.auth.get_neutron_client', new=fake_clients.get_neutron
-)
 @mock.patch('nectar_tools.auth.get_trove_client', new=fake_clients.get_trove)
 @mock.patch('nectar_tools.auth.get_manila_client', new=fake_clients.get_manila)
 @mock.patch(

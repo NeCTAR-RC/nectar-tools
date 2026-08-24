@@ -13,36 +13,36 @@ class FloatingIPAuditor(base.ResourceAuditor):
 
     def setup_clients(self):
         super().setup_clients()
-        self.neutronc = auth.get_neutron_client(sess=self.ks_session)
+        self.neutronc = auth.get_openstacksdk(sess=self.ks_session).network
         self.novac = auth.get_nova_client(sess=self.ks_session)
 
     def check_availability_zone(self):
-        floating_ips = self.neutronc.list_floatingips()
-        for floating_ip in floating_ips['floatingips']:
-            port_id = floating_ip["port_id"]
+        floating_ips = self.neutronc.ips()
+        for floating_ip in floating_ips:
+            port_id = floating_ip.port_id
 
             # if there is no port id, this floating ip
             # can't be attached to an instance
             if port_id is None:
                 continue
 
-            port = self.neutronc.show_port(port_id)
-            device_owner = port['port']['device_owner']
+            port = self.neutronc.get_port(port_id)
+            device_owner = port.device_owner
 
             # We are looking for device_owner string
             # that looks like compute:AZ
-            if device_owner is None:
+            if not device_owner:
                 continue
 
             device_owner_name = device_owner.split(':')[0]
             if device_owner_name != "compute":
                 continue
 
-            device_id = port['port']['device_id']
-            floating_ip_id = floating_ip['id']
-            net_name = self.neutronc.show_network(
-                floating_ip['floating_network_id']
-            )['network']['name']
+            device_id = port.device_id
+            floating_ip_id = floating_ip.id
+            net_name = self.neutronc.get_network(
+                floating_ip.floating_network_id
+            ).name
 
             instance = self.novac.servers.get(device_id)
             az = getattr(instance, 'OS-EXT-AZ:availability_zone', None)

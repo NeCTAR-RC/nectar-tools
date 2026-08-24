@@ -5,7 +5,6 @@ import logging
 from dateutil import relativedelta
 from keystoneauth1 import exceptions as keystone_exc
 from nectarclient_lib import exceptions as nc_exc
-import neutronclient
 import novaclient
 from openstack.load_balancer.v2 import quota as lb_quota
 from oslo_context import context
@@ -770,11 +769,24 @@ class ProvisioningManager:
                     **type_quotas,
                 )
 
+    @staticmethod
+    def _neutron_quota_to_dict(quota):
+        # Report quotas under the neutron API resource names
+        # (e.g. floatingip, network) rather than the openstacksdk
+        # attribute names, to match allocation quota resource names.
+        quota_dict = quota.to_dict(
+            computed=False, ignore_none=True, original_names=True
+        )
+        quota_dict.pop('id', None)
+        return quota_dict
+
     def get_current_neutron_quota(self, allocation):
         if not allocation.project_id:
             return {}
-        client = auth.get_neutron_client(self.ks_session)
-        return client.show_quota(allocation.project_id)['quota']
+        client = auth.get_openstacksdk(self.ks_session)
+        return self._neutron_quota_to_dict(
+            client.network.get_quota(allocation.project_id)
+        )
 
     def set_neutron_quota(self, allocation):
         allocated_quota = allocation.get_allocated_neutron_quota()
@@ -786,16 +798,19 @@ class ProvisioningManager:
             )
             return
 
-        client = auth.get_neutron_client(self.ks_session)
-        current_quota = client.show_quota(allocation.project_id)['quota']
-        def_quota = client.show_quota_default(allocation.project_id)['quota']
-        try:
-            client.delete_quota(allocation.project_id)
-        except neutronclient.common.exceptions.NotFound:
-            pass
+        client = auth.get_openstacksdk(self.ks_session)
+        current_quota = self._neutron_quota_to_dict(
+            client.network.get_quota(allocation.project_id)
+        )
+        def_quota = self._neutron_quota_to_dict(
+            client.network.get_quota_default(allocation.project_id)
+        )
+        # NotFound when a project has no custom quota is ignored by
+        # the SDK (ignore_missing=True by default).
+        client.network.delete_quota(allocation.project_id)
 
         if allocated_quota:
-            body = {'quota': allocated_quota}
+            quota = dict(allocated_quota)
             for name in ['security_group', 'security_group_rule']:
                 if name in current_quota:
                     current = current_quota[name]
@@ -803,8 +818,8 @@ class ProvisioningManager:
                         current > allocated_quota.get(name, 0)
                         and current > def_quota[name]
                     ):
-                        body['quota'][name] = current
-            client.update_quota(allocation.project_id, body)
+                        quota[name] = current
+            client.network.update_quota(allocation.project_id, **quota)
             LOG.info(
                 "%s: Set Neutron Quota: %s", allocation.id, allocated_quota
             )

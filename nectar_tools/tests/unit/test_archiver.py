@@ -5,7 +5,6 @@ import glanceclient.exc as glance_exc
 from heatclient import exc as heat_exc
 from kubernetes.client.rest import ApiException as kube_api_exc
 from magnumclient import exceptions as magnum_exc
-from neutronclient.common import exceptions as neutron_exc
 from novaclient import exceptions as nova_exc
 
 from nectar_tools import auth
@@ -695,64 +694,52 @@ class CinderArchiverTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class NeutronBasicArchiverTests(test.TestCase):
     def test_is_delete_successful_empty(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
         with mock.patch.object(na, 'ne_client') as mock_neutron:
-            mock_neutron.list_ports.return_value = {'ports': []}
-            mock_neutron.list_security_groups.return_value = {
-                'security_groups': [{'id': 'sg1', 'name': 'default'}]
-            }
+            mock_neutron.ports.return_value = []
+            mock_neutron.security_groups.return_value = [
+                {'id': 'sg1', 'name': 'default'}
+            ]
             self.assertTrue(na.is_delete_successful())
 
     def test_is_delete_successful_with_ports(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
         with mock.patch.object(na, 'ne_client') as mock_neutron:
-            mock_neutron.list_ports.return_value = {'ports': [{'id': 'p1'}]}
-            mock_neutron.list_security_groups.return_value = {
-                'security_groups': []
-            }
+            mock_neutron.ports.return_value = [{'id': 'p1'}]
+            mock_neutron.security_groups.return_value = []
             self.assertFalse(na.is_delete_successful())
 
     def test_is_delete_successful_with_non_default_sg(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
         with mock.patch.object(na, 'ne_client') as mock_neutron:
-            mock_neutron.list_ports.return_value = {'ports': []}
-            mock_neutron.list_security_groups.return_value = {
-                'security_groups': [
-                    {'id': 'sg1', 'name': 'default'},
-                    {'id': 'sg2', 'name': 'custom'},
-                ]
-            }
+            mock_neutron.ports.return_value = []
+            mock_neutron.security_groups.return_value = [
+                {'id': 'sg1', 'name': 'default'},
+                {'id': 'sg2', 'name': 'custom'},
+            ]
             self.assertFalse(na.is_delete_successful())
 
     def test_zero_quota(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
         with mock.patch.object(na, 'ne_client') as mock_neutron:
             na.zero_quota()
-            body = {
-                'quota': {
-                    'port': 0,
-                    'security_group': 0,
-                    'security_group_rule': 10,
-                    'floatingip': 0,
-                    'router': 0,
-                    'network': 0,
-                    'subnet': 0,
-                }
-            }
-            mock_neutron.update_quota.assert_called_with(PROJECT.id, body)
+            mock_neutron.update_quota.assert_called_with(
+                PROJECT.id,
+                port=0,
+                security_group=0,
+                security_group_rule=10,
+                floatingip=0,
+                router=0,
+                network=0,
+                subnet=0,
+            )
 
     def test_delete_quota(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
         with mock.patch.object(na, 'ne_client') as mock_neutron:
-            na.delete_quota()
-            mock_neutron.delete_quota.assert_called_once_with(PROJECT.id)
-
-    def test_delete_quota_not_found(self):
-        na = archiver.NeutronBasicArchiver(PROJECT)
-        with mock.patch.object(na, 'ne_client') as mock_neutron:
-            mock_neutron.delete_quota.side_effect = neutron_exc.NotFound()
             na.delete_quota()
             mock_neutron.delete_quota.assert_called_once_with(PROJECT.id)
 
@@ -766,12 +753,13 @@ class NeutronBasicArchiverTests(test.TestCase):
         na = archiver.NeutronBasicArchiver(PROJECT)
 
         mock_list = mock.Mock()
-        mock_list.return_value = {
-            'fakeresources': [{'id': 'fakeresource1'}, {'id': 'fakeresource2'}]
-        }
+        mock_list.return_value = [
+            {'id': 'fakeresource1'},
+            {'id': 'fakeresource2'},
+        ]
         mock_delete = mock.Mock()
         na._delete_neutron_resources('fakeresources', mock_list, mock_delete)
-        mock_list.assert_called_once_with(tenant_id=PROJECT.id)
+        mock_list.assert_called_once_with(project_id=PROJECT.id)
         mock_delete.assert_has_calls(
             [mock.call('fakeresource1'), mock.call('fakeresource2')]
         )
@@ -780,36 +768,33 @@ class NeutronBasicArchiverTests(test.TestCase):
         na = archiver.NeutronBasicArchiver(PROJECT)
 
         mock_list = mock.Mock()
-        mock_list.return_value = {
-            'security_groups': [
-                {'id': 'secgroup1', 'name': 'default'},
-                {'id': 'secgroup2', 'name': 'fakename'},
-            ]
-        }
+        mock_list.return_value = [
+            {'id': 'secgroup1', 'name': 'default'},
+            {'id': 'secgroup2', 'name': 'fakename'},
+        ]
         mock_delete = mock.Mock()
         na._delete_neutron_resources('security_groups', mock_list, mock_delete)
-        mock_list.assert_called_once_with(tenant_id=PROJECT.id)
+        mock_list.assert_called_once_with(project_id=PROJECT.id)
         mock_delete.assert_has_calls([mock.call('secgroup2')])
 
     def test_delete_neutron_resources_with_default_secgroup_rules(self):
         na = archiver.NeutronBasicArchiver(PROJECT)
 
         mock_list = mock.Mock()
-        mock_list.return_value = {
-            'security_group_rules': [
-                {'id': 'rule1', 'security_group_id': 'secgroup1'},
-                {'id': 'rule2', 'security_group_id': 'secgroup2'},
-            ]
-        }
+        mock_list.return_value = [
+            {'id': 'rule1', 'security_group_id': 'secgroup1'},
+            {'id': 'rule2', 'security_group_id': 'secgroup2'},
+        ]
         mock_delete = mock.Mock()
         na._delete_neutron_resources(
             'security_group_rules', mock_list, mock_delete
         )
-        mock_list.assert_called_once_with(tenant_id=PROJECT.id)
+        mock_list.assert_called_once_with(project_id=PROJECT.id)
         mock_delete.assert_has_calls([mock.call('rule1'), mock.call('rule2')])
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_openstacksdk', new=mock.Mock())
 class NeutronArchiverTests(test.TestCase):
     def test_delete_routers(self):
         na = archiver.NeutronArchiver(PROJECT)
@@ -818,25 +803,24 @@ class NeutronArchiverTests(test.TestCase):
         port1 = {'id': 'port1'}
         ports = [port1]
         with mock.patch.object(na, 'ne_client') as mock_neutron:
-            mock_neutron.list_routers.return_value = {'routers': routers}
-            mock_neutron.list_ports.return_value = {'ports': ports}
+            mock_neutron.routers.return_value = routers
+            mock_neutron.ports.return_value = ports
             na._delete_routers()
 
             mock_neutron.update_router.assert_called_once_with(
-                router1['id'], {'router': {'routes': None}}
+                router1['id'], routes=[]
             )
 
-            mock_neutron.list_routers.assert_called_once_with(
-                tenant_id=PROJECT.id
-            )
+            mock_neutron.routers.assert_called_once_with(project_id=PROJECT.id)
 
-            mock_neutron.list_ports.assert_called_once_with(
+            mock_neutron.ports.assert_called_once_with(
                 device_id=router1['id'],
                 device_owner='network:router_interface',
             )
 
-            mock_neutron.remove_interface_router.assert_called_once_with(
-                router1['id'], {'port_id': port1['id']}
+            remove_interface = mock_neutron.remove_interface_from_router
+            remove_interface.assert_called_once_with(
+                router1['id'], port_id=port1['id']
             )
 
             mock_neutron.delete_router.assert_called_once_with(router1['id'])

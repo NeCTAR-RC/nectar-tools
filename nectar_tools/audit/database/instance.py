@@ -17,7 +17,7 @@ class DatabaseInstanceAuditor(base.Auditor):
         super().setup_clients()
         self.openstack = auth.get_openstacksdk(sess=self.ks_session)
         self.n_client = auth.get_nova_client(sess=self.ks_session)
-        self.q_client = auth.get_neutron_client(sess=self.ks_session)
+        self.q_client = self.openstack.network
         self.t_client = auth.get_trove_client(sess=self.ks_session)
         self.c_client = auth.get_cinder_client(sess=self.ks_session)
         self.k_client = auth.get_keystone_client(sess=self.ks_session)
@@ -33,11 +33,9 @@ class DatabaseInstanceAuditor(base.Auditor):
                 trove_access.append(ip)
             access = []
             name = f'trove_sg-{i.id}'
-            sgs = self.q_client.list_security_groups(name=name)[
-                'security_groups'
-            ]
+            sgs = self.q_client.security_groups(name=name)
             for group in sgs:
-                for rule in group['security_group_rules']:
+                for rule in group.security_group_rules:
                     if (
                         rule['direction'] == 'ingress'
                         and rule['protocol'] != 'icmp'
@@ -73,14 +71,14 @@ class DatabaseInstanceAuditor(base.Auditor):
             )
 
     def clean_stale_secgroups(self):
-        secgroups = self.q_client.list_security_groups(
-            tenant_id=CONF.trove.project_id
-        )['security_groups']
+        secgroups = self.q_client.security_groups(
+            project_id=CONF.trove.project_id
+        )
 
         instances = self.t_client.mgmt_instances.list()
         ids = [i.id for i in instances]
         for g in secgroups:
-            name = g.get('name')
+            name = g.name
             if not name.startswith('trove_sg-'):
                 continue
             id = name[9:]
@@ -89,12 +87,12 @@ class DatabaseInstanceAuditor(base.Auditor):
                     self.repair(
                         f"Delete old secgroup for instance {id}",
                         self.q_client.delete_security_group,
-                        security_group=g.get('id'),
+                        security_group=g.id,
                     )
                 except Exception:
                     LOG.exception(
                         "Failed to delete secgroup %s, for instance %s",
-                        g.get('id'),
+                        g.id,
                         id,
                     )
 
