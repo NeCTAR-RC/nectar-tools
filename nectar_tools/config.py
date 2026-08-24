@@ -12,6 +12,25 @@ CONF = cfg.CONF
 SERVICE_AUTH_GROUP = 'service_auth'
 
 
+default_opts = [
+    cfg.StrOpt(
+        'environment',
+        default='production',
+        help='Deployment environment name, e.g. production or testing. '
+        'Used to indicate to users when they are interacting with a '
+        'non-production system.',
+    ),
+]
+
+dashboard_opts = [
+    cfg.StrOpt(
+        'url',
+        default='https://dashboard.rc.nectar.org.au',
+        help='Base URL of the Nectar dashboard, referenced in expiry '
+        'notification emails.',
+    ),
+]
+
 freshdesk_opts = [
     cfg.StrOpt('domain', help='Freshdesk domain'),
     cfg.StrOpt('key', secret=True, help='Freshdesk API key'),
@@ -96,6 +115,7 @@ sentry_opts = [
 ]
 
 _OPTS = [
+    ('dashboard', dashboard_opts),
     ('freshdesk', freshdesk_opts),
     ('keystone', keystone_opts),
     ('designate', designate_opts),
@@ -112,6 +132,8 @@ _OPTS = [
 
 for _group, _opts in _OPTS:
     CONF.register_opts(_opts, group=_group)
+
+CONF.register_opts(default_opts)
 
 logging.register_options(CONF)
 
@@ -141,7 +163,7 @@ def setup_logging(conf):
 # Used by oslo-config-generator entry point
 # https://docs.openstack.org/oslo.config/latest/cli/generator.html
 def list_opts():
-    return [*_OPTS, add_auth_opts()]
+    return [(None, default_opts), *_OPTS, add_auth_opts()]
 
 
 def add_auth_opts():

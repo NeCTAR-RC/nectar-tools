@@ -1,6 +1,14 @@
 [DEFAULT]
 
 #
+# From nectar_tools
+#
+
+# Deployment environment name, e.g. production or testing. Used to indicate to
+# users when they are interacting with a non-production system. (string value)
+#environment = production
+
+#
 # From oslo.log
 #
 
@@ -180,6 +188,17 @@
 # Add an endpoint to answer to ping calls. Endpoint is named
 # oslo_rpc_server_ping (boolean value)
 #rpc_ping_enabled = false
+
+
+[dashboard]
+
+#
+# From nectar_tools
+#
+
+# Base URL of the Nectar dashboard, referenced in expiry notification emails.
+# (string value)
+#url = https://dashboard.rc.nectar.org.au
 
 
 [designate]

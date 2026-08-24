@@ -831,6 +831,7 @@ class AllocationExpirer(ProjectExpirer):
             'members': [i.to_dict() for i in members],
             'allocation': self.allocation.to_dict(),
             'su_info': su_info.to_dict(),
+            'dashboard_url': CONF.dashboard.url,
         }
         return context
 

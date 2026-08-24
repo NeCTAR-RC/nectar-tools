@@ -55,3 +55,14 @@ class AccountExpiryTests(test.TestCase):
         keystone.users.update.assert_called_once_with(
             ex.account.id, enabled=False, inactive=True
         )
+
+    def test_get_notification_context(self):
+        CONF.set_override(
+            'url', 'https://dashboard.rctest.nectar.org.au', 'dashboard'
+        )
+        ex = expirer.AccountExpirer(self.account)
+        context = ex._get_notification_context()
+        self.assertEqual(
+            'https://dashboard.rctest.nectar.org.au',
+            context['dashboard_url'],
+        )

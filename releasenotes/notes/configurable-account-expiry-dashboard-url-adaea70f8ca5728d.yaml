@@ -1,0 +1,14 @@
+---
+features:
+  - |
+    The Nectar dashboard URL referenced in expiry and database upgrade
+    notification emails is now configurable via the ``[dashboard] url``
+    config option, instead of being hardcoded to the production
+    dashboard. This lets these tools be run against the test cloud
+    without sending users production links.
+  - |
+    A new ``environment`` config option (default ``production``) can be
+    set to e.g. ``testing``. When set to a non-production value, every
+    outbound notification email's subject is prefixed with the
+    environment name (e.g. ``[TESTING]``), making it clear when a
+    notification was sent from a non-production deployment.

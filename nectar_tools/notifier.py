@@ -20,6 +20,8 @@ class Notifier:
         self.resource_type = resource_type
         self.dry_run = dry_run
         self.template_dir = template_dir
+        if CONF.environment != 'production':
+            subject = f"[{CONF.environment.upper()}] {subject}"
         self.subject = subject
 
     def send_message(

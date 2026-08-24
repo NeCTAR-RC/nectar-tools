@@ -36,6 +36,25 @@ class NotifierTests(test.TestCase):
         self.assertIn(PROJECT.name, template)
         self.assertIn('some-fake-date', template)
 
+    def test_subject_production(self):
+        n = notifier.Notifier(
+            resource_type='project',
+            resource=PROJECT,
+            template_dir='expiry/tests',
+            subject='fake',
+        )
+        self.assertEqual('fake', n.subject)
+
+    def test_subject_non_production(self):
+        CONF.set_override('environment', 'testing')
+        n = notifier.Notifier(
+            resource_type='project',
+            resource=PROJECT,
+            template_dir='expiry/tests',
+            subject='fake',
+        )
+        self.assertEqual('[TESTING] fake', n.subject)
+
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
 class TaynacNotifierTests(test.TestCase):

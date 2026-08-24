@@ -7,8 +7,12 @@ from troveclient.apiclient import exceptions as t_exc
 
 from nectar_tools import auth
 from nectar_tools import cmd_base
+from nectar_tools import config
 from nectar_tools import notifier
 from nectar_tools import utils
+
+
+CONF = config.CONF
 
 
 class ActionError(Exception):
@@ -149,6 +153,7 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             'start': self.args.start,
             'end': self.args.end,
             'used': used,
+            'dashboard_url': CONF.dashboard.url,
         }
         recipient, cc = utils.get_project_recipients(self.k_client, project)
         message = self.notifier.send_message(

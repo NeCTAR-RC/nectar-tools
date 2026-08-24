@@ -1467,6 +1467,7 @@ class AllocationExpiryTests(test.TestCase):
                 },
             ],
             'su_info': su_info.to_dict(),
+            'dashboard_url': CONF.dashboard.url,
         }
 
         self.assertEqual(expected, actual)

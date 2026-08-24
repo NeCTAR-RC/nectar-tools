@@ -67,7 +67,10 @@ class AccountExpirer(base.Expirer):
         return self.account.email, []
 
     def _get_notification_context(self):
-        return {'account': self.account.to_dict()}
+        return {
+            'account': self.account.to_dict(),
+            'dashboard_url': CONF.dashboard.url,
+        }
 
     def process(self):
         status = self.get_status()
