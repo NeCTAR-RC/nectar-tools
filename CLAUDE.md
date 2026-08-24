@@ -15,8 +15,8 @@ Tests, linting, and coverage are run through **tox** (uses `stestr` as the test
 runner, configured in `.stestr.conf`):
 
 ```bash
-tox                          # run the full default envlist: pep8, py312, functional, cover
-tox -e py312                 # unit tests only (./nectar_tools/tests/unit)
+tox                          # run the full default envlist: pep8, py314, functional, cover
+tox -e py314                 # unit tests only (./nectar_tools/tests/unit)
 tox -e functional            # functional tests (./nectar_tools/tests/functional)
 tox -e pep8                  # style checks — runs pre-commit on all files
 tox -e cover                 # unit + functional with coverage; fails under 90%
@@ -25,8 +25,8 @@ tox -e cover                 # unit + functional with coverage; fails under 90%
 Run a single test or subset by passing a regex to stestr via posargs:
 
 ```bash
-tox -e py312 -- nectar_tools.tests.unit.test_utils
-tox -e py312 -- test_get_compute_zones_national
+tox -e py314 -- nectar_tools.tests.unit.test_utils
+tox -e py314 -- test_get_compute_zones_national
 ```
 
 Linting is driven by **pre-commit** (`.pre-commit-config.yaml`), not raw flake8.

@@ -24,7 +24,7 @@ Free software, licensed under GPLv3+.
 
 ## Prerequisites
 
-- Python 3.8 or later (3.12 is used in CI)
+- Python 3.12 or later (3.14 is used in CI)
 - The `cryptography` Python package is a dependency; on some Linux
   platforms building it requires `pkg-config` (and typically a compiler
   toolchain and Python development headers) to be installed.
