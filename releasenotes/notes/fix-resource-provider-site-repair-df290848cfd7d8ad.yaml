@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    The metric ``ResourceProviderAuditor.ensure_site`` check now repairs
+    recreated resource providers even when the old Gnocchi resource has
+    no ``scope`` attribute set. Previously the old resources were only
+    deleted and the site copied to the new resource when a scope was
+    present, so affected resource providers were reported on every run
+    but never fixed.

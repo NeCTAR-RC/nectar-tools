@@ -54,19 +54,19 @@ class ResourceProviderAuditor(base.ResourceAuditor):
                 scope = old_resources[0].get('scope')
                 if scope:
                     resource_data['scope'] = scope
-                    for old in old_resources:
-                        self.repair(
-                            f"Deleting old RP {old['id']}",
-                            lambda: self.g_client.resource.delete(old['id']),
-                        )
+                for old in old_resources:
                     self.repair(
-                        f"Updating resource providers for {rp['id']}",
-                        lambda: self.g_client.resource.update(
-                            resource_type='resource_provider',
-                            resource_id=rp['id'],
-                            resource=resource_data,
-                        ),
+                        f"Deleting old RP {old['id']}",
+                        lambda: self.g_client.resource.delete(old['id']),
                     )
+                self.repair(
+                    f"Updating resource providers for {rp['id']}",
+                    lambda: self.g_client.resource.update(
+                        resource_type='resource_provider',
+                        resource_id=rp['id'],
+                        resource=resource_data,
+                    ),
+                )
             else:
                 for domain_search, site in domain_site_mapping.items():
                     if domain_search in rp['name']:
