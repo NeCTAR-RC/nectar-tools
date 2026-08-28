@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    The instance archiver now detects boot from volume instances the same
+    way Nova does, by checking whether an attached volume is the
+    instance's root device, instead of relying on the server's image
+    field being empty. Previously an instance with an image reference but
+    a volume root disk (for example a rebuilt volume-backed instance) was
+    treated as image backed, and the archive snapshot failed daily with
+    ``403 Forbidden`` because Nova took the volume-backed snapshot path
+    and hit a zero cinder snapshot quota.

@@ -287,6 +287,24 @@ class NovaArchiver(Archiver):
         LOG.debug("%s: %d instances remain", self.project.id, len(instances))
         return False
 
+    def _is_boot_from_volume(self, instance):
+        if instance.image == '':
+            return True
+        # Nova classifies an instance as volume backed by its root BDM,
+        # not by the image field, and e.g. a rebuilt volume-backed
+        # instance reports an image. Check whether an attached volume is
+        # the root device so we agree with what Nova will do on snapshot.
+        attached = getattr(
+            instance, 'os-extended-volumes:volumes_attached', []
+        )
+        root_device = getattr(
+            instance, 'OS-EXT-SRV-ATTR:root_device_name', None
+        )
+        if not attached or not root_device:
+            return False
+        attachments = self.n_client.volumes.get_server_volumes(instance.id)
+        return any(a.device == root_device for a in attachments)
+
     def _instance_has_archive(self, instance):
         LOG.debug('Checking instance: %s (%s)', instance.id, instance.status)
         task_state = getattr(instance, 'OS-EXT-STS:task_state')
@@ -296,7 +314,7 @@ class NovaArchiver(Archiver):
             'image_pending_upload',
         ]:
             return False
-        if instance.image == '':
+        if self._is_boot_from_volume(instance):
             LOG.info(
                 "%s: Instance %s is boot from volume skipping archive",
                 self.project.id,

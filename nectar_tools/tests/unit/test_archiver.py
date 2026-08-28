@@ -92,6 +92,46 @@ class NovaArchiverTests(test.TestCase):
         instance = fakes.FakeInstance(image='')
         self.assertTrue(na._instance_has_archive(instance))
 
+    def test_instance_has_archive_boot_from_volume_with_image(self):
+        # A rebuilt volume-backed instance reports an image but its root
+        # device is still a volume
+        na = archiver.NovaArchiver(PROJECT)
+        instance = fakes.FakeInstance(
+            **{
+                'os-extended-volumes:volumes_attached': [{'id': 'fake-vol'}],
+                'OS-EXT-SRV-ATTR:root_device_name': '/dev/vda',
+            }
+        )
+        attachment = mock.Mock(device='/dev/vda')
+        with mock.patch.object(
+            na.n_client.volumes,
+            'get_server_volumes',
+            return_value=[attachment],
+        ) as mock_attachments:
+            self.assertTrue(na._instance_has_archive(instance))
+            mock_attachments.assert_called_once_with(instance.id)
+
+    def test_instance_has_archive_image_with_data_volume(self):
+        na = archiver.NovaArchiver(PROJECT)
+        instance = fakes.FakeInstance(
+            **{
+                'os-extended-volumes:volumes_attached': [{'id': 'fake-vol'}],
+                'OS-EXT-SRV-ATTR:root_device_name': '/dev/vda',
+            }
+        )
+        attachment = mock.Mock(device='/dev/vdb')
+        with test.nested(
+            mock.patch.object(
+                na.n_client.volumes,
+                'get_server_volumes',
+                return_value=[attachment],
+            ),
+            mock.patch.object(
+                na, '_get_image_by_instance_id', return_value=None
+            ),
+        ):
+            self.assertFalse(na._instance_has_archive(instance))
+
     def test_instance_has_archive_shelved(self):
         na = archiver.NovaArchiver(PROJECT)
         instance = fakes.FakeInstance(status='SHELVED_OFFLOADED')
