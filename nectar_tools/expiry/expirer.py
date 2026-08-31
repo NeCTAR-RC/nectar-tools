@@ -689,6 +689,18 @@ class AllocationExpirer(ProjectExpirer):
                     allocation = approved
 
         allocation_status = allocation.status
+        if not allocation.start_date or not allocation.end_date:
+            # An approved allocation only gets its dates when it is
+            # provisioned, so there is nothing to base an expiry on yet.
+            LOG.warning(
+                "%s: Allocation %s has no start or end date",
+                self.project.id,
+                allocation.id,
+            )
+            raise exceptions.InvalidProjectAllocation(
+                f"Allocation {allocation.id} has no start or end date"
+            )
+
         allocation_start = datetime.datetime.strptime(
             allocation.start_date, DATE_FORMAT
         )

@@ -82,6 +82,42 @@ class ProvisionerTests(test.TestCase):
             )
             mock_revert.assert_called_once_with(project=project)
 
+    def test_provision_noop_no_dates(self):
+        """Test a dry run doesn't revert expiry without allocation dates"""
+        self.manager.noop = True
+        self.allocation.project_id = PROJECT.id
+        self.allocation.start_date = None
+        self.allocation.end_date = None
+
+        with test.nested(
+            mock.patch.object(self.manager, 'k_client'),
+            mock.patch.object(self.manager, 'update_project'),
+            mock.patch.object(self.manager, 'set_quota'),
+            mock.patch.object(self.manager, 'quota_report'),
+            mock.patch.object(self.manager, 'notify_provisioned'),
+            mock.patch.object(self.manager, 'update_allocation'),
+            mock.patch.object(self.manager, 'set_allocation_start_end'),
+            mock.patch.object(self.manager, 'revert_expiry'),
+            mock.patch.object(self.manager, 'send_event'),
+            mock.patch('nectar_tools.expiry.archiver.DesignateArchiver'),
+        ) as (
+            mock_keystone,
+            mock_update_project,
+            mock_quota,
+            mock_report,
+            mock_notify,
+            mock_update,
+            mock_set_dates,
+            mock_revert,
+            mock_send_event,
+            mock_designate,
+        ):
+            mock_update.return_value = self.allocation
+            mock_set_dates.return_value = self.allocation
+            mock_update_project.return_value = fakes.FakeProject()
+            self.manager.provision(self.allocation)
+            mock_revert.assert_not_called()
+
     def test_provision_already_provisioned(self):
         self.allocation.provisioned = True
         self.allocation.project_id = PROJECT.id

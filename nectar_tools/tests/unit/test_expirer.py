@@ -676,6 +676,21 @@ class AllocationExpiryTests(test.TestCase):
             output = ex.get_allocation()
             self.assertEqual('NO-ALLOCATION', output.id)
 
+    def test_get_allocation_not_provisioned(self):
+        project = fakes.FakeProject()
+        ex = expirer.AllocationExpirer(project)
+
+        mock_allocations = fakes.FakeAllocationManager()
+        unprovisioned = mock_allocations.get_current('active')
+        unprovisioned.start_date = None
+        unprovisioned.end_date = None
+
+        with mock.patch.object(ex, 'a_client') as mock_api:
+            mock_api.allocations.get_current.return_value = unprovisioned
+            self.assertRaises(
+                exceptions.InvalidProjectAllocation, ex.get_allocation
+            )
+
     def test_get_allocation_active_declined(self):
         project = fakes.FakeProject()
         ex = expirer.AllocationExpirer(project)

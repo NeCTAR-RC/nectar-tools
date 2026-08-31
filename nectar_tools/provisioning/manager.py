@@ -132,7 +132,16 @@ class ProvisioningManager:
             LOG.info("%s: Allocation provisioned successfully", allocation.id)
 
             if not is_new_project:
-                self.revert_expiry(project=project)
+                if self.noop and not allocation.start_date:
+                    # A dry run never writes the start/end dates, so the
+                    # expirer would read back an allocation with no dates.
+                    LOG.info(
+                        "%s: Would revert expiry for project %s",
+                        allocation.id,
+                        project.id,
+                    )
+                else:
+                    self.revert_expiry(project=project)
         else:
             event_type = 'reprovision'
             self.send_event(allocation, event_type)

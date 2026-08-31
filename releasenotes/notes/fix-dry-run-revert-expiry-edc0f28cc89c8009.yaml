@@ -1,0 +1,14 @@
+---
+fixes:
+  - |
+    Provisioning an allocation for an existing project no longer fails with
+    ``TypeError: strptime() argument 1 must be str, not None`` when running as
+    a dry run. A dry run never writes the allocation start and end dates, so
+    the expirer read back an allocation with no dates when reverting the
+    project expiry. The dry run now logs that it would revert the expiry
+    instead.
+  - |
+    ``AllocationExpirer`` now raises ``InvalidProjectAllocation`` instead of
+    ``TypeError`` when the current allocation has no start or end date, which
+    is the case for an approved allocation that has not been provisioned yet.
+    Expiry commands already skip projects that raise ``InvalidProject``.
