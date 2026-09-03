@@ -173,6 +173,8 @@ class DatabaseInstanceAuditor(base.Auditor):
                         "Instance %s shut down but project not under expiry",
                         inst.id,
                     )
+            elif inst.server is None:
+                LOG.error("Instance %s has no nova server", inst.id)
             elif inst.server.get('status') == 'SHUTOFF':
                 LOG.error("Instance %s nova instance shutoff", inst.id)
             else:
