@@ -1,11 +1,11 @@
 import datetime
-from enum import Enum
 
 import logging
-from oslo_utils import uuidutils
 
 from nectar_tools.audit import base
 from nectar_tools import auth
+from nectar_tools.common.magnum import Driver
+from nectar_tools.common.magnum import get_cluster_driver
 from nectar_tools import eol
 from nectar_tools.expiry import expiry_states
 
@@ -34,11 +34,6 @@ EOL_RISK_TYPE = {
     'its end of life and no longer receives security updates. Upgrade '
     'the cluster to a supported version.',
 }
-
-
-class Driver(Enum):
-    HEAT = 'k8s_fedora_coreos_v1'
-    CAPI = 'k8s_capi_helm_v1'
 
 
 class ClusterAuditor(base.Auditor):
@@ -238,25 +233,13 @@ class ClusterAuditor(base.Auditor):
             elif cluster.status == 'DELETE_IN_PROGRESS':
                 LOG.warning("%s - in DELETE_IN_PROGRESS state", cluster.uuid)
 
-                # Find the driver of cluster
-                # HEAT clusters have uuid for stack_id
-                driver = None
-                if uuidutils.is_uuid_like(cluster.stack_id):
-                    LOG.debug(
-                        "%s - Driver is HEAT cluster with stack_id %s",
-                        cluster.uuid,
-                        cluster.stack_id,
-                    )
-                    driver = Driver.HEAT
-                # CAPI clusters have stack_id like <cluster_name>-XXXXXXXXXXXX
-                # stack_id is derived from cluster name but truncated to 31 chars
-                elif cluster.stack_id.startswith(cluster.name[:30]):
-                    LOG.debug(
-                        "%s - Driver is CAPI cluster with stack_id %s",
-                        cluster.uuid,
-                        cluster.stack_id,
-                    )
-                    driver = Driver.CAPI
+                driver = get_cluster_driver(cluster)
+                LOG.debug(
+                    "%s - Driver is %s with stack_id %s",
+                    cluster.uuid,
+                    driver,
+                    cluster.stack_id,
+                )
 
                 if driver == Driver.CAPI:
                     self._fix_cluster_network_orphaned_healthmonitor(cluster)

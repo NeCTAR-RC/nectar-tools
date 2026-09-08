@@ -190,6 +190,23 @@
 #rpc_ping_enabled = false
 
 
+[capi_client]
+
+#
+# From nectar_tools
+#
+
+# CAPI management cluster API host (string value)
+#host = <None>
+
+# CAPI management cluster API token (string value)
+#token = <None>
+
+# Prefix of the per-project namespaces magnum creates its clusters in. Must
+# match [capi_helm]/namespace_prefix in the magnum config. (string value)
+#namespace_prefix = magnum
+
+
 [dashboard]
 
 #

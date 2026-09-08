@@ -27,6 +27,7 @@ from varroaclient import client as varroaclient
 from warreclient import client as warreclient
 
 from nectar_tools import config
+from nectar_tools import exceptions
 
 
 CONF = config.CONF
@@ -207,18 +208,36 @@ def get_varroa_client(sess=None):
     return varroaclient.Client(version='1', session=sess)
 
 
-def get_kube_client():
-    host = CONF.kubernetes_client.host or os.environ.get('KUBE_HOST')
-    token = CONF.kubernetes_client.token or os.environ.get('KUBE_TOKEN')
+def _get_kube_api_client(section, env_prefix):
+    """Build a kubernetes ApiClient for a [section] with host/token opts
+
+    Falls back to the <env_prefix>_HOST and <env_prefix>_TOKEN environment
+    variables when the config options aren't set.
+    """
+    opts = CONF[section]
+    host = opts.host or os.environ.get(f'{env_prefix}_HOST')
+    token = opts.token or os.environ.get(f'{env_prefix}_TOKEN')
     if not host or not token:
-        raise Exception(
-            'kubernetes_client host and token must be set in the '
-            'config file or KUBE_HOST/KUBE_TOKEN environment variables'
+        raise exceptions.ConfigError(
+            f'{section} host and token must be set in the config file or '
+            f'{env_prefix}_HOST/{env_prefix}_TOKEN environment variables'
         )
     conf = kube_client.Configuration()
     conf.api_key_prefix['authorization'] = 'Bearer'
     conf.host = host
     conf.verify_ssl = False
     conf.api_key['authorization'] = token
-    api_client = kube_client.ApiClient(conf)
-    return kube_client.CoreV1Api(api_client)
+    return kube_client.ApiClient(conf)
+
+
+def get_kube_client():
+    return kube_client.CoreV1Api(
+        _get_kube_api_client('kubernetes_client', 'KUBE')
+    )
+
+
+def get_capi_client():
+    """Client for custom resources in the CAPI management cluster"""
+    return kube_client.CustomObjectsApi(
+        _get_kube_api_client('capi_client', 'CAPI')
+    )

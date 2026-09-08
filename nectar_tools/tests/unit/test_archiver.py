@@ -896,7 +896,24 @@ class OctaviaArchiverTests(test.TestCase):
 
 
 @mock.patch('nectar_tools.auth.get_session', new=mock.Mock())
+@mock.patch('nectar_tools.auth.get_capi_client', new=mock.Mock())
 class MagnumArchiverTests(test.TestCase):
+    def _fake_cluster(
+        self, name='cluster1', driver='capi', status='CREATE_COMPLETE'
+    ):
+        c = mock.Mock()
+        c.project_id = PROJECT.id
+        c.uuid = 'cluster-uuid'
+        c.name = name
+        c.status = status
+        if driver == 'capi':
+            c.stack_id = f'{name}-abc123456789'
+        elif driver == 'heat':
+            c.stack_id = 'e6fc5721-d20f-4a08-9d4f-8f5e6c9e4f1b'
+        else:
+            c.stack_id = None
+        return c
+
     def test_zero_quota(self):
         ma = archiver.MagnumArchiver(PROJECT)
         with mock.patch.object(ma, 'm_client') as mock_magnum:
@@ -952,11 +969,9 @@ class MagnumArchiverTests(test.TestCase):
 
     def test_delete_resources(self):
         ma = archiver.MagnumArchiver(PROJECT)
-        c1 = mock.Mock()
-        c1.project_id = PROJECT.id
+        c1 = self._fake_cluster(name='cluster1', driver='heat')
         c1.uuid = "c1"
-        c2 = mock.Mock()
-        c2.project_id = PROJECT.id
+        c2 = self._fake_cluster(name='cluster2', driver='heat')
         c2.uuid = "c2"
         with test.nested(
             mock.patch.object(ma, 'm_client'),
@@ -985,6 +1000,151 @@ class MagnumArchiverTests(test.TestCase):
                     ),
                 ]
             )
+
+    def test_delete_resources_unpauses_capi_cluster(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        cluster = self._fake_cluster(name='cluster1', driver='capi')
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'capi_client'),
+            mock.patch.object(ma, 'remove_resource'),
+        ) as (mock_magnum, mock_capi, mock_rr):
+            mock_magnum.clusters.list.return_value = [cluster]
+
+            ma.delete_resources(force=True)
+
+            mock_capi.patch_namespaced_custom_object.assert_called_once_with(
+                group=archiver.CAPI_GROUP,
+                version=archiver.CAPI_VERSION,
+                namespace=f'magnum-{PROJECT.id}',
+                plural=archiver.CAPI_PLURAL,
+                name=cluster.stack_id,
+                body={'spec': {'paused': False}},
+            )
+            mock_rr.assert_called_once_with(
+                mock_magnum.clusters.delete,
+                mock_magnum.clusters.get,
+                cluster.uuid,
+                magnum_exc.NotFound,
+            )
+
+    def test_stop_resources_capi_cluster(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        cluster = self._fake_cluster(name='cluster1', driver='capi')
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'capi_client'),
+        ) as (mock_magnum, mock_capi):
+            mock_magnum.clusters.list.return_value = [cluster]
+            ma.stop_resources()
+            mock_capi.patch_namespaced_custom_object.assert_called_once_with(
+                group=archiver.CAPI_GROUP,
+                version=archiver.CAPI_VERSION,
+                namespace=f'magnum-{PROJECT.id}',
+                plural=archiver.CAPI_PLURAL,
+                name=cluster.stack_id,
+                body={'spec': {'paused': True}},
+            )
+
+    def test_enable_resources_capi_cluster(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        cluster = self._fake_cluster(name='cluster1', driver='capi')
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'capi_client'),
+        ) as (mock_magnum, mock_capi):
+            mock_magnum.clusters.list.return_value = [cluster]
+            ma.enable_resources()
+            mock_capi.patch_namespaced_custom_object.assert_called_once_with(
+                group=archiver.CAPI_GROUP,
+                version=archiver.CAPI_VERSION,
+                namespace=f'magnum-{PROJECT.id}',
+                plural=archiver.CAPI_PLURAL,
+                name=cluster.stack_id,
+                body={'spec': {'paused': False}},
+            )
+
+    def test_stop_resources_heat_cluster_not_patched(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        cluster = self._fake_cluster(name='cluster1', driver='heat')
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(auth, 'get_capi_client'),
+        ) as (mock_magnum, mock_get_capi):
+            mock_magnum.clusters.list.return_value = [cluster]
+            ma.stop_resources()
+            # Nothing to pause, so the CAPI client is never even built
+            mock_get_capi.assert_not_called()
+
+    def test_stop_resources_pauses_creating_cluster(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        cluster = self._fake_cluster(
+            name='cluster1', driver='capi', status='CREATE_IN_PROGRESS'
+        )
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'capi_client'),
+        ) as (mock_magnum, mock_capi):
+            mock_magnum.clusters.list.return_value = [cluster]
+            ma.stop_resources()
+            mock_capi.patch_namespaced_custom_object.assert_called_once_with(
+                group=archiver.CAPI_GROUP,
+                version=archiver.CAPI_VERSION,
+                namespace=f'magnum-{PROJECT.id}',
+                plural=archiver.CAPI_PLURAL,
+                name=cluster.stack_id,
+                body={'spec': {'paused': True}},
+            )
+
+    def test_stop_resources_skips_deleting_cluster(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        cluster = self._fake_cluster(
+            name='cluster1', driver='capi', status='DELETE_IN_PROGRESS'
+        )
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'capi_client'),
+        ) as (mock_magnum, mock_capi):
+            mock_magnum.clusters.list.return_value = [cluster]
+            ma.stop_resources()
+            mock_capi.patch_namespaced_custom_object.assert_not_called()
+
+    def test_stop_resources_dry_run(self):
+        ma = archiver.MagnumArchiver(PROJECT, dry_run=True)
+        cluster = self._fake_cluster(name='cluster1', driver='capi')
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'capi_client'),
+        ) as (mock_magnum, mock_capi):
+            mock_magnum.clusters.list.return_value = [cluster]
+            ma.stop_resources()
+            mock_capi.patch_namespaced_custom_object.assert_not_called()
+
+    def test_stop_resources_capi_cluster_not_found(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        cluster = self._fake_cluster(name='cluster1', driver='capi')
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'capi_client'),
+        ) as (mock_magnum, mock_capi):
+            mock_magnum.clusters.list.return_value = [cluster]
+            mock_capi.patch_namespaced_custom_object.side_effect = (
+                kube_api_exc(status=404)
+            )
+            ma.stop_resources()
+
+    def test_stop_resources_capi_cluster_error_propagates(self):
+        ma = archiver.MagnumArchiver(PROJECT)
+        cluster = self._fake_cluster(name='cluster1', driver='capi')
+        with test.nested(
+            mock.patch.object(ma, 'm_client'),
+            mock.patch.object(ma, 'capi_client'),
+        ) as (mock_magnum, mock_capi):
+            mock_magnum.clusters.list.return_value = [cluster]
+            mock_capi.patch_namespaced_custom_object.side_effect = (
+                kube_api_exc(status=500)
+            )
+            self.assertRaises(kube_api_exc, ma.stop_resources)
 
 
 @mock.patch('nectar_tools.auth.get_manila_client', new=mock.Mock())

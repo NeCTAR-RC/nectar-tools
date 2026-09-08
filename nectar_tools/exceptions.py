@@ -45,3 +45,7 @@ class TryNextTimeError(Exception):
 
 class TemplateNotFound(Exception):
     pass
+
+
+class ConfigError(Exception):
+    pass

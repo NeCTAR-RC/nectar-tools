@@ -1,0 +1,19 @@
+---
+features:
+  - |
+    Project expiry now pauses Cluster API reconciliation of CAPI-driver
+    magnum clusters when it stops a project's resources. The magnum
+    archiver sets ``spec.paused`` on the matching CAPI ``Cluster`` object
+    in the management cluster before Nova stops the instances, so the
+    CAPI controllers don't try to remediate or replace the stopped nodes.
+    The cluster is unpaused again when the expiry is reverted, and before
+    the cluster is deleted at the end of the expiry process.
+upgrade:
+  - |
+    Pausing CAPI clusters needs access to the CAPI management cluster.
+    Set ``host`` and ``token`` in the new ``[capi_client]`` config section
+    (or the ``CAPI_HOST`` and ``CAPI_TOKEN`` environment variables), and
+    ``namespace_prefix`` if magnum's ``[capi_helm]/namespace_prefix`` is
+    not the default ``magnum``. The client is only created when a CAPI
+    cluster actually needs pausing, so deployments without CAPI clusters
+    can leave the section unset.

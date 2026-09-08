@@ -24,6 +24,7 @@ FAKE_GLANCE = mock.MagicMock()
 FAKE_HEAT = mock.MagicMock()
 FAKE_MURANO = mock.MagicMock()
 FAKE_MAGNUM = mock.MagicMock()
+FAKE_CAPI = mock.MagicMock()
 TODAY = "2017-07-01"
 TODAY_DATE = datetime.datetime(2017, 7, 1)
 FUTURE = "2017-07-02"
@@ -58,6 +59,10 @@ def get_magnum(session):
     return FAKE_MAGNUM
 
 
+def get_capi():
+    return FAKE_CAPI
+
+
 def get_allocation_client(session):
     return FAKE_ALLOCATION_CLIENT
 
@@ -76,6 +81,7 @@ def get_allocation_client(session):
 @mock.patch('nectar_tools.auth.get_nova_client', new=get_nova)
 @mock.patch('nectar_tools.auth.get_manuka_client', new=fake_clients.get_manuka)
 @mock.patch('nectar_tools.auth.get_magnum_client', new=get_magnum)
+@mock.patch('nectar_tools.auth.get_capi_client', new=get_capi)
 @mock.patch(
     'nectar_tools.auth.get_allocation_client', new=get_allocation_client
 )
@@ -93,6 +99,8 @@ class PTExpiryTests(test.TestCase):
         FAKE_HEAT.reset_mock()
         FAKE_MURANO.reset_mock()
         FAKE_MAGNUM.reset_mock()
+        FAKE_MAGNUM.clusters.list.return_value = []
+        FAKE_CAPI.reset_mock()
         # Set up a fake PT with an owner
         project = fakes.FakeProjectWithOwner(
             id='q12w',
@@ -117,6 +125,7 @@ class PTExpiryTests(test.TestCase):
         heat_calls=[],
         murano_calls=[],
         magnum_calls=[],
+        capi_calls=[],
     ):
         """Runs the actual expiry process
 
@@ -132,6 +141,8 @@ class PTExpiryTests(test.TestCase):
         :param heat_calls: Expected calls for heat client
         :param murano_calls: Expected calls for murano client
         :param magnum_calls: Expected calls for magnum client
+        :param capi_calls: Expected calls for the CAPI management cluster
+                           client
         """
 
         keystone_client = fake_clients.FAKE_KEYSTONE
@@ -178,6 +189,7 @@ class PTExpiryTests(test.TestCase):
         self.assertEqual(heat_calls, heat_client.method_calls)
         self.assertEqual(murano_calls, murano_client.method_calls)
         self.assertEqual(magnum_calls, magnum_client.method_calls)
+        self.assertEqual(capi_calls, FAKE_CAPI.method_calls)
 
     def get_fd_calls(self):
         """Helper method to get expected calls for freshdesk"""
@@ -467,11 +479,75 @@ class PTExpiryTests(test.TestCase):
             mock.call.servers.stop(fake_instance.id),
         ]
 
+        # Magnum has no clusters for this project, so MagnumArchiver only
+        # lists clusters (to find none to pause) before Nova stops instances.
+        magnum_calls = [
+            mock.call.clusters.list(detail=True),
+        ]
+
         fd_calls = self.get_fd_calls()
 
         self._test_process(
             keystone_calls=keystone_calls,
             nova_calls=nova_calls,
+            magnum_calls=magnum_calls,
+            fd_calls=fd_calls,
+        )
+
+    def test_restricted_ready_pauses_capi_cluster(self):
+        """Project in restricted state ready, with a CAPI magnum cluster
+
+        Expected: the cluster's CAPI Cluster object is paused before Nova
+        stops the underlying instances.
+        """
+        self.project.expiry_status = expiry_states.RESTRICTED
+        self.project.expiry_next_step = PAST
+        self.project.expiry_ticket_id = '2'
+
+        nova_client = FAKE_NOVA
+        magnum_client = FAKE_MAGNUM
+
+        def fake_list(search_opts):
+            return []
+
+        nova_client.servers.list.side_effect = fake_list
+
+        cluster = mock.Mock()
+        cluster.project_id = self.project.id
+        cluster.uuid = 'cluster-uuid'
+        cluster.name = 'cluster1'
+        cluster.status = 'CREATE_COMPLETE'
+        cluster.stack_id = 'cluster1-abc123456789'
+        magnum_client.clusters.list.return_value = [cluster]
+
+        keystone_calls = self.get_keystone_calls(expiry_states.STOPPED)
+
+        nova_calls = [
+            mock.call.servers.list(
+                search_opts={'all_tenants': True, 'tenant_id': self.project.id}
+            ),
+        ]
+        magnum_calls = [
+            mock.call.clusters.list(detail=True),
+        ]
+        capi_calls = [
+            mock.call.patch_namespaced_custom_object(
+                group='cluster.x-k8s.io',
+                version='v1beta1',
+                namespace=f'magnum-{self.project.id}',
+                plural='clusters',
+                name=cluster.stack_id,
+                body={'spec': {'paused': True}},
+            ),
+        ]
+
+        fd_calls = self.get_fd_calls()
+
+        self._test_process(
+            keystone_calls=keystone_calls,
+            nova_calls=nova_calls,
+            magnum_calls=magnum_calls,
+            capi_calls=capi_calls,
             fd_calls=fd_calls,
         )
 

@@ -84,6 +84,18 @@ kubernetes_opts = [
     cfg.StrOpt('namespace', help='Kubernetes namespace'),
 ]
 
+capi_opts = [
+    cfg.StrOpt('host', help='CAPI management cluster API host'),
+    cfg.StrOpt('token', secret=True, help='CAPI management cluster API token'),
+    cfg.StrOpt(
+        'namespace_prefix',
+        default='magnum',
+        help='Prefix of the per-project namespaces magnum creates its '
+        'clusters in. Must match [capi_helm]/namespace_prefix in the '
+        'magnum config.',
+    ),
+]
+
 trove_opts = [
     cfg.StrOpt('project_id', help='Trove service project ID'),
 ]
@@ -124,6 +136,7 @@ _OPTS = [
     ('limits', limits_opts),
     ('jupyterhub', jupyterhub_opts),
     ('kubernetes_client', kubernetes_opts),
+    ('capi_client', capi_opts),
     ('trove', trove_opts),
     ('octavia', octavia_opts),
     ('tempest', tempest_opts),

@@ -1,3 +1,4 @@
+import functools
 import logging
 import re
 import time
@@ -11,6 +12,7 @@ from novaclient import exceptions as nova_exc
 from swiftclient import exceptions as swift_exc
 
 from nectar_tools import auth
+from nectar_tools.common import magnum
 from nectar_tools import config
 from nectar_tools import exceptions
 from nectar_tools import utils
@@ -20,6 +22,23 @@ EXPIRY_METADATA_KEY = 'expiry_locked'
 ARCHIVE_ATTEMPTS = 10
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
+
+# apiVersion/plural for the Cluster API "Cluster" custom resource in the
+# CAPI management cluster.
+CAPI_GROUP = 'cluster.x-k8s.io'
+CAPI_VERSION = 'v1beta1'
+CAPI_PLURAL = 'clusters'
+
+# Leave spec.paused alone on clusters magnum is deleting: a paused CAPI
+# Cluster is never reconciled, so pausing would block its finalizers and
+# wedge the deletion. Clusters still being created (or that failed to
+# create) already have a CAPI Cluster object and are paused like any other,
+# otherwise CAPI keeps reconciling nodes that Nova has stopped.
+CAPI_PAUSE_SKIP_STATUSES = (
+    'DELETE_IN_PROGRESS',
+    'DELETE_FAILED',
+    'DELETE_COMPLETE',
+)
 
 
 class Archiver:
@@ -1257,12 +1276,77 @@ class MagnumArchiver(Archiver):
         self.project = project
         self.m_client = auth.get_magnum_client(ks_session)
 
-    def is_delete_successful(self):
-        clusters = [
+    @functools.cached_property
+    def capi_client(self):
+        # Only needed when a CAPI cluster has to be (un)paused, so build it
+        # lazily rather than requiring [capi_client] config for every
+        # project that has the magnum archiver enabled.
+        return auth.get_capi_client()
+
+    def _project_clusters(self):
+        # TODO(ade): needs fixing since it's a generator of all clusters
+        return [
             c
             for c in self.m_client.clusters.list(detail=True)
             if c.project_id == self.project.id
         ]
+
+    def _set_cluster_paused(self, cluster, paused):
+        if magnum.get_cluster_driver(cluster) != magnum.Driver.CAPI:
+            return
+        if cluster.status in CAPI_PAUSE_SKIP_STATUSES:
+            return
+
+        namespace = magnum.capi_cluster_namespace(cluster)
+        name = cluster.stack_id
+
+        if self.dry_run:
+            LOG.info(
+                "%s: Would set paused=%s on CAPI cluster %s/%s",
+                self.project.id,
+                paused,
+                namespace,
+                name,
+            )
+            return
+
+        LOG.info(
+            "%s: Setting paused=%s on CAPI cluster %s/%s",
+            self.project.id,
+            paused,
+            namespace,
+            name,
+        )
+        try:
+            self.capi_client.patch_namespaced_custom_object(
+                group=CAPI_GROUP,
+                version=CAPI_VERSION,
+                namespace=namespace,
+                plural=CAPI_PLURAL,
+                name=name,
+                body={'spec': {'paused': paused}},
+            )
+        except kube_api_exc as e:
+            if e.status == 404:
+                LOG.warning(
+                    "%s: CAPI cluster %s/%s not found, skipping",
+                    self.project.id,
+                    namespace,
+                    name,
+                )
+                return
+            raise
+
+    def stop_resources(self):
+        for cluster in self._project_clusters():
+            self._set_cluster_paused(cluster, True)
+
+    def enable_resources(self):
+        for cluster in self._project_clusters():
+            self._set_cluster_paused(cluster, False)
+
+    def is_delete_successful(self):
+        clusters = self._project_clusters()
         if not clusters:
             return True
         LOG.debug("%s: %d COE clusters remain", self.project.id, len(clusters))
@@ -1302,28 +1386,29 @@ class MagnumArchiver(Archiver):
         if not force:
             return
 
-        # TODO(ade): needs fixing since it's a generator of all clusters
-        clusters = self.m_client.clusters.list(detail=True)
-        for cluster in clusters:
-            if cluster.project_id == self.project.id:
-                if self.dry_run:
-                    LOG.info(
-                        "%s: Would delete COE cluster %s",
-                        self.project.id,
-                        cluster.uuid,
-                    )
-                else:
-                    LOG.info(
-                        "%s: Deleting COE cluster %s",
-                        self.project.id,
-                        cluster.uuid,
-                    )
-                    self.remove_resource(
-                        self.m_client.clusters.delete,
-                        self.m_client.clusters.get,
-                        cluster.uuid,
-                        magnum_exc.NotFound,
-                    )
+        for cluster in self._project_clusters():
+            if self.dry_run:
+                LOG.info(
+                    "%s: Would delete COE cluster %s",
+                    self.project.id,
+                    cluster.uuid,
+                )
+                continue
+            LOG.info(
+                "%s: Deleting COE cluster %s",
+                self.project.id,
+                cluster.uuid,
+            )
+            # A paused CAPI Cluster is never reconciled, including its
+            # deletion/finalizer handling, so unpause it first or the
+            # magnum delete below can leave it stuck.
+            self._set_cluster_paused(cluster, False)
+            self.remove_resource(
+                self.m_client.clusters.delete,
+                self.m_client.clusters.get,
+                cluster.uuid,
+                magnum_exc.NotFound,
+            )
 
 
 class ManilaArchiver(Archiver):
