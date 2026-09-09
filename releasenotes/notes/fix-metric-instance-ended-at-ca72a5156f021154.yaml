@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    The metric ``InstanceAuditor.ensure_instance_consistency`` check now
+    confirms with Nova before clearing a Gnocchi instance end time, and a
+    Gnocchi error on one resource no longer aborts the whole check.
+    Previously an instance that appeared in the Nova listing without a
+    ``terminated_at`` value but no longer existed in Nova made the audit
+    send ``ended_at: null`` to Gnocchi, which fails with a ``500`` error
+    and took down the whole weekly audits job on every run while the
+    resource stayed in that state.

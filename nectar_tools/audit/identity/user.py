@@ -1,8 +1,6 @@
 import logging
 import re
 
-import keystoneauth1
-
 from nectar_tools.audit.identity import base
 from nectar_tools import utils
 
@@ -21,14 +19,19 @@ class UserAuditor(base.IdentityAuditor):
         )
 
     def check_users_no_projects(self):
+        # One bulk role assignment listing instead of a keystone call
+        # per user; per-user calls take hours at our user count.
+        assignments = self.k_client.role_assignments.list()
+        users_with_roles = {
+            a.user['id'] for a in assignments if hasattr(a, 'user')
+        }
         for user in self.users:
             if not user.enabled:
                 # Disabled user a/c's with no roles are not noteworthy.
                 # For example, the procedure for closing a cores or
                 # site operator a/c is to remove all roles and disable.
                 continue
-            assignments = self.k_client.role_assignments.list(user=user)
-            if not assignments:
+            if user.id not in users_with_roles:
                 LOG.info("User %s has no roles assigned", user.name)
 
     def check_user_names(self):
@@ -43,14 +46,18 @@ class UserAuditor(base.IdentityAuditor):
                 )
 
     def check_default_project_id(self):
+        # One bulk project listing instead of a keystone call per user;
+        # per-user calls take hours at our user count.
+        projects = {
+            p.id: p for p in utils.list_resources(self.k_client.projects.list)
+        }
         for user in self.users:
             default_project_id = getattr(user, 'default_project_id', None)
             if not default_project_id:
                 LOG.info("User %s has no default_project_id", user.name)
                 continue
-            try:
-                project = self.k_client.projects.get(default_project_id)
-            except keystoneauth1.exceptions.http.NotFound:
+            project = projects.get(default_project_id)
+            if project is None:
                 LOG.warning(
                     "User %s default_project_id is a non-existent project",
                     user.name,
