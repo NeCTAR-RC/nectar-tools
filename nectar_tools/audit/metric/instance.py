@@ -187,10 +187,33 @@ class InstanceAuditor(base.ResourceAuditor):
                     updates['ended_at'] = str(end) + '.9'
                     LOG.debug('Deleted instance not set in gnocchi for %s', id)
                 elif g_end and not end:
-                    updates['ended_at'] = None
-                    LOG.debug(
-                        'Non-deleted instance deleted in gnocchi for %s', id
+                    # The nova listing can be stale or incomplete (e.g.
+                    # purged instances turn up with no terminated_at),
+                    # so confirm with nova before touching the end time.
+                    try:
+                        nova_instance = self.n_client.servers.get(id)
+                    except novaclient.exceptions.NotFound:
+                        LOG.warning(
+                            "%s: Ended in gnocchi but not found in nova", id
+                        )
+                        continue
+                    real_end = getattr(
+                        nova_instance, 'OS-SRV-USG:terminated_at'
                     )
+                    if real_end:
+                        real_end = parser.parse(real_end, ignoretz=True)
+                        if (
+                            abs((g_end - real_end).total_seconds())
+                            > MAX_TIME_DIFF
+                        ):
+                            updates['ended_at'] = str(real_end)
+                            LOG.debug('Updating gnocchi end time for %s', id)
+                    else:
+                        updates['ended_at'] = None
+                        LOG.debug(
+                            'Non-deleted instance deleted in gnocchi for %s',
+                            id,
+                        )
                 elif (
                     end
                     and g_end
@@ -242,3 +265,7 @@ class InstanceAuditor(base.ResourceAuditor):
                                 {'ended_at': updates['ended_at']},
                             ),
                         )
+                    except g_exceptions.ClientException as e:
+                        # One bad resource (e.g. gnocchi 500s on a null
+                        # ended_at) must not abort the whole check
+                        LOG.error("%s: Failed to update ended_at: %s", id, e)
