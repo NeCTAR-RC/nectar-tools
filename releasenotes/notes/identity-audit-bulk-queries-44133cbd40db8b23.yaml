@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    The identity audit now lists role assignments and projects in bulk
+    instead of making one Keystone call per user and per role. The
+    per-user calls made ``nectar-identity-audit`` run for many hours,
+    which starved the rest of the weekly report audits of their shared
+    job deadline.
