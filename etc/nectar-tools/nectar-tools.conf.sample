@@ -774,3 +774,16 @@
 
 # Trove service project ID (string value)
 #project_id = <None>
+
+# Base URL of the management API of the RabbitMQ broker that trove and its guest
+# agents use, e.g. https://rabbit.example.com:15671 (string value)
+#rabbitmq_url = <None>
+
+# RabbitMQ management API username (string value)
+#rabbitmq_username = <None>
+
+# RabbitMQ management API password (string value)
+#rabbitmq_password = <None>
+
+# RabbitMQ virtual host holding the trove RPC queues (string value)
+#rabbitmq_vhost = trove

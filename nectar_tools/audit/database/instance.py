@@ -1,4 +1,5 @@
 import logging
+import re
 
 from novaclient import exceptions as n_exc
 from troveclient.apiclient import exceptions as t_exc
@@ -6,10 +7,31 @@ from troveclient.apiclient import exceptions as t_exc
 from nectar_tools.audit import base
 from nectar_tools import auth
 from nectar_tools import config
+from nectar_tools import exceptions
 
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
+
+# The trove guest agent runs an RPC server on the topic
+# guestagent.<instance_id> with the instance ID as its host, so
+# oslo.messaging declares these queues for it:
+#   guestagent.<instance_id>
+#   guestagent.<instance_id>.<instance_id>
+#   guestagent.<instance_id>_fanout_<random hex>
+UUID_RE = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+GUESTAGENT_QUEUE_RE = re.compile(
+    rf'^guestagent\.(?P<instance_id>{UUID_RE})(?:\.|_fanout_|$)'
+)
+
+
+def guestagent_queue_instance_id(name):
+    """Return the ID of the instance a guestagent queue belongs to
+
+    Returns None for queues that aren't guest agent RPC queues.
+    """
+    match = GUESTAGENT_QUEUE_RE.match(name)
+    return match.group('instance_id') if match else None
 
 
 class DatabaseInstanceAuditor(base.Auditor):
@@ -142,6 +164,58 @@ class DatabaseInstanceAuditor(base.Auditor):
                         v.id,
                         id,
                     )
+
+    def clean_stale_guestagent_queues(self):
+        """Delete RabbitMQ queues left behind by deleted database instances
+
+        The guest agent's RPC queues are declared without auto-delete so
+        they stay on the broker after the instance and its guest are gone.
+        """
+        rabbit = auth.get_trove_rabbitmq_client()
+        vhost = CONF.trove.rabbitmq_vhost
+
+        # List the queues before the instances so an instance created in
+        # between is never mistaken for a deleted one.
+        queues = rabbit.list_queues(
+            vhost, columns=['name', 'consumers', 'messages']
+        )
+        ids = set(i.id for i in self.t_client.mgmt_instances.list())
+
+        for queue in queues:
+            name = queue['name']
+            instance_id = guestagent_queue_instance_id(name)
+            if instance_id is None:
+                LOG.debug("Skipping non guestagent queue %s", name)
+                continue
+            if instance_id in ids:
+                continue
+            if queue.get('consumers'):
+                # Something is still connected, deleting the queue would
+                # only have the consumer redeclare it
+                LOG.warning(
+                    "Queue %s has %s consumer(s) but instance %s "
+                    "doesn't exist",
+                    name,
+                    queue['consumers'],
+                    instance_id,
+                )
+                continue
+            try:
+                self.repair(
+                    f"Delete queue {name} for deleted instance {instance_id}",
+                    rabbit.delete_queue,
+                    vhost=vhost,
+                    name=name,
+                    if_unused=True,
+                )
+            except exceptions.LimitReached:
+                raise
+            except Exception:
+                LOG.exception(
+                    "Failed to delete queue %s, for instance %s",
+                    name,
+                    instance_id,
+                )
 
     def check_running_with_deleted_project(self):
         for inst in self.t_client.mgmt_instances.list():

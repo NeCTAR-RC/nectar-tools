@@ -26,6 +26,7 @@ from troveclient import client as troveclient
 from varroaclient import client as varroaclient
 from warreclient import client as warreclient
 
+from nectar_tools.common import rabbitmq
 from nectar_tools import config
 from nectar_tools import exceptions
 
@@ -240,4 +241,19 @@ def get_capi_client():
     """Client for custom resources in the CAPI management cluster"""
     return kube_client.CustomObjectsApi(
         _get_kube_api_client('capi_client', 'CAPI')
+    )
+
+
+def get_trove_rabbitmq_client():
+    """Management API client for the RabbitMQ broker used by trove"""
+    opts = CONF.trove
+    if not all(
+        [opts.rabbitmq_url, opts.rabbitmq_username, opts.rabbitmq_password]
+    ):
+        raise exceptions.ConfigError(
+            'trove rabbitmq_url, rabbitmq_username and rabbitmq_password '
+            'must be set in the config file'
+        )
+    return rabbitmq.ManagementClient(
+        opts.rabbitmq_url, opts.rabbitmq_username, opts.rabbitmq_password
     )

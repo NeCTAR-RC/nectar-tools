@@ -1,0 +1,14 @@
+---
+features:
+  - |
+    ``nectar-database-audit`` has a new ``clean_stale_guestagent_queues``
+    check that deletes the RPC queues deleted database instances leave
+    behind in the trove RabbitMQ vhost. The trove guest agent consumes
+    from ``guestagent.<instance id>`` queues that oslo.messaging declares
+    without auto-delete, so they accumulate on the broker as instances
+    are deleted. Queues that still have a consumer connected are reported
+    but left alone. The broker's management API is configured with the
+    new ``rabbitmq_url``, ``rabbitmq_username``, ``rabbitmq_password`` and
+    ``rabbitmq_vhost`` options in the ``[trove]`` section; the check
+    fails with a configuration error when they are not set and the other
+    database checks are unaffected.

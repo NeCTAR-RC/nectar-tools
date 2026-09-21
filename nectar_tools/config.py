@@ -98,6 +98,26 @@ capi_opts = [
 
 trove_opts = [
     cfg.StrOpt('project_id', help='Trove service project ID'),
+    cfg.StrOpt(
+        'rabbitmq_url',
+        help='Base URL of the management API of the RabbitMQ broker that '
+        'trove and its guest agents use, e.g. '
+        'https://rabbit.example.com:15671',
+    ),
+    cfg.StrOpt(
+        'rabbitmq_username',
+        help='RabbitMQ management API username',
+    ),
+    cfg.StrOpt(
+        'rabbitmq_password',
+        secret=True,
+        help='RabbitMQ management API password',
+    ),
+    cfg.StrOpt(
+        'rabbitmq_vhost',
+        default='trove',
+        help='RabbitMQ virtual host holding the trove RPC queues',
+    ),
 ]
 
 octavia_opts = [
