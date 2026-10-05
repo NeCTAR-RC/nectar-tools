@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    The ``clean_stale_guestagent_queues`` check of ``nectar-database-audit``
+    no longer passes the ``if-unused`` flag when deleting a queue. Quorum
+    queues, the default queue type since RabbitMQ 4, reject queue.delete
+    with that flag set, so every delete failed with ``400 Bad Request``
+    once the trove broker was upgraded. The check already skips queues
+    that still have a consumer, which is the only guard it needs.
