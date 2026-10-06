@@ -92,20 +92,13 @@ class CleanStaleGuestagentQueuesTests(test.TestCase):
         )
         self.assertEqual(
             [
+                mock.call(vhost='trove', name=f'guestagent.{GONE_ID}'),
                 mock.call(
-                    vhost='trove',
-                    name=f'guestagent.{GONE_ID}',
-                    if_unused=True,
-                ),
-                mock.call(
-                    vhost='trove',
-                    name=f'guestagent.{GONE_ID}.{GONE_ID}',
-                    if_unused=True,
+                    vhost='trove', name=f'guestagent.{GONE_ID}.{GONE_ID}'
                 ),
                 mock.call(
                     vhost='trove',
                     name=f'guestagent.{GONE_ID}_fanout_fedcba9876543210',
-                    if_unused=True,
                 ),
             ],
             self.rabbit.delete_queue.call_args_list,
@@ -124,7 +117,7 @@ class CleanStaleGuestagentQueuesTests(test.TestCase):
             '/', columns=['name', 'consumers', 'messages']
         )
         self.rabbit.delete_queue.assert_called_once_with(
-            vhost='/', name=f'guestagent.{GONE_ID}', if_unused=True
+            vhost='/', name=f'guestagent.{GONE_ID}'
         )
 
     def test_ignores_other_queues(self):

@@ -191,7 +191,11 @@ class DatabaseInstanceAuditor(base.Auditor):
                 continue
             if queue.get('consumers'):
                 # Something is still connected, deleting the queue would
-                # only have the consumer redeclare it
+                # only have the consumer redeclare it. This check is the
+                # only guard: the broker's if-unused flag isn't supported
+                # on quorum queues. A consumer that connects between the
+                # listing and the delete just redeclares the queue, so
+                # the race is harmless.
                 LOG.warning(
                     "Queue %s has %s consumer(s) but instance %s "
                     "doesn't exist",
@@ -206,7 +210,6 @@ class DatabaseInstanceAuditor(base.Auditor):
                     rabbit.delete_queue,
                     vhost=vhost,
                     name=name,
-                    if_unused=True,
                 )
             except exceptions.LimitReached:
                 raise

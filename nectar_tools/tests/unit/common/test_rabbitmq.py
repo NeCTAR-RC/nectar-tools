@@ -50,32 +50,20 @@ class ManagementClientTests(test.TestCase):
         self.assertRaises(requests.HTTPError, self.client.list_queues, 'trove')
 
     def test_delete_queue(self):
-        self.client.delete_queue('trove', 'guestagent.abc', if_unused=True)
+        self.client.delete_queue('trove', 'guestagent.abc')
 
         self.session.delete.assert_called_once_with(
             'https://rabbit:15671/api/queues/trove/guestagent.abc',
-            params={'if-unused': 'true'},
             timeout=60,
         )
         delete_response = self.session.delete.return_value
         delete_response.raise_for_status.assert_called_once()
 
-    def test_delete_queue_if_empty(self):
-        self.client.delete_queue('trove', 'q', if_empty=True)
-
-        self.session.delete.assert_called_once_with(
-            'https://rabbit:15671/api/queues/trove/q',
-            params={'if-empty': 'true'},
-            timeout=60,
-        )
-
     def test_delete_queue_encodes_name(self):
         self.client.delete_queue('/', 'a/b c')
 
         self.session.delete.assert_called_once_with(
-            'https://rabbit:15671/api/queues/%2F/a%2Fb%20c',
-            params={},
-            timeout=60,
+            'https://rabbit:15671/api/queues/%2F/a%2Fb%20c', timeout=60
         )
 
     def test_delete_queue_already_gone(self):

@@ -41,22 +41,18 @@ class ManagementClient:
         response.raise_for_status()
         return response.json()
 
-    def delete_queue(self, vhost, name, if_unused=False, if_empty=False):
+    def delete_queue(self, vhost, name):
         """Delete a queue.
 
-        With ``if_unused`` or ``if_empty`` the broker refuses to delete a
-        queue that has consumers or messages respectively. A queue that
-        no longer exists is not an error.
+        A queue that no longer exists is not an error.
+
+        The API's ``if-unused`` and ``if-empty`` guards are deliberately
+        not exposed: quorum queues (the default from RabbitMQ 4) reject
+        queue.delete with either flag set with a 400 Bad Request, so
+        callers have to check consumers and messages themselves.
         """
-        params = {}
-        if if_unused:
-            params['if-unused'] = 'true'
-        if if_empty:
-            params['if-empty'] = 'true'
         response = self.session.delete(
-            self._url('queues', vhost, name),
-            params=params,
-            timeout=self.timeout,
+            self._url('queues', vhost, name), timeout=self.timeout
         )
         if response.status_code == 404:
             LOG.debug("Queue %s in vhost %s already gone", name, vhost)
