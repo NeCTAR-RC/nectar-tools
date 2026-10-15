@@ -1,0 +1,100 @@
+{% extends 'base.tmpl' %}
+
+{% block pre %}
+<b>Scheduled maintenance: Nectar Database service upgrade</b>
+<br/>
+<br/>
+We are upgrading the Nectar Database service (OpenStack Trove) to a new
+release. This maintenance requires an outage of the Database service API and
+a short outage of every database instance, including the instance listed
+below.
+{% endblock %}
+
+{% block release_notes %}
+{% endblock %}
+
+{% block upgrade %}
+{% if database.hostname %}
+Hostname: <b>{{ database.hostname }}</b>
+<br/>
+{% endif %}
+{% if database.ip %}
+Current IP address: <b>{{ database.ip | join(', ') }}</b>
+<br/>
+{% endif %}
+<br/>
+<b>When</b>
+<br/>
+The maintenance window starts at <b>{{ start }}</b> and ends at
+<b>{{ end }}</b>.
+<br/>
+<br/>
+<b>What will happen</b>
+<ul>
+  <li>
+    <b>Database service API outage (about 1 day):</b> for the whole
+    maintenance window you will not be able to create, modify, resize, back
+    up or delete database instances through the Nectar Research Cloud
+    dashboard or the OpenStack CLI. Running instances will keep serving
+    connections until we migrate them.
+  </li>
+  <li>
+    <b>Database instance outage (about 1 hour):</b> as part of the upgrade we
+    will back up each database instance and recreate it from that
+    <a href="https://tutorials.rc.nectar.org.au/database/04-database-backups">backup</a>.
+    Your instance will be unavailable while this happens. For most instances
+    the outage will be about 1 hour, depending on how long the backup takes.
+    Larger databases will be unavailable for longer.
+  </li>
+</ul>
+{% if used != "Unknown" %}
+<b>Your instance is currently using {{ used }}GB.</b>
+<br/>
+<br/>
+{% endif %}
+<b>New IP address, same hostname</b>
+<br/>
+Your recreated database instance will have a <b>new IP address</b>. We will
+update the existing DNS hostname for your instance to point to the new
+address, so connections that use the hostname will keep working without any
+change on your side.
+<br/>
+<br/>
+If any of your applications or scripts connect using the IP address instead
+of the hostname, please change them to use the hostname before the maintenance
+window. Connections to the old IP address will stop working once your
+instance has been recreated.
+<br/>
+<br/>
+<b>What you need to do</b>
+<br/>
+You do not need to do anything for the upgrade itself. We will back up and
+recreate your instance for you and restore your data from the
+<a href="https://tutorials.rc.nectar.org.au/database/04-database-backups">backup</a>.
+Before the maintenance window, we ask that you:
+<ul>
+  <li>
+    Check that your applications connect using the hostname
+    {% if database.hostname %}<b>{{ database.hostname }}</b>{% endif %}
+    rather than the IP address, and update them if needed.
+  </li>
+  <li>
+    Check that your applications reconnect automatically after a database
+    outage, or plan to restart them after the maintenance window.
+  </li>
+  <li>
+    <a href="https://tutorials.rc.nectar.org.au/database/04-database-backups">Create
+    your own backup</a> of your database instance as a precaution. You can
+    find more information in the Nectar Database service support
+    documentation at
+    https://support.ehelp.edu.au/support/solutions/articles/6000178670
+  </li>
+  <li>
+    Avoid scheduling jobs that depend on your database during the
+    maintenance window.
+  </li>
+</ul>
+We apologise for any inconvenience this maintenance may cause.
+<br/>
+<br/>
+{% endblock %}
