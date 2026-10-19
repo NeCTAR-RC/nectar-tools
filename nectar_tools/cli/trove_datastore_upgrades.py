@@ -14,6 +14,9 @@ from nectar_tools import utils
 
 CONF = config.CONF
 
+ACTIONS = ['report', 'notify', 'upgrade', 'announce']
+DEFAULT_SUBJECT = "Nectar Research Cloud Database Service"
+
 
 class ActionError(Exception):
     pass
@@ -40,18 +43,24 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             resource_type='database',
             resource=None,
             template_dir='databases',
-            subject="Nectar Research Cloud Database Service",
+            subject=self.args.subject or DEFAULT_SUBJECT,
             dry_run=not self.args.no_dry_run,
         )
         self.limit = self.args.limit
         self.action = self.args.action.lower()
-        if self.action not in ['notify', 'upgrade', 'report']:
-            print("Acion not valid, choices upgrade,notify")
+        if self.action not in ACTIONS:
+            print(f"Action not valid, choices {','.join(ACTIONS)}")
             sys.exit(1)
-        if self.action == 'notify':
+        if self.action in ['notify', 'announce']:
             if not self.args.start or not self.args.end:
-                print("--start and --end are required with notify")
+                print(f"--start and --end are required with {self.action}")
                 sys.exit(1)
+        self.template = None
+        if self.args.template:
+            self.template = self.args.template.removesuffix('.tmpl')
+        if self.action == 'announce' and not self.template:
+            print("--template is required with announce")
+            sys.exit(1)
 
     def add_args(self):
         """Handle command-line options"""
@@ -77,7 +86,22 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             help='Only act on certain datastore versions',
         )
         self.parser.add_argument(
-            '--action', default='report', help='Action to perform'
+            '--action',
+            default='report',
+            help='Action to perform: report (default), notify, upgrade or '
+            'announce. report, notify and upgrade only act on instances '
+            'running an outdated datastore version. announce sends '
+            '--template to every instance.',
+        )
+        self.parser.add_argument(
+            '--template',
+            help='Name of the template in templates/databases to send, '
+            'without the .tmpl suffix. Required with announce; with '
+            'notify it overrides the per-datastore warning template.',
+        )
+        self.parser.add_argument(
+            '--subject',
+            help=f'Email subject (default: "{DEFAULT_SUBJECT}")',
         )
         self.parser.add_argument(
             '-l',
@@ -110,6 +134,19 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
                 self.args.datastore_version_regex, ds_version
             ):
                 continue
+            if self.action == 'announce':
+                if self.limit and count >= self.limit:
+                    print("Limit reached")
+                    break
+                ds_latest_version = self.t_client.datastore_versions.get(
+                    ds_type, default_datastores[ds_type]
+                )
+                print(
+                    f"Announcing to {inst.id} running {ds_type} {ds_version}"
+                )
+                if self.notify(inst, ds_type, ds_version, ds_latest_version):
+                    count += 1
+                continue
             datastore_version = self.t_client.datastore_versions.get(
                 ds_type, ds_version
             )
@@ -126,7 +163,10 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
                     f"running {ds_type} {ds_version}. Used space={used}GB"
                 )
                 if self.action == 'notify':
-                    self.notify(inst, ds_type, ds_version, ds_latest_version)
+                    if self.notify(
+                        inst, ds_type, ds_version, ds_latest_version
+                    ):
+                        count += 1
                 elif self.action == 'upgrade':
                     try:
                         self.upgrade(inst, ds_latest_version)
@@ -141,11 +181,20 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
                         count += 1
 
     def notify(self, inst, ds_type, ds_version, ds_latest_version):
+        """Send the instance's project a notification email.
+
+        Uses --template when given, otherwise the per-datastore
+        warning template. Returns True when a message was sent (or
+        would be sent in dry-run mode) and False when the project has
+        nobody to send it to.
+        """
         self.notifier.resource = inst
         used = inst.volume.get('used', 'Unknown')
-        stage = 'warning-{}-{}'.format(
-            ds_type.lower(), ds_version.split('-')[0]
-        )
+        stage = self.template
+        if not stage:
+            stage = 'warning-{}-{}'.format(
+                ds_type.lower(), ds_version.split('-')[0]
+            )
         project = self.k_client.projects.get(inst.tenant_id)
         context = {
             'datastore_latest_version': ds_latest_version,
@@ -156,10 +205,17 @@ class TroveDatastoreUpgradesCmd(cmd_base.CmdBase):
             'dashboard_url': CONF.dashboard.url,
         }
         recipient, cc = utils.get_project_recipients(self.k_client, project)
+        if not recipient:
+            print(
+                f"Instance {inst.id}: project {project.id} has no "
+                "recipients, skipping"
+            )
+            return False
         message = self.notifier.send_message(
             stage, recipient, extra_recipients=cc, extra_context=context
         )
         print(message)
+        return True
 
     def upgrade(self, inst, ds_latest_version):
         if inst.datastore.get('type').lower() == 'postgresql':

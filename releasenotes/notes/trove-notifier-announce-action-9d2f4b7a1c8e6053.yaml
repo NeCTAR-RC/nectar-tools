@@ -1,0 +1,20 @@
+---
+features:
+  - |
+    ``nectar-trove-upgrade-notifier`` has a new ``announce`` action that
+    sends the template named by the new ``--template`` option to every
+    database instance, not only those running an outdated datastore
+    version, so service-wide notices such as the Trove upgrade
+    maintenance email can reach all database users. ``--template`` also
+    works with ``notify`` to override the per-datastore warning
+    template, and the new ``--subject`` option overrides the email
+    subject. The existing ``--instance``, ``--datastore``,
+    ``--datastore-version-regex`` and ``--limit`` options apply to
+    ``announce`` as they do to the other actions.
+fixes:
+  - |
+    ``nectar-trove-upgrade-notifier --action notify`` now honours
+    ``--limit``; previously only ``upgrade`` counted the instances it
+    processed. Instances whose project has nobody to email are now
+    reported and skipped rather than passed to the notifier with no
+    recipient.
