@@ -3,9 +3,9 @@ features:
   - |
     A new ``trove-upgrade-maintenance`` database notification template
     announces the Trove upgrade in which every database instance is
-    backed up and recreated. It describes the one day Database service
-    API outage, the per-instance outage of about one hour (longer for
-    large databases), the new IP address each recreated instance gets,
+    backed up and recreated. It describes the short Database service API
+    outage, the per-instance outage of about one hour (longer for large
+    databases), the new IP address each recreated instance gets,
     and the DNS hostname that is updated so users who connect by
     hostname need no change. It uses the ``start``, ``end`` and ``used``
     context the trove upgrade notifier already provides and links every

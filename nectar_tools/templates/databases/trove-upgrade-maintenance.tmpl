@@ -5,9 +5,9 @@
 <br/>
 <br/>
 We are upgrading the Nectar Database service (OpenStack Trove) to a new
-release. This maintenance requires an outage of the Database service API and
-a short outage of every database instance, including the instance listed
-below.
+release. This maintenance requires a short outage of the Database service
+API and a short outage of every database instance, including the instance
+listed below.
 {% endblock %}
 
 {% block release_notes %}
@@ -32,19 +32,20 @@ The maintenance window starts at <b>{{ start }}</b> and ends at
 <b>What will happen</b>
 <ul>
   <li>
-    <b>Database service API outage (about 1 day):</b> for the whole
-    maintenance window you will not be able to create, modify, resize, back
-    up or delete database instances through the Nectar Research Cloud
-    dashboard or the OpenStack CLI. Running instances will keep serving
-    connections until we migrate them.
+    <b>Database service API outage (about 1 hour):</b> for about 1 hour
+    during the maintenance window you will not be able to create, modify,
+    resize, back up or delete database instances through the Nectar Research
+    Cloud dashboard or the OpenStack CLI. Running instances will keep serving
+    connections while the API is unavailable.
   </li>
   <li>
     <b>Database instance outage (about 1 hour):</b> as part of the upgrade we
     will back up each database instance and recreate it from that
     <a href="https://tutorials.rc.nectar.org.au/database/04-database-backups">backup</a>.
-    Your instance will be unavailable while this happens. For most instances
-    the outage will be about 1 hour, depending on how long the backup takes.
-    Larger databases will be unavailable for longer.
+    Your instance will be unavailable while this happens, at some point
+    within the maintenance window. For most instances the outage will be
+    about 1 hour, depending on how long the backup takes. Larger databases
+    will be unavailable for longer.
   </li>
 </ul>
 {% if used != "Unknown" %}
