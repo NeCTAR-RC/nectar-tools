@@ -185,7 +185,7 @@ class ClusterAuditor(base.Auditor):
 
     def _create_security_risk(self, risk_type, cluster):
         sr_type = self._get_or_create_risk_type(risk_type)
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         expires = now + datetime.timedelta(days=EOL_RISK_EXPIRY_DAYS)
         time_format = '%Y-%m-%dT%H:%M:%S%z'
         self.varroa_client.security_risks.create(
