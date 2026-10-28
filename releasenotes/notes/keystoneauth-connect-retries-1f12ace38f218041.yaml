@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    The keystoneauth session returned by ``nectar_tools.auth.get_session``
+    now retries requests that fail to connect up to 3 times before
+    raising, so a transient connection error or DNS failure no longer
+    aborts a tool run. This applies to both the ``[service_auth]``
+    config path and the ``OS_*`` environment / ``clouds.yaml``
+    fallback, and so to every OpenStack client built on that session.

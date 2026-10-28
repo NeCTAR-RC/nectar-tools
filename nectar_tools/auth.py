@@ -1,3 +1,4 @@
+import functools
 import logging
 import os
 
@@ -9,6 +10,7 @@ import glanceclient
 from gnocchiclient import client as gnocchiclient
 from heatclient import client as heatclient
 from keystoneauth1 import loading as ks_loading
+from keystoneauth1 import session as ks_session
 from keystoneclient.v3 import client
 from kubernetes import client as kube_client
 from magnumclient import client as magnumclient
@@ -17,7 +19,7 @@ from manukaclient import client as manukaclient
 from muranoclient import client as muranoclient
 from nectarallocationclient import client as allocationclient
 from novaclient import client as novaclient
-import openstack
+from openstack import config as sdkconfig
 from openstack import connection as sdkconnection
 from placementclient import client as placementclient
 from swiftclient import client as swiftclient
@@ -35,6 +37,11 @@ CONF = config.CONF
 
 LOG = logging.getLogger(__name__)
 
+# Number of times the keystoneauth session retries a request that
+# fails to connect (connection refused, DNS failure, read timeout)
+# before raising. Applies to every client built on get_session().
+CONNECT_RETRIES = 3
+
 
 def get_session(system_scope=None):
     """Return a keystoneauth session.
@@ -42,6 +49,9 @@ def get_session(system_scope=None):
     Uses the [service_auth] config section when auth_type is set
     there, otherwise falls back to OS_* environment variables or
     clouds.yaml via openstacksdk.
+
+    Either way the session retries connection failures up to
+    CONNECT_RETRIES times.
 
     :param system_scope: set to 'all' for a system scoped session
                          instead of the configured project scope.
@@ -61,11 +71,22 @@ def get_session(system_scope=None):
             CONF, config.SERVICE_AUTH_GROUP, **kwargs
         )
         return ks_loading.load_session_from_conf_options(
-            CONF, config.SERVICE_AUTH_GROUP, auth=auth
+            CONF,
+            config.SERVICE_AUTH_GROUP,
+            auth=auth,
+            connect_retries=CONNECT_RETRIES,
         )
     kwargs = {'system_scope': system_scope} if system_scope else {}
-    conn = openstack.connect(**kwargs)
-    return conn.session
+    # openstack.connect() gives no way to set connect_retries on the
+    # keystoneauth session it builds (only on its own adapters), so
+    # build the cloud config ourselves with a session constructor
+    # that has the retries baked in.
+    cloud_config = sdkconfig.OpenStackConfig(
+        session_constructor=functools.partial(
+            ks_session.Session, connect_retries=CONNECT_RETRIES
+        )
+    )
+    return cloud_config.get_one(**kwargs).get_session()
 
 
 def get_keystone_client(sess=None):
