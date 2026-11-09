@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    The identity audit's deleted-project check
+    (``ProjectAuditor.check_deleted_no_instances``) now lists nova
+    instances once for the whole cloud instead of once per deleted
+    project. With about 40,000 deleted projects the old loop took over
+    13 hours and the weekly ``report-audits`` job never got past it;
+    the check now finishes in minutes and reports the same projects.
