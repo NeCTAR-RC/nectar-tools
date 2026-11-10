@@ -71,6 +71,7 @@ class TestClusterAuditorK8sEOL(test.TestCase):
             project_id='project-id',
             resource_id='cluster-uuid',
             resource_type='cluster',
+            notify=True,
         )
 
     def test_nearing_eol_creates_risk(self):
@@ -95,6 +96,7 @@ class TestClusterAuditorK8sEOL(test.TestCase):
             project_id='project-id',
             resource_id='cluster-uuid',
             resource_type='cluster',
+            notify=True,
         )
 
     def test_dry_run_creates_nothing(self):

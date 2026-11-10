@@ -195,6 +195,7 @@ class ClusterAuditor(base.Auditor):
             project_id=cluster.project_id,
             resource_id=cluster.uuid,
             resource_type='cluster',
+            notify=True,
         )
 
     def check_status(self):
