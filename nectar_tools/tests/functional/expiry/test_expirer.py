@@ -381,6 +381,7 @@ class PTExpiryTests(test.TestCase):
         neutron_calls = [
             mock.call.update_quota(
                 self.project.id,
+                force=True,
                 port=0,
                 security_group=0,
                 security_group_rule=10,

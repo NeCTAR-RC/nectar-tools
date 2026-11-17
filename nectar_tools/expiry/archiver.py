@@ -825,6 +825,10 @@ class NeutronBasicArchiver(Archiver):
         if not self.dry_run:
             self.ne_client.update_quota(
                 self.project.id,
+                # Neutron (quota-check-limit-default) refuses a limit
+                # below current usage unless forced, and every project
+                # has at least its default security group.
+                force=True,
                 port=0,
                 security_group=0,
                 # Note: if we set the 'security_group_rule' quota

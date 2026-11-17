@@ -768,6 +768,7 @@ class NeutronBasicArchiverTests(test.TestCase):
             na.zero_quota()
             mock_neutron.update_quota.assert_called_with(
                 PROJECT.id,
+                force=True,
                 port=0,
                 security_group=0,
                 security_group_rule=10,
